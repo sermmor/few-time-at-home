@@ -1,0 +1,29 @@
+{
+  "name": "rss-link-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot in NodeJS for get n number of links of a rss.",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx tsc && cpy networks.json build && cpy video/finished.mp4 build && cpy video/start.mp4 build && node build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sermmor/rss-link-telegram-bot.git"
+  },
+  "keywords": [],
+  "author": "Sergio Martín",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sermmor/rss-link-telegram-bot/issues"
+  },
+  "homepage": "https://github.com/sermmor/rss-link-telegram-bot#readme",
+  "devDependencies": {
+    "@types/node": "^13.13.5",
+    "cpy-cli": "^3.1.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@extractus/feed-extractor": "^6.2.1",
+    "telegraf": "^3.38.0"
+  }
+}
