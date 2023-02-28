@@ -20,7 +20,7 @@ In root folder, create a file `networks.json` and put the following content for 
 
 About Telegram *telegram_bot_token*, it is a token that you can have creating your Telegram bot app using the BotFather. You can see a tutorial about [create bot with BotFather in the official Telegram documentation](https://core.telegram.org/bots#6-botfather).
 
-About *bot_tuit_command* and *bot_list_command*, you can put the command that you want to send from Telegram client to your bot for getting the TL or list links.
+About *bot_tuit_command*, you can put the command that you want to send from Telegram client to your bot for getting the TL or list links.
 
 So, the final folder structure will be the following:
 
