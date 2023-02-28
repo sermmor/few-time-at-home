@@ -1,6 +1,6 @@
 import { extract, ReaderOptions } from "@extractus/feed-extractor";
 import { NitterRSSMessage } from "./nitterRSSData";
-import { parseFromNitterDateStringToDateObject } from "./utils";
+import { checkUntilConditionIsTrue, parseFromNitterDateStringToDateObject } from "./utils";
 
 export class NitterRSSMessageList {
     private urlProfiles: string[];
@@ -22,17 +22,12 @@ export class NitterRSSMessageList {
         this.allMessages = [];
 
         return new Promise<NitterRSSMessageList>(resolve => {
-            // url example: `/redunecontacto/rss` 
-            this.urlProfiles.forEach((url, index) => setTimeout(() => this.updateRSS(url).then((currentMessages: NitterRSSMessage[]) => {
-                messagesWaiting--;
-                messagesToConcat.push(currentMessages);
-                if (messagesWaiting <= 0) {
-                    this.allMessages = messagesToConcat
-                        .reduce((previous, current) => previous.concat(current))
-                        .sort((messageA, messageB) => messageA.date > messageB.date ? 1 : -1);
-                    resolve(this);
-                }
-            }), index * 100)); // 0.1 seconds of delay.
+            this.updateRSSListOneByOne(messagesToConcat, messagesWaiting);
+            checkUntilConditionIsTrue(
+                () => this.allMessages.length > 0,
+                () => resolve(this),
+                1000
+            );
         });
     }
 
@@ -42,6 +37,21 @@ export class NitterRSSMessageList {
         ${message.originalLink}`
     );
 
+    private updateRSSListOneByOne = (messagesToConcat: NitterRSSMessage[][], messagesWaiting: number) => {
+        if (messagesWaiting > 0) {
+            // url example: `/redunecontacto/rss` 
+            const url = this.urlProfiles[messagesWaiting - 1];
+            this.updateRSS(url).then((currentMessages: NitterRSSMessage[]) => {
+                messagesToConcat.push(currentMessages);
+                this.updateRSSListOneByOne(messagesToConcat, messagesWaiting - 1);
+            });
+        } else {
+            this.allMessages = messagesToConcat
+                .reduce((previous, current) => previous.concat(current))
+                .sort((messageA, messageB) => messageA.date > messageB.date ? 1 : -1);
+        }
+    }
+
     private updateRSS = (endpoint: string, nitterUrlIndex: number = 0, currentTry = 4): Promise<NitterRSSMessage[]> => {
         return new Promise<NitterRSSMessage[]>(resolve =>
             extract(`${this.nitterInstancesList[nitterUrlIndex]}${endpoint}`, this.rssOptions).then((data) => {
@@ -50,6 +60,7 @@ export class NitterRSSMessageList {
                         this.mapRSSNitterPostsToMessages(data), this.nitterInstancesList[nitterUrlIndex]
                     )
                 );
+                console.log(`${this.nitterInstancesList[nitterUrlIndex]}${endpoint}  ${currentMessages.length}`);
                 resolve(currentMessages);
             }).catch(() => {
                 if (currentTry > 0) {

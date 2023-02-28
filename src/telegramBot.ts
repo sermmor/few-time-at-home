@@ -41,6 +41,7 @@ export class TelegramBot {
             bot.command(
                 `${telegramBotData.bot_tuit_command}${telegramNumberOfTweetsWithLinks}`,
                 (ctx: TelegrafContext) => {
+                    console.log("Doing");
                     actionToDoWhenCallCommand().then(messagesToSend => {
                         this.sendAllMessagesToTelegram(ctx, messagesToSend.slice(messagesToSend.length - telegramNumberOfTweetsWithLinks));
                     });
