@@ -2,8 +2,8 @@ import Telegraf from "telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
 import { extractTelegramData, TelegramData } from "./telegramData";
 
-const pathFinishedVideo = 'build/finished.mp4';
-const pathStartedVideo = 'build/start.mp4';
+// const pathFinishedVideo = 'build/finished.mp4';
+// const pathStartedVideo = 'build/start.mp4';
 const maxMessagesToSendToTelegram = 1000;
 
 export class TelegramBot {
@@ -25,13 +25,14 @@ export class TelegramBot {
 
     start(actionToDoWhenCallCommand: () => Promise<string[]>) {
         this.bot.start(ctx => {
-            ctx.replyWithVideo({ source: pathStartedVideo });
+            // ctx.replyWithVideo({ source: pathStartedVideo });
+            ctx.reply(`I'm here!! :D`);
         });
         this.buildBotCommand(this.bot, this.telegramBotData, actionToDoWhenCallCommand);
         this.bot.launch();    
     }
 
-    buildBotCommand = (
+    private buildBotCommand = (
         bot: Telegraf<TelegrafContext>,
         telegramBotData: TelegramData,
         actionToDoWhenCallCommand: () => Promise<string[]>,
@@ -50,7 +51,7 @@ export class TelegramBot {
         });
     };
 
-    sendAllMessagesToTelegram = (
+    private sendAllMessagesToTelegram = (
         ctx: TelegrafContext,
         messagesToSend: string[],
     ) => {
@@ -62,7 +63,7 @@ export class TelegramBot {
         });
         setTimeout(() => {
             ctx.reply(`FINISHED!!!`);
-            ctx.replyWithVideo({ source: pathFinishedVideo });
+            // ctx.replyWithVideo({ source: pathFinishedVideo });
         }, lastIndex * 1000);
     }
 }
