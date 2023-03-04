@@ -46,9 +46,7 @@ export const workerTest = () => {
     workerManager.gatherReceive().then(allMessages => {
         console.log('Hola soy el padre, aquí los datos de mi hijo 1: ', allMessages[0]);
         console.log('Hola soy el padre, aquí los datos de mi hijo 2: ', allMessages[1]);
-        // workerManager.exitAllChilds();
-        workerManager.exitChild(idWorker1);
-        workerManager.exitChild(idWorker2);
+        workerManager.exitAllChilds();
     });
 
     // TEST SCATTER

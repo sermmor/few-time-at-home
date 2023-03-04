@@ -11,21 +11,29 @@ export class WorkerManager {
 
         workerChildDataList.forEach((dataChild) => {
             this.childrenHandlerList.push(
-                new WorkerChildParentHandle(this.parentHandler, dataChild)
+                new WorkerChildParentHandle(this.parentHandler, dataChild, () => this.removeChildById(dataChild.id))
             );
         });
     }
 
+    private removeChildById = (id: string) => {
+        const childToExit = this.getChildParentHandlerById(id);
+        if (childToExit) {
+            const indexChild = this.childrenHandlerList.indexOf(childToExit);
+            this.childrenHandlerList.splice(indexChild, 1);
+        }
+    };
+
     createNewChild = (dataChild: WorkerChildParentHandleData) => {
         this.childrenHandlerList.push(
-            new WorkerChildParentHandle(this.parentHandler, dataChild)
+            new WorkerChildParentHandle(this.parentHandler, dataChild, () => this.removeChildById(dataChild.id))
         );
     };
 
-    getChildById = (id: string): WorkerChildParentHandle | undefined => this.childrenHandlerList.find(child => child.id === id);
+    getChildParentHandlerById = (id: string): WorkerChildParentHandle | undefined => this.childrenHandlerList.find(child => child.id === id);
 
     sendMessageToChild = (id: string, jsonData: any) => {
-        const childToSendMessage = this.getChildById(id);
+        const childToSendMessage = this.getChildParentHandlerById(id);
         if (childToSendMessage) {
             childToSendMessage.sendMessageToChild(jsonData);
         } else {
@@ -34,7 +42,7 @@ export class WorkerManager {
     };
     
     receiveMessageFromChildAsync = (id: string): Promise<any> => {
-        const childToReceiveMessage = this.getChildById(id);
+        const childToReceiveMessage = this.getChildParentHandlerById(id);
         if (childToReceiveMessage) {
             return childToReceiveMessage.receiveMessageFromChildAsync();
         } else {
@@ -77,11 +85,9 @@ export class WorkerManager {
     };
 
     exitChild = (id: string) => {
-        const childToExit = this.getChildById(id);
+        const childToExit = this.getChildParentHandlerById(id);
         if (childToExit) {
-            const indexChild = this.childrenHandlerList.indexOf(childToExit);
             childToExit.exit();
-            this.childrenHandlerList.splice(indexChild, 1);
         } else {
             console.error(`Child with id ${id} doesn't exist.`);
         }
@@ -89,6 +95,5 @@ export class WorkerManager {
 
     exitAllChilds = () => {
         this.childrenHandlerList.forEach(handler => handler.exit());
-        this.childrenHandlerList = [];
     }
 }

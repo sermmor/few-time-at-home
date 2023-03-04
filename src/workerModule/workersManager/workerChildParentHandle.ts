@@ -10,7 +10,7 @@ export class WorkerChildParentHandle {
     private idWorker: string;
     private childHandle: any;
 
-    constructor(parentHandler: any, childData: WorkerChildParentHandleData) {
+    constructor(parentHandler: any, childData: WorkerChildParentHandleData, onExit: () => void) {
         this.idWorker = childData.id;
         this.childHandle = new parentHandler.Worker(
             childData.workerScriptPath,
@@ -25,6 +25,7 @@ export class WorkerChildParentHandle {
         this.childHandle.on('exit', (exitCode: any) => {
             if (exitCode !== 0) console.error(`Worker stopped with exit code ${exitCode}`);
             if (childData.onExit) childData.onExit(exitCode);
+            onExit();
         });
     }
 
