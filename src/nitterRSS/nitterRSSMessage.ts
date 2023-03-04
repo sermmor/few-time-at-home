@@ -4,7 +4,7 @@ import { checkUntilConditionIsTrue, parseFromNitterDateStringToDateObject } from
 
 export class NitterRSSMessageList {
     private urlProfiles: string[];
-    private nitterInstancesList: string;
+    private nitterInstancesList: string[];
 
     constructor(
         userData: any,
@@ -17,12 +17,12 @@ export class NitterRSSMessageList {
     }
 
     updateRSSList(): Promise<NitterRSSMessageList> {
-        let messagesWaiting = this.urlProfiles.length;
+        let rssUrlWaiting = this.urlProfiles.length;
         let messagesToConcat: NitterRSSMessage[][] = [];
         this.allMessages = [];
 
         return new Promise<NitterRSSMessageList>(resolve => {
-            this.updateRSSListOneByOne(messagesToConcat, messagesWaiting);
+            this.updateRSSListOneByOne(messagesToConcat, rssUrlWaiting); // TODO: Change function name.
             checkUntilConditionIsTrue(
                 () => this.allMessages.length > 0,
                 () => resolve(this),
@@ -37,13 +37,14 @@ export class NitterRSSMessageList {
         ${message.originalLink}`
     );
 
-    private updateRSSListOneByOne = (messagesToConcat: NitterRSSMessage[][], messagesWaiting: number) => {
-        if (messagesWaiting > 0) {
+    private updateRSSListOneByOne = (messagesToConcat: NitterRSSMessage[][], rssUrlWaiting: number) => {
+        // TODO: Change this for a function that SCATTER urlProfiles between Web Workers, wait Web Workers done and pick up the results of the web workers.
+        if (rssUrlWaiting > 0) {
             // url example: `/redunecontacto/rss` 
-            const url = this.urlProfiles[messagesWaiting - 1];
+            const url = this.urlProfiles[rssUrlWaiting - 1];
             this.updateRSS(url).then((currentMessages: NitterRSSMessage[]) => {
                 messagesToConcat.push(currentMessages);
-                this.updateRSSListOneByOne(messagesToConcat, messagesWaiting - 1);
+                this.updateRSSListOneByOne(messagesToConcat, rssUrlWaiting - 1);
             });
         } else {
             this.allMessages = messagesToConcat

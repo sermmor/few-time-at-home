@@ -1,4 +1,11 @@
-const worker = require('node:worker_threads');
+import { WorkerChild } from "./workersManager/workerChild";
 
-console.log(`Hola soy el hijo ${worker.threadId}, aquí datos de mi padre: `, worker.workerData);
-worker.parentPort.postMessage({'datos': [1, {'hola': 'mundo'}], 'hijo número': worker.threadId});
+(function () {
+    const worker = new WorkerChild();
+
+    console.log(`Hola soy el hijo ${worker.threadId}, aquí datos de mi padre: `, worker.dataGettedFromParent);
+    worker.sendMessageToParent({'datos': [1, {'hola': 'mundo'}], 'hijo número': worker.threadId});
+    worker.receiveMessageFromParentAsync().then((e: any) => {
+        console.log('> Te he dicho que soy el hijo 2: ', e);
+    });
+})();
