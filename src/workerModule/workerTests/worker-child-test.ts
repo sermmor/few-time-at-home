@@ -5,27 +5,27 @@ import { WorkerChild } from "../workersManager/workerChild";
 
     console.log(`Hola soy el hijo ${worker.threadId}, aquí datos iniciales de mi padre: `, worker.dataGettedFromParent);
 
-    // TEST ENVIAR-HIJO/RECIBIR-PADRE NORMAL
+    // TEST SEND-CHILD/RECEIVE-PARENT NORMAL
     // worker.sendMessageToParent({'datos': [1, {'hola': 'mundo'}], 'hijo número': worker.threadId});
 
-    // TEST GATHER: INICIO
+    // TEST GATHER: START
     if (worker.threadId == 1) {
         worker.gatherSender({'datoAAAs111': [1, {'hola': 'mundo'}], 'hijo número': 1});
     } else if (worker.threadId == 2) {
         worker.gatherSender({'datoOOOs222': [222, {'h0l4': 'mund0'}], 'hijo número': 2});
     }
-    // TEST GATHER: FIN
+    // TEST GATHER: END
 
-    // TEST SCATTER: INICIO
+    // TEST SCATTER: START
     worker.scatterReceive().then(message => {
         console.log(`> Soy el hijo ${worker.threadId}, el mensaje que me ha enviado mi padre es: `, message);
     });
-    // TEST SCATTER: FIN
+    // TEST SCATTER: END
 
-    // TEST ENVIAR-PADRE/RECIBIR-HIJO NORMAL: INICIO
+    // TEST SEND-PADRE/RECEIVE-CHILD NORMAL: START
     // worker.receiveMessageFromParentAsync().then((e: any) => {
     //     console.log('> Te he dicho que soy el hijo 2: ', e);
     // });
-    // TEST ENVIAR-PADRE/RECIBIR-HIJO NORMAL: FIN
+    // TEST SEND-PADRE/RECEIVE-CHILD NORMAL: END
 })();
 

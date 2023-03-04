@@ -30,7 +30,7 @@ export const workerTest = () => {
         }
     ]);
 
-    // TEST ENVIAR-HIJO/RECIBIR-PADRE NORMAL: INICIO
+    // TEST SEND-CHILD/RECEIVE-PARENT NORMAL: START
     // workerManager.receiveMessageFromChildAsync(idWorker1).then((e: any) => {
     //     console.log('Hola soy el padre, aquí los datos de mi hijo 1: ', e);
     //     workerManager.exitChild(idWorker1);
@@ -40,7 +40,7 @@ export const workerTest = () => {
     //     console.log('Hola soy el padre, aquí los datos de mi hijo 2: ', e);
     //     workerManager.exitChild(idWorker2);
     // });
-    // TEST ENVIAR-HIJO/RECIBIR-PADRE NORMAL: FIN
+    // TEST SEND-CHILD/RECEIVE-PARENT NORMAL: END
 
     // TEST GATHER
     workerManager.gatherReceive().then(allMessages => {
@@ -55,7 +55,7 @@ export const workerTest = () => {
         {'dat000s 2222': [1234, {'hola': 'mensaje del padre al hijo 2'}]},
     ])
 
-    // TEST ENVIAR-PADRE/RECIBIR-HIJO NORMAL
+    // TEST SEND-PADRE/RECEIVE-CHILD NORMAL
     // workerManager.sendMessageToChild(idWorker2, {'datos': [1234, {'hola': 'mensaje del padre al hijo'}]});
 
     checkUntilConditionIsTrue(() => isTerminated1 && isTerminated2, () => console.log('Programa terminado'), 100);
