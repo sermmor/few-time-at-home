@@ -16,6 +16,12 @@ export class WorkerManager {
         });
     }
 
+    createNewChild = (dataChild: WorkerChildParentHandleData) => {
+        this.childrenHandlerList.push(
+            new WorkerChildParentHandle(this.parentHandler, dataChild)
+        );
+    };
+
     getChildById = (id: string): WorkerChildParentHandle | undefined => this.childrenHandlerList.find(child => child.id === id);
 
     sendMessageToChild = (id: string, jsonData: any) => {
@@ -73,11 +79,16 @@ export class WorkerManager {
     exitChild = (id: string) => {
         const childToExit = this.getChildById(id);
         if (childToExit) {
+            const indexChild = this.childrenHandlerList.indexOf(childToExit);
             childToExit.exit();
+            this.childrenHandlerList.splice(indexChild, 1);
         } else {
             console.error(`Child with id ${id} doesn't exist.`);
         }
     };
 
-    exitAllChilds = () => this.childrenHandlerList.forEach(handler => handler.exit());
+    exitAllChilds = () => {
+        this.childrenHandlerList.forEach(handler => handler.exit());
+        this.childrenHandlerList = [];
+    }
 }
