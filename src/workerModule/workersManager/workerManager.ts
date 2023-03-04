@@ -6,6 +6,23 @@ export class WorkerManager {
     private parentHandler: any;
     private childrenHandlerList: WorkerChildParentHandle[] = [];
 
+    public static divideArrayInNumberOfWorkers = (array: any[], numberOfWorkers: number): string[][] => {
+        const urlProfilesByWorker = Math.floor(array.length / numberOfWorkers);
+        const urlsProfilesToSend: string[][] = [];
+        for (let i = 0; i < numberOfWorkers; i++) {
+            urlsProfilesToSend.push(array.slice(i * urlProfilesByWorker, (i + 1) * urlProfilesByWorker));
+        }
+
+        // Divide the rest.
+        const initIndex = urlProfilesByWorker * numberOfWorkers; // + 1;
+        const urlProfilesRest = (array.length % numberOfWorkers);
+        for (let i = 0; i < urlProfilesRest; i++) {
+            urlsProfilesToSend[i].push(array[initIndex + i]);
+        }
+
+        return urlsProfilesToSend;
+    }
+
     constructor(workerChildDataList: WorkerChildParentHandleData[]) {
         this.parentHandler = require('node:worker_threads');
 

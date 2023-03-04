@@ -1,10 +1,11 @@
-import { extract, ReaderOptions } from "@extractus/feed-extractor";
+import { ReaderOptions } from "@extractus/feed-extractor";
 import { NitterRSSMessage } from "./nitterRSSData";
-import { checkUntilConditionIsTrue, parseFromNitterDateStringToDateObject } from "../utils";
+import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 
 export class NitterRSSMessageList {
     private urlProfiles: string[];
     private nitterInstancesList: string[];
+    private numberOfWorkers: number;
 
     constructor(
         userData: any,
@@ -14,20 +15,35 @@ export class NitterRSSMessageList {
 
         this.urlProfiles = userData.nitterRssUsersList.map((user: any) => `/${user}/rss`);
         this.nitterInstancesList = userData.nitterInstancesList;
+        this.numberOfWorkers = userData.numberOfWorkers;
     }
 
     updateRSSList(): Promise<NitterRSSMessageList> {
-        let rssUrlWaiting = this.urlProfiles.length;
-        let messagesToConcat: NitterRSSMessage[][] = [];
-        this.allMessages = [];
+        const urlsProfilesToSend: string[][] = WorkerManager.divideArrayInNumberOfWorkers(this.urlProfiles, this.numberOfWorkers);
+        const dataWorkerList: WorkerChildParentHandleData[] = [];
 
+        for (let i = 0; i < this.numberOfWorkers; i++) {
+            dataWorkerList.push({
+                id: `nitterRSSMessages ${i}`,
+                workerScriptPath: './build/nitterRSS/nitterRSSWorker.js',
+                workerDataObject: {
+                    urlProfiles: urlsProfilesToSend[i],
+                    nitterInstancesList: this.nitterInstancesList,
+                    rssOptions: this.rssOptions,
+                },
+            },)
+        }
+
+        const workerManager = new WorkerManager(dataWorkerList);
+        
         return new Promise<NitterRSSMessageList>(resolve => {
-            this.updateRSSListOneByOne(messagesToConcat, rssUrlWaiting); // TODO: Change function name.
-            checkUntilConditionIsTrue(
-                () => this.allMessages.length > 0,
-                () => resolve(this),
-                1000
-            );
+            workerManager.gatherReceive().then(allMessages => {
+                this.allMessages = allMessages
+                    .reduce((previous, current) => previous.concat(current))
+                    .sort((messageA: any, messageB: any) => messageA.date > messageB.date ? 1 : -1);
+                workerManager.exitAllChilds();
+                resolve(this);
+            });
         });
     }
 
@@ -35,67 +51,5 @@ export class NitterRSSMessageList {
         `${message.author} - ${message.date.toDateString()}
         ${message.content}
         ${message.originalLink}`
-    );
-
-    private updateRSSListOneByOne = (messagesToConcat: NitterRSSMessage[][], rssUrlWaiting: number) => {
-        // TODO: Change this for a function that SCATTER urlProfiles between Web Workers, wait Web Workers done and pick up the results of the web workers.
-        if (rssUrlWaiting > 0) {
-            // url example: `/redunecontacto/rss` 
-            const url = this.urlProfiles[rssUrlWaiting - 1];
-            this.updateRSS(url).then((currentMessages: NitterRSSMessage[]) => {
-                messagesToConcat.push(currentMessages);
-                this.updateRSSListOneByOne(messagesToConcat, rssUrlWaiting - 1);
-            });
-        } else {
-            this.allMessages = messagesToConcat
-                .reduce((previous, current) => previous.concat(current))
-                .sort((messageA, messageB) => messageA.date > messageB.date ? 1 : -1);
-        }
-    }
-
-    private updateRSS = (endpoint: string, nitterUrlIndex: number = 0, currentTry = 4): Promise<NitterRSSMessage[]> => {
-        return new Promise<NitterRSSMessage[]>(resolve =>
-            extract(`${this.nitterInstancesList[nitterUrlIndex]}${endpoint}`, this.rssOptions).then((data) => {
-                const currentMessages: NitterRSSMessage[] = this.filterNitterRSSMessages(
-                    this.cleanNitterLinksInMessages(
-                        this.mapRSSNitterPostsToMessages(data), this.nitterInstancesList[nitterUrlIndex]
-                    )
-                );
-                console.log(`${this.nitterInstancesList[nitterUrlIndex]}${endpoint}  ${currentMessages.length}`);
-                resolve(currentMessages);
-            }).catch(() => {
-                if (currentTry > 0) {
-                    setTimeout(() => this.updateRSS(endpoint, nitterUrlIndex, currentTry - 1), 100);
-                } else if (nitterUrlIndex < this.nitterInstancesList.length) {
-                    this.updateRSS(endpoint, nitterUrlIndex + 1, currentTry);
-                } else {
-                    console.error(`Nitter profile ${endpoint} is broken or deleted!`);
-                }
-        }));
-    }
-
-    private mapRSSNitterPostsToMessages = (data: any): NitterRSSMessage[] => data.item.map((rssMessage: any) => ({
-        title: rssMessage.title,
-        author: rssMessage['dc:creator'],
-        date: parseFromNitterDateStringToDateObject(rssMessage.pubDate),
-        content: rssMessage.description,
-        originalLink: rssMessage.link,
-    }));
-    
-    private cleanNitterLinksInMessages = (currentMessages: NitterRSSMessage[], nitterUrl: string): NitterRSSMessage[] => currentMessages.map(message => {
-        const urlToClean = `<a href=\"${nitterUrl}`
-        const contentSplitted = message.content.split(urlToClean);
-        const cleanedContentSplitter = contentSplitted.map(pieceContent => {
-            const end = pieceContent.indexOf('</a>');
-            return (pieceContent.charAt(0) === '/' && end > -1) ? pieceContent.substring(end + 4) : pieceContent;
-        });
-        return {
-            ...message,
-            content: cleanedContentSplitter.join(''),
-        };
-    });
-    
-    private filterNitterRSSMessages = (currentMessages: NitterRSSMessage[]): NitterRSSMessage[]  => currentMessages.filter(
-        ({ content }: NitterRSSMessage) => content.indexOf('<a href=\"') >= 0
     );
 }

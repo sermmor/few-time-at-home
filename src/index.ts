@@ -2,7 +2,7 @@ import { readFile, writeFileSync } from 'fs';
 import { NitterRSSMessageList } from './nitterRSS/nitterRSSMessage';
 import { TelegramBot } from './telegramBot/telegramBot';
 
-const keysPath = 'build/keys.json'; // TODO: DIVIDE IN TWO FILES: 'configuration.json' (Nitter instances and Twitter users list, number of workers,...) and 'keys.json'.
+const keysPath = 'build/keys.json';
 const configurationPath = 'build/configuration.json';
 
 const rssOptions = { // TODO: This has to be in NitterRSSMessage
