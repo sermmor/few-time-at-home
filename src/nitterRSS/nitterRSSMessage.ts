@@ -1,6 +1,6 @@
 import { extract, ReaderOptions } from "@extractus/feed-extractor";
 import { NitterRSSMessage } from "./nitterRSSData";
-import { checkUntilConditionIsTrue, parseFromNitterDateStringToDateObject } from "./utils";
+import { checkUntilConditionIsTrue, parseFromNitterDateStringToDateObject } from "../utils";
 
 export class NitterRSSMessageList {
     private urlProfiles: string[];

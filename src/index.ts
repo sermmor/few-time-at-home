@@ -1,6 +1,6 @@
 import { readFile, writeFileSync } from 'fs';
-import { NitterRSSMessageList } from './nitterRSSMessage';
-import { TelegramBot } from './telegramBot';
+import { NitterRSSMessageList } from './nitterRSS/nitterRSSMessage';
+import { TelegramBot } from './telegramBot/telegramBot';
 import { checkUntilConditionIsTrue } from './utils';
 
 const networksPath = 'build/networks.json';
