@@ -104,7 +104,7 @@ dist
 .tern-port
 
 networks.json
-data.json
+configuration.json
 keys.json
 allRss.json
 finished.mp4

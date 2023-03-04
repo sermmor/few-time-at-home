@@ -4,8 +4,8 @@
   "description": "Telegram bot in NodeJS for get n number of links of a rss.",
   "main": "index.js",
   "scripts": {
-    "start": "npx tsc && cpy networks.json build && node build/index.js",
-    "start:withvideo": "npx tsc && cpy networks.json build && cpy video/finished.mp4 build && cpy video/start.mp4 build && node build/index.js"
+    "start": "npx tsc && cpy keys.json build && cpy configuration.json build && node build/index.js",
+    "start:withvideo": "npx tsc && cpy keys.json build && cpy configuration.json build && cpy video/finished.mp4 build && cpy video/start.mp4 build && node build/index.js"
   },
   "repository": {
     "type": "git",

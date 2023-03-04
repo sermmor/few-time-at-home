@@ -1,9 +1,9 @@
 import { readFile, writeFileSync } from 'fs';
 import { NitterRSSMessageList } from './nitterRSS/nitterRSSMessage';
 import { TelegramBot } from './telegramBot/telegramBot';
-import { workerTest } from './workerModule/workerTests/worker-parent-test';
 
-const networksPath = 'build/networks.json'; // TODO: DIVIDE IN TWO FILES: 'data.json' (Nitter instances and Twitter users list) and 'keys.json'.
+const keysPath = 'build/keys.json'; // TODO: DIVIDE IN TWO FILES: 'configuration.json' (Nitter instances and Twitter users list, number of workers,...) and 'keys.json'.
+const configurationPath = 'build/configuration.json';
 
 const rssOptions = { // TODO: This has to be in NitterRSSMessage
     normalization: false,
@@ -13,26 +13,27 @@ const rssOptions = { // TODO: This has to be in NitterRSSMessage
 let nitterRSS: NitterRSSMessageList;
 
 // TODO: Think about do a website with React to read this information (local RSS reader, with electron do desktop apps for Windows, iOS and Android)
-workerTest();
 
-// -----------------------------------------------------------------------------------------------------------------
+readFile(keysPath, (err, data) => {
+    if (err) throw err;
+    const keyData = JSON.parse(<string> <any> data);
+    readFile(configurationPath, (err, data) => {
+        if (err) throw err;
+        const configurationData = JSON.parse(<string> <any> data);
 
-// readFile(networksPath, (err, data) => {
-//     if (err) throw err;
-//     const userData = JSON.parse(<string> <any> data);
+        nitterRSS = new NitterRSSMessageList(configurationData, rssOptions);
 
-//     nitterRSS = new NitterRSSMessageList(userData, rssOptions);
+        const bot = new TelegramBot(keyData);
+        bot.start(getMessagesFromNitter);
+        
+        console.log("> The bot is ready.");
+    });
+});
 
-//     const bot = new TelegramBot(userData);
-//     bot.start(getMessagesFromNitter);
-    
-//     console.log("> The bot is ready.");
-// });
-
-// const getMessagesFromNitter = (): Promise<string[]> => new Promise<string[]>(
-//     resolve => nitterRSS.updateRSSList().then(() =>
-//         resolve(nitterRSS.formatMessagesToTelegramTemplate())
-//     ));
+const getMessagesFromNitter = (): Promise<string[]> => new Promise<string[]>(
+    resolve => nitterRSS.updateRSSList().then(() =>
+        resolve(nitterRSS.formatMessagesToTelegramTemplate())
+    ));
 
 const debugTweetsInFile = () => {
     // const strAllRss: string = JSON.stringify(nitterRSS.allMessages, null, 2); // TODO: COMMENT THIS, ONLY FOR DEBUG.
