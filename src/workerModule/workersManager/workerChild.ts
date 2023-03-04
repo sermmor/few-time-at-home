@@ -4,7 +4,6 @@ export class WorkerChild {
 
     constructor() {
         this.childHandler = require('node:worker_threads');
-        console.log(this.childHandler.parentPort.kEvents)
     }
 
     get threadId() { return this.childHandler.threadId; };
@@ -15,10 +14,10 @@ export class WorkerChild {
 
     scatterReceive = (): Promise<any> => new Promise<any>(resolve => this.childHandler.parentPort.on('message', (message: any) => {
         if (message.operation === 'scatter') {
-            resolve(message);
+            resolve(message.data);
         } else {
             // Normal receive.
-            resolve(message);
+            resolve(message.data);
         }
     }));
 

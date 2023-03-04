@@ -1,4 +1,4 @@
-import { checkUntilConditionIsTrue } from "../utils";
+import { checkUntilConditionIsTrue } from "../../utils";
 import { WorkerChildParentHandle, WorkerChildParentHandleData } from "./workerChildParentHandle";
 
 // WorkerManager for parent.
@@ -54,7 +54,7 @@ export class WorkerManager {
         }
     };
 
-    gatherReceive = (): Promise<any> => {
+    gatherReceive = (): Promise<any[]> => {
         const allMessages: any[] = [];
         let childWaiting = this.childrenHandlerList.length;
         return new Promise<any>(resolve => {
@@ -78,4 +78,6 @@ export class WorkerManager {
             console.error(`Child with id ${id} doesn't exist.`);
         }
     };
+
+    exitAllChilds = () => this.childrenHandlerList.forEach(handler => handler.exit());
 }
