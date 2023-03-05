@@ -1,5 +1,5 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
-import { ChannelMediaRSSMessage, ChannelMediaRSSMessageList } from "../channelMediaRSS";
+import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 
 export class MastodonRSSMessageList extends ChannelMediaRSSMessageList {

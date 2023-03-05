@@ -10,6 +10,11 @@ const configurationPath = 'build/configuration.json';
 let nitterRSS: NitterRSSMessageList;
 let mastodonRSS: MastodonRSSMessageList;
 
+// TODO: Refactor mastodonRSSMessageList and nitterRSSMessageList to channelMediaRSSMessageList
+// TODO: Add configuration.json to README.md (update README.md with all the details).
+// TODO: Refactor nitterRSSWorker and mastodonRSSWorker.
+
+// TODO: Add any RSS blog or news content!! (PUT IN THIS CASE THE normalization: true)
 // TODO: Think about do a website with React to read this information (local RSS reader, with electron do desktop apps for Windows, iOS and Android)
 
 readFile(keysPath, (err, data) => {
