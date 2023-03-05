@@ -1,18 +1,20 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
-import { NitterRSSMessage } from "./nitterRSSData";
+import { ChannelMediaRSSMessage, ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 
-export class NitterRSSMessageList {
+export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
     private urlProfiles: string[];
     private nitterInstancesList: string[];
     private numberOfWorkers: number;
 
     constructor(
         userData: any,
-        private rssOptions?: ReaderOptions,
-        public allMessages: NitterRSSMessage[] = [],
+        private rssOptions: ReaderOptions = {
+            normalization: false,
+            descriptionMaxLen: 10000,
+        }
     ) {
-
+        super();
         this.urlProfiles = userData.nitterRssUsersList.map((user: any) => `/${user}/rss`);
         this.nitterInstancesList = userData.nitterInstancesList;
         this.numberOfWorkers = userData.numberOfWorkers;
@@ -46,10 +48,4 @@ export class NitterRSSMessageList {
             });
         });
     }
-
-    formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
-        `${message.author} - ${message.date.toDateString()}
-        ${message.content}
-        ${message.originalLink}`
-    );
 }

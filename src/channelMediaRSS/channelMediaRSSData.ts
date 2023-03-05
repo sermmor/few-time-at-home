@@ -1,4 +1,4 @@
-export interface NitterRSSMessage {
+export interface ChannelMediaRSSMessage {
     title: string;
     author: string;
     date: Date;

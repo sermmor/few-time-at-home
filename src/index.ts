@@ -1,16 +1,14 @@
 import { readFile, writeFileSync } from 'fs';
-import { NitterRSSMessageList } from './nitterRSS/nitterRSSMessage';
+import { ChannelMediaRSSMessageList } from './channelMediaRSS';
+import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
+import { NitterRSSMessageList } from './nitterRSS';
 import { TelegramBot } from './telegramBot/telegramBot';
 
 const keysPath = 'build/keys.json';
 const configurationPath = 'build/configuration.json';
 
-const rssOptions = { // TODO: This has to be in NitterRSSMessage
-    normalization: false,
-    descriptionMaxLen: 10000,
-}
-
 let nitterRSS: NitterRSSMessageList;
+let mastodonRSS: MastodonRSSMessageList;
 
 // TODO: Think about do a website with React to read this information (local RSS reader, with electron do desktop apps for Windows, iOS and Android)
 
@@ -21,7 +19,8 @@ readFile(keysPath, (err, data) => {
         if (err) throw err;
         const configurationData = JSON.parse(<string> <any> data);
 
-        nitterRSS = new NitterRSSMessageList(configurationData, rssOptions);
+        nitterRSS = new NitterRSSMessageList(configurationData);
+        mastodonRSS = new MastodonRSSMessageList(configurationData);
 
         const bot = new TelegramBot(keyData);
         bot.start(getMessagesFromNitter);
@@ -32,8 +31,12 @@ readFile(keysPath, (err, data) => {
 
 const getMessagesFromNitter = (): Promise<string[]> => new Promise<string[]>(
     resolve => nitterRSS.updateRSSList().then(() =>
-        resolve(nitterRSS.formatMessagesToTelegramTemplate())
-    ));
+        mastodonRSS.updateRSSList().then(() => {
+            resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
+                nitterRSS,
+                mastodonRSS,
+            ]));
+        })));
 
 const debugTweetsInFile = () => {
     // const strAllRss: string = JSON.stringify(nitterRSS.allMessages, null, 2); // TODO: COMMENT THIS, ONLY FOR DEBUG.
