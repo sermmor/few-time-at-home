@@ -1,7 +1,6 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
+import { ChannelMediaRSSWorkerData } from "../channelMediaRSS/channelMediaRSSWorkerData";
 
-export interface NitterRSSWorkerData {
-    urlProfiles: string[],
+export interface NitterRSSWorkerData extends ChannelMediaRSSWorkerData {
     nitterInstancesList: string[],
-    rssOptions: ReaderOptions,
 }
