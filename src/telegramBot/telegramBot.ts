@@ -4,7 +4,14 @@ import { extractTelegramData, TelegramData } from "./telegramData";
 
 // const pathFinishedVideo = 'build/finished.mp4';
 // const pathStartedVideo = 'build/start.mp4';
-const maxMessagesToSendToTelegram = 1000;
+const maxMessagesToSendToTelegram = 200;
+
+export interface TelegramBotCommand {
+    onCommandAll: () => Promise<string[]>;
+    onCommandNitter: () => Promise<string[]>;
+    onCommandMasto: () => Promise<string[]>;
+    onCommandBlog: () => Promise<string[]>;
+}
 
 export class TelegramBot {
     private telegramBotData: TelegramData;
@@ -23,24 +30,27 @@ export class TelegramBot {
         }
     }
 
-    start(actionToDoWhenCallCommand: () => Promise<string[]>) {
+    start(commandList: TelegramBotCommand) {
         this.bot.start(ctx => {
             // ctx.replyWithVideo({ source: pathStartedVideo });
             ctx.reply(`I'm here!! :D`);
         });
-        this.buildBotCommand(this.bot, this.telegramBotData, actionToDoWhenCallCommand);
+        this.buildBotCommand(this.bot, this.telegramBotData.bot_all_command, commandList.onCommandAll);
+        this.buildBotCommand(this.bot, this.telegramBotData.bot_nitter_command, commandList.onCommandNitter);
+        this.buildBotCommand(this.bot, this.telegramBotData.bot_masto_command, commandList.onCommandMasto);
+        this.buildBotCommand(this.bot, this.telegramBotData.bot_blog_command, commandList.onCommandBlog);
         this.bot.launch();    
     }
 
     private buildBotCommand = (
         bot: Telegraf<TelegrafContext>,
-        telegramBotData: TelegramData,
+        nameCommand: string,
         actionToDoWhenCallCommand: () => Promise<string[]>,
     ) => {
         // TL commands.
         (Array.from(Array(maxMessagesToSendToTelegram).keys())).forEach(telegramNumberOfTweetsWithLinks => {
             bot.command(
-                `${telegramBotData.bot_tuit_command}${telegramNumberOfTweetsWithLinks}`,
+                `${nameCommand}${telegramNumberOfTweetsWithLinks}`,
                 (ctx: TelegrafContext) => {
                     console.log("Doing");
                     actionToDoWhenCallCommand().then(messagesToSend => {

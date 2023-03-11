@@ -12,7 +12,7 @@ const updateRSSListOneByOne = (
 ) => {
 
     if (rssUrlWaiting > 0) {
-        // url example: `/redunecontacto/rss` 
+        // user example: `escepticos` 
         const { urlProfiles } = data;
         const url = urlProfiles[rssUrlWaiting - 1];
         updateRSS(data, url).then((currentMessages: ChannelMediaRSSMessage[]) => {
@@ -33,11 +33,13 @@ const updateRSS = (
     nitterUrlIndex: number = 0,
     currentTry = 4
 ): Promise<ChannelMediaRSSMessage[]> => {
-    const { rssOptions } = data;
+    const { rssOptions, mastoInstanceList } = data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve =>
         extract(`${endpoint}`, rssOptions).then((data) => {
             const currentMessages: ChannelMediaRSSMessage[] = filterMastodonRSSMessages(
-                mapRSSMastodonPostsToMessages((data))
+                cleanMastoLinksInMessages(
+                    mapRSSMastodonPostsToMessages((data)), mastoInstanceList
+                )
             );
             console.log(`${endpoint}  ${currentMessages.length}`);
             resolve(currentMessages);
@@ -58,6 +60,20 @@ const mapRSSMastodonPostsToMessages = (data: any): ChannelMediaRSSMessage[] => d
     content: rssMessage.description,
     originalLink: rssMessage.link,
 }));
+
+const cleanMastoLinksInMessages = (currentMessages: ChannelMediaRSSMessage[], mastoInstances: string[]): ChannelMediaRSSMessage[] => currentMessages.map(message => {
+    const mastoUrl = mastoInstances.find(instance => message.originalLink.indexOf(instance) > 0);
+    const urlToClean = `<a href=\"https://${mastoUrl}`
+    const contentSplitted = message.content.split(urlToClean);
+    const cleanedContentSplitter = contentSplitted.map(pieceContent => {
+        const end = pieceContent.indexOf('</a>');
+        return (pieceContent.charAt(0) === '/' && end > -1) ? pieceContent.substring(end + 4) : pieceContent;
+    });
+    return {
+        ...message,
+        content: cleanedContentSplitter.join(''),
+    };
+});
 
 const filterMastodonRSSMessages = (currentMessages: ChannelMediaRSSMessage[]): ChannelMediaRSSMessage[]  => currentMessages.filter(
     ({ content }: ChannelMediaRSSMessage) => content.indexOf('<a href=\"') >= 0

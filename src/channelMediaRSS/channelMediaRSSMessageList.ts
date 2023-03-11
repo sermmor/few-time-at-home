@@ -7,6 +7,10 @@ export class ChannelMediaRSSMessageList {
         this.allMessages = [];
     }
 
+    updateRSSList(): Promise<ChannelMediaRSSMessageList> {
+        return new Promise<ChannelMediaRSSMessageList>(resolve => {}); // TODO: REFACTOR.
+    }
+
     formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
         `${message.author} - ${message.date.toDateString()}
         ${message.content}

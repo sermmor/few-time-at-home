@@ -1,10 +1,12 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
+import { removeDuplicatesInStringArray } from "../utils";
 import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 
 export class MastodonRSSMessageList extends ChannelMediaRSSMessageList {
     private urlProfiles: string[];
     private numberOfWorkers: number;
+    private instanceList: string[];
 
     constructor(
         userData: any,
@@ -16,6 +18,7 @@ export class MastodonRSSMessageList extends ChannelMediaRSSMessageList {
     ) {
         super();
         this.urlProfiles = userData.mastodonRssUsersList.map((user: any) => `https://${user.instance}/users/${user.user}.rss`);
+        this.instanceList = removeDuplicatesInStringArray(userData.mastodonRssUsersList.map((user: any) => user.instance));
         this.numberOfWorkers = userData.numberOfWorkers;
     }
 
@@ -29,6 +32,7 @@ export class MastodonRSSMessageList extends ChannelMediaRSSMessageList {
                 workerScriptPath: './build/mastodonRSS/mastodonRSSWorker.js',
                 workerDataObject: {
                     urlProfiles: urlsProfilesToSend[i],
+                    mastoInstanceList: this.instanceList,
                     rssOptions: this.rssOptions,
                 },
             },)

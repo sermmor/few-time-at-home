@@ -20,7 +20,7 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
         this.numberOfWorkers = userData.numberOfWorkers;
     }
 
-    updateRSSList(): Promise<NitterRSSMessageList> {
+    updateRSSList = (): Promise<NitterRSSMessageList> => {
         const urlsProfilesToSend: string[][] = WorkerManager.divideArrayInNumberOfWorkers(this.urlProfiles, this.numberOfWorkers);
         const dataWorkerList: WorkerChildParentHandleData[] = [];
 

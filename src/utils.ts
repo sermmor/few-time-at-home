@@ -10,3 +10,32 @@ export const parseFromNitterDateStringToDateObject = (dateString : string): Date
 export const checkUntilConditionIsTrue = (predicate: () => boolean, doWhenConditionIsTrue: () => void, timeToWait: number = 100) => {
     setTimeout(() => (predicate() ? doWhenConditionIsTrue() : checkUntilConditionIsTrue(predicate, doWhenConditionIsTrue, timeToWait)), timeToWait);
 }
+
+export const removeDuplicatesInStringArray = (listWithDuplicatesOrNot: string[]): string[] => {
+    const onlyNotDuplicates: string[] = [];
+    listWithDuplicatesOrNot.forEach(element => {
+        if (onlyNotDuplicates.indexOf(element) < 0) {
+            onlyNotDuplicates.push(element);
+        }
+    });
+    return onlyNotDuplicates;
+}
+
+export const removeDuplicates = <T>(listWithDuplicatesOrNot: T[], isEqual: (a: T, b: T) => boolean): T[] => {
+    const onlyNotDuplicates: T[] = [];
+    let finded: boolean;
+    listWithDuplicatesOrNot.forEach(element => {
+        finded = !!onlyNotDuplicates.find((value) => {
+            for (let i = 0; i < listWithDuplicatesOrNot.length; i++) {
+                if (isEqual(element, value)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        if (!finded) {
+            onlyNotDuplicates.push(element);
+        }
+    });
+    return onlyNotDuplicates;
+}
