@@ -10,8 +10,6 @@ const configurationPath = 'build/configuration.json';
 let nitterRSS: NitterRSSMessageList;
 let mastodonRSS: MastodonRSSMessageList;
 
-// TODO: Refactor mastodonRSSMessageList and nitterRSSMessageList to channelMediaRSSMessageList
-// TODO: Refactor nitterRSSWorker and mastodonRSSWorker.
 // TODO: Add configuration.json to README.md (update README.md with all the details).
 
 // TODO: Add any RSS blog or news content!! (PUT IN THIS CASE THE normalization: true)
