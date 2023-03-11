@@ -1,6 +1,6 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
-import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
+import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
 export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
     private nitterInstancesList: string[];

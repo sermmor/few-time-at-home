@@ -1,8 +1,8 @@
-import { extract } from "@extractus/feed-extractor";
+import { extract, ReaderOptions } from "@extractus/feed-extractor";
 import { ChannelMediaRSSMessage, ChannelMediaRSSWorkerData, cleanLinksInMessage, filterRSSMessages, updateRSSListOneByOne } from "../channelMediaRSS";
-import { parseFromNitterDateStringToDateObject } from "../utils";
+import { parseFromBlogDateStringToDateObject, parseFromNitterDateStringToDateObject } from "../utils";
 import { WorkerChild } from "../workerModule/workersManager";
-import { MastodonRSSWorkerData } from "./mastodonRSSWorkerData";
+import { BlogRSSWorkerData } from "./blogRSSWorkerData";
 
 const updateRSS = (
     data: ChannelMediaRSSWorkerData,
@@ -10,39 +10,29 @@ const updateRSS = (
     nitterUrlIndex: number = 0,
     currentTry = 4
 ): Promise<ChannelMediaRSSMessage[]> => {
-    const { rssOptions, mastoInstanceList } = <MastodonRSSWorkerData> data;
+    const { rssOptions } = <BlogRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve =>
         extract(`${endpoint}`, rssOptions).then((data) => {
-            const currentMessages: ChannelMediaRSSMessage[] = filterRSSMessages(
-                cleanMastoLinksInMessages(
-                    mapRSSMastodonPostsToMessages((data)), mastoInstanceList
-                )
-            );
+            // console.log(data)
+            const currentMessages: ChannelMediaRSSMessage[] = mapRSSBlogPostsToMessages(data);
             console.log(`${endpoint}  ${currentMessages.length}`);
             resolve(currentMessages);
         }).catch(() => {
             if (currentTry > 0) {
                 setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1), 100);
             } else {
-                console.error(`Mastodon profile ${endpoint} is broken or deleted!`);
-                resolve([]);
+                console.error(`Nitter profile ${endpoint} is broken or deleted!`);
             }
     }));
 }
 
-const mapRSSMastodonPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.item.map((rssMessage: any) => ({
+const mapRSSBlogPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.entries.map((rssMessage: any) => ({
     title: rssMessage.title,
-    author: rssMessage.link.split('/')[3],
-    date: parseFromNitterDateStringToDateObject(rssMessage.pubDate),
+    author: data.title,
+    date: parseFromBlogDateStringToDateObject(rssMessage.published),
     content: rssMessage.description,
     originalLink: rssMessage.link,
 }));
-
-const cleanMastoLinksInMessages = (currentMessages: ChannelMediaRSSMessage[], mastoInstances: string[]): ChannelMediaRSSMessage[] => 
-    currentMessages.map(message => {
-        const mastoUrl = mastoInstances.find(instance => message.originalLink.indexOf(instance) > 0);
-        return cleanLinksInMessage(message, `<a href=\"https://${mastoUrl}`);
-    });
 
 (function () {
     const worker = new WorkerChild();

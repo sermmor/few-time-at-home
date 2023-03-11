@@ -1,4 +1,5 @@
 import { readFile, writeFileSync } from 'fs';
+import { BlogRSSMessageList } from './blogRSS';
 import { ChannelMediaRSSMessageList } from './channelMediaRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
@@ -9,6 +10,7 @@ const configurationPath = 'build/configuration.json';
 
 let nitterRSS: NitterRSSMessageList;
 let mastodonRSS: MastodonRSSMessageList;
+let blogRSS: BlogRSSMessageList;
 
 // TODO: Add configuration.json to README.md (update README.md with all the details).
 
@@ -25,13 +27,14 @@ readFile(keysPath, (err, data) => {
 
         nitterRSS = new NitterRSSMessageList(configurationData);
         mastodonRSS = new MastodonRSSMessageList(configurationData);
+        blogRSS = new BlogRSSMessageList(configurationData);
 
         const bot = new TelegramBot(keyData);
         bot.start({
             onCommandAll: getAllMessages,
             onCommandMasto: getAllMessagesChannelMediaRSS(mastodonRSS),
             onCommandNitter: getAllMessagesChannelMediaRSS(nitterRSS),
-            onCommandBlog: getAllMessagesChannelMediaRSS(mastodonRSS), // TODO: change to Blog media.
+            onCommandBlog: getAllMessagesChannelMediaRSS(blogRSS),
         });
         
         console.log("> The bot is ready.");

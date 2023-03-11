@@ -1,7 +1,5 @@
 import { extract, ReaderOptions } from "@extractus/feed-extractor";
-import { ChannelMediaRSSMessage } from "../channelMediaRSS";
-import { cleanLinksInMessage, filterRSSMessages, updateRSSListOneByOne } from "../channelMediaRSS/channelMediaRSSWorker";
-import { ChannelMediaRSSWorkerData } from "../channelMediaRSS/channelMediaRSSWorkerData";
+import { ChannelMediaRSSMessage, ChannelMediaRSSWorkerData, cleanLinksInMessage, filterRSSMessages, updateRSSListOneByOne } from "../channelMediaRSS";
 import { parseFromNitterDateStringToDateObject } from "../utils";
 import { WorkerChild } from "../workerModule/workersManager";
 import { NitterRSSWorkerData } from "./nitterRSSWorkerData";

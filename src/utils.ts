@@ -7,6 +7,13 @@ export const parseFromNitterDateStringToDateObject = (dateString : string): Date
     return new Date(+dateSplited[3], nameMonths[dateSplited[2]], +dateSplited[1], +hourSplited[0], +hourSplited[1], +hourSplited[2]);
 }
 
+export const parseFromBlogDateStringToDateObject = (dateString : string): Date => {
+    // Example date: '2023-03-09T09:27:00.000Z'
+    const dateSplited = dateString.split('T')[0].split('-');
+    const hourSplited = dateString.split('T')[1].split(':');
+    return new Date(+dateSplited[0], (+dateSplited[1]) - 1, +dateSplited[2], +hourSplited[0], +hourSplited[1], 0);
+}
+
 export const checkUntilConditionIsTrue = (predicate: () => boolean, doWhenConditionIsTrue: () => void, timeToWait: number = 100) => {
     setTimeout(() => (predicate() ? doWhenConditionIsTrue() : checkUntilConditionIsTrue(predicate, doWhenConditionIsTrue, timeToWait)), timeToWait);
 }

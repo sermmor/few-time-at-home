@@ -48,7 +48,8 @@ export abstract class ChannelMediaRSSMessageList {
             .sort((messageA: any, messageB: any) => messageA.date > messageB.date ? 1 : -1);
 
         return allMessages.map(message =>
-            `${message.author} - ${message.date.toDateString()}
+            
+            `${(message.title ? message.title + '\n' : '')}${message.author} - ${message.date.toDateString()}
             ${message.content}
             ${message.originalLink}`
         );

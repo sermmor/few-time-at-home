@@ -1,34 +1,37 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
-import { removeDuplicatesInStringArray } from "../utils";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
-export class MastodonRSSMessageList extends ChannelMediaRSSMessageList {
-    private instanceList: string[];
+export class BlogRSSMessageList extends ChannelMediaRSSMessageList {
 
     constructor(
         userData: any,
         private rssOptions: ReaderOptions = {
-            normalization: false,
+            normalization: true,
             useISODateFormat: true,
-            descriptionMaxLen: 10000,
-        },
+            descriptionMaxLen: 200,
+        }
     ) {
         super();
-        this.urlProfiles = userData.mastodonRssUsersList.map((user: any) => `https://${user.instance}/users/${user.user}.rss`);
-        this.instanceList = removeDuplicatesInStringArray(userData.mastodonRssUsersList.map((user: any) => user.instance));
+        this.urlProfiles = userData.blogRssList;
         this.numberOfWorkers = userData.numberOfWorkers;
     }
     
     createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData {
         return {
-            id: `mastodonRSSMessages ${indexWorker}`,
-            workerScriptPath: './build/mastodonRSS/mastodonRSSWorker.js',
+            id: `blogRSSMessages ${indexWorker}`,
+            workerScriptPath: './build/blogRSS/blogRSSWorker.js',
             workerDataObject: {
                 urlProfiles: urlsProfilesToSend[indexWorker],
-                mastoInstanceList: this.instanceList,
                 rssOptions: this.rssOptions,
             },
         }
     }
+
+    formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
+        `${message.title}
+        ${message.author} - ${message.date.toDateString()}
+        ${message.content}
+        ${message.originalLink}`
+    );
 }
