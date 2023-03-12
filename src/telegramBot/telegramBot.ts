@@ -1,5 +1,6 @@
 import Telegraf from "telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
+import { ConfigurationService } from "../API";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
 
@@ -11,9 +12,9 @@ export class TelegramBot {
     private telegramBotData: TelegramData;
     private bot: Telegraf<TelegrafContext>;
 
-    constructor(userData: any, configurationData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
+    constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
         if (!telegramBotData) {
-            this.telegramBotData = extractTelegramData(userData, configurationData);
+            this.telegramBotData = extractTelegramData(userData);
         } else {
             this.telegramBotData = telegramBotData;
         }
@@ -23,16 +24,16 @@ export class TelegramBot {
             this.bot = bot;
         }
     }
-
+    
     start(commandList: TelegramBotCommand) {
         this.bot.start(ctx => {
             // ctx.replyWithVideo({ source: pathStartedVideo });
             ctx.reply(`I'm here!! :D`);
         });
-        this.buildBotCommand(this.bot, this.telegramBotData.bot_all_command, commandList.onCommandAll);
-        this.buildBotCommand(this.bot, this.telegramBotData.bot_nitter_command, commandList.onCommandNitter);
-        this.buildBotCommand(this.bot, this.telegramBotData.bot_masto_command, commandList.onCommandMasto);
-        this.buildBotCommand(this.bot, this.telegramBotData.bot_blog_command, commandList.onCommandBlog);
+        this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
+        this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
+        this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
+        this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
         this.bot.launch();    
     }
 

@@ -1,11 +1,11 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
+import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
 export class BlogRSSMessageList extends ChannelMediaRSSMessageList {
 
     constructor(
-        userData: any,
         private rssOptions: ReaderOptions = {
             normalization: true,
             useISODateFormat: true,
@@ -13,8 +13,11 @@ export class BlogRSSMessageList extends ChannelMediaRSSMessageList {
         }
     ) {
         super();
-        this.urlProfiles = userData.blogRssList;
-        this.numberOfWorkers = userData.numberOfWorkers;
+        this.urlProfiles = ConfigurationService.Instance.blogRssList;
+    }
+
+    refleshChannelMediaConfiguration(): void {
+        this.urlProfiles = ConfigurationService.Instance.blogRssList;
     }
     
     createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData {

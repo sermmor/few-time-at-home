@@ -1,5 +1,5 @@
 import { readFile, writeFileSync } from 'fs';
-import { APIService, ChannelMediaRSSCollection, getAllMessageCommands, TelegramBotCommand } from './API';
+import { APIService, ChannelMediaRSSCollection, ConfigurationService, getAllMessageCommands, TelegramBotCommand } from './API';
 import { BlogRSSMessageList } from './blogRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
@@ -13,8 +13,9 @@ let apiService: APIService;
 
 // TODO: Add configuration.json to README.md (update README.md with all the details).
 
-// TODO: Nitter command for any Twitter profile (?)  
-// TODO: Create API.
+// TODO: Poder crear un comando personalizado por API y asociarlo a un conjunto de RSS (pueden ser de Twitter, Mastodon o blogs), al lanzarlo dará los recursos RSS.
+// TODO: ^ sería como un ChannelMediaRSSMessageList que sería una colección de listas personalizadas de ChannelMediaRSSMessageList. 
+
 // TODO: Think about do a front end website with React to read this information and edit configuration and rss list (local RSS reader, with electron do desktop apps for Windows, iOS and Android)
 
 readFile(keysPath, (err, data) => {
@@ -22,19 +23,19 @@ readFile(keysPath, (err, data) => {
     const keyData = JSON.parse(<string> <any> data);
     readFile(configurationPath, (err, data) => {
         if (err) throw err;
-        const configurationData = JSON.parse(<string> <any> data);
+        const configurationService = new ConfigurationService(JSON.parse(<string> <any> data));
 
         channelMediaCollection = {
-            nitterRSS: new NitterRSSMessageList(configurationData),
-            mastodonRSS: new MastodonRSSMessageList(configurationData),
-            blogRSS: new BlogRSSMessageList(configurationData),
+            nitterRSS: new NitterRSSMessageList(),
+            mastodonRSS: new MastodonRSSMessageList(),
+            blogRSS: new BlogRSSMessageList(),
         };
 
-        const bot = new TelegramBot(keyData, configurationData);
+        const bot = new TelegramBot(keyData);
         const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
         bot.start(commands);
 
-        apiService = new APIService(channelMediaCollection, commands, +configurationData.apiPort);
+        apiService = new APIService(channelMediaCollection, commands);
         
         console.log("> The bot is ready.");
     });

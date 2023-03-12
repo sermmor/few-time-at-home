@@ -1,24 +1,25 @@
+import { ConfigurationService } from "../API";
 import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 import { ChannelMediaRSSMessage } from "./channelMediaRSSData";
 
 export abstract class ChannelMediaRSSMessageList {
     protected urlProfiles: string[];
-    protected numberOfWorkers: number;
     public allMessages: ChannelMediaRSSMessage[];
 
     constructor() {
         this.allMessages = [];
         this.urlProfiles = [];
-        this.numberOfWorkers = 1;
     }
+
+    abstract refleshChannelMediaConfiguration(): void;
 
     abstract createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData;
 
     updateRSSList = (): Promise<ChannelMediaRSSMessageList> => {
-        const urlsProfilesToSend: string[][] = WorkerManager.divideArrayInNumberOfWorkers(this.urlProfiles, this.numberOfWorkers);
+        const urlsProfilesToSend: string[][] = WorkerManager.divideArrayInNumberOfWorkers(this.urlProfiles, ConfigurationService.Instance.numberOfWorkers);
         const dataWorkerList: WorkerChildParentHandleData[] = [];
 
-        for (let i = 0; i < this.numberOfWorkers; i++) {
+        for (let i = 0; i < ConfigurationService.Instance.numberOfWorkers; i++) {
             dataWorkerList.push(this.createWorkerData(urlsProfilesToSend, i))
         }
 
