@@ -48,14 +48,6 @@ export class APIService {
             if (!req.body) {
                 console.error("Received NO body JSON");
             } else {
-            //     if (req.body.twitter_beared) ConfigurationManager.Instance.twitter_beared = req.body.twitter_beared;
-            //     if (req.body.is_academic_research_key !== undefined) ConfigurationManager.Instance.is_academic_research_key = req.body.is_academic_research_key;
-            //     if (req.body.number_of_messages_in_profile) ConfigurationManager.Instance.number_of_messages_in_profile = req.body.number_of_messages_in_profile;
-            //     if (req.body.database_url) ConfigurationManager.Instance.database_url = req.body.database_url;
-            //     if (req.body.minutes_to_reflesh) ConfigurationManager.Instance.minutes_to_reflesh = req.body.minutes_to_reflesh;
-            //     if (req.body.verificator_list) ConfigurationManager.Instance.verificator_list = req.body.verificator_list;
-                
-            //     ConfigurationManager.Instance.saveConfiguration();
                 ConfigurationService.Instance.updateConfiguration(this.channelMediaCollection, req.body);
             }
             res.send(ConfigurationService.Instance.getConfigurationJson());
