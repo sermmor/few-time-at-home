@@ -1,17 +1,11 @@
 import Telegraf from "telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
+import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
 
 // const pathFinishedVideo = 'build/finished.mp4';
 // const pathStartedVideo = 'build/start.mp4';
 const maxMessagesToSendToTelegram = 200;
-
-export interface TelegramBotCommand {
-    onCommandAll: () => Promise<string[]>;
-    onCommandNitter: () => Promise<string[]>;
-    onCommandMasto: () => Promise<string[]>;
-    onCommandBlog: () => Promise<string[]>;
-}
 
 export class TelegramBot {
     private telegramBotData: TelegramData;
