@@ -11,9 +11,9 @@ export class TelegramBot {
     private telegramBotData: TelegramData;
     private bot: Telegraf<TelegrafContext>;
 
-    constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
+    constructor(userData: any, configurationData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
         if (!telegramBotData) {
-            this.telegramBotData = extractTelegramData(userData);
+            this.telegramBotData = extractTelegramData(userData, configurationData);
         } else {
             this.telegramBotData = telegramBotData;
         }

@@ -30,7 +30,7 @@ readFile(keysPath, (err, data) => {
             blogRSS: new BlogRSSMessageList(configurationData),
         };
 
-        const bot = new TelegramBot(keyData);
+        const bot = new TelegramBot(keyData, configurationData);
         const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
         bot.start(commands);
 

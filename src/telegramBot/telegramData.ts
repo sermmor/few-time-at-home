@@ -6,10 +6,10 @@ export interface TelegramData {
     bot_blog_command: string;
 }
 
-export const extractTelegramData = (data: any): TelegramData => ({
+export const extractTelegramData = (data: any, configurationData: any): TelegramData => ({
     telegram_bot_token: data.telegram_bot_token,
-    bot_all_command: data.bot_all_command,
-    bot_masto_command: data.bot_masto_command,
-    bot_nitter_command: data.bot_nitter_command,
-    bot_blog_command: data.bot_blog_command,
+    bot_all_command: configurationData.listBotCommands.bot_all_command,
+    bot_masto_command: configurationData.listBotCommands.bot_masto_command,
+    bot_nitter_command: configurationData.listBotCommands.bot_nitter_command,
+    bot_blog_command: configurationData.listBotCommands.bot_blog_command,
 });
