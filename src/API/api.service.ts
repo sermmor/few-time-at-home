@@ -20,52 +20,21 @@ export class APIService {
         this.app.use(express.json())
         this.app.use(cors());
 
-        this.getAllRSS();
-        this.getMastoRSS();
-        this.getBlogRSS();
-        this.getNitterRSS();
+        this.getRSS(APIService.getAllRssEndpoint, this.commands.onCommandAll);
+        this.getRSS(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
+        this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
+        this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
         
-
         this.app.listen(apiPort, () => {
             console.log("> Server ready!");
         });
     }
 
-    getAllRSS = () => {
-        this.app.get(APIService.getAllRssEndpoint, (req, res) => {
+    getRSS = (endpoint: string, rssCommand: () => Promise<string[]>) => {
+        this.app.get(endpoint, (req, res) => {
             const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
-            this.commands.onCommandAll().then(messagesToSend => {
+            rssCommand().then(messagesToSend => {
                 const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks);
-                res.send({ messages });
-            });
-        });
-    }
-
-    getMastoRSS = () => {
-        this.app.get(APIService.getRssMastoEndpoint, (req, res) => {
-            const webNumberOfMastoWithLinks: number = req.query.amount ? +req.query.amount : 0;
-            this.commands.onCommandMasto().then(messagesToSend => {
-                const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMastoWithLinks);
-                res.send({ messages });
-            });
-        });
-    }
-
-    getNitterRSS = () => {
-        this.app.get(APIService.getRssTwitterEndpoint, (req, res) => {
-            const webNumberOfTuitsWithLinks: number = req.query.amount ? +req.query.amount : 0;
-            this.commands.onCommandNitter().then(messagesToSend => {
-                const messages = messagesToSend.slice(messagesToSend.length - webNumberOfTuitsWithLinks);
-                res.send({ messages });
-            });
-        });
-    }
-
-    getBlogRSS = () => {
-        this.app.get(APIService.getRssBlogEndpoint, (req, res) => {
-            const webNumberOfPostsWithLinks: number = req.query.amount ? +req.query.amount : 0;
-            this.commands.onCommandBlog().then(messagesToSend => {
-                const messages = messagesToSend.slice(messagesToSend.length - webNumberOfPostsWithLinks);
                 res.send({ messages });
             });
         });
