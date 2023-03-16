@@ -1,3 +1,5 @@
+import { writeFile, stat, mkdir } from "fs";
+
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
 export const parseFromNitterDateStringToDateObject = (dateString : string): Date => {
@@ -45,4 +47,23 @@ export const removeDuplicates = <T>(listWithDuplicatesOrNot: T[], isEqual: (a: T
         }
     });
     return onlyNotDuplicates;
+}
+
+export const saveInAFile = (str: string, savePath: string = 'data/result.html', callback?: (str: string) => void): void => {
+    const folderPathSplited = savePath.split("/");
+    const folderPath = folderPathSplited.slice(0, folderPathSplited.length - 1).join("/");
+    const saveFile = () => writeFile(savePath, str, () => {
+        if (callback) {
+            callback(str);
+        }
+    });
+
+    stat(folderPath, (err, stat) => {
+        if (err === null) {
+            saveFile();
+        } else {
+            mkdir(folderPath, {recursive: true}, () => saveFile());
+        }
+    });
+
 }

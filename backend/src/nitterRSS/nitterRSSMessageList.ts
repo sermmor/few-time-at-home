@@ -1,4 +1,5 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
+import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
@@ -6,16 +7,19 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
     private nitterInstancesList: string[];
 
     constructor(
-        userData: any,
         private rssOptions: ReaderOptions = {
             normalization: false,
             descriptionMaxLen: 10000,
         }
     ) {
         super();
-        this.urlProfiles = userData.nitterRssUsersList.map((user: any) => `/${user}/rss`);
-        this.nitterInstancesList = userData.nitterInstancesList;
-        this.numberOfWorkers = userData.numberOfWorkers;
+        this.urlProfiles = ConfigurationService.Instance.nitterRssUsersList.map((user: any) => `/${user}/rss`);
+        this.nitterInstancesList = ConfigurationService.Instance.nitterInstancesList;
+    }
+
+    refleshChannelMediaConfiguration(): void {
+        this.urlProfiles = ConfigurationService.Instance.nitterRssUsersList.map((user: any) => `/${user}/rss`);
+        this.nitterInstancesList = ConfigurationService.Instance.nitterInstancesList;
     }
     
     createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData {
