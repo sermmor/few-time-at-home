@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { getRSS } from '../core/rss';
+import { RssDataModel } from '../data-model/rss';
 
 export const enum WebStatus { RSS, Configuration };
 
@@ -12,10 +14,17 @@ const styleTitle = (): React.CSSProperties => ({
 
 export const App = () => {
     const [webStatus, setWebStatus] = React.useState(WebStatus.RSS);
+    const [rssData, setRssData] = React.useState<RssDataModel>();
+
+    React.useEffect(() => { getRSS('blog', 10).then(data => setRssData(data)) }, []);
 
     return (<>
         <div>HOLA</div>
-    </>)
+        <div>{rssData && rssData.messages[0]}</div>
+        <div>{
+            // TODO: Get JSON of endpoints (RSS y Configuration) from core.
+        }</div>
+    </>);
 
     // return (<>
     //     <h1 style={styleTitle()}>Profiles News Searcher</h1>
