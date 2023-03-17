@@ -1,7 +1,7 @@
 {
-  "name": "rss-link-telegram-bot",
+  "name": "few-time-at-home-backend",
   "version": "1.0.0",
-  "description": "Telegram bot in NodeJS for get n number of links of a rss.",
+  "description": "Tools with React app, API Rest and Telegram bot for people that spends few time at home.",
   "main": "index.js",
   "scripts": {
     "start": "npx tsc && cpy keys.json build && cpy configuration.json build && node build/index.js",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sermmor/rss-link-telegram-bot.git"
+    "url": "git+https://github.com/sermmor/few-time-at-home.git"
   },
   "keywords": [],
   "author": "Sergio Martín",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sermmor/rss-link-telegram-bot/issues"
+    "url": "https://github.com/sermmor/few-time-at-home/issues"
   },
-  "homepage": "https://github.com/sermmor/rss-link-telegram-bot#readme",
+  "homepage": "https://github.com/sermmor/few-time-at-home#readme",
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.23",

@@ -1,0 +1,53 @@
+{
+  "name": "few-time-at-home-frontend",
+  "version": "1.0.0",
+  "description": "Tools with React app, API Rest and Telegram bot for people that spends few time at home.",
+  "main": "desktop-main.js",
+  "scripts": {
+    "start": "webpack-dev-server  --mode development --inline --hot --open",
+    "copy-build": "cpx dist/* ../build_frontend/dist && cpx desktop-main.js ../build_frontend ",
+    "build": "webpack  --mode development && npm run copy-build",
+    "desktop": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sermmor/few-time-at-home.git"
+  },
+  "author": "Sergio Martín",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sermmor/few-time-at-home/issues"
+  },
+  "homepage": "https://github.com/sermmor/few-time-at-home#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/polyfill": "^7.2.5",
+    "@babel/preset-env": "^7.3.1",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
+    "@types/react-router-dom": "^4.3.1",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-loader": "^8.0.5",
+    "copy-webpack-plugin": "^5.0.4",
+    "cpx": "^1.5.0",
+    "css-loader": "^2.1.0",
+    "file-loader": "^3.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.5.0",
+    "style-loader": "^0.23.1",
+    "typescript": "^3.3.3",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.1.14"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.3.2",
+    "@material-ui/icons": "^4.2.1",
+    "electron": "^18.2.0",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-router-dom": "^4.3.1"
+  }
+}

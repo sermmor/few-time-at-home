@@ -1,0 +1,27 @@
+{
+  "name": "front-profiles-news-searchers",
+  "version": "1.0.0",
+  "description": "Search news profiles in social networks.",
+  "main": "desktop-main.js",
+  "scripts": {
+    "start": "electron .",
+    "copy-dist": "cpx dist/* release-builds/profiles-news-searchers-win32-ia32/dist/",
+    "only-build": "npx electron-packager . profiles-news-searchers --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName='profiles-news-searchers'",
+    "build": "npm run only-build && npm run copy-dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sermmor/profiles-news-searchers.git"
+  },
+  "author": "Sergio Martín",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sermmor/profiles-news-searchers/issues"
+  },
+  "homepage": "https://github.com/sermmor/profiles-news-searchers#readme",
+  "devDependencies": {
+    "cpx": "^1.5.0",
+    "electron": "^18.2.0",
+    "electron-packager": "^15.5.1"
+  }
+}
