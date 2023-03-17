@@ -14,7 +14,7 @@ function createWindow () {
   win.removeMenu();
 
   //load the index.html from a url
-  win.loadURL('file:///dist/index.html');
+  win.loadURL('file:///build/index.html');
 
   // Open the DevTools.
 //   win.webContents.openDevTools()

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Configuration } from './pages/configuration/Configuration';
-import { Home } from './pages/home/home';
+import { Home } from './pages/home/Home';
 import { Rss } from './pages/rss/Rss';
 
 export const enum WebStatus { Home, Rss, Configuration };

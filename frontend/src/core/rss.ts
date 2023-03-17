@@ -1,5 +1,5 @@
 import { RssDataModel } from "../data-model/rss";
-import { queryRssEndpoint } from "../urls-and-end-points";
+import { queryRssEndpoint } from "./urls-and-end-points";
 
 export const getRSSAll = (amount = 20): Promise<RssDataModel> => new Promise<RssDataModel>(resolve => {
 });
