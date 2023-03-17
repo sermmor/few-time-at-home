@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { getRSS } from '../core/rss';
-import { RssDataModel } from '../data-model/rss';
+import { Configuration } from './pages/configuration/Configuration';
+import { Home } from './pages/home/home';
+import { Rss } from './pages/rss/Rss';
 
-export const enum WebStatus { RSS, Configuration };
+export const enum WebStatus { Home, Rss, Configuration };
 
 const styleTitle = (): React.CSSProperties => ({
     textAlign: "center",
@@ -13,31 +14,22 @@ const styleTitle = (): React.CSSProperties => ({
 });
 
 export const App = () => {
-    const [webStatus, setWebStatus] = React.useState(WebStatus.RSS);
-    const [rssData, setRssData] = React.useState<RssDataModel>();
+    const [webStatus, setWebStatus] = React.useState(WebStatus.Rss);
 
-    React.useEffect(() => { getRSS('blog', 10).then(data => setRssData(data)) }, []);
+    // TODO: Create form (choose amount and type - all, blog, twitter, and mastodon) and improve interface RSS (RssMessage can be a card and reuse the HTML).
+    // TODO: Create Home.
+    // TODO: Create Configuration form.
 
     return (<>
-        <div>HOLA</div>
-        <div>{rssData && rssData.messages[0]}</div>
-        <div>{
-            // TODO: Get JSON of endpoints (RSS y Configuration) from core.
-        }</div>
+        <h1>FEW TIME @HOME</h1>
+        <div style={({display: (webStatus === WebStatus.Rss? 'inline' : 'none')})}>
+            <Rss/>
+        </div>
+        <div style={({display: (webStatus === WebStatus.Home? 'inline' : 'none')})}>
+            <Home/>
+        </div>
+        <div style={({display: (webStatus === WebStatus.Configuration? 'inline' : 'none')})}>
+            <Configuration/>
+        </div>
     </>);
-
-    // return (<>
-    //     <h1 style={styleTitle()}>Profiles News Searcher</h1>
-    //     <div style={({display: (webStatus === WebStatus.Login? 'inline' : 'none')})}>
-    //         <LoginFormComponent showLogin={setWebStatus}/>
-    //     </div>
-    //     <div style={({display: (webStatus === WebStatus.Configuration? 'inline' : 'none')})}>
-    //         {/* <h2 style={styleTitle()}>Workflow Status</h2>
-    //         <WorkflowStatusComponent /> */}
-    //         <h2 style={({...styleTitle(), marginTop: "3rem"})}>Json files</h2>
-    //         <LogManagerComponent />
-    //         <h2 style={({...styleTitle(), marginTop: "3rem"})}>Configuration</h2>
-    //         <ConfigurationFormComponent/>
-    //     </div>
-    // </>);
 }
