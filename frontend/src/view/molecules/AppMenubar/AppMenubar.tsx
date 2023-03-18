@@ -7,21 +7,6 @@ import { routesFTAH } from '../../Routes';
 
 const pages = routesFTAH.filter(route => !route.isHiddenInMenuBar);
 
-const handleOpenNavMenu = (setAnchorElNav: React.Dispatch<React.SetStateAction<HTMLElement | null>>) => (event: React.MouseEvent<HTMLElement>) => {
-  setAnchorElNav(event.currentTarget);
-};
-
-const handleCloseNavMenu = (setAnchorElNav: React.Dispatch<React.SetStateAction<HTMLElement | null>>) => () => {
-  setAnchorElNav(null);
-};
-
-const handlePushInMenuMobileItem = (setAnchorElNav: React.Dispatch<React.SetStateAction<HTMLElement | null>>, nameItem: string) => (event: React.MouseEvent<HTMLElement>) => {
-  console.log(nameItem); // TODO: Navigation
-  // redirect(nameItem);
-  // handleCloseNavMenu(setAnchorElNav)();
-  setAnchorElNav(null);
-}
-
 const ToolbarDesktopAndTablet = () => {
   const navigate = useNavigate();
   return (
@@ -70,7 +55,7 @@ const ToolbarMobile = () => {
           aria-label="account of current user"
           aria-controls="menu-appbar"
           aria-haspopup="true"
-          onClick={handleOpenNavMenu(setAnchorElNav)}
+          onClick={event => setAnchorElNav(event.currentTarget)}
           color="inherit"
         >
           <MenuIcon />
@@ -87,8 +72,8 @@ const ToolbarMobile = () => {
             vertical: 'top',
             horizontal: 'left',
           }}
-          open={Boolean(anchorElNav)}
-          onClose={handleCloseNavMenu(setAnchorElNav)}
+          open={!!anchorElNav}
+          onClose={() => setAnchorElNav(null)}
           sx={{
             display: { xs: 'block', md: 'none' },
           }}
