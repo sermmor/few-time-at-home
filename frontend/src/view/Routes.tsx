@@ -1,7 +1,7 @@
-import { Home } from "@mui/icons-material";
-import { Configuration } from "./pages/_Configuration/Configuration";
+import { Configuration } from "./pages/Configuration/Configuration";
+import { Home } from "./pages/Home/Home";
 import { NotFound } from "./pages/NotFound/NotFound";
-import { Rss } from "./pages/_Rss/Rss";
+import { Rss } from "./pages/Rss/Rss";
 
 interface RouteFTAHElement {
   name: string;
