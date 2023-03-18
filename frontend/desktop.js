@@ -17,7 +17,7 @@ function createWindow () {
   win.loadURL('file:///build/index.html');
 
   // Open the DevTools.
-//   win.webContents.openDevTools()
+  win.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished

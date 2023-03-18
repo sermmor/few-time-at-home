@@ -1,9 +1,10 @@
 import * as React from 'react';
+import { CssBaseline } from '@mui/material';
+import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { Configuration } from './pages/configuration/Configuration';
 import { Home } from './pages/home/Home';
 import { Rss } from './pages/rss/Rss';
-
-export const enum WebStatus { Home, Rss, Configuration };
+import { RouteStatus } from './Routes';
 
 const styleTitle = (): React.CSSProperties => ({
     textAlign: "center",
@@ -14,21 +15,23 @@ const styleTitle = (): React.CSSProperties => ({
 });
 
 export const App = () => {
-    const [webStatus, setWebStatus] = React.useState(WebStatus.Rss);
+    const [webStatus, setWebStatus] = React.useState(RouteStatus.Rss); // TODO: It's should be HOME the first page.
 
+    // TODO: FIX ROUTES, ADD NAVIGATION AND FIX THIS IN AppMenubar.
     // TODO: Create form (choose amount and type - all, blog, twitter, and mastodon) and improve interface RSS (RssMessage can be a card and reuse the HTML).
     // TODO: Create Home.
     // TODO: Create Configuration form.
 
     return (<>
-        <h1>FEW TIME @HOME</h1>
-        <div style={({display: (webStatus === WebStatus.Rss? 'inline' : 'none')})}>
+        <CssBaseline/>
+        <AppMenubar />
+        <div style={({display: (webStatus === RouteStatus.Rss? 'inline' : 'none')})}>
             <Rss/>
         </div>
-        <div style={({display: (webStatus === WebStatus.Home? 'inline' : 'none')})}>
+        <div style={({display: (webStatus === RouteStatus.Home? 'inline' : 'none')})}>
             <Home/>
         </div>
-        <div style={({display: (webStatus === WebStatus.Configuration? 'inline' : 'none')})}>
+        <div style={({display: (webStatus === RouteStatus.Configuration? 'inline' : 'none')})}>
             <Configuration/>
         </div>
     </>);
