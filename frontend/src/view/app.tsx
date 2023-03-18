@@ -19,17 +19,17 @@ export const App = () => {
 
     // TODO: FIX ROUTES, ADD NAVIGATION AND FIX THIS IN AppMenubar.
     // TODO: Create form (choose amount and type - all, blog, twitter, and mastodon) and improve interface RSS (RssMessage can be a card and reuse the HTML).
-    // TODO: Create Home.
+    // TODO: Create Home (TASK LIST!!! AND A INSPIRATIONAL QUOTE).
     // TODO: Create Configuration form.
 
     return (<>
         <CssBaseline/>
         <AppMenubar />
-        <div style={({display: (webStatus === RouteStatus.Rss? 'inline' : 'none')})}>
-            <Rss/>
-        </div>
         <div style={({display: (webStatus === RouteStatus.Home? 'inline' : 'none')})}>
             <Home/>
+        </div>
+        <div style={({display: (webStatus === RouteStatus.Rss? 'inline' : 'none')})}>
+            <Rss/>
         </div>
         <div style={({display: (webStatus === RouteStatus.Configuration? 'inline' : 'none')})}>
             <Configuration/>
