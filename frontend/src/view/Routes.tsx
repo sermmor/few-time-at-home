@@ -1,4 +1,4 @@
-import { Configuration } from "./pages/Configuration/Configuration";
+import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Rss } from "./pages/Rss/Rss";
@@ -24,7 +24,7 @@ export const routesFTAH: RouteFTAHElement[] = [
   {
     name: 'Configuration',
     path: '/configuration',
-    element: <Configuration/>,
+    element: <ConfigurationComponent/>,
   },
   {
     name: 'Error',

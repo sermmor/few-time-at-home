@@ -30,7 +30,6 @@ export const Rss = () => {
     <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...formFieldStyle()}}>
       <Select
         value={rssType}
-        label="Rss"
         onChange={evt => setRssType(evt.target.value as RSSType)}
         sx={{minWidth: '15.5rem'}}
       >
