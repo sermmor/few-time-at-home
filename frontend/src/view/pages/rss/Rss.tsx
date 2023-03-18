@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, MenuItem, Select, SxProps, TextField, Theme, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, MenuItem, Select, SxProps, TextField, Theme } from '@mui/material';
 import * as React from 'react';
 import { RSSActions } from '../../../core/actions/rss';
 import { RssDataModel } from '../../../data-model/rss';

@@ -4,8 +4,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
 
-// TODO: FIX ROUTES, ADD NAVIGATION AND FIX THIS IN AppMenubar.
-// TODO: Create form (choose amount and type - all, blog, twitter, and mastodon) and improve interface RSS (RssMessage can be a card and reuse the HTML).
 // TODO: Create Home (TASK LIST!!! AND A INSPIRATIONAL QUOTE).
 // TODO: Create Configuration form.
 
