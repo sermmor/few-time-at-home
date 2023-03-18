@@ -1,18 +1,12 @@
 import * as React from 'react';
-import { CssBaseline } from '@mui/material';
+import { Box, CssBaseline } from '@mui/material';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
-import { Configuration } from './pages/configuration/Configuration';
-import { Home } from './pages/home/Home';
-import { Rss } from './pages/rss/Rss';
+import { Configuration } from './pages/Configuration/Configuration';
+import { Home } from './pages/Home/Home';
+import { Rss } from './pages/Rss/Rss';
 import { RouteStatus } from './Routes';
-
-const styleTitle = (): React.CSSProperties => ({
-    textAlign: "center",
-    textTransform: "uppercase",
-    color: "rgba(0, 0, 0, 0.54)",
-    fontFamily: "Helvetica",
-    letterSpacing: "0.00938em",
-});
+import { NotFound } from './pages/NotFound/NotFound';
 
 export const App = () => {
     const [webStatus, setWebStatus] = React.useState(RouteStatus.Rss); // TODO: It's should be HOME the first page.
@@ -25,14 +19,24 @@ export const App = () => {
     return (<>
         <CssBaseline/>
         <AppMenubar />
-        <div style={({display: (webStatus === RouteStatus.Home? 'inline' : 'none')})}>
-            <Home/>
-        </div>
-        <div style={({display: (webStatus === RouteStatus.Rss? 'inline' : 'none')})}>
-            <Rss/>
-        </div>
-        <div style={({display: (webStatus === RouteStatus.Configuration? 'inline' : 'none')})}>
-            <Configuration/>
-        </div>
+        <Box sx={{padding: '1rem'}}>
+          <BrowserRouter>
+            <Routes>
+              <Route path='/' element={<Home/>}/>
+              <Route path='/rss' element={<Rss/>}/>
+              <Route path='/configuration' element={<Configuration/>}/>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          {/* <Box style={({display: (webStatus === RouteStatus.Home? 'inline' : 'none')})}>
+              <Home/>
+          </Box>
+          <Box style={({display: (webStatus === RouteStatus.Rss? 'inline' : 'none')})}>
+              <Rss/>
+          </Box>
+          <Box style={({display: (webStatus === RouteStatus.Configuration? 'inline' : 'none')})}>
+              <Configuration/>
+          </Box> */}
+        </Box>
     </>);
 }
