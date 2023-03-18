@@ -1,17 +1,11 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
+import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Button, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import CottageIcon from '@mui/icons-material/Cottage';
-import { RouteStatus } from '../../Routes';
+import { redirect } from 'react-router-dom';
+import { routesFTAH } from '../../Routes';
 
-const pages = Object.values(RouteStatus);
+const pages = routesFTAH.filter(route => !route.isHiddenInMenuBar);
 
 const handleOpenNavMenu = (setAnchorElNav: React.Dispatch<React.SetStateAction<HTMLElement | null>>) => (event: React.MouseEvent<HTMLElement>) => {
   setAnchorElNav(event.currentTarget);
@@ -23,10 +17,12 @@ const handleCloseNavMenu = (setAnchorElNav: React.Dispatch<React.SetStateAction<
 
 const handlePushInMenuItem = (nameItem: string) => (event: React.MouseEvent<HTMLElement>) => {
   console.log(nameItem); // TODO: Navigation
+  redirect(nameItem);
 }
 
 const handlePushInMenuMobileItem = (setAnchorElNav: React.Dispatch<React.SetStateAction<HTMLElement | null>>, nameItem: string) => (event: React.MouseEvent<HTMLElement>) => {
   console.log(nameItem); // TODO: Navigation
+  redirect(nameItem);
   handleCloseNavMenu(setAnchorElNav)();
 }
 
@@ -52,13 +48,13 @@ const ToolbarDesktopAndTablet = () => {
         FEW_TIME@HOME
       </Typography>
       <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-        {pages.map((page) => (
+        {pages.map(({name, path}) => (
           <Button
-            key={page}
-            onClick={handlePushInMenuItem(page)}
+            key={name}
+            onClick={handlePushInMenuItem(path)}
             sx={{ my: 2, color: 'white', display: 'block' }}
           >
-            {page}
+            {name}
           </Button>
         ))}
       </Box>
@@ -99,9 +95,9 @@ const ToolbarMobile = () => {
             display: { xs: 'block', md: 'none' },
           }}
         >
-          {pages.map((page) => (
-            <MenuItem key={page} onClick={handlePushInMenuMobileItem(setAnchorElNav, page)}>
-              <Typography textAlign="center">{page}</Typography>
+          {pages.map(({name, path}) => (
+            <MenuItem key={name} onClick={handlePushInMenuMobileItem(setAnchorElNav, path)}>
+              <Typography textAlign="center">{name}</Typography>
             </MenuItem>
           ))}
         </Menu>
