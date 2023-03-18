@@ -12,6 +12,10 @@ const formFieldStyle = (): SxProps<Theme> => ({
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',  
 });
 
+const formSizeFields = (): SxProps<Theme> => ({
+  minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'},
+});
+
 const LoadingComponent = () => <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: '20rem'}}>
   <CircularProgress />
 </Box>;
@@ -28,16 +32,16 @@ export const Rss = () => {
         value={rssType}
         label="Rss"
         onChange={evt => setRssType(evt.target.value as RSSType)}
-        sx={{minWidth: '15rem'}}
+        sx={{minWidth: '15.5rem'}}
       >
         {
           ['ALL', 'MASTODON', 'TWITTER', 'BLOG'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
         }
       </Select>
-      <TextField label="Amount" variant="outlined" type='number' value={amount} onChange={evt => setAmount(+evt.target.value)} />
+      <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
       <Button
         variant='contained'
-        sx={{minWidth: {xs: '19rem', sm: '5rem', md: '5rem'}}}
+        sx={formSizeFields()}
         onClick={() => {
           setListState(StateItemList.LOADING);
           RSSActions.getRSS(rssType, amount).then(data => {

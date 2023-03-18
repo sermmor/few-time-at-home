@@ -2,7 +2,7 @@ import * as React from 'react';
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Button, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CottageIcon from '@mui/icons-material/Cottage';
-import { redirect } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { routesFTAH } from '../../Routes';
 
 const pages = routesFTAH.filter(route => !route.isHiddenInMenuBar);
@@ -15,18 +15,15 @@ const handleCloseNavMenu = (setAnchorElNav: React.Dispatch<React.SetStateAction<
   setAnchorElNav(null);
 };
 
-const handlePushInMenuItem = (nameItem: string) => (event: React.MouseEvent<HTMLElement>) => {
-  console.log(nameItem); // TODO: Navigation
-  redirect(nameItem);
-}
-
 const handlePushInMenuMobileItem = (setAnchorElNav: React.Dispatch<React.SetStateAction<HTMLElement | null>>, nameItem: string) => (event: React.MouseEvent<HTMLElement>) => {
   console.log(nameItem); // TODO: Navigation
-  redirect(nameItem);
-  handleCloseNavMenu(setAnchorElNav)();
+  // redirect(nameItem);
+  // handleCloseNavMenu(setAnchorElNav)();
+  setAnchorElNav(null);
 }
 
 const ToolbarDesktopAndTablet = () => {
+  const navigate = useNavigate();
   return (
     <>
       <CottageIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, ml: 2 }} />
@@ -51,7 +48,7 @@ const ToolbarDesktopAndTablet = () => {
         {pages.map(({name, path}) => (
           <Button
             key={name}
-            onClick={handlePushInMenuItem(path)}
+            onClick={() => navigate(path)}
             sx={{ my: 2, color: 'white', display: 'block' }}
           >
             {name}
@@ -63,6 +60,7 @@ const ToolbarDesktopAndTablet = () => {
 }
 
 const ToolbarMobile = () => {
+  const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   return (
     <>
@@ -96,7 +94,13 @@ const ToolbarMobile = () => {
           }}
         >
           {pages.map(({name, path}) => (
-            <MenuItem key={name} onClick={handlePushInMenuMobileItem(setAnchorElNav, path)}>
+            <MenuItem
+              key={name}
+              onClick={() => {
+                navigate(path);
+                setAnchorElNav(null);
+              }}
+            >
               <Typography textAlign="center">{name}</Typography>
             </MenuItem>
           ))}

@@ -12,7 +12,21 @@ import { routesFTAH } from './Routes';
 const AllRoutes = () => <BrowserRouter>
   <Routes>
     {
-      routesFTAH.map(({name: nameRoute, path, element}) => <Route key={nameRoute} path={path} element={element}/>)
+      routesFTAH.map(({name: nameRoute, path, element}) =>
+        <Route
+          key={nameRoute}
+          path={path}
+          element={
+            <>
+              <AppMenubar />
+              <Box sx={{padding: '1rem'}}>{
+                element
+                }
+              </Box>
+            </>
+          }
+        />
+      )
     }
   </Routes>
 </BrowserRouter>
@@ -20,9 +34,6 @@ const AllRoutes = () => <BrowserRouter>
 export const App = () => {
     return (<>
         <CssBaseline/>
-        <AppMenubar />
-        <Box sx={{padding: '1rem'}}>
-          <AllRoutes />
-        </Box>
+        <AllRoutes />
     </>);
 }
