@@ -2,11 +2,12 @@ import Telegraf from "telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
 import { ConfigurationService } from "../API";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
+import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
 
 // const pathFinishedVideo = 'build/finished.mp4';
 // const pathStartedVideo = 'build/start.mp4';
-const maxMessagesToSendToTelegram = 200;
+const maxMessagesToSendToTelegram = 100;
 
 export class TelegramBot {
     private telegramBotData: TelegramData;
@@ -34,7 +35,8 @@ export class TelegramBot {
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
-        this.bot.launch();    
+        this.bot.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
+        this.bot.launch();
     }
 
     private buildBotCommand = (
@@ -71,6 +73,25 @@ export class TelegramBot {
             // ctx.replyWithVideo({ source: pathFinishedVideo });
         }, lastIndex * 1000);
     }
+
+    private sendAllNotesToTelegram = (ctx: TelegrafContext) => {
+      console.log("> The bot is going to send the notes.");
+      const notesPerMessage = 10;
+      const numberOfMessages = Math.ceil(NotesService.Instance.notes.length / notesPerMessage);
+      const messagesToSend = [];
+      let message = '';
+      
+      for (let i = 0; i < numberOfMessages; i++) {
+        message = '';
+        for (let j = notesPerMessage * i; j < notesPerMessage * (i + 1) && j < NotesService.Instance.notes.length; j++) {
+          message = message === '' ? `- ${NotesService.Instance.notes[j]}` : `${message}\n- ${NotesService.Instance.notes[j]}`;
+        }
+        messagesToSend.push(message);
+      }
+      this.sendAllMessagesToTelegram(ctx, messagesToSend);
+    }
+
+    // TODO: Receive a note.
 }
 
 
