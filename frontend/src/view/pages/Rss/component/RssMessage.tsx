@@ -5,7 +5,6 @@ interface Props {
   message: string;
 }
 
-// TODO DON'T FORGET USE UNFURL FOR THE FIRST LINK (A NodeJS library?)
 export const RssMessage = ({message}: Props) => {
   const [header, ...rest] = message.split('\n');
   const foot = rest[rest.length - 1];

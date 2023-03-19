@@ -25,3 +25,8 @@ export const fetchJsonSendAndReceive = <T>(url: string, data: T, mock: T): Promi
       .then(json => resolve({...json}));
   }
 });
+
+export const fetchReceiveText = (url: string): Promise<string> => new Promise<string>(resolve => {
+  fetch(url).then(res => res.text())
+    .then(text => resolve(text));
+});

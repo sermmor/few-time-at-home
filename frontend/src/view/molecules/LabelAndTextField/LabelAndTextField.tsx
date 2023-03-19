@@ -16,7 +16,7 @@ export const LabelAndTextField = ({text, onChange}: {text: string, onChange: (ne
         <TextField
           variant="outlined"
           value={textEditing}
-          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, color: 'whitesmoke', backgroundColor: '#1976d2'}}
+          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
           onChange={evt => setTextEditing(evt.target.value)}
           onBlur={() => setText(textEditing)} 
           onKeyDown={(evt) => evt.key === 'Enter' ? setText(textEditing) : undefined}

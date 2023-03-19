@@ -1,6 +1,5 @@
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
-import { width } from "@mui/system";
 import React from "react";
+import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataModel } from "../../../data-model/configuration";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";

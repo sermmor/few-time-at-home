@@ -7,8 +7,8 @@ const listComponentStyle: SxProps<Theme> = {
   flexDirection: 'column',
   alignItems: 'left',
   justifyContent: 'center',
-  color: 'whitesmoke',
-  backgroundColor: 'rgb(30, 30, 30)',
+  color: 'rgb(30, 30, 30)',
+  backgroundColor: 'whitesmoke',
   minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'},
   marginBottom: '.5rem', 
 }
@@ -31,7 +31,7 @@ export const ListComponent = ({list, deleteAction, addAction}: Props) => <Card s
       {
         list.map(element =>
           <Box key={element.id} sx={itemListStyle}>
-            { deleteAction && <IconButton aria-label="delete" color='error' onClick={() => deleteAction(element.id)}>
+            { deleteAction && <IconButton aria-label="delete" onClick={() => deleteAction(element.id)}>
                 <DeleteIcon />
               </IconButton>
             }
@@ -39,7 +39,7 @@ export const ListComponent = ({list, deleteAction, addAction}: Props) => <Card s
           </Box>
         )
       }
-    { addAction && <IconButton aria-label="addItem" color='success' onClick={() => addAction()}>
+    { addAction && <IconButton aria-label="addItem" onClick={() => addAction()}>
         <AddCircleIcon />
       </IconButton>
     }
