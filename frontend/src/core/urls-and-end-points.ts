@@ -1,4 +1,4 @@
-const ip = 'localhost'; // '192.168.1.120'; // 'localhost';
+const ip = 'localhost';
 const port = '3001';
 
 const URL_API = `http://${ip}:${port}`;
