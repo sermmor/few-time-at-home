@@ -19,7 +19,7 @@ const AllRoutes = () => <BrowserRouter>
               <Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
                 <AppMenubar />
               </Box>
-              <Box sx={{padding: '1rem', paddingTop: '7rem'}}>{
+              <Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>{
                 element
                 }
               </Box>

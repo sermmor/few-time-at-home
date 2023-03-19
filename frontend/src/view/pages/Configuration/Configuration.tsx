@@ -1,4 +1,5 @@
-import { Box, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { width } from "@mui/system";
 import React from "react";
 import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataModel } from "../../../data-model/configuration";
@@ -33,10 +34,30 @@ const TitleAndList = ({title, list, deleteAction, addAction}: {
     {title}
   </Typography>
   <ListComponent {...{list, deleteAction, addAction}} />
-</>
+</>;
 
+const SaveConfigurationComponent = ({config}: {config: ConfigurationDataModel}) => {
+  const [isSave, setSave] = React.useState<boolean>(false);
+  const setConfiguration = () => {
+    ConfigurationActions.sendConfiguration(config);
+    setSave(true);
+    setTimeout(() => setSave(false), 500);
+  }
+  return <Box
+    sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingRight: { xs: '0rem', sm: '3rem'}, paddingBottom: '3rem'}}
+    >
+      <Button
+        variant='contained'
+        sx={{minWidth: '15.5rem'}}
+        onClick={() => setConfiguration()}
+        >
+        Save
+        </Button>
+        {isSave && <Box sx={{paddingLeft: '1rem'}}>Saved!</Box>}
+    </Box>
+};
 
-let indexNewItemAdded = 0;
+let indexNewItemAdded = 0; // TODO: TEST TO REMOVE THIS VAR.
 
 export const ConfigurationComponent = () => {
   const [config, setConfig] = React.useState<ConfigurationDataModel>();
@@ -63,6 +84,29 @@ export const ConfigurationComponent = () => {
       [keyList]: cloneList,
     });
   };
+  
+  const editActionList = (keyList: string, id: string, equals: (item: any, idToEdit: string) => boolean, isMastoInstance = false, isMastoUser = false) => (newText: string) => {
+    if (!config) return;
+    const cloneList = [...(config as any)[keyList]];
+    const index = cloneList.findIndex(item => equals(item, id));
+    if (!isMastoInstance && !isMastoUser) {
+      cloneList[index] = newText;
+    } else if (isMastoInstance) {
+      cloneList[index] = {
+        ...cloneList[index],
+        instance: newText,
+      }
+    } else {
+      cloneList[index] = {
+        ...cloneList[index],
+        user: newText,
+      }
+    }
+    setConfig({
+      ...config,
+      [keyList]: cloneList,
+    });
+  };
 
   return <>
     {config && <Box sx={formStyle}>
@@ -70,28 +114,45 @@ export const ConfigurationComponent = () => {
           title='Nitter Instances'
           deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
           addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`) }
-          list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} />}))}
+          list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+            editActionList('nitterInstancesList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+          }/>}))}
         />
         <TitleAndList
           title='Twitter Users'
           deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
           addAction={() => addActionList('nitterRssUsersList', `new User ${indexNewItemAdded}`) }
-          list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} />}))}
+          list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+            editActionList('nitterRssUsersList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+          }/>}))}
         />
         <TitleAndList
           title='Mastodon Users'
-          deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) =>  `@${user}@${instance}` === idToDelete)}
+          deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) => `@${user}@${instance}` === idToDelete)}
           addAction={() => addActionList('mastodonRssUsersList', {user: `new User ${indexNewItemAdded}`, instance: `new Instance ${indexNewItemAdded}`}) }
           list={config.mastodonRssUsersList.map(({instance, user}) => ({
             id: `@${user}@${instance}`,
-            item: <>@<LabelAndTextField text={user} />@<LabelAndTextField text={instance} /></>
+            item: <>@<LabelAndTextField
+              text={user}
+              onChange={
+                editActionList('mastodonRssUsersList', `@${user}@${instance}`, ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit, false, true)
+              }
+              />@<LabelAndTextField
+              text={instance}
+              onChange={
+                editActionList('mastodonRssUsersList', `@${user}@${instance}`, ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit, true, false)
+              }
+              />
+            </>
           }))}
         />
         <TitleAndList
           title='Blog RSS'
           deleteAction={deleteActionList('blogRssList', (item: any, idToDelete: string) => item === idToDelete)}
           addAction={() => addActionList('blogRssList', `new Blog ${indexNewItemAdded}`) }
-          list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} />}))}
+          list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+            editActionList('blogRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+          }/>}))}
         />
         <TitleAndList
           title='Telegram commands'
@@ -99,12 +160,25 @@ export const ConfigurationComponent = () => {
               id:`${index}`,
               item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
                 <Box>{commandName}</Box>
-                <Box sx={{ marginLeft: {xs: 'none', sm:'auto'}}}><LabelAndTextField text={config.listBotCommands[commandName]} /></Box>
+                <Box sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
+                  <LabelAndTextField
+                    text={config.listBotCommands[commandName]}
+                    onChange={(newText: string) => {
+                      const cloneList = {...config.listBotCommands};
+                      (cloneList as any)[commandName] = newText;
+                      setConfig({
+                        ...config,
+                        listBotCommands: cloneList,
+                      });
+                    }          
+                    }
+                  />
+                </Box>
               </Box>
           })
         )} />
         <Box sx={footerStyle}>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'center'}}>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
               Number of workers
             </Typography>
@@ -122,7 +196,7 @@ export const ConfigurationComponent = () => {
               }}
             />
           </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'center'}}>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
               API Port:
             </Typography>
@@ -141,6 +215,7 @@ export const ConfigurationComponent = () => {
             />
           </Box>
         </Box>
+        <SaveConfigurationComponent config={config}/>
       </Box>
     }
   </>;

@@ -1,9 +1,14 @@
 import { Box, Button, TextField } from "@mui/material";
 import React from "react";
 
-export const LabelAndTextField = ({text}: {text: string}) => {
+export const LabelAndTextField = ({text, onChange}: {text: string, onChange: (newText: string) => void}) => {
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   const [textEditing, setTextEditing] = React.useState<string>(text);
+
+  const setText = (newText: string) => {
+    setEditMode(false);
+    if (onChange) onChange(newText);
+  }
 
   return <> {
     isInEditMode ?
@@ -13,14 +18,14 @@ export const LabelAndTextField = ({text}: {text: string}) => {
           value={textEditing}
           sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, color: 'whitesmoke', backgroundColor: '#1976d2'}}
           onChange={evt => setTextEditing(evt.target.value)}
-          onBlur={() => setEditMode(false)} 
-          onKeyDown={(evt) => evt.key === 'Enter' ? setEditMode(false) : undefined}
+          onBlur={() => setText(textEditing)} 
+          onKeyDown={(evt) => evt.key === 'Enter' ? setText(textEditing) : undefined}
           autoFocus={isInEditMode}
         />
         <Button
           variant='contained'
           sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, marginLeft: { sm: '1rem'}, marginTop: { xs: '1rem', sm: '0rem' }}}
-          onClick={() => setEditMode(false)}
+          onClick={() => setText(textEditing)}
         >
           OK
         </Button>
