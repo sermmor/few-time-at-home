@@ -23,12 +23,20 @@ const footerStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
-const TitleAndList = ({title, list, deleteAction}: {title: string; list: { id: string, item: string | JSX.Element }[]; deleteAction?: (id: string) => void;}) => <>
+const TitleAndList = ({title, list, deleteAction, addAction}: {
+  title: string;
+  list: { id: string, item: string | JSX.Element }[];
+  deleteAction?: (id: string) => void;
+  addAction?: () => void;
+}) => <>
   <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
     {title}
   </Typography>
-  <ListComponent {...{list, deleteAction}} />
+  <ListComponent {...{list, deleteAction, addAction}} />
 </>
+
+
+let indexNewItemAdded = 0;
 
 export const ConfigurationComponent = () => {
   const [config, setConfig] = React.useState<ConfigurationDataModel>();
@@ -45,21 +53,35 @@ export const ConfigurationComponent = () => {
     });
   };
 
+  const addActionList = (keyList: string, itemToAdd: any) => {
+    if (!config) return;
+    const cloneList = [...(config as any)[keyList]];
+    cloneList.push(itemToAdd);
+    indexNewItemAdded++;
+    setConfig({
+      ...config,
+      [keyList]: cloneList,
+    });
+  };
+
   return <>
     {config && <Box sx={formStyle}>
         <TitleAndList
           title='Nitter Instances'
           deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
+          addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`) }
           list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} />}))}
         />
         <TitleAndList
           title='Twitter Users'
           deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
+          addAction={() => addActionList('nitterRssUsersList', `new User ${indexNewItemAdded}`) }
           list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} />}))}
         />
         <TitleAndList
           title='Mastodon Users'
           deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) =>  `@${user}@${instance}` === idToDelete)}
+          addAction={() => addActionList('mastodonRssUsersList', {user: `new User ${indexNewItemAdded}`, instance: `new Instance ${indexNewItemAdded}`}) }
           list={config.mastodonRssUsersList.map(({instance, user}) => ({
             id: `@${user}@${instance}`,
             item: <>@<LabelAndTextField text={user} />@<LabelAndTextField text={instance} /></>
@@ -68,6 +90,7 @@ export const ConfigurationComponent = () => {
         <TitleAndList
           title='Blog RSS'
           deleteAction={deleteActionList('blogRssList', (item: any, idToDelete: string) => item === idToDelete)}
+          addAction={() => addActionList('blogRssList', `new Blog ${indexNewItemAdded}`) }
           list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} />}))}
         />
         <TitleAndList

@@ -1,5 +1,6 @@
 import { Box, Card, CardContent, IconButton, SxProps, Theme } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 const listComponentStyle: SxProps<Theme> = {
   display: 'flex',
@@ -22,9 +23,10 @@ const itemListStyle: SxProps<Theme> = {
 interface Props {
   list: { id: string, item: string | JSX.Element }[];
   deleteAction?: (id: string) => void;
+  addAction?: () => void;
 }
 
-export const ListComponent = ({list, deleteAction}: Props) => <Card sx={listComponentStyle}>
+export const ListComponent = ({list, deleteAction, addAction}: Props) => <Card sx={listComponentStyle}>
     <CardContent>
       {
         list.map(element =>
@@ -37,5 +39,10 @@ export const ListComponent = ({list, deleteAction}: Props) => <Card sx={listComp
           </Box>
         )
       }
+    { addAction && <IconButton aria-label="addItem" color='success' onClick={() => addAction()}>
+        <AddCircleIcon />
+      </IconButton>
+    }
+
     </CardContent>
   </Card>;
