@@ -57,7 +57,7 @@ const SaveConfigurationComponent = ({config}: {config: ConfigurationDataModel}) 
     </Box>
 };
 
-let indexNewItemAdded = 0; // TODO: TEST TO REMOVE THIS VAR.
+let indexNewItemAdded = 0;
 
 export const ConfigurationComponent = () => {
   const [config, setConfig] = React.useState<ConfigurationDataModel>();

@@ -4,7 +4,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
 
-// TODO: Create Configuration form.
 // TODO: Create Home (TASK LIST!!! AND A INSPIRATIONAL QUOTE).
 
 const AllRoutes = () => <BrowserRouter>
