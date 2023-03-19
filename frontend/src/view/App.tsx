@@ -16,7 +16,7 @@ const AllRoutes = () => <BrowserRouter>
           path={path}
           element={
             <>
-              <Box sx={{position: 'fixed', width:'100%'}}>
+              <Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
                 <AppMenubar />
               </Box>
               <Box sx={{padding: '1rem', paddingTop: '7rem'}}>{
