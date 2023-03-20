@@ -72,19 +72,30 @@ export const ConfigurationComponent = () => {
     });
   };
   
-  const editActionList = (keyList: string, id: string, equals: (item: any, idToEdit: string) => boolean, isMastoInstance = false, isMastoUser = false) => (newText: string) => {
+  const editActionList = (keyList: string, id: string, equals: (item: any, idToEdit: string) => boolean, isMastoInstance = false, isMastoUser = false, isQuote = false) => (newText: string) => {
     if (!config) return;
     const cloneList = [...(config as any)[keyList]];
     const index = cloneList.findIndex(item => equals(item, id));
     if (!isMastoInstance && !isMastoUser) {
       cloneList[index] = newText;
     } else if (isMastoInstance) {
-      cloneList[index] = {
+      cloneList[index] = isQuote ? 
+      {
+        ...cloneList[index],
+        quote: newText,
+      }
+      :
+      {
         ...cloneList[index],
         instance: newText,
       }
     } else {
-      cloneList[index] = {
+      cloneList[index] = isQuote ? 
+      {
+        ...cloneList[index],
+        author: newText,
+      }
+      :{
         ...cloneList[index],
         user: newText,
       }
@@ -128,6 +139,26 @@ export const ConfigurationComponent = () => {
               text={instance}
               onChange={
                 editActionList('mastodonRssUsersList', `@${user}@${instance}`, ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit, true, false)
+              }
+              />
+            </>
+          }))}
+        />
+        <TitleAndList
+          title='Citas'
+          deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
+          addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
+          list={config.quoteList.map(({author, quote}) => ({
+            id: `@${author}@${quote}`,
+            item: <><LabelAndTextField
+              text={author}
+              onChange={
+                editActionList('quoteList', `@${author}@${quote}`, ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit, false, true, true)
+              }
+              /><LabelAndTextField
+              text={quote}
+              onChange={
+                editActionList('quoteList', `@${author}@${quote}`, ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit, true, false, true)
               }
               />
             </>

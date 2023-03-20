@@ -46,6 +46,7 @@ export class ConfigurationService {
         mastodonRssUsersList: this.mastodonRssUsersList,
         blogRssList: this.blogRssList,
         listBotCommands: this.listBotCommands,
+        quoteList: this.quoteList,
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
     })
@@ -56,6 +57,7 @@ export class ConfigurationService {
         if (body.mastodonRssUsersList) this.mastodonRssUsersList = body.mastodonRssUsersList;
         if (body.blogRssList) this.blogRssList = body.blogRssList;
         if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
+        if (body.quoteList) this.quoteList = body.quoteList;
         if (body.numberOfWorkers) this.numberOfWorkers = body.numberOfWorkers;
         if (body.apiPort) this.apiPort = body.apiPort;
 
