@@ -1,3 +1,4 @@
+import { Quote } from "../quote/quoteList";
 import { saveInAFile } from "../utils";
 import { ChannelMediaRSSCollection } from "./messagesRSS.service";
 
@@ -22,6 +23,7 @@ export class ConfigurationService {
         bot_notes_command: string;
         bot_add_notes_command: string;
     };
+    quoteList: Quote[];
     numberOfWorkers: number;
     apiPort: number;
     
@@ -33,6 +35,7 @@ export class ConfigurationService {
         this.listBotCommands = configurationData.listBotCommands;
         this.numberOfWorkers = configurationData.numberOfWorkers;
         this.apiPort = configurationData.apiPort;
+        this.quoteList = configurationData.quoteList;
 
         ConfigurationService.Instance = this;
     }

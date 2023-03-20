@@ -1,4 +1,5 @@
 import express, {Express, Request, Response} from 'express';
+import { QuoteListUtilities } from '../quote/quoteList';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
@@ -10,10 +11,10 @@ export class APIService {
   static getRssMastoEndpoint  = "/rss/mastodon";
   static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
-  static configurationEndpoint = "/rss/configuration";
-  static notesEndpoint = "/rss/notes";
-
-
+  static configurationEndpoint = "/configuration";
+  static notesEndpoint = "/notes";
+  static quoteEndpoint = "/random-quote";
+  
   app: Express;
 
   constructor(
@@ -29,6 +30,7 @@ export class APIService {
     this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
     this.configurationService();
+    this.getRandomQuote();
     this.notesService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
@@ -74,6 +76,12 @@ export class APIService {
 
     this.app.get(APIService.notesEndpoint, (req, res) => {
       NotesService.Instance.getNotes().then(data => res.send({data}));
+    });
+  }
+
+  private getRandomQuote() {
+    this.app.get(APIService.quoteEndpoint, (req, res) => {
+      res.send(QuoteListUtilities.getAInspirationalQuote(ConfigurationService.Instance.quoteList));
     });
   }
 }

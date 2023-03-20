@@ -12,6 +12,7 @@ const maxMessagesToSendToTelegram = 100;
 export class TelegramBot {
     private telegramBotData: TelegramData;
     private bot: Telegraf<TelegrafContext>;
+    private context: TelegrafContext | undefined;
 
     constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
         if (!telegramBotData) {
@@ -25,11 +26,12 @@ export class TelegramBot {
             this.bot = bot;
         }
     }
-    
+
     start(commandList: TelegramBotCommand) {
         this.bot.start(ctx => {
             // ctx.replyWithVideo({ source: pathStartedVideo });
             ctx.reply(`I'm here!! :D`);
+            this.context = ctx;
         });
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
@@ -38,6 +40,7 @@ export class TelegramBot {
         this.bot.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
         this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
         this.bot.launch();
+        // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
     }
 
     private buildBotCommand = (
@@ -54,6 +57,7 @@ export class TelegramBot {
                     actionToDoWhenCallCommand().then(messagesToSend => {
                         this.sendAllMessagesToTelegram(ctx, messagesToSend.slice(messagesToSend.length - telegramNumberOfTweetsWithLinks));
                     });
+                    this.context = ctx;
                 }
             );
         });
@@ -68,6 +72,7 @@ export class TelegramBot {
           const note = ctx.message.text.split(nameCommand)[1];
           // this.bot.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
           actionWithMessage(ctx, note);
+          this.context = ctx;
         }
       });
     }
@@ -102,6 +107,7 @@ export class TelegramBot {
         }
         messagesToSend.push(message);
       }
+      this.context = ctx;
       this.sendAllMessagesToTelegram(ctx, messagesToSend);
     }
 
