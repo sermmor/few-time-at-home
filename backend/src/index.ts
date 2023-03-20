@@ -4,6 +4,7 @@ import { BlogRSSMessageList } from './blogRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
 import { TelegramBot } from './telegramBot/telegramBot';
+import { YoutubeRSSMessageList } from './youtubeRSS';
 
 const keysPath = 'build/keys.json';
 const configurationPath = 'build/configuration.json';
@@ -28,6 +29,7 @@ readFile(keysPath, (err, data) => {
             nitterRSS: new NitterRSSMessageList(),
             mastodonRSS: new MastodonRSSMessageList(),
             blogRSS: new BlogRSSMessageList(),
+            youtubeRSS: new YoutubeRSSMessageList()
         };
 
         const bot = new TelegramBot(keyData);

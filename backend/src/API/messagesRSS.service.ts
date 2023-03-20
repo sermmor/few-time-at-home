@@ -2,11 +2,13 @@ import { BlogRSSMessageList } from "../blogRSS";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { MastodonRSSMessageList } from "../mastodonRSS";
 import { NitterRSSMessageList } from "../nitterRSS";
+import { YoutubeRSSMessageList } from "../youtubeRSS";
 
 export interface ChannelMediaRSSCollection {
     nitterRSS: NitterRSSMessageList,
     mastodonRSS: MastodonRSSMessageList,
     blogRSS: BlogRSSMessageList,
+    youtubeRSS: YoutubeRSSMessageList,
 }
 
 export interface TelegramBotCommand {
@@ -14,6 +16,7 @@ export interface TelegramBotCommand {
     onCommandNitter: () => Promise<string[]>;
     onCommandMasto: () => Promise<string[]>;
     onCommandBlog: () => Promise<string[]>;
+    onCommandYoutube: () => Promise<string[]>;
 }
 
 export const getAllMessageCommands = (channelCollections: ChannelMediaRSSCollection): TelegramBotCommand => ({
@@ -21,6 +24,8 @@ export const getAllMessageCommands = (channelCollections: ChannelMediaRSSCollect
     onCommandMasto: getAllMessagesChannelMediaRSS(channelCollections.mastodonRSS),
     onCommandNitter: getAllMessagesChannelMediaRSS(channelCollections.nitterRSS),
     onCommandBlog: getAllMessagesChannelMediaRSS(channelCollections.blogRSS),
+    onCommandYoutube: getAllMessagesChannelMediaRSS(channelCollections.youtubeRSS),
+
 });
 
 const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(

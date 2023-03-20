@@ -33,8 +33,8 @@ export class BlogRSSMessageList extends ChannelMediaRSSMessageList {
 
     formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
         `${message.title}
-        ${message.author} - ${message.date.toDateString()}
-        ${message.content}
-        ${message.originalLink}`
+${message.author} - ${message.date.toDateString()}
+${message.content}
+${message.originalLink}`
     );
 }

@@ -12,6 +12,7 @@ export class APIService {
   static getRssMastoEndpoint  = "/rss/mastodon";
   static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
+  static getRssYoutubeEndpoint  = "/rss/youtube";
   static configurationEndpoint = "/configuration";
   static notesEndpoint = "/notes";
   static quoteEndpoint = "/random-quote";
@@ -31,6 +32,7 @@ export class APIService {
     this.getRSS(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
     this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
+    this.getRSS(APIService.getRssYoutubeEndpoint, this.commands.onCommandYoutube);
     this.unfurlService();
     this.configurationService();
     this.getRandomQuoteService();
@@ -55,10 +57,12 @@ export class APIService {
     this.app.post(APIService.configurationEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body JSON");
+            res.send(ConfigurationService.Instance.getConfigurationJson());
         } else {
-            ConfigurationService.Instance.updateConfiguration(this.channelMediaCollection, req.body);
+            ConfigurationService.Instance.updateConfiguration(this.channelMediaCollection, req.body).then(() => {
+              res.send(ConfigurationService.Instance.getConfigurationJson());
+            });
         }
-        res.send(ConfigurationService.Instance.getConfigurationJson());
     });
 
     this.app.get(APIService.configurationEndpoint, (req, res) => {

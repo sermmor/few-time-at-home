@@ -11,11 +11,9 @@ export abstract class ChannelMediaRSSMessageList {
         this.urlProfiles = [];
     }
 
-    abstract refleshChannelMediaConfiguration(): void;
-
     abstract createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData;
 
-    updateRSSList = (): Promise<ChannelMediaRSSMessageList> => {
+    updateRSSList(): Promise<ChannelMediaRSSMessageList> {
         const urlsProfilesToSend: string[][] = WorkerManager.divideArrayInNumberOfWorkers(this.urlProfiles, ConfigurationService.Instance.numberOfWorkers);
         const dataWorkerList: WorkerChildParentHandleData[] = [];
 
@@ -51,8 +49,8 @@ export abstract class ChannelMediaRSSMessageList {
         return allMessages.map(message =>
             
             `${(message.title ? message.title + '\n' : '')}${message.author} - ${message.date.toDateString()}
-            ${message.content}
-            ${message.originalLink}`
+${message.content}
+${message.originalLink}`
         );
     }
 }

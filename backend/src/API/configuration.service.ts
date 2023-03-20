@@ -16,11 +16,13 @@ export class ConfigurationService {
         user: string;
         }[];
     blogRssList: string[];
+    youtubeRssList: string[];
     listBotCommands: {
         bot_all_command: string;
         bot_masto_command: string;
         bot_nitter_command: string;
         bot_blog_command: string;
+        bot_youtube_command: string;
         bot_notes_command: string;
         bot_add_notes_command: string;
     };
@@ -34,6 +36,7 @@ export class ConfigurationService {
         this.nitterRssUsersList = configurationData.nitterRssUsersList;
         this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
         this.blogRssList = configurationData.blogRssList;
+        this.youtubeRssList = configurationData.youtubeRssList;
         this.listBotCommands = configurationData.listBotCommands;
         this.numberOfWorkers = configurationData.numberOfWorkers;
         this.apiPort = configurationData.apiPort;
@@ -48,6 +51,7 @@ export class ConfigurationService {
         nitterRssUsersList: this.nitterRssUsersList,
         mastodonRssUsersList: this.mastodonRssUsersList,
         blogRssList: this.blogRssList,
+        youtubeRssList: this.youtubeRssList,
         listBotCommands: this.listBotCommands,
         quoteList: this.quoteList,
         alertList: AlertUtilities.parseAlertToString(this.alertList),
@@ -55,7 +59,7 @@ export class ConfigurationService {
         apiPort: this.apiPort,
     })
 
-    updateConfiguration = (channelMediaCollection: ChannelMediaRSSCollection, body: any) => {
+    updateConfiguration = (channelMediaCollection: ChannelMediaRSSCollection, body: any): Promise<void> => new Promise<void>(resolve => {
         if (body.nitterInstancesList) this.nitterInstancesList = body.nitterInstancesList;
         if (body.nitterRssUsersList) this.nitterRssUsersList = body.nitterRssUsersList;
         if (body.mastodonRssUsersList) this.mastodonRssUsersList = body.mastodonRssUsersList;
@@ -71,9 +75,11 @@ export class ConfigurationService {
         channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
         channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
         channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
-
-        console.log("> Configuration changed!");
-    }
+        channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
+          console.log("> Configuration changed!");
+          resolve();
+        });
+    });
 
     private saveConfiguration = () => {
         saveInAFile(JSON.stringify(this.getConfigurationJson(), null, 2), pathConfigFile);
