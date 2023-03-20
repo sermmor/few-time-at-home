@@ -9,7 +9,7 @@ const listComponentStyle: SxProps<Theme> = {
   justifyContent: 'center',
   color: 'rgb(30, 30, 30)',
   backgroundColor: 'whitesmoke',
-  minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'},
+  width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'},
   marginBottom: '.5rem', 
 }
 

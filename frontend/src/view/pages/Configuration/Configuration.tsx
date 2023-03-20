@@ -95,36 +95,6 @@ export const ConfigurationComponent = () => {
   return <>
     {config && <Box sx={formStyle}>
         <TitleAndList
-          title='Citas'
-          deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
-          addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
-          list={config.quoteList.map(({author, quote}) => ({
-            id: `@${author}@${quote}`,
-            item: <><LabelAndTextField
-              text={author}
-              onChange={
-                editActionList(
-                  'quoteList',
-                  `@${author}@${quote}`,
-                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], author: newText,})
-                )
-              }
-              /><LabelAndTextField
-              text={quote}
-              onChange={
-                editActionList(
-                  'quoteList',
-                  `@${author}@${quote}`,
-                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], quote: newText,})
-                )
-              }
-              />
-            </>
-          }))}
-        />
-        <TitleAndList
           title='Nitter Instances'
           deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
           addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`) }
@@ -201,6 +171,36 @@ export const ConfigurationComponent = () => {
               </Box>
           })
         )} />
+        <TitleAndList
+          title='Citas'
+          deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
+          addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
+          list={config.quoteList.map(({author, quote}) => ({
+            id: `@${author}@${quote}`,
+            item: <><LabelAndTextField
+              text={author}
+              onChange={
+                editActionList(
+                  'quoteList',
+                  `@${author}@${quote}`,
+                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], author: newText,})
+                )
+              }
+              /><LabelAndTextField
+              text={quote}
+              onChange={
+                editActionList(
+                  'quoteList',
+                  `@${author}@${quote}`,
+                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], quote: newText,})
+                )
+              }
+              />
+            </>
+          }))}
+        />
         <Box sx={footerStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
