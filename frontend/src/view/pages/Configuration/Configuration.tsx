@@ -72,33 +72,19 @@ export const ConfigurationComponent = () => {
     });
   };
   
-  const editActionList = (keyList: string, id: string, equals: (item: any, idToEdit: string) => boolean, isMastoInstance = false, isMastoUser = false, isQuote = false) => (newText: string) => {
+  const editActionList = (
+      keyList: string,
+      id: string,
+      equals: (item: any, idToEdit: string) => boolean,
+      editConfig?: (newConfig: any[], index: number, newData: string) => void
+    ) => (newText: string) => {
     if (!config) return;
     const cloneList = [...(config as any)[keyList]];
     const index = cloneList.findIndex(item => equals(item, id));
-    if (!isMastoInstance && !isMastoUser) {
+    if (!editConfig) {
       cloneList[index] = newText;
-    } else if (isMastoInstance) {
-      cloneList[index] = isQuote ? 
-      {
-        ...cloneList[index],
-        quote: newText,
-      }
-      :
-      {
-        ...cloneList[index],
-        instance: newText,
-      }
     } else {
-      cloneList[index] = isQuote ? 
-      {
-        ...cloneList[index],
-        author: newText,
-      }
-      :{
-        ...cloneList[index],
-        user: newText,
-      }
+      editConfig(cloneList, index, newText);
     }
     setConfig({
       ...config,
@@ -133,12 +119,22 @@ export const ConfigurationComponent = () => {
             item: <>@<LabelAndTextField
               text={user}
               onChange={
-                editActionList('mastodonRssUsersList', `@${user}@${instance}`, ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit, false, true)
+                editActionList(
+                  'mastodonRssUsersList',
+                  `@${user}@${instance}`,
+                  ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], user: newText,})
+                )
               }
               />@<LabelAndTextField
               text={instance}
               onChange={
-                editActionList('mastodonRssUsersList', `@${user}@${instance}`, ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit, true, false)
+                editActionList(
+                  'mastodonRssUsersList',
+                  `@${user}@${instance}`,
+                  ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], instance: newText,})
+                )
               }
               />
             </>
@@ -153,12 +149,22 @@ export const ConfigurationComponent = () => {
             item: <><LabelAndTextField
               text={author}
               onChange={
-                editActionList('quoteList', `@${author}@${quote}`, ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit, false, true, true)
+                editActionList(
+                  'quoteList',
+                  `@${author}@${quote}`,
+                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], author: newText,})
+                )
               }
               /><LabelAndTextField
               text={quote}
               onChange={
-                editActionList('quoteList', `@${author}@${quote}`, ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit, true, false, true)
+                editActionList(
+                  'quoteList',
+                  `@${author}@${quote}`,
+                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], quote: newText,})
+                )
               }
               />
             </>
