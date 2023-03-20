@@ -23,6 +23,18 @@ export class NotesService {
     }
   });
 
+  addNotes = (newNote: string): Promise<string[]> => new Promise<string[]>(resolve => {
+    if (this.notes.length > 0) {
+      this.notes.push(newNote);
+      this.saveNotes().then((newNoteList) => resolve(newNoteList));
+    } else {
+      this.getNotes().then(() => {
+        this.notes.push(newNote);
+        this.saveNotes().then((newNoteList) => resolve(newNoteList));
+      });
+    }
+  });
+
   updateNotes = (notes: string[]): Promise<string[]> => new Promise<string[]>(resolve => {
     if (this.notes.length > 0) {
       this.notes = notes;

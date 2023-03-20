@@ -20,6 +20,7 @@ export class ConfigurationService {
         bot_nitter_command: string;
         bot_blog_command: string;
         bot_notes_command: string;
+        bot_add_notes_command: string;
     };
     numberOfWorkers: number;
     apiPort: number;

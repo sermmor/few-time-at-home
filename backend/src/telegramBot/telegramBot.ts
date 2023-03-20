@@ -36,6 +36,7 @@ export class TelegramBot {
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
         this.bot.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
+        this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
         this.bot.launch();
     }
 
@@ -57,6 +58,19 @@ export class TelegramBot {
             );
         });
     };
+
+    private buildBotCommandAndHear = (
+      nameCommand: string,
+      actionWithMessage: (ctx: TelegrafContext, message: string) => void
+    ) => {
+      this.bot.command(nameCommand, (ctx) => {
+        if (ctx.message?.text) {
+          const note = ctx.message.text.split(nameCommand)[1];
+          // this.bot.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
+          actionWithMessage(ctx, note);
+        }
+      });
+    }
 
     private sendAllMessagesToTelegram = (
         ctx: TelegrafContext,
@@ -91,7 +105,11 @@ export class TelegramBot {
       this.sendAllMessagesToTelegram(ctx, messagesToSend);
     }
 
-    // TODO: Receive a note.
+    private addNoteFromTelegram = (ctx: TelegrafContext, note: string) => {
+      NotesService.Instance.addNotes(note).then(() => {
+        ctx.reply(`La nota se ha añadido correctamente.`);
+      });
+    }
 }
 
 

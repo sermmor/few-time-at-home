@@ -63,6 +63,7 @@ export class APIService {
 
   private notesService() {
     const notes = new NotesService();
+    notes.getNotes();
     this.app.post(APIService.notesEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
