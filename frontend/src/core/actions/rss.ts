@@ -1,4 +1,4 @@
-import { RssDataModelMock } from "../../data-model/mock/rssMock";
+import { rssDataModelMock } from "../../data-model/mock/rssMock";
 import { RssDataModel } from "../../data-model/rss";
 import { fetchJsonReceive } from "../fetch-utils";
 import { queryRssEndpoint } from "../urls-and-end-points";
@@ -8,6 +8,6 @@ const getRSSMasto = (amount = 20): Promise<RssDataModel> => getRSS('mastodon', a
 const getRSSNitter = (amount = 20): Promise<RssDataModel> => getRSS('twitter', amount);
 const getRSSBlog = (amount = 20): Promise<RssDataModel> => getRSS('blog', amount);
 const getRSS = (nameEndpoint: 'all' | 'mastodon' | 'twitter' | 'blog', amount: number): Promise<RssDataModel> => 
-  fetchJsonReceive<RssDataModel>(queryRssEndpoint(nameEndpoint, amount), RssDataModelMock());
+  fetchJsonReceive<RssDataModel>(queryRssEndpoint(nameEndpoint, amount), rssDataModelMock());
 
 export const RSSActions = { getRSSAll, getRSSMasto, getRSSNitter, getRSSBlog, getRSS };

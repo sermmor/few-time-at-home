@@ -10,7 +10,7 @@ export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Pro
   }
 });
 
-export const fetchJsonSendAndReceive = <T>(url: string, data: T, mock: T): Promise<T> => new Promise<T>(resolve => {
+export const fetchJsonSendAndReceive = <T>(url: string, data: any, mock: T): Promise<T> => new Promise<T>(resolve => {
   if (ConfigurationService.Instance.isUsingMocks) {
     resolve(mock);
   } else {

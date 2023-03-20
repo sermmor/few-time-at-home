@@ -1,6 +1,6 @@
 import { ConfigurationDataModel } from '../configuration';
 
-export const ConfigurationDataModelMock = (): ConfigurationDataModel => ({
+export const configurationDataModelMock = (): ConfigurationDataModel => ({
   nitterInstancesList: [
     'https://nitter1.com',
     'https://nitter2.com',

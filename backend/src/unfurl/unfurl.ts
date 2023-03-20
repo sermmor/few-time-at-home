@@ -3,25 +3,10 @@ import { ExtractorUtilities } from "../utils";
 const fetch = require("node-fetch");
 
 export interface UnfurlData {
-  title?: string;
-  urlImage?: string;
-  description?: string;
+  title: string;
+  urlImage: string;
+  description: string;
 }
-
-// twitter:title
-// twitter:image
-// twitter:description
-// og:title
-// og:image
-// og:description
-
-// `${}" content="`
-// `"`
-
-// `${}' content='`
-// `'`
-
-// 'https://www.youtube.com/watch?v=cLDE1M3ZNN4'
 
 const getInformationOneContent = (content: string, tagContent: string): string => {
   const info = ExtractorUtilities.cut(content, `${tagContent}" content="`, `"`);
@@ -43,8 +28,8 @@ export const unfurl = (url: string): Promise<UnfurlData> => new Promise<UnfurlDa
   fetch(url).then((res: any) => res.text()).then((text: string) => {
     resolve({
       title: getInformation(text, ['og:title', 'twitter:title']),
-      urlImage: getInformation(text, ['og:title', 'twitter:image']),
-      description: getInformation(text, ['og:image', 'twitter:description']),
+      urlImage: getInformation(text, ['og:image', 'twitter:image']),
+      description: getInformation(text, ['og:description', 'twitter:description']),
     });
   });
 })
