@@ -3,7 +3,6 @@ import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/materia
 import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataModel } from "../../../data-model/configuration";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
-import { ListComponent } from "../../molecules/ListComponent/ListComponent";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 
 const formStyle: SxProps<Theme> = {
