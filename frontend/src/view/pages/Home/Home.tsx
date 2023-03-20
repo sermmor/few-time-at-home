@@ -4,7 +4,7 @@ import { NotesActions } from "../../../core/actions/notes";
 import { NotesDataModel } from "../../../data-model/notes";
 import { getAInspirationalQuote } from "../../../services/quote/quote.service";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
-import { ListComponent } from "../../molecules/ListComponent/ListComponent";
+import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -14,18 +14,6 @@ const formStyle: SxProps<Theme> = {
   justifyContent: 'center',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
-
-const TitleAndList = ({title, list, deleteAction, addAction}: {
-  title: string;
-  list: { id: string, item: string | JSX.Element }[];
-  deleteAction?: (id: string) => void;
-  addAction?: () => void;
-}) => <>
-  <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-    {title}
-  </Typography>
-  <ListComponent {...{list, deleteAction, addAction}} />
-</>;
 
 const SaveNotesComponent = ({notes}: {notes: NotesDataModel}) => {
   const [isSave, setSave] = React.useState<boolean>(false);

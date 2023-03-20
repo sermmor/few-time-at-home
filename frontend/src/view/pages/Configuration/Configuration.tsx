@@ -4,6 +4,7 @@ import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataModel } from "../../../data-model/configuration";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { ListComponent } from "../../molecules/ListComponent/ListComponent";
+import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -22,18 +23,6 @@ const footerStyle: SxProps<Theme> = {
   justifyContent: 'initial',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
-
-const TitleAndList = ({title, list, deleteAction, addAction}: {
-  title: string;
-  list: { id: string, item: string | JSX.Element }[];
-  deleteAction?: (id: string) => void;
-  addAction?: () => void;
-}) => <>
-  <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-    {title}
-  </Typography>
-  <ListComponent {...{list, deleteAction, addAction}} />
-</>;
 
 const SaveConfigurationComponent = ({config}: {config: ConfigurationDataModel}) => {
   const [isSave, setSave] = React.useState<boolean>(false);

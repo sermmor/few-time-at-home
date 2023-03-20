@@ -14,21 +14,14 @@ export const LabelAndTextField = ({text, onChange}: {text: string, onChange: (ne
     isInEditMode ?
       <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
         <TextField
-          variant="outlined"
+          variant="standard"
           value={textEditing}
-          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
+          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, width:'100%'}}
           onChange={evt => setTextEditing(evt.target.value)}
           onBlur={() => setText(textEditing)} 
-          onKeyDown={(evt) => evt.key === 'Enter' ? setText(textEditing) : undefined}
+          onKeyDown={(evt) => evt.key === 'Enter' || evt.key === 'Escape' ? setText(textEditing) : undefined}
           autoFocus={isInEditMode}
         />
-        <Button
-          variant='contained'
-          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, marginLeft: { sm: '1rem'}, marginTop: { xs: '1rem', sm: '0rem' }}}
-          onClick={() => setText(textEditing)}
-        >
-          OK
-        </Button>
       </Box>
     :
       <Box sx={{width:'100%', cursor: 'pointer', color: '#1976d2'}} onClick={() => setEditMode(true)}>
