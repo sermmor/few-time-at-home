@@ -44,7 +44,7 @@ export const RssMessage = ({message}: Props) => {
       <Link href={foot} target='_blank' rel='noreferrer'>
         {foot}
       </Link>
-      {unfurlData && <Box sx={{...cardStyle, borderColor: 'white', border: '0.5rem', width: '20rem', backgroundColor:'whitesmoke'}}>
+      {unfurlData && unfurlData.title && <Box sx={{...cardStyle, borderColor: 'white', border: '0.5rem', width: '20rem', backgroundColor:'whitesmoke'}}>
         <Link href={link} target='_blank' rel='noreferrer'>
           <img width={'320rem'} src={unfurlData.urlImage} alt={unfurlData.title} loading="lazy"/>
           <Typography variant='h6' dangerouslySetInnerHTML={{__html: unfurlData.title}} />
