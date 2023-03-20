@@ -67,3 +67,20 @@ export const saveInAFile = (str: string, savePath: string = 'data/result.html', 
     });
 
 }
+
+export class ExtractorUtilities {
+  public static cut = (content: string, beginToCut: string, endToCut?: string): string => {
+      const contentSpliter = content.split(beginToCut);
+      if (endToCut && contentSpliter && contentSpliter.length > 1 && !!contentSpliter[1].split(endToCut) && contentSpliter[1].split(endToCut).length > 0) {
+          return contentSpliter[1].split(endToCut)[0];
+      } else if (contentSpliter && contentSpliter.length > 1 && contentSpliter.slice(1).length > 1) {
+          return contentSpliter.slice(1).join(beginToCut);
+      } else {
+        return '';
+      }
+  }
+
+  public static cutInnerHTML = (content: string): string => content.split(">")[1].split("<")[0];
+
+  public static removeAllEndOfLine = (content: string): string => content.split("\n").join("");
+}

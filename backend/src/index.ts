@@ -4,6 +4,7 @@ import { BlogRSSMessageList } from './blogRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
 import { TelegramBot } from './telegramBot/telegramBot';
+import { unfurl } from './unfurl/unfurl';
 
 const keysPath = 'build/keys.json';
 const configurationPath = 'build/configuration.json';
@@ -16,11 +17,10 @@ let apiService: APIService;
 // TODO: Poder crear un comando personalizado por API y asociarlo a un conjunto de RSS (pueden ser de Twitter, Mastodon o blogs), al lanzarlo dará los recursos RSS.
 // TODO: ^ sería como un ChannelMediaRSSMessageList que sería una colección de listas personalizadas de ChannelMediaRSSMessageList. 
 
-// TODO: Think about do a front end website with React to read this information and edit configuration and rss list (local RSS reader, with electron do desktop apps for Windows, iOS and Android)
-
 readFile(keysPath, (err, data) => {
     if (err) throw err;
     const keyData = JSON.parse(<string> <any> data);
+
     readFile(configurationPath, (err, data) => {
         if (err) throw err;
         const configurationService = new ConfigurationService(JSON.parse(<string> <any> data));

@@ -1,5 +1,6 @@
 import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
+import { unfurl } from '../unfurl/unfurl';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
@@ -14,7 +15,8 @@ export class APIService {
   static configurationEndpoint = "/configuration";
   static notesEndpoint = "/notes";
   static quoteEndpoint = "/random-quote";
-  
+  static unfurlEndpoint = "/unfurl";
+
   app: Express;
 
   constructor(
@@ -29,8 +31,9 @@ export class APIService {
     this.getRSS(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
     this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
+    this.unfurlService();
     this.configurationService();
-    this.getRandomQuote();
+    this.getRandomQuoteService();
     this.notesService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
@@ -79,9 +82,19 @@ export class APIService {
     });
   }
 
-  private getRandomQuote() {
+  private getRandomQuoteService() {
     this.app.get(APIService.quoteEndpoint, (req, res) => {
       res.send(QuoteListUtilities.getAInspirationalQuote(ConfigurationService.Instance.quoteList));
     });
+  }
+
+  private unfurlService() {
+    this.app.post(APIService.unfurlEndpoint, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+          unfurl(req.body.url).then(content => res.send(content));    
+      }
+  });
   }
 }
