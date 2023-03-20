@@ -1,3 +1,4 @@
+import { Alert, AlertUtilities } from "../alertNotification/alertNotification";
 import { Quote } from "../quote/quoteList";
 import { saveInAFile } from "../utils";
 import { ChannelMediaRSSCollection } from "./messagesRSS.service";
@@ -23,6 +24,7 @@ export class ConfigurationService {
         bot_notes_command: string;
         bot_add_notes_command: string;
     };
+    alertList: Alert[];
     quoteList: Quote[];
     numberOfWorkers: number;
     apiPort: number;
@@ -35,6 +37,7 @@ export class ConfigurationService {
         this.listBotCommands = configurationData.listBotCommands;
         this.numberOfWorkers = configurationData.numberOfWorkers;
         this.apiPort = configurationData.apiPort;
+        this.alertList = AlertUtilities.parseStringsToAlert(configurationData.alertList);
         this.quoteList = configurationData.quoteList;
 
         ConfigurationService.Instance = this;
@@ -47,6 +50,7 @@ export class ConfigurationService {
         blogRssList: this.blogRssList,
         listBotCommands: this.listBotCommands,
         quoteList: this.quoteList,
+        alertList: AlertUtilities.parseAlertToString(this.alertList),
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
     })
@@ -58,6 +62,7 @@ export class ConfigurationService {
         if (body.blogRssList) this.blogRssList = body.blogRssList;
         if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
         if (body.quoteList) this.quoteList = body.quoteList;
+        if (body.alertList) this.alertList = AlertUtilities.parseStringsToAlert(body.alertList);
         if (body.numberOfWorkers) this.numberOfWorkers = body.numberOfWorkers;
         if (body.apiPort) this.apiPort = body.apiPort;
 

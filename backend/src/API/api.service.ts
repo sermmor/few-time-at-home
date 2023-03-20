@@ -1,6 +1,6 @@
 import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
-import { unfurl } from '../unfurl/unfurl';
+import { getUnfurl } from '../unfurl/unfurl';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
@@ -93,7 +93,7 @@ export class APIService {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-          unfurl(req.body.url).then(content => res.send(content));    
+          getUnfurl(req.body.url).then(content => res.send(content));    
       }
   });
   }

@@ -4,7 +4,6 @@ import { BlogRSSMessageList } from './blogRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
 import { TelegramBot } from './telegramBot/telegramBot';
-import { unfurl } from './unfurl/unfurl';
 
 const keysPath = 'build/keys.json';
 const configurationPath = 'build/configuration.json';
