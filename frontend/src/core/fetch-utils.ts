@@ -1,7 +1,7 @@
-import { IS_USING_MOCKS } from "./urls-and-end-points";
+import { ConfigurationService } from "../service/configuration/configuration.service";
 
 export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Promise<T>(resolve => {
-  if (IS_USING_MOCKS) {
+  if (ConfigurationService.Instance.isUsingMocks) {
     resolve(mock);
   } else {
     fetch(url)
@@ -11,7 +11,7 @@ export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Pro
 });
 
 export const fetchJsonSendAndReceive = <T>(url: string, data: T, mock: T): Promise<T> => new Promise<T>(resolve => {
-  if (IS_USING_MOCKS) {
+  if (ConfigurationService.Instance.isUsingMocks) {
     resolve(mock);
   } else {
     fetch(url, {

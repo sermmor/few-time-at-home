@@ -4,9 +4,9 @@ import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
 import { notesEndpoint } from "../urls-and-end-points";
 
 const getNotes = (): Promise<NotesDataModel> => 
-  fetchJsonReceive<NotesDataModel>(notesEndpoint, notesDataModelMock());
+  fetchJsonReceive<NotesDataModel>(notesEndpoint(), notesDataModelMock());
 
 const sendNotes = (data: NotesDataModel) => 
-  fetchJsonSendAndReceive<NotesDataModel>(notesEndpoint, data, notesDataModelMock());
+  fetchJsonSendAndReceive<NotesDataModel>(notesEndpoint(), data, notesDataModelMock());
 
 export const NotesActions = { getNotes, sendNotes };

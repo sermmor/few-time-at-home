@@ -4,9 +4,9 @@ import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
 import { configurationEndpoint } from "../urls-and-end-points";
 
 const getConfiguration = (): Promise<ConfigurationDataModel> => 
-  fetchJsonReceive<ConfigurationDataModel>(configurationEndpoint, ConfigurationDataModelMock());
+  fetchJsonReceive<ConfigurationDataModel>(configurationEndpoint(), ConfigurationDataModelMock());
 
 const sendConfiguration = (data: ConfigurationDataModel) => 
-  fetchJsonSendAndReceive<ConfigurationDataModel>(configurationEndpoint, data, ConfigurationDataModelMock());
+  fetchJsonSendAndReceive<ConfigurationDataModel>(configurationEndpoint(), data, ConfigurationDataModelMock());
 
 export const ConfigurationActions = { getConfiguration, sendConfiguration };

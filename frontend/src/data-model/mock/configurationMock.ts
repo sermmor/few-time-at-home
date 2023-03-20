@@ -38,6 +38,16 @@ export const ConfigurationDataModelMock = (): ConfigurationDataModel => ({
     bot_nitter_command: 'nitterThings',
     bot_blog_command: 'blogThings',
   },
+  quoteList: [
+    {
+      quote: "Sólo sé que no sé nada.",
+      author: "Sócrates"
+    },
+    {
+      quote: "La virtud está en el término medio.",
+      author: "Aristóteles"
+    },
+  ],
   numberOfWorkers: 4,
   apiPort: 8080,
 });

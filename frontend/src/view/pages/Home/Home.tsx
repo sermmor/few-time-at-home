@@ -1,8 +1,9 @@
 import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
 import React from "react";
 import { NotesActions } from "../../../core/actions/notes";
+import { QuotesActions } from "../../../core/actions/quote";
 import { NotesDataModel } from "../../../data-model/notes";
-import { getAInspirationalQuote } from "../../../services/quote/quote.service";
+import { QuoteDataModel } from "../../../data-model/quote";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 
@@ -37,7 +38,7 @@ const SaveNotesComponent = ({notes}: {notes: NotesDataModel}) => {
 };
 
 const InspirationalQuote = ({quote, author}: {quote: string, author: string}) => <Box
-    sx={{fontStyle: 'italic', backgroundColor:'#edffa3', margin:'1rem', padding:'1rem', width:'40%'}}
+    sx={{fontStyle: 'italic', backgroundColor:'#edffa3', margin:'1rem', padding:'1rem', width: { xs: '70%', lg: '40%'}}}
   >
   <Typography variant="subtitle1">
     <span>&#171;</span>{quote}<span>&#187;</span> - {author}
@@ -47,8 +48,10 @@ const InspirationalQuote = ({quote, author}: {quote: string, author: string}) =>
 let indexNewNoteAdded = 0;
 
 export const Home = () => {
-  const randomQuote = getAInspirationalQuote();
+  // const randomQuote = getAInspirationalQuote();
+  const [randomQuote, setRandomQuote] = React.useState<QuoteDataModel>();
   const [notes, setNotes] = React.useState<NotesDataModel>();
+  React.useEffect(() => { QuotesActions.getRandomQuote().then(data => setRandomQuote(data)) }, []);
   React.useEffect(() => { NotesActions.getNotes().then(data => setNotes(data)) }, []);
 
   const deleteActionList = (id: string) => {
@@ -75,9 +78,9 @@ export const Home = () => {
     setNotes({data: [...cloneList]});
   };
   
-  return <>
-    {notes && <Box sx={formStyle}>
-      <InspirationalQuote quote={randomQuote.quote} author={randomQuote.author}/>
+  return <Box sx={formStyle}>
+    { randomQuote && <InspirationalQuote quote={randomQuote.quote} author={randomQuote.author}/> }
+    {notes && <>
       <TitleAndList
         title='Notes'
         deleteAction={deleteActionList}
@@ -85,6 +88,7 @@ export const Home = () => {
         list={notes.data.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={editActionList(`${item}`)}/> }))}
       />
       <SaveNotesComponent notes={notes}/>
-    </Box>}
-  </>
+      </>
+    }
+  </Box>
 };

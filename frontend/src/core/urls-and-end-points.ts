@@ -1,10 +1,8 @@
-const ip = 'localhost';
-const port = '3001';
+import { ConfigurationService } from "../service/configuration/configuration.service";
 
-const URL_API = `http://${ip}:${port}`;
+const getUrlApi = (): string => `http://${ConfigurationService.Instance.ip}:${ConfigurationService.Instance.port}`;
 
-export const IS_USING_MOCKS = false;
-
-export const queryRssEndpoint  = (nameEndpoint: 'all' | 'mastodon' | 'twitter' | 'blog', amount: number): string => `${URL_API}/rss/${nameEndpoint}?amount=${amount}`;
-export const configurationEndpoint = `${URL_API}/configuration`;
-export const notesEndpoint = `${URL_API}/notes`;
+export const queryRssEndpoint  = (nameEndpoint: 'all' | 'mastodon' | 'twitter' | 'blog', amount: number): string => `${getUrlApi()}/rss/${nameEndpoint}?amount=${amount}`;
+export const configurationEndpoint = (): string => `${getUrlApi()}/configuration`;
+export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
+export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
