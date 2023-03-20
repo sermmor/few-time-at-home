@@ -76,15 +76,15 @@ export const ConfigurationComponent = () => {
       keyList: string,
       id: string,
       equals: (item: any, idToEdit: string) => boolean,
-      editConfig?: (newConfig: any[], index: number, newData: string) => void
+      editConfig?: (newConfig: any[], index: number, newData: string) => any[]
     ) => (newText: string) => {
     if (!config) return;
-    const cloneList = [...(config as any)[keyList]];
+    let cloneList = [...(config as any)[keyList]];
     const index = cloneList.findIndex(item => equals(item, id));
     if (!editConfig) {
       cloneList[index] = newText;
     } else {
-      editConfig(cloneList, index, newText);
+      cloneList[index] = editConfig(cloneList, index, newText);
     }
     setConfig({
       ...config,
