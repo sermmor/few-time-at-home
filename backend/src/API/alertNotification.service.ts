@@ -46,6 +46,11 @@ export class AlertListService {
     return this.alertList.filter((alert: Alert) => (alert.timeToLaunch > today));
   };
 
+  clear = () => {
+    this.alertList = this.alertsToStillWaiting();
+    this.saveAlerts();
+  };
+
   getAlerts = (): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
     if (this.alertList.length > 0) {
       resolve(this.alertList);

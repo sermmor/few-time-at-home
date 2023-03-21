@@ -134,14 +134,13 @@ export class TelegramBot {
               console.log(`The notification ${alertList[index].message} is going to launch in ${minutes} minutes.`);
               setTimeout(() => {
                   this.context!.reply(alertList[index].message);
-                  // TODO: Remove THIS alert from AlertListService.
+                  AlertListService.Instance.clear();
                 },
-                minutes * 60 * 1000
+                minutes * 60 * 1000,
               );
             }
           });
         }
-
         setTimeout(this.launchAlertsToTelegram, 1 * 60 * 60 * 1000); // Check the next hour.
       }
     }
