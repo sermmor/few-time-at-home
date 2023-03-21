@@ -1,6 +1,7 @@
 import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { getUnfurl } from '../unfurl/unfurl';
+import { AlertListService } from './alertNotification.service';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
@@ -15,6 +16,7 @@ export class APIService {
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static configurationEndpoint = "/configuration";
   static notesEndpoint = "/notes";
+  static alertsEndpoint = "/alerts";
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
 
@@ -37,6 +39,7 @@ export class APIService {
     this.configurationService();
     this.getRandomQuoteService();
     this.notesService();
+    this.alertsService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -83,6 +86,23 @@ export class APIService {
 
     this.app.get(APIService.notesEndpoint, (req, res) => {
       NotesService.Instance.getNotes().then(data => res.send({data}));
+    });
+  }
+
+  private alertsService() {
+    const alerts = new AlertListService();
+    alerts.getAlerts();
+    this.app.post(APIService.alertsEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body text");
+        } else {
+          AlertListService.Instance.updateAlerts(AlertListService.Instance.parseStringsListToAlertList(req.body.alerts))
+            .then(data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
+        }
+    });
+
+    this.app.get(APIService.alertsEndpoint, (req, res) => {
+      AlertListService.Instance.getAlerts().then(data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
     });
   }
 

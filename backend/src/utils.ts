@@ -16,6 +16,15 @@ export const parseFromBlogDateStringToDateObject = (dateString : string): Date =
     return new Date(+dateSplited[0], (+dateSplited[1]) - 1, +dateSplited[2], +hourSplited[0], +hourSplited[1], 0);
 }
 
+export const parseFromAlertDateStringToDateObject = (dateString : string): Date => {
+  // TIME FORMAT: '2023-03-21T09:55:02.070Z'
+ return new Date(Date.parse(dateString));
+}
+export const parseFromDateObjectToAlertDateString = (date : Date): string => {
+  // TIME FORMAT: '2023-03-21T09:55:02.070Z'
+  return date.toJSON();
+}
+
 export const checkUntilConditionIsTrue = (predicate: () => boolean, doWhenConditionIsTrue: () => void, timeToWait: number = 100) => {
     setTimeout(() => (predicate() ? doWhenConditionIsTrue() : checkUntilConditionIsTrue(predicate, doWhenConditionIsTrue, timeToWait)), timeToWait);
 }

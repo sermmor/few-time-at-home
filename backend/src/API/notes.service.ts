@@ -1,4 +1,4 @@
-import { readFile, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { saveInAFile } from "../utils";
 
 const pathNotesFile = 'data/notes.txt';

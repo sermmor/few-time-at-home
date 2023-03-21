@@ -1,6 +1,7 @@
 import Telegraf from "telegraf";
 import { TelegrafContext } from "telegraf/typings/context";
 import { ConfigurationService } from "../API";
+import { Alert, AlertListService } from "../API/alertNotification.service";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
@@ -40,6 +41,7 @@ export class TelegramBot {
         this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
         this.bot.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
         this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
+        this.launchAlertsToTelegram();
         this.bot.launch();
         // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
     }
@@ -116,6 +118,25 @@ export class TelegramBot {
       NotesService.Instance.addNotes(note).then(() => {
         ctx.reply(`La nota se ha añadido correctamente.`);
       });
+    }
+
+    private launchAlertsToTelegram = () => {
+      if (!this.context) {
+        setTimeout(this.launchAlertsToTelegram, 15 * 60 * 1000);
+      } else {
+        // Check alerts and prepared.
+        const alertList: Alert[] = AlertListService.Instance.alertsToLaunchInTelegram();
+        if (alertList && alertList.length > 0) {
+          const today = new Date();
+          const minutesLeftByAlert = alertList.map(alert => Math.abs(alert.timeToLaunch.getTime() - today.getTime())/(60 * 1000));
+          minutesLeftByAlert.forEach((minutes, index) => {
+            console.log(`The notification ${alertList[index].message} is going to launch in ${minutes} minutes.`);
+            setTimeout(() => this.context!.reply(alertList[index].message), minutes * 60 * 1000);
+          });
+        }
+
+        setTimeout(this.launchAlertsToTelegram, 1 * 60 * 60 * 1000); // Check the next hour.
+      }
     }
 }
 
