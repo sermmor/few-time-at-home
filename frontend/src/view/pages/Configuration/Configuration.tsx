@@ -149,6 +149,14 @@ export const ConfigurationComponent = () => {
           }/>}))}
         />
         <TitleAndList
+          title='Youtube RSS'
+          deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item === idToDelete)}
+          addAction={() => addActionList('youtubeRssList', `new channel ${indexNewItemAdded}`) }
+          list={config.youtubeRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+            editActionList('youtubeRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+          }/>}))}
+        />
+        <TitleAndList
           title='Telegram commands'
           list={Object.keys(config.listBotCommands).map((commandName, index) => ({
               id:`${index}`,

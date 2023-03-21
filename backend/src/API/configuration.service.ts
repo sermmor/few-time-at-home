@@ -64,6 +64,7 @@ export class ConfigurationService {
         if (body.nitterRssUsersList) this.nitterRssUsersList = body.nitterRssUsersList;
         if (body.mastodonRssUsersList) this.mastodonRssUsersList = body.mastodonRssUsersList;
         if (body.blogRssList) this.blogRssList = body.blogRssList;
+        if (body.youtubeRssList) this.youtubeRssList = body.youtubeRssList;
         if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
         if (body.quoteList) this.quoteList = body.quoteList;
         if (body.alertList) this.alertList = AlertUtilities.parseStringsToAlert(body.alertList);

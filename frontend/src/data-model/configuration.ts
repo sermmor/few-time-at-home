@@ -3,6 +3,7 @@ export interface ConfigurationDataModel {
   nitterRssUsersList: string[],
   mastodonRssUsersList: { instance: string; user: string; }[],
   blogRssList: string[],
+  youtubeRssList: string[],
   listBotCommands: {[key: string]: string},
   quoteList: {quote: string; author: string}[],
   numberOfWorkers: number,

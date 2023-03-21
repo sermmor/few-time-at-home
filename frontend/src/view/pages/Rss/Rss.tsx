@@ -4,7 +4,7 @@ import { RSSActions } from '../../../core/actions/rss';
 import { RssDataModel } from '../../../data-model/rss';
 import { RssMessage } from './component/RssMessage';
 
-type RSSType = 'all' | 'mastodon' | 'twitter' | 'blog';
+type RSSType = 'all' | 'mastodon' | 'twitter' | 'blog' | 'youtube';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
@@ -34,7 +34,7 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          ['ALL', 'MASTODON', 'TWITTER', 'BLOG'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
+          ['ALL', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
         }
       </Select>
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />

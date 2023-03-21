@@ -32,6 +32,11 @@ export const configurationDataModelMock = (): ConfigurationDataModel => ({
     "https://blog2/feed/",
     "https://blog3/feed/",
   ],
+  youtubeRssList: [
+    "https://youtube1/feed/",
+    "https://youtube2/feed/",
+    "https://youtube3/feed/",
+  ],
   listBotCommands: {
     bot_all_command: 'allThings',
     bot_masto_command: 'mastoThings',

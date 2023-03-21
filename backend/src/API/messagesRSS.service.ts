@@ -28,9 +28,10 @@ export const getAllMessageCommands = (channelCollections: ChannelMediaRSSCollect
 
 });
 
-const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
+const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
     resolve => nitterRSS.updateRSSList().then(() =>
         mastodonRSS.updateRSSList().then(() => {
+          youtubeRSS.updateRSSList().then(() => {
             blogRSS.updateRSSList().then(() => {
                 resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
                     nitterRSS,
@@ -38,6 +39,7 @@ const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS}: ChannelMediaRSSCollec
                     blogRSS
                 ]));
             })
+          })
         })));
 
 const getAllMessagesChannelMediaRSS = (channelMediaRSS: ChannelMediaRSSMessageList) => (): Promise<string[]> => new Promise<string[]>(
