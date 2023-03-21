@@ -48,7 +48,6 @@ const InspirationalQuote = ({quote, author}: {quote: string, author: string}) =>
 let indexNewNoteAdded = 0;
 
 export const Home = () => {
-  // const randomQuote = getAInspirationalQuote();
   const [randomQuote, setRandomQuote] = React.useState<QuoteDataModel>();
   const [notes, setNotes] = React.useState<NotesDataModel>();
   React.useEffect(() => { QuotesActions.getRandomQuote().then(data => setRandomQuote(data)) }, []);

@@ -122,16 +122,23 @@ export class TelegramBot {
 
     private launchAlertsToTelegram = () => {
       if (!this.context) {
-        setTimeout(this.launchAlertsToTelegram, 15 * 60 * 1000);
+        setTimeout(this.launchAlertsToTelegram, 2 * 1000);
       } else {
         // Check alerts and prepared.
         const alertList: Alert[] = AlertListService.Instance.alertsToLaunchInTelegram();
         if (alertList && alertList.length > 0) {
           const today = new Date();
-          const minutesLeftByAlert = alertList.map(alert => Math.abs(alert.timeToLaunch.getTime() - today.getTime())/(60 * 1000));
+          const minutesLeftByAlert = alertList.map(alert => (alert.timeToLaunch.getTime() - today.getTime())/(60 * 1000));
           minutesLeftByAlert.forEach((minutes, index) => {
-            console.log(`The notification ${alertList[index].message} is going to launch in ${minutes} minutes.`);
-            setTimeout(() => this.context!.reply(alertList[index].message), minutes * 60 * 1000);
+            if (minutes > 0) {
+              console.log(`The notification ${alertList[index].message} is going to launch in ${minutes} minutes.`);
+              setTimeout(() => {
+                  this.context!.reply(alertList[index].message);
+                  // TODO: Remove THIS alert from AlertListService.
+                },
+                minutes * 60 * 1000
+              );
+            }
           });
         }
 

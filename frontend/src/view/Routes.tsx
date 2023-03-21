@@ -1,6 +1,7 @@
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
 import { NotFound } from "./pages/NotFound/NotFound";
+import { Notifications } from "./pages/Notifications/Notifications";
 import { Rss } from "./pages/Rss/Rss";
 
 interface RouteFTAHElement {
@@ -20,6 +21,11 @@ export const routesFTAH: RouteFTAHElement[] = [
     name: 'Rss',
     path: '/rss',
     element: <Rss/>,
+  },
+  {
+    name: 'Notifications',
+    path: '/notifications',
+    element: <Notifications/>,
   },
   {
     name: 'Configuration',
