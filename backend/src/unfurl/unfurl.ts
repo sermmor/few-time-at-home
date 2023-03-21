@@ -60,7 +60,7 @@ export const getUnfurl = (url: string): Promise<UnfurlData> => new Promise<Unfur
       resolve({
         title: getInformation(result, 'title'),
         urlImage: getInformation(result, 'urlImage'),
-        description: getInformation(result, 'description'),
+        description: getInformation(result, 'description').substring(0, 400),
       });
     }).catch(reason => resolve({
       title: '',
