@@ -122,7 +122,7 @@ export class TelegramBot {
 
     private launchAlertsToTelegram = () => {
       if (!this.context) {
-        setTimeout(this.launchAlertsToTelegram, 2 * 1000);
+        setTimeout(this.launchAlertsToTelegram, 15 * 60 * 1000);
       } else {
         // Check alerts and prepared.
         const alertList: Alert[] = AlertListService.Instance.alertsToLaunchInTelegram();
