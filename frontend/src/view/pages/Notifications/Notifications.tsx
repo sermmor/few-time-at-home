@@ -62,6 +62,7 @@ export const Notifications = () => {
     if (!notifications) return;
     const cloneList = [...notifications.alerts];
     const index = cloneList.findIndex(item => item.timeToLaunch === idTimeToLaunch);
+    console.log(index, idTimeToLaunch)
     cloneList[index] = editConfig(cloneList, index, newText);
     setNotifications({alerts: [...cloneList]});
   };
@@ -72,11 +73,11 @@ export const Notifications = () => {
         title='Notifications'
         deleteAction={deleteActionList}
         addAction={() => addActionList({timeToLaunch: (new Date()).toJSON(), message: 'new alert'}) }
-        list={notifications.alerts.map((item) => ({id: item.timeToLaunch, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
+        list={notifications.alerts.map((item) => ({id: `${item.timeToLaunch}`, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
           <LabelAndTextField
             text={item.message}
             onChange={editActionList(
-              item.timeToLaunch,
+              `${item.timeToLaunch}`,
               (newConfig, index, message) => ({...newConfig[index], message})
             )}
           />
@@ -84,7 +85,7 @@ export const Notifications = () => {
             <LabelAndDateTimeTextField
               text={item.timeToLaunch}
               onChange={editActionList(
-                item.timeToLaunch,
+                `${item.timeToLaunch}`,
                 (newConfig, index, timeToLaunch) => ({...newConfig[index], timeToLaunch})
               )}
             />
