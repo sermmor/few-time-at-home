@@ -62,7 +62,6 @@ export const Notifications = () => {
     if (!notifications) return;
     const cloneList = [...notifications.alerts];
     const index = cloneList.findIndex(item => item.timeToLaunch === idTimeToLaunch);
-    console.log(index, idTimeToLaunch)
     cloneList[index] = editConfig(cloneList, index, newText);
     setNotifications({alerts: [...cloneList]});
   };
