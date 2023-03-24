@@ -2,6 +2,7 @@ import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { getUnfurl } from '../unfurl/unfurl';
 import { AlertListService } from './alertNotification.service';
+import { BookmarkService } from './bookmark.service';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
@@ -17,6 +18,7 @@ export class APIService {
   static configurationEndpoint = "/configuration";
   static notesEndpoint = "/notes";
   static alertsEndpoint = "/alerts";
+  static bookmarksEndpoint = "/bookmarks";
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
 
@@ -40,6 +42,7 @@ export class APIService {
     this.getRandomQuoteService();
     this.notesService();
     this.alertsService();
+    this.bookmarksService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -103,6 +106,22 @@ export class APIService {
 
     this.app.get(APIService.alertsEndpoint, (req, res) => {
       AlertListService.Instance.getAlerts().then(data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
+    });
+  }
+
+  private bookmarksService() {
+    const bookmark = new BookmarkService();
+    bookmark.getBookmarks();
+    this.app.post(APIService.bookmarksEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body text");
+        } else {
+          BookmarkService.Instance.updateBookmarks(req.body.data).then(data => res.send({data}));
+        }
+    });
+
+    this.app.get(APIService.bookmarksEndpoint, (req, res) => {
+      BookmarkService.Instance.getBookmarks().then(data => res.send({ data }))
     });
   }
 

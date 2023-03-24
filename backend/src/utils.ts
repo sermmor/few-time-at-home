@@ -1,4 +1,4 @@
-import { writeFile, stat, mkdir } from "fs";
+import { writeFile, stat, mkdir, readFile } from "fs";
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -74,8 +74,22 @@ export const saveInAFile = (str: string, savePath: string = 'data/result.html', 
             mkdir(folderPath, {recursive: true}, () => saveFile());
         }
     });
-
 }
+
+export const readJSONFile = (pathFile: string, contentByDefault: string): Promise<any> => new Promise<any>(resolve => {
+  readFile(pathFile, (err: any, data: any) => {
+    if (err) {
+      saveInAFile(contentByDefault, pathFile, () => resolve({}));
+    } else {
+      try {
+        const jsonData = JSON.parse(<string> <any> data);
+        resolve(jsonData);
+      } catch (ex) {
+        saveInAFile(contentByDefault, pathFile, () => resolve({}));
+      }
+    }
+  });
+});
 
 export class ExtractorUtilities {
   public static cut = (content: string, beginToCut: string, endToCut?: string): string => {

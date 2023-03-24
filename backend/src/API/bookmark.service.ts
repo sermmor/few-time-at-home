@@ -1,5 +1,5 @@
-import { readFile } from "fs";
-import { saveInAFile } from "../utils";
+import { readJSONFile, saveInAFile } from "../utils";
+import { getUnfurl } from '../unfurl/unfurl';
 
 const pathBookmarkFile = 'data/bookmark.json';
 
@@ -21,23 +21,39 @@ export class BookmarkService {
     if (this.bookmarks.length > 0) {
       resolve(this.bookmarks);
     } else {
-      readFile(pathBookmarkFile, (err: any, data: any) => {
-        if (err) throw err;
-        const bookmarksStringList = JSON.parse(<string> <any> data);
-        this.bookmarks = bookmarksStringList;
+      readJSONFile(pathBookmarkFile, '[]').then(dataJson => {
+        this.bookmarks = dataJson;
         resolve(this.bookmarks);
       });
     }
   });
 
-  addBookmark = (newBookmark: Bookmark): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
-    if (this.bookmarks.length > 0) {
-      this.bookmarks.push(newBookmark);
-      this.saveBookmarks().then((newBookmarkList) => resolve(newBookmarkList));
+  searchInBookmark = (wordlist: string): Bookmark[] => {
+    // The bookmarks had 1 or more words.
+    const words = wordlist.toLowerCase().split(' ').filter(value => value !== '');
+    return this.bookmarks.filter(bm => words.filter(w => bm.title.toLowerCase().indexOf(w) >= 0 || bm.url.toLowerCase().indexOf(w) >= 0).length > 0);
+  }
+
+  addBookmark = (urlBookmark: string): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
+    const url = urlBookmark.split(' ').join('');
+    const isBookmarkAlready = this.bookmarks.findIndex(bm => bm.url === url) >= 0;
+    if (isBookmarkAlready) {
+      resolve(this.bookmarks);
     } else {
-      this.getBookmarks().then(() => {
-        this.bookmarks.push(newBookmark);
-        this.saveBookmarks().then((newBookmarkList) => resolve(newBookmarkList));
+      getUnfurl(url).then(data => {
+        const newBookmark: Bookmark = {
+          url,
+          title: data.title
+        };
+        if (this.bookmarks.length > 0) {
+          this.bookmarks.push(newBookmark);
+          this.saveBookmarks().then((newBookmarkList) => resolve(newBookmarkList));
+        } else {
+          this.getBookmarks().then(() => {
+            this.bookmarks.push(newBookmark);
+            this.saveBookmarks().then((newBookmarkList) => resolve(newBookmarkList));
+          });
+        }
       });
     }
   });

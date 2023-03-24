@@ -24,6 +24,8 @@ export class ConfigurationService {
         bot_youtube_command: string;
         bot_notes_command: string;
         bot_add_notes_command: string;
+        bot_add_bookmark_command: string;
+        bot_search_bookmark_command: string;
     };
     quoteList: Quote[];
     numberOfWorkers: number;
