@@ -4,11 +4,13 @@ export const bookmarksDataModelMock = (): BookmarksDataModel => ({
   data: [
     {
       url: "https://duckduckgo.com/",
-      title: "Duck Duck Go"
+      title: "Duck Duck Go",
+      path: "/"
     },
     {
       url: "https://nitter.net",
-      title: "Nitter"
+      title: "Nitter",
+      path: "/"
     },
   ]
 });

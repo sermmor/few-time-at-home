@@ -12,8 +12,9 @@ interface Props {
 }
 
 export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isElementSelected, deleteAction, onSelect}: Props) => {
-
   const [isChecked, setChecked] = React.useState<boolean>(isElementSelected);
+
+  if (isChecked !== isElementSelected) setChecked(isElementSelected);
 
   return <>
         {

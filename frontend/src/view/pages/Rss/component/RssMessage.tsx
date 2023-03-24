@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, CardMedia, Link, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Card, CardContent, Link, useMediaQuery, useTheme } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import React from 'react';
 import { UnfurlActions } from '../../../../core/actions/unfurl';

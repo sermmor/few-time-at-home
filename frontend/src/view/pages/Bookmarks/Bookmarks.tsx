@@ -38,6 +38,7 @@ const SaveNotesComponent = ({bookmarks}: {bookmarks: BookmarksDataModel}) => {
 let indexNewBookmarkAdded = 0;
 
 export const Bookmarks = () => {
+  const [currentlyPath, setCurrentlyPath] = React.useState<string>('/'); // TODO Set path of the tree
   const [bookmarks, setBookmarks] = React.useState<BookmarksDataModel>();
   React.useEffect(() => { BookmarksActions.getBookmarks().then(data => setBookmarks(data)) }, []);
 
@@ -61,7 +62,7 @@ export const Bookmarks = () => {
     if (!bookmarks) return;
     const cloneList = [...bookmarks.data];
     const index = cloneList.findIndex(item => item.url === id);
-    cloneList[index] = {url: newUrl, title: newTitle};
+    cloneList[index] = {url: newUrl, title: newTitle, path: cloneList[index].path};
     setBookmarks({data: [...cloneList]});
   };
   
@@ -71,7 +72,7 @@ export const Bookmarks = () => {
           title='Bookmarks'
           id='Bookmarks_0'
           deleteAction={deleteActionList}
-          addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}` }) }
+          addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
           list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: false, item: <LabelAndUrlField
             textToShow={item.title}
             textUrl={item.url}
