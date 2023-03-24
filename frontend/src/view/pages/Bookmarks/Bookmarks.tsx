@@ -2,7 +2,7 @@ import { Box, Button, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
 import { BookmarkItem, BookmarksDataModel } from "../../../data-model/bookmarks";
-import { LabelAndDoubleTextField } from "../../molecules/LabelAndDoubleTextField/LabelAndDoubleTextField";
+import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 
 const formStyle: SxProps<Theme> = {
@@ -71,7 +71,7 @@ export const Bookmarks = () => {
           title='Bookmarks'
           deleteAction={deleteActionList}
           addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}` }) }
-          list={bookmarks.data.map((item) => ({id:`${item.url}`, item: <LabelAndDoubleTextField
+          list={bookmarks.data.map((item) => ({id:`${item.url}`, item: <LabelAndUrlField
             textToShow={item.title}
             textUrl={item.url}
             onChange={editActionList(`${item.url}`)}/>

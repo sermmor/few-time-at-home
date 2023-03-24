@@ -3,7 +3,7 @@ import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndDoubleTextField = ({textToShow, textUrl, onChange}: {
+export const LabelAndUrlField = ({textToShow, textUrl, onChange}: {
   textToShow: string,
   textUrl: string,
   onChange: (newTextToShow: string, newtextUrl: string) => void
@@ -48,7 +48,7 @@ export const LabelAndDoubleTextField = ({textToShow, textUrl, onChange}: {
         <Button onClick={() => setText(textToShowEditing, textUrlEditing)}>Ok</Button>
       </Box>
     :
-    <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}}}>
+    <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
       <Box sx={{cursor: 'pointer', color: '#1976d2'}} onClick={() => setEditMode(true)}>
         {textToShowEditing ? textToShowEditing : '<No title>'}
       </Box>
