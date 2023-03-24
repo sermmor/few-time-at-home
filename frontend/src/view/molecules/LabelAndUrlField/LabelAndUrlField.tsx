@@ -35,7 +35,8 @@ export const LabelAndUrlField = ({textToShow, textUrl, onChange}: {
           value={textUrlEditing}
           sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, width:'100%'}}
           onChange={evt => { setTextUrlEditing(evt.target.value); setIsUrlChanged(true); }}
-          onKeyDown={(evt) => evt.key === 'Escape' ? setText(textToShowEditing, textUrlEditing) : undefined}
+          onKeyDown={(evt) => evt.key === 'Escape' ? setText(textToShowEditing, textUrlEditing)
+            : (evt.key === 'Enter') ? setText(textToShowEditing, textUrlEditing) : undefined }
           autoFocus={isInEditMode}
         />
         <TextField
@@ -43,7 +44,8 @@ export const LabelAndUrlField = ({textToShow, textUrl, onChange}: {
           value={textToShowEditing}
           sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, width:'100%'}}
           onChange={evt => { setTextToShowEditing(evt.target.value); setIsTextToShowChanged(true); }}
-          onKeyDown={(evt) => evt.key === 'Escape' ? setText(textToShowEditing, textUrlEditing) : undefined}
+          onKeyDown={(evt) => evt.key === 'Escape' ? setText(textToShowEditing, textUrlEditing)
+          : (evt.key === 'Enter') ? setText(textToShowEditing, textUrlEditing) : undefined }
         />
         <Button onClick={() => setText(textToShowEditing, textUrlEditing)}>Ok</Button>
       </Box>

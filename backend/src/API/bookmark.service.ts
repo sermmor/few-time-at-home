@@ -60,13 +60,25 @@ export class BookmarkService {
     }
   });
 
+  private removeDuplicates = (bookmarks: Bookmark[]): Bookmark[] => {
+    const cloneBookmarks = [...bookmarks];
+    const bookmarksWithoutDuplicates: Bookmark[] = [];
+    cloneBookmarks.forEach(bmToCheck => {
+      const url = bmToCheck.url.split(' ').join('');
+      if (bookmarksWithoutDuplicates.findIndex(bm => bm.url === url) < 0) {
+        bookmarksWithoutDuplicates.push(bmToCheck);
+      }
+    });
+    return bookmarksWithoutDuplicates;
+  }
+
   updateBookmarks = (bookmarks: Bookmark[]): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
     if (this.bookmarks.length > 0) {
-      this.bookmarks = bookmarks;
+      this.bookmarks = this.removeDuplicates(bookmarks);
       this.saveBookmarks().then((newBookmarkList) => resolve(newBookmarkList));
     } else {
       this.getBookmarks().then(() => {
-        this.bookmarks = bookmarks;
+        this.bookmarks = this.removeDuplicates(bookmarks);
         this.saveBookmarks().then((newBookmarkList) => resolve(newBookmarkList));
       });
     }

@@ -3,7 +3,7 @@ import React from "react";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
 import { BookmarkItem, BookmarksDataModel } from "../../../data-model/bookmarks";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
+import { TitleAndListWithFolders } from "../../organism/TitleAndDraggableList/TitleAndDraggableList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -67,11 +67,12 @@ export const Bookmarks = () => {
   
   return <Box sx={formStyle}> 
     {bookmarks && <>
-        <TitleAndList
+        <TitleAndListWithFolders
           title='Bookmarks'
+          id='Bookmarks_0'
           deleteAction={deleteActionList}
           addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}` }) }
-          list={bookmarks.data.map((item) => ({id:`${item.url}`, item: <LabelAndUrlField
+          list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: false, item: <LabelAndUrlField
             textToShow={item.title}
             textUrl={item.url}
             onChange={editActionList(`${item.url}`)}/>
