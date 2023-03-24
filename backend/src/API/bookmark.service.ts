@@ -6,6 +6,7 @@ const pathBookmarkFile = 'data/bookmark.json';
 export interface Bookmark {
   url: string;
   title: string;
+  path: string;
 }
 
 export class BookmarkService {
@@ -34,7 +35,7 @@ export class BookmarkService {
     return this.bookmarks.filter(bm => words.filter(w => bm.title.toLowerCase().indexOf(w) >= 0 || bm.url.toLowerCase().indexOf(w) >= 0).length > 0);
   }
 
-  addBookmark = (urlBookmark: string): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
+  addBookmark = (urlBookmark: string, path: string = '/'): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
     const url = urlBookmark.split(' ').join('');
     const isBookmarkAlready = this.bookmarks.findIndex(bm => bm.url === url) >= 0;
     if (isBookmarkAlready) {
@@ -43,7 +44,8 @@ export class BookmarkService {
       getUnfurl(url).then(data => {
         const newBookmark: Bookmark = {
           url,
-          title: data.title
+          path,
+          title: data.title,
         };
         if (this.bookmarks.length > 0) {
           this.bookmarks.push(newBookmark);
