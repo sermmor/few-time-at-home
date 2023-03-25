@@ -5,6 +5,7 @@ import { BookmarkItem, BookmarksDataModel, isFolder, urlFolder } from "../../../
 import { GenericTree } from "../../../service/trees/genericTree";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndDraggableList/TitleAndDraggableList";
+import { ActionsProps, addActionItemList, deleteActionList, editActionList } from "./ActionsBookmarkList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -50,60 +51,7 @@ export const Bookmarks = () => {
     setBookmarks({data: data.data.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))})
   })}, []);
 
-  const deleteActionList = (id: string) => {
-    if (!bookmarks) return;
-    const cloneList = [...bookmarks.data];
-    const index = cloneList.findIndex(item => item.url === id);
-    const elementToDelete = cloneList[index];
-    cloneList.splice(index, 1);
-    setBookmarks({data: [...cloneList]});
-
-    if (currentTreeNode && isFolder(elementToDelete)) {
-      currentTreeNode.removeChild(
-        new GenericTree<BookmarkItem>(elementToDelete.title, elementToDelete),
-        (item1, item2) => item1.url === item2.url
-      );
-      setCurrentTreeNode(currentTreeNode);
-    } else if (currentTreeNode) {
-      currentTreeNode.removeChild(
-        new GenericTree<BookmarkItem>(currentTreeNode.label, elementToDelete),
-        (item1, item2) => item1.url === item2.url
-      );
-      setCurrentTreeNode(currentTreeNode);
-    }
-  };
-
-  const addActionItemList = (itemToAdd: BookmarkItem) => {
-    if (!bookmarks) return;
-    const cloneList = [...bookmarks.data];
-    cloneList.push(itemToAdd);
-    indexNewBookmarkAdded++;
-    setBookmarks({data: [...cloneList]});
-
-    if (currentTreeNode) {
-      currentTreeNode.addChildren(currentTreeNode.label, itemToAdd);
-      setCurrentTreeNode(currentTreeNode);
-    }
-  };
-  
-  const editActionList = (id: string) => (newTitle: string, newUrl: string) => {
-    if (!bookmarks) return;
-    const cloneList = [...bookmarks.data];
-    const index = cloneList.findIndex(item => item.url === id);
-    // cloneList[index] = {url: newUrl, title: newTitle, path: cloneList[index].path};
-    const elementToEdit = {...cloneList[index]};
-    cloneList[index] = {url: newUrl, title: newTitle};
-
-    setBookmarks({data: [...cloneList]});
-
-    if (currentTreeNode) {
-      const childIndex = currentTreeNode.searchNodeLeafInChild(elementToEdit, (item1, item2) => item1.url === item2.url);
-      currentTreeNode.children[childIndex].node!.title = newTitle;
-      currentTreeNode.children[childIndex].node!.url = newUrl;
-      
-      setCurrentTreeNode(currentTreeNode);
-    }
-  };
+  const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, };
 
   // TODO: ADD folder, RENAME folder, OPEN folder, REMOVE folder, and MOVE items to folder.
   
@@ -112,13 +60,13 @@ export const Bookmarks = () => {
         <TitleAndListWithFolders
           title='Bookmarks'
           id='Bookmarks_0'
-          deleteAction={deleteActionList}
+          deleteAction={(id) => deleteActionList(action, id)}
           // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
-          addAction={() => addActionItemList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) }
+          addAction={() => {indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`})} }
           list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: false, item: <LabelAndUrlField
             textToShow={item.title}
             textUrl={item.url}
-            onChange={editActionList(`${item.url}`)}/>
+            onChange={editActionList(action, `${item.url}`)}/>
           }))}
         />
         <SaveNotesComponent tree={tree!}/>
