@@ -1,6 +1,6 @@
-import { BookmarksDataModel } from "../bookmarks";
+import { BookmarksDataModelFromFetch } from "../bookmarks";
 
-export const bookmarksDataModelMock = (): BookmarksDataModel => ({
+export const bookmarksDataModelMock = (): BookmarksDataModelFromFetch => ({
   data: [
     {
       url: "https://duckduckgo.com/",
@@ -12,5 +12,15 @@ export const bookmarksDataModelMock = (): BookmarksDataModel => ({
       title: "Nitter",
       path: "/"
     },
+    {
+      url: "https://nitter.net/el_pais",
+      title: "Nitter - el pais",
+      path: "/periodicos"
+    },
+    {
+      url: "https://nitter.net/CNNEE",
+      title: "Nitter - CNN",
+      path: "/periodicos"
+    }
   ]
 });

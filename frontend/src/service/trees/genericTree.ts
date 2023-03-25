@@ -9,6 +9,11 @@ export class GenericTree<T> {
     this.children = [];
   }
 
+  get lastLabel() {
+    const splited = this.label.split('/');
+    return splited[splited.length - 1];
+  }
+
   readTreeInWidth = (doActionInNode: (current: GenericTree<T>) => void) => {
     let childrenCollections: GenericTree<T>[] = this.children;
     let newChildrensCollection: GenericTree<T>[] = [];
