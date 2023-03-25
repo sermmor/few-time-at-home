@@ -1,56 +1,59 @@
 import { GenericTree } from './genericTree';
+import { getMockTree } from './MockTree/mocksTree';
 
-const createTree = () => {
-  const tree = new GenericTree<string>('/', undefined);
-  tree.addChildren('/', 'name file 1');
-  tree.addChildren('/', 'name file 2');
-  tree.addChildren('/', 'name file 3');
-  const childVideo = tree.addChildren('/video');
-  const childVideoDocu = childVideo.addChildren('/video/documental');
-  childVideoDocu.addChildren('/video/documental', 'docu 1.mp4');
-  childVideoDocu.addChildren('/video/documental', 'docu 2.mp4');
-  const childVideoClips = childVideo.addChildren('/video/clips');
-  childVideoClips.addChildren('/video/clips', 'song nº 2.mp4');
-  const childDocuments = tree.addChildren('/documents');
-  childDocuments.addChildren('/documents', 'text 1.txt');
-  const childDocumentsArchive = childDocuments.addChildren('/documents/archive');
-  childDocumentsArchive.addChildren('/documents/archive', 'archive 1.txt');
-  childDocumentsArchive.addChildren('/documents/archive', 'archive 2.txt');
-  return tree;
-};
-
-const createFileList = (): {path: string, file: string}[] => ([
-  { path: '/', file: 'name file 1' },
-  { path: '/', file: 'name file 2' },
-  { path: '/', file: 'name file 3' },
-  { path: '/video/documental', file: 'docu 1.mp4' },
-  { path: '/video/documental', file: 'docu 2.mp4' },
-  { path: '/video/clips', file: 'song nº 2.mp4' },
-  { path: '/documents', file: 'text 1.txt' },
-  { path: '/documents/archive', file: 'archive 1.txt' },
-  { path: '/documents/archive', file: 'archive 2.txt' },
-]);
-
-describe('Testing PathUtils', () => {
-  it('When using PathUtils.getSplitedPath returns a splited path', () => {
-    
-  });
-  it('When using PathUtils.removePrefixPath returns a path without prefix', () => {
-    
-  });
-  it('When using PathUtils.getParentPath returns a parent path', () => {
-    
-  });
-  it('When using PathUtils.moveParentPath returns a moved path', () => {
-    
-  });
-});
 
 describe('Testing GenericTree', () => {
-  it('When using GenericTree.toString returns a string', () => {
-    const tree = createTree();
-    const stringTree = GenericTree.toString(tree, (current: string) => current);
-    // console.log(stringTree);
-    expect(stringTree.length).toBeGreaterThan(0);
+  it('When using GenericTree.readTreeInWidth', () => {
+    const tree = getMockTree();
+    const expectedNumberLeafs = 9;
+    const expectedNumberInnerNodes = 6;
+    const expectedFilesOrder = `name file 1@name file 2@name file 3@text 1.txt@docu 1.mp4@docu 2.mp4@song nº 2.mp4@archive 1.txt@archive 2.txt@`;
+    let numberLeafs = 0;
+    let numberInnerNodes = 0;
+    let filesOrder = '';
+
+    tree.readTreeInWidth(child => {
+      if (child.node) {
+        numberLeafs++;
+        filesOrder = `${filesOrder}${child.node}@`;
+      } else {
+        numberInnerNodes++;
+      }
+    });
+
+    expect(numberLeafs).toBe(expectedNumberLeafs);
+    expect(numberInnerNodes).toBe(expectedNumberInnerNodes);
+    expect(filesOrder).toBe(expectedFilesOrder);
+  });
+  
+  it('When using GenericTree.renameLabel in leaf node, rename leaf node', () => {
+    const newName = 'my documents';
+    const newNameClips = 'music clips';
+    const tree = getMockTree();
+    const nodeDocuments = tree.children[4];
+    const nodeClips = tree.children[3].children[1];
+
+    tree.renameLabelNode('hello');
+    nodeDocuments.renameLabelNode(newName);
+    nodeClips.renameLabelNode(newNameClips);
+
+    expect(tree.label).toBe('/');
+    expect(nodeDocuments.label).toBe(`/${newName}`);
+    expect(nodeClips.label).toBe(`/video/${newNameClips}`);
+  });
+  it('When using GenericTree.addChildren', () => {
+    
+  });
+  it('When using GenericTree.removeChild', () => {
+    
+  });
+  it('When using GenericTree.searchNodeLeafInChild', () => {
+    
+  });
+  it('When using GenericTree.searchLabelInChild', () => {
+    
+  });
+  it('When using GenericTree.moveNode', () => {
+    
   });
 });
