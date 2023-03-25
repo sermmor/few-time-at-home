@@ -75,6 +75,7 @@ export const TitleAndListWithFolders = ({title, id, list, deleteAction, addActio
       {
         isInSelectListMode && 
           <Button onClick={() => setMoveItemMode(!isInMoveItemMode)}>{isInMoveItemMode ? 'Move here' : 'Move Items'}</Button>
+        // TODO: Duplicate item NOT for bookmark case but for file case.
       }
       <Button onClick={() => undefined}>Create Folder</Button>
     </Box>
