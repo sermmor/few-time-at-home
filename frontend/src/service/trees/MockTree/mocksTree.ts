@@ -1,5 +1,8 @@
 import { GenericTree } from "../genericTree";
 
+export const expectedNumberLeafs = 9;
+export const expectedNumberInnerNodes = 6;
+
 export const getMockTree = () => {
   const tree = new GenericTree<string>('/', undefined);
   tree.addChildren('/', 'name file 1');
@@ -19,14 +22,14 @@ export const getMockTree = () => {
   return tree;
 };
 
-export const getMockFileList = (): {path: string, file: string}[] => ([
-  { path: '/', file: 'name file 1' },
-  { path: '/', file: 'name file 2' },
-  { path: '/', file: 'name file 3' },
-  { path: '/video/documental', file: 'docu 1.mp4' },
-  { path: '/video/documental', file: 'docu 2.mp4' },
-  { path: '/video/clips', file: 'song nº 2.mp4' },
-  { path: '/documents', file: 'text 1.txt' },
-  { path: '/documents/archive', file: 'archive 1.txt' },
-  { path: '/documents/archive', file: 'archive 2.txt' },
+export const getMockFileList = (): {path: string, data: string}[] => ([
+  { path: '/', data: 'name file 1' },
+  { path: '/', data: 'name file 2' },
+  { path: '/', data: 'name file 3' },
+  { path: '/documents', data: 'text 1.txt' },
+  { path: '/video/documental', data: 'docu 1.mp4' },
+  { path: '/video/documental', data: 'docu 2.mp4' },
+  { path: '/video/clips', data: 'song nº 2.mp4' },
+  { path: '/documents/archive', data: 'archive 1.txt' },
+  { path: '/documents/archive', data: 'archive 2.txt' },
 ]);

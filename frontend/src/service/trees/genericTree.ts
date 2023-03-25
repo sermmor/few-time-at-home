@@ -97,23 +97,26 @@ export class GenericTree<T> {
 
   // --------------------------- Static
 
-  static parseFromListWithPaths = <T>(listToParse: T[]): GenericTree<T> | undefined => {
+  static parseFromListWithPaths = <T>(listToParse: {path: string, data: T}[]): GenericTree<T> | undefined => {
     if (listToParse.length === 0) {
       return new GenericTree<T>('/', undefined);
-    } else if ((listToParse[0] as any).path) {
-      let newTree: GenericTree<T> | undefined = undefined;
+    } else if (listToParse[0].path) {
+      let newTree: GenericTree<T> = new GenericTree<T>('/', undefined);
       listToParse.forEach(newNode => {
-        newTree = GenericTree.placeNodeInTree(newNode, (newNode as any).path as string, newTree);
+        GenericTree.placeNodeInTree(newNode.data, newNode.path, newTree);
       });
       return newTree;
     }
     return undefined;
   }
 
-  static parseTreeToList = <T>(tree: GenericTree<T>): T[] => {
-    const treeList: T[] = [];
+  static parseTreeToList = <T>(tree: GenericTree<T>): {path: string, data: T}[] => {
+    const treeList: {path: string, data: T}[] = [];
     if (tree.children.length > 0) {
-      tree.readTreeInWidth((current => (current.node) ? treeList.push(current.node) : undefined));
+      tree.readTreeInWidth((current => (current.node) ? treeList.push({
+        path: current.label,
+        data: current.node
+      }) : undefined));
     }
     return treeList;
   }
@@ -145,37 +148,48 @@ export class GenericTree<T> {
     }
     return result;
   }
-  static placeNodeInTree = <T>(node: T, path: string, tree?: GenericTree<T>): GenericTree<T> => {
+
+  static placeNodeInTree = <T>(node: T, path: string, tree: GenericTree<T>): GenericTree<T> => {
+    let newItem: GenericTree<T>;
     const splitPath = PathUtils.getSplitedPath(path);
-    const newTree = tree ? tree : new GenericTree<T>('/', undefined);
     if (splitPath.length === 0) {
       // If splitPath is zero, the node is in root.
-      newTree.addChildren('/', node);
+      newItem = tree.addChildren('/', node);
     } else {
-      // If splitPath is not zero, we have to travel in the tree in height.
-      let currentNode: GenericTree<T> = newTree;
-
-      splitPath.forEach(label => {
-        currentNode = currentNode.addChildren(label, undefined);
-      });
-
-      currentNode.addChildren(path, node);
+      let parent = GenericTree.searchNodeIntermediate(tree, path);
+      if (!parent)  {
+        // Folder don't exists, so created path
+        let newNode: GenericTree<T> = tree;
+        let indexNodeFind: number;
+        let labelToAdd = ''
+        splitPath.forEach(label => {
+          labelToAdd = `${labelToAdd}/${label}`;
+          indexNodeFind = newNode.children.findIndex(child => child.label === labelToAdd);
+          if (indexNodeFind === -1) {
+            newNode = newNode.addChildren(labelToAdd, undefined);
+          } else {
+            newNode = newNode.children[indexNodeFind];
+          }
+        });
+        parent = newNode;
+      }
+      newItem = parent.addChildren(path, node);
     }
-    return newTree;
+    return newItem;
   }
 
   static searchNodeIntermediate = <T>(completedTree: GenericTree<T>, label: string): GenericTree<T> | undefined => {
     // We search in weight.
     const splitPath = PathUtils.getSplitedPath(label);
     if (splitPath.length === 0) {
-      return undefined;
+      return completedTree;
     } else {
       let currentNode: GenericTree<T> = completedTree;
-      let labelToSearch: string;
+      let labelToSearch: string = '';
       let indexChild: number;
 
       for (let i = 0; i < splitPath.length; i++) {
-        labelToSearch = splitPath[i];
+        labelToSearch = `${labelToSearch}/${splitPath[i]}`;
         indexChild = currentNode.searchLabelInChild(labelToSearch);
         if (indexChild === -1) {
           return undefined;
@@ -189,7 +203,7 @@ export class GenericTree<T> {
 
   
   static searchParent = <T>(completedTree: GenericTree<T>, child: GenericTree<T>): GenericTree<T> | undefined => {
-    if (!child.node) {
+    if (child.node) {
       // Same label, child it's a leaf.
       return GenericTree.searchNodeIntermediate(completedTree, child.label);
     } else {
@@ -205,28 +219,38 @@ export class GenericTree<T> {
   }
 
   static changeLabel = <T>(nodeToChange: GenericTree<T>, prefixToRemove: string, newPrefix: string) => {
-    const changeLabelToNode = (_nodeToChange: GenericTree<T>, _prefixToRemove: string, _newPrefix: string) => {
-      if (_nodeToChange.node) {
-        _nodeToChange.label = _newPrefix;
-      } else {
-        const pathWithoutPrefix = PathUtils.removePrefixPath(_prefixToRemove, _nodeToChange.label);
-        _nodeToChange.label = `${_newPrefix}/${pathWithoutPrefix}`;
-      }
-    };
-
-    changeLabelToNode(nodeToChange, prefixToRemove, newPrefix);
-
     if (nodeToChange.node) {
-      nodeToChange.readTreeInWidth(node => changeLabelToNode(node, prefixToRemove, newPrefix));
+      nodeToChange.label = newPrefix;
+    } else if (prefixToRemove === '/') {
+      nodeToChange.readTreeInWidth(nextNode => {
+        nextNode.label = `${newPrefix}${nextNode.label}`;
+      });
+    } else {
+      let pathWithoutPrefix;
+      nodeToChange.readTreeInWidth(nextNode => {
+        pathWithoutPrefix = PathUtils.removePrefixPath(prefixToRemove, nextNode.label);
+        nextNode.label = `${newPrefix}${pathWithoutPrefix}`;
+      });
     }
-    // nodeToChange.children.forEach(child => child.changeLabel(prefixToRemove, newPrefix));
   }
 
   static putNode = <T>(nodeToPut: GenericTree<T>, newChild: GenericTree<T>) => {
     const oldPath = PathUtils.getParentPath(newChild.label);
+    const splitedLabel = PathUtils.getSplitedPath(newChild.label);
+    const nameFinalLabel = newChild.node ? '' : splitedLabel[splitedLabel.length - 1];
     const newLabel = newChild.node ? PathUtils.moveParentPath(nodeToPut.label, newChild.label) : nodeToPut.label;
-    nodeToPut.addChildren(newLabel, newChild.node);
     
-    newChild.children.forEach(child => GenericTree.changeLabel(child, oldPath, newLabel));
+    newChild.label = newChild.node ? nodeToPut.label : `${newLabel}/${nameFinalLabel}`;
+    newChild.label = newChild.label.split('//').join('/');
+    
+    if (newChild.children) {
+      const newPrefix = (oldPath === '/') ? newLabel : `${newLabel}/${nameFinalLabel}`;
+      newChild.children.forEach(child => GenericTree.changeLabel(child, oldPath, newPrefix.split('//').join('/')));
+    }
+
+    // console.log(GenericTree.toString(newChild!, (current: T) => `${current}`));
+    
+    const newItem = nodeToPut.addChildren(newChild.label, newChild.node);
+    newItem.children = newChild.children;
   }
 }

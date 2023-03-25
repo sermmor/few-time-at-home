@@ -1,5 +1,5 @@
 import { GenericTree } from './genericTree';
-import { getMockTree } from './MockTree/mocksTree';
+import { expectedNumberInnerNodes, expectedNumberLeafs, getMockTree } from './MockTree/mocksTree';
 
 interface NodeInfo {
   label: string;
@@ -9,8 +9,6 @@ interface NodeInfo {
 describe('Testing GenericTree', () => {
   it('When using GenericTree.readTreeInWidth', () => {
     const tree = getMockTree();
-    const expectedNumberLeafs = 9;
-    const expectedNumberInnerNodes = 6;
     const expectedFilesOrder = `name file 1@name file 2@name file 3@text 1.txt@docu 1.mp4@docu 2.mp4@song nº 2.mp4@archive 1.txt@archive 2.txt@`;
     let numberLeafs = 0;
     let numberInnerNodes = 0;
@@ -107,7 +105,40 @@ describe('Testing GenericTree', () => {
     expect(indexDocuments).toEqual(-1);
     expect(indexDocumental).toEqual(-1);
   });
-  it('When using GenericTree.moveNode', () => {
+  it('When using GenericTree.moveNode add from root', () => {
+    const tree = getMockTree();
+
+    tree.moveNode('/video', '/documents', undefined, (node1, node2) => node1 === node2);
+
+    // console.log(GenericTree.toString(tree!, (current: string) => current));
+
+    expect(tree.children[3].children[2].label).toBe('/documents/video');
+  });
+  it('When using GenericTree.moveNode add from folder not root', () => {
+    const tree = getMockTree();
+
+    tree.moveNode('/video/clips', '/documents', undefined, (node1, node2) => node1 === node2);
+
+    // console.log(GenericTree.toString(tree!, (current: string) => current));
+
+    expect(tree.children[4].children[2].label).toBe('/documents/clips');
+  });
+  it('When using GenericTree.moveNode add folder to root', () => {
+    const tree = getMockTree();
+
+    tree.moveNode('/video/clips', '/', undefined, (node1, node2) => node1 === node2);
+
+    // console.log(GenericTree.toString(tree!, (current: string) => current));
     
+    expect(tree.children[5].label).toBe('/clips');
+  });
+  it('When using GenericTree.moveNode moving a leaf', () => {
+    const tree = getMockTree();
+
+    tree.moveNode('/video/clips', '/documents', 'song nº 2.mp4', (node1, node2) => node1 === node2);
+
+    // console.log(GenericTree.toString(tree!, (current: string) => current));
+
+    expect(tree.children[4].children[2].node).toBe('song nº 2.mp4');
   });
 });
