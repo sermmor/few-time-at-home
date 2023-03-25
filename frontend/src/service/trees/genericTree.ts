@@ -70,7 +70,7 @@ export class GenericTree<T> {
   searchNodeLeafInChild = (node: T, equalsT: (node1: T, node2: T) => boolean): number => 
     this.children.findIndex(child => !!child.node && equalsT(child.node!, node));
 
-  searchLabelInChild = (label: string): number => this.children.findIndex(child => child.label === label);
+  searchLabelInChild = (label: string): number => this.children.findIndex(child => !child.node && child.label === label);
 
   moveNode = (labelFrom: string, labelTo: string, node: T | undefined, equalsT: (node1: T, node2: T) => boolean): void => {
     let nodeFrom = GenericTree.searchNodeIntermediate(this, labelFrom);

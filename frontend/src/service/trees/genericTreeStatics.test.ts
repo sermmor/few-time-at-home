@@ -9,13 +9,13 @@ describe('Testing GenericTree (only statics methods)', () => {
     // console.log(stringTree)
     expect(stringTree.length).toBeGreaterThan(0);
   });
+  it('When using GenericTree.parseTreeToList', () => {
+    
+  });
   it('When using GenericTree.placeNodeInTree', () => {
     
   });
   it('When using GenericTree.parseFromListWithPaths', () => {
-    
-  });
-  it('When using GenericTree.parseTreeToList', () => {
     
   });
   it('When using GenericTree.searchNodeIntermediate', () => {
