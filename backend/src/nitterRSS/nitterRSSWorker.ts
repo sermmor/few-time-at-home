@@ -22,11 +22,12 @@ const updateRSS = (
             resolve(currentMessages);
         }).catch(() => {
             if (currentTry > 0) {
-                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1), 100);
+                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
             } else if (nitterUrlIndex < nitterInstancesList.length) {
-                updateRSS(data, endpoint, nitterUrlIndex + 1, currentTry);
+                updateRSS(data, endpoint, nitterUrlIndex + 1, currentTry).then(data => resolve(data));
             } else {
                 console.error(`Nitter profile ${endpoint} is broken or deleted!`);
+                resolve([]);
             }
     }));
 }

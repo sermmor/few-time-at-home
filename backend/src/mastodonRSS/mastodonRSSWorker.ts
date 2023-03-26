@@ -22,7 +22,7 @@ const updateRSS = (
             resolve(currentMessages);
         }).catch(() => {
             if (currentTry > 0) {
-                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1), 100);
+                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
             } else {
                 console.error(`Mastodon profile ${endpoint} is broken or deleted!`);
                 resolve([]);
