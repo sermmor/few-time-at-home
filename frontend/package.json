@@ -19,6 +19,12 @@
     "eject": "react-scripts eject",
     "desktop": "electron desktop.js"
   },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!<rootDir>/node_modules/"
+    ]
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

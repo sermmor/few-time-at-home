@@ -6,5 +6,6 @@ export const queryRssEndpoint  = (nameEndpoint: 'all' | 'mastodon' | 'twitter' |
 export const configurationEndpoint = (): string => `${getUrlApi()}/configuration`;
 export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
+export const bookmarksEndpoint = (): string => `${getUrlApi()}/bookmarks`;
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;

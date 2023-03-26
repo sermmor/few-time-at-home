@@ -36,6 +36,7 @@ const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS}: ChannelMe
                 resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
                     nitterRSS,
                     mastodonRSS,
+                    youtubeRSS,
                     blogRSS
                 ]));
             })
