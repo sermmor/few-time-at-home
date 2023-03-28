@@ -19,10 +19,10 @@ export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setC
   cloneList.splice(index, 1);
   setBookmarks({data: [...cloneList]});
 
-  if (currentTreeNode && isFolder(elementToDelete)) {
+  if (currentTreeNode && isFolder(elementToDelete)) { // TODO: THERE IS A RANDOM CRASH HERE!!!
     const indexToRemove = currentTreeNode.searchLabelInChild(elementToDelete.title);
     const toRemove = currentTreeNode.children[indexToRemove];
-    
+
     currentTreeNode.removeChild(toRemove, (item1, item2) => item1.url === item2.url);
     setCurrentTreeNode(currentTreeNode);
   } else if (currentTreeNode) {
@@ -72,7 +72,8 @@ export const editFolderActionList = ({bookmarks, setBookmarks, currentTreeNode, 
 
   if (currentTreeNode) {
     const childIndex = currentTreeNode.searchLabelInChild(elementToEdit.title);
-    currentTreeNode.children[childIndex].label = newTitle;
+    const splitNameFolder = newTitle.split('/');
+    currentTreeNode.children[childIndex].renameLabelNode(splitNameFolder[splitNameFolder.length - 1]);
 
     setCurrentTreeNode(currentTreeNode);
   }
