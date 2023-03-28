@@ -6,7 +6,7 @@ import { GenericTree } from "../../../service/trees/genericTree";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
-import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, setOpenFolder } from "./ActionsBookmarkList";
+import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, goBackToParentFolder, setOpenFolder } from "./ActionsBookmarkList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -48,16 +48,16 @@ export const Bookmarks = () => {
   const [tree, setTree] = React.useState<GenericTree<BookmarkItem>>();
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<BookmarkItem>>(); // Current path === currentTreeNode.label
   const [bookmarks, setBookmarks] = React.useState<{data: BookmarkItem[]}>();
+  const [breadcrumb, setBreadcrumb] = React.useState<GenericTree<BookmarkItem>[]>([]);
   React.useEffect(() => { BookmarksActions.getBookmarks().then(data => {
     setTree(data.data);
     setCurrentTreeNode(data.data);
     setBookmarks({data: data.data.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))});
   })}, []);
 
-  const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, };
+  const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb};
   
   // TODO: CREATE folder, RENAME folder, OPEN folder, REMOVE folder, DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder.
-  // TODO: ADD function return to parent folder.
   return <Box sx={formStyle}> 
     {bookmarks && <>
         <TitleAndListWithFolders
@@ -70,6 +70,7 @@ export const Bookmarks = () => {
             title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),
             url: `${urlFolder}_${indexNewBookmarkAdded}`
           }) }}
+          goBackToParent={() => goBackToParentFolder(action)}
           list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: item.url.indexOf(urlFolder) > -1, item: <>{
             (item.url.indexOf(urlFolder) > -1) ?
               <LabelAndTextFieldWithFolder

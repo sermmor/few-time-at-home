@@ -1,11 +1,15 @@
 import { BookmarkItem, isFolder, urlFolder } from "../../../data-model/bookmarks";
 import { GenericTree } from "../../../service/trees/genericTree";
+import { PathUtils } from "../../../service/trees/pathUtils";
 
 export interface ActionsProps {
   bookmarks: {data: BookmarkItem[]};
   setBookmarks: React.Dispatch<React.SetStateAction<{ data: BookmarkItem[]; } | undefined>>;
   currentTreeNode: GenericTree<BookmarkItem>;
   setCurrentTreeNode: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem> | undefined>>;
+  breadcrumb: GenericTree<BookmarkItem>[];
+  setBreadcrumb: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem>[]>>;
+
 }
 
 export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => {
@@ -85,7 +89,7 @@ export const addFolderActionItemList = ({bookmarks, setBookmarks, currentTreeNod
   }
 };
 
-export const setOpenFolder = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, labelFolder: string) => {
+export const setOpenFolder = ({setBookmarks, currentTreeNode, setCurrentTreeNode, breadcrumb, setBreadcrumb}: ActionsProps, labelFolder: string) => {
   if (currentTreeNode) {
     const childIndex = currentTreeNode.searchLabelInChild(labelFolder);
     const newCurrentTreeNode = currentTreeNode.children[childIndex];
@@ -93,7 +97,25 @@ export const setOpenFolder = ({bookmarks, setBookmarks, currentTreeNode, setCurr
     const newBookmark = {data: newCurrentTreeNode.children.map((item, index) =>
       item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))};
     
+    const cloneBreadcrumb = [...breadcrumb];
+    cloneBreadcrumb.push(currentTreeNode);
+
+    setBreadcrumb(cloneBreadcrumb);
     setBookmarks(newBookmark);
     setCurrentTreeNode(newCurrentTreeNode);
+  }
+}
+
+export const goBackToParentFolder = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode, breadcrumb, setBreadcrumb}: ActionsProps) => {
+  const cloneBreadcrumb = [...breadcrumb];
+  const parentTreeNode = cloneBreadcrumb.pop();
+
+  if (parentTreeNode) {
+    const newBookmark = {data: parentTreeNode.children.map((item, index) =>
+      item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))};
+  
+    setBreadcrumb(cloneBreadcrumb);
+    setBookmarks(newBookmark);
+    setCurrentTreeNode(parentTreeNode);
   }
 }

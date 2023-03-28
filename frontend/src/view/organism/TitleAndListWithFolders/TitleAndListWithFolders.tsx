@@ -7,6 +7,7 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 
 const widthBoxes = {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'};
@@ -37,13 +38,14 @@ const buttonListStyle: SxProps<Theme> = {
   width: widthBoxes,
 }
 
-export const TitleAndListWithFolders = ({title, id, list, deleteAction, addAction, addFolder}: {
+export const TitleAndListWithFolders = ({title, id, list, deleteAction, addAction, addFolder, goBackToParent}: {
   title: string;
   id: string;
   list: { id: string, isFolder: boolean, item: string | JSX.Element }[];
   deleteAction?: (id: string) => void;
   addAction?: () => void;
   addFolder?: () => void;
+  goBackToParent?: () => void;
 }) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -90,6 +92,10 @@ export const TitleAndListWithFolders = ({title, id, list, deleteAction, addActio
       {
         !isInSelectListMode && 
           <Button onClick={addFolder}><CreateNewFolderIcon /></Button>
+      }
+      {
+        !isInSelectListMode && 
+          <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
       }
     </Box>
     <Card sx={listComponentStyle}>
