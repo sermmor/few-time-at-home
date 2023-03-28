@@ -44,7 +44,6 @@ export const addActionItemList = ({bookmarks, setBookmarks, currentTreeNode, set
 export const editActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => (newTitle: string, newUrl: string) => {
   const cloneList = [...bookmarks.data];
   const index = cloneList.findIndex(item => item.url === id);
-  // cloneList[index] = {url: newUrl, title: newTitle, path: cloneList[index].path};
   const elementToEdit = {...cloneList[index]};
   cloneList[index] = {url: newUrl, title: newTitle};
 

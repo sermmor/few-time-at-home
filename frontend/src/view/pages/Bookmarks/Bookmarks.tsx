@@ -55,9 +55,9 @@ export const Bookmarks = () => {
   })}, []);
 
   const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, };
-
-  // TODO: CREATE folder, RENAME folder, OPEN folder, REMOVE folder, DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder.
   
+  // TODO: CREATE folder, RENAME folder, OPEN folder, REMOVE folder, DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder.
+  // TODO: ADD function return to parent folder.
   return <Box sx={formStyle}> 
     {bookmarks && <>
         <TitleAndListWithFolders
