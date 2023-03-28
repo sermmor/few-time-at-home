@@ -1,4 +1,4 @@
-import { BookmarkItem, isFolder } from "../../../data-model/bookmarks";
+import { BookmarkItem, isFolder, urlFolder } from "../../../data-model/bookmarks";
 import { GenericTree } from "../../../service/trees/genericTree";
 
 export interface ActionsProps {
@@ -9,7 +9,6 @@ export interface ActionsProps {
 }
 
 export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => {
-  if (!bookmarks) return;
   const cloneList = [...bookmarks.data];
   const index = cloneList.findIndex(item => item.url === id);
   const elementToDelete = cloneList[index];
@@ -32,7 +31,6 @@ export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setC
 };
 
 export const addActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: BookmarkItem) => {
-  if (!bookmarks) return;
   const cloneList = [...bookmarks.data];
   cloneList.push(itemToAdd);
   setBookmarks({data: [...cloneList]});
@@ -44,7 +42,6 @@ export const addActionItemList = ({bookmarks, setBookmarks, currentTreeNode, set
 };
 
 export const editActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => (newTitle: string, newUrl: string) => {
-  if (!bookmarks) return;
   const cloneList = [...bookmarks.data];
   const index = cloneList.findIndex(item => item.url === id);
   // cloneList[index] = {url: newUrl, title: newTitle, path: cloneList[index].path};
@@ -62,14 +59,42 @@ export const editActionList = ({bookmarks, setBookmarks, currentTreeNode, setCur
   }
 };
 
+export const editFolderActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => (newTitle: string) => {
+  const cloneList = [...bookmarks.data];
+  const index = cloneList.findIndex(item => item.url === id);
+  const elementToEdit = {...cloneList[index]};
+  cloneList[index] = {url: id, title: newTitle};
+
+  setBookmarks({data: [...cloneList]});
+
+  if (currentTreeNode) {
+    const childIndex = currentTreeNode.searchLabelInChild(elementToEdit.title);
+    currentTreeNode.children[childIndex].label = newTitle;
+
+    setCurrentTreeNode(currentTreeNode);
+  }
+};
+
 export const addFolderActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: BookmarkItem) => {
-  if (!bookmarks) return;
   const cloneList = [...bookmarks.data];
   cloneList.push(itemToAdd);
   setBookmarks({data: [...cloneList]});
 
   if (currentTreeNode) {
-    currentTreeNode.addChildren(currentTreeNode.label);
+    currentTreeNode.addChildren(itemToAdd.title);
     setCurrentTreeNode(currentTreeNode);
   }
 };
+
+export const setOpenFolder = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, labelFolder: string) => {
+  if (currentTreeNode) {
+    const childIndex = currentTreeNode.searchLabelInChild(labelFolder);
+    const newCurrentTreeNode = currentTreeNode.children[childIndex];
+
+    const newBookmark = {data: newCurrentTreeNode.children.map((item, index) =>
+      item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))};
+    
+    setBookmarks(newBookmark);
+    setCurrentTreeNode(newCurrentTreeNode);
+  }
+}

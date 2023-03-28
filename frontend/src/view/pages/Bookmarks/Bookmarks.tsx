@@ -6,7 +6,7 @@ import { GenericTree } from "../../../service/trees/genericTree";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
-import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList } from "./ActionsBookmarkList";
+import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, setOpenFolder } from "./ActionsBookmarkList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -42,6 +42,8 @@ const SaveNotesComponent = ({ tree, }: { tree: GenericTree<BookmarkItem>, }) => 
 
 let indexNewBookmarkAdded = 0;
 
+const cleanLabelFolder = (label: string): string => label.split('//').join('/');
+
 export const Bookmarks = () => {
   const [tree, setTree] = React.useState<GenericTree<BookmarkItem>>();
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<BookmarkItem>>(); // Current path === currentTreeNode.label
@@ -49,7 +51,7 @@ export const Bookmarks = () => {
   React.useEffect(() => { BookmarksActions.getBookmarks().then(data => {
     setTree(data.data);
     setCurrentTreeNode(data.data);
-    setBookmarks({data: data.data.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))})
+    setBookmarks({data: data.data.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))});
   })}, []);
 
   const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, };
@@ -64,13 +66,16 @@ export const Bookmarks = () => {
           deleteAction={(id) => deleteActionList(action, id)}
           // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
-          addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, { title: `new folder ${indexNewBookmarkAdded}`, url: `${urlFolder}_${indexNewBookmarkAdded}` }) }}
+          addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
+            title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),
+            url: `${urlFolder}_${indexNewBookmarkAdded}`
+          }) }}
           list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: item.url.indexOf(urlFolder) > -1, item: <>{
             (item.url.indexOf(urlFolder) > -1) ?
               <LabelAndTextFieldWithFolder
                 text={item.title}
-                onChange={(newText) => undefined}
-                setOpenFolder={() => undefined}/>
+                onChange={editFolderActionList(action, `${item.url}`)}
+                setOpenFolder={(label) => setOpenFolder(action, label)}/>
             :
               <LabelAndUrlField
                 textToShow={item.title}

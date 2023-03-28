@@ -2,7 +2,11 @@ import React from "react";
 import { Box, TextField } from "@mui/material";
 import FolderIcon from '@mui/icons-material/Folder';
 
-export const LabelAndTextFieldWithFolder = ({text, onChange, setOpenFolder}: {text: string, onChange: (newText: string) => void, setOpenFolder: () => void}) => {
+export const LabelAndTextFieldWithFolder = ({text, onChange, setOpenFolder}: {
+  text: string,
+  onChange: (newText: string) => void,
+  setOpenFolder: (label: string) => void}
+) => {
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   const [textEditing, setTextEditing] = React.useState<string>(text);
 
@@ -29,7 +33,7 @@ export const LabelAndTextFieldWithFolder = ({text, onChange, setOpenFolder}: {te
         <Box sx={{ cursor: 'pointer', color: '#1976d2' }} onClick={() => setEditMode(true)}>
           {textEditing}
         </Box>
-        <Box sx={{ cursor: 'pointer', marginLeft: {xs: 'none', sm:'auto'}}} onClick={() => setOpenFolder()}>
+        <Box sx={{ cursor: 'pointer', marginLeft: {xs: 'none', sm:'auto'}}} onClick={() => setOpenFolder(textEditing)}>
           <FolderIcon />
         </Box>
       </Box>
