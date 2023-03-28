@@ -43,7 +43,7 @@ const breadcrumbStyle: SxProps<Theme> = {
   fontStyle: 'oblique',
 }
 
-export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, addAction, addFolder, goBackToParent}: {
+export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, addAction, addFolder, duplicateItem, goBackToParent}: {
   title: string;
   id: string;
   path: string;
@@ -51,6 +51,7 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
   deleteAction?: (id: string) => void;
   addAction?: () => void;
   addFolder?: () => void;
+  duplicateItem?: () => void;
   goBackToParent?: () => void;
 }) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
@@ -71,7 +72,7 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
     setSelectListMode(enable);
   }
 
-  // TODO: DO FROM Bookmarks.tsx OR HERE: Searcher, create folders, move item (folder and links) in other path. Save all this changes in paths. Tree structure to get lists.
+  // TODO: DO FROM Bookmarks.tsx OR HERE: Searcher, move item (folder and links) in other path. Save all this changes in paths. Tree structure to get lists.
   return <>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
       {title}
@@ -93,7 +94,7 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
       }
       {
         isInSelectListMode && !isInMoveItemMode && 
-          <Button onClick={() => undefined}>{<FileCopyIcon />}</Button>
+          <Button onClick={duplicateItem}>{<FileCopyIcon />}</Button>
       }
       {
         !isInSelectListMode && 

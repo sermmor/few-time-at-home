@@ -57,7 +57,8 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb};
   
-  // TODO: DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder.
+  // TODO: DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder. 
+  // TODO: Search item!!
 
   return <Box sx={formStyle}> 
     {bookmarks && <>
@@ -65,6 +66,7 @@ export const Bookmarks = () => {
           title='Bookmarks'
           id='Bookmarks_0'
           path={`${currentTreeNode?.label}`}
+          duplicateItem={() => undefined}
           deleteAction={(id) => deleteActionList(action, id)}
           // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
