@@ -1,7 +1,13 @@
+import React from "react";
 import { Box, Card, CardContent, IconButton, Typography, SxProps, Theme, Button, TextField } from "@mui/material";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
-import React from "react";
 
 const widthBoxes = {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'};
 
@@ -31,12 +37,13 @@ const buttonListStyle: SxProps<Theme> = {
   width: widthBoxes,
 }
 
-export const TitleAndListWithFolders = ({title, id, list, deleteAction, addAction}: {
+export const TitleAndListWithFolders = ({title, id, list, deleteAction, addAction, addFolder}: {
   title: string;
   id: string;
   list: { id: string, isFolder: boolean, item: string | JSX.Element }[];
   deleteAction?: (id: string) => void;
   addAction?: () => void;
+  addFolder?: () => void;
 }) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -71,13 +78,19 @@ export const TitleAndListWithFolders = ({title, id, list, deleteAction, addActio
             : (evt.key === 'Enter') ? undefined : undefined }
         />
     <Box sx={buttonListStyle}>
-      <Button onClick={() => onSelectListMode(!isInSelectListMode)}>{isInSelectListMode ? 'Cancel selection' : 'Select Items'}</Button>
+      <Button onClick={() => onSelectListMode(!isInSelectListMode)}>{isInSelectListMode ? <CheckBoxOutlineBlankIcon /> : <CheckBoxIcon />}</Button>
       {
         isInSelectListMode && 
-          <Button onClick={() => setMoveItemMode(!isInMoveItemMode)}>{isInMoveItemMode ? 'Move here' : 'Move Items'}</Button>
-        // TODO: Duplicate item NOT for bookmark case but for file case.
+          <Button onClick={() => setMoveItemMode(!isInMoveItemMode)}>{isInMoveItemMode ? <ContentPasteIcon /> : <DriveFileMoveIcon />}</Button>
       }
-      <Button onClick={() => undefined}>Create Folder</Button>
+      {
+        isInSelectListMode && 
+          <Button onClick={() => undefined}>{<FileCopyIcon />}</Button>
+      }
+      {
+        !isInSelectListMode && 
+          <Button onClick={addFolder}><CreateNewFolderIcon /></Button>
+      }
     </Box>
     <Card sx={listComponentStyle}>
       <CardContent>
@@ -88,7 +101,7 @@ export const TitleAndListWithFolders = ({title, id, list, deleteAction, addActio
             </Box>
           )
         }
-      { addAction && <IconButton aria-label="addItem" onClick={() => addAction()}>
+      { addAction && <IconButton aria-label="addItem" onClick={addAction}>
           <AddCircleIcon />
         </IconButton>
       }

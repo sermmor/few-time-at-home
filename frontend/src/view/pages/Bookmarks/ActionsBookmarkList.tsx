@@ -18,7 +18,7 @@ export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setC
 
   if (currentTreeNode && isFolder(elementToDelete)) {
     currentTreeNode.removeChild(
-      new GenericTree<BookmarkItem>(elementToDelete.title, elementToDelete),
+      new GenericTree<BookmarkItem>(elementToDelete.title, elementToDelete), // ! IT'S WORKING FINE??? Check!!
       (item1, item2) => item1.url === item2.url
     );
     setCurrentTreeNode(currentTreeNode);
@@ -58,6 +58,18 @@ export const editActionList = ({bookmarks, setBookmarks, currentTreeNode, setCur
     currentTreeNode.children[childIndex].node!.title = newTitle;
     currentTreeNode.children[childIndex].node!.url = newUrl;
     
+    setCurrentTreeNode(currentTreeNode);
+  }
+};
+
+export const addFolderActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: BookmarkItem) => {
+  if (!bookmarks) return;
+  const cloneList = [...bookmarks.data];
+  cloneList.push(itemToAdd);
+  setBookmarks({data: [...cloneList]});
+
+  if (currentTreeNode) {
+    currentTreeNode.addChildren(currentTreeNode.label);
     setCurrentTreeNode(currentTreeNode);
   }
 };

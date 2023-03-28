@@ -1,11 +1,12 @@
 import { Box, Button, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
-import { BookmarkItem, BookmarksDataModel, isFolder, urlFolder } from "../../../data-model/bookmarks";
+import { BookmarkItem, urlFolder } from "../../../data-model/bookmarks";
 import { GenericTree } from "../../../service/trees/genericTree";
+import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { TitleAndListWithFolders } from "../../organism/TitleAndDraggableList/TitleAndDraggableList";
-import { ActionsProps, addActionItemList, deleteActionList, editActionList } from "./ActionsBookmarkList";
+import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
+import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList } from "./ActionsBookmarkList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -53,7 +54,7 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, };
 
-  // TODO: ADD folder, RENAME folder, OPEN folder, REMOVE folder, and MOVE items to folder.
+  // TODO: CREATE folder, RENAME folder, OPEN folder, REMOVE folder, DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder.
   
   return <Box sx={formStyle}> 
     {bookmarks && <>
@@ -62,11 +63,21 @@ export const Bookmarks = () => {
           id='Bookmarks_0'
           deleteAction={(id) => deleteActionList(action, id)}
           // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
-          addAction={() => {indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`})} }
-          list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: false, item: <LabelAndUrlField
-            textToShow={item.title}
-            textUrl={item.url}
-            onChange={editActionList(action, `${item.url}`)}/>
+          addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
+          addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, { title: `new folder ${indexNewBookmarkAdded}`, url: `${urlFolder}_${indexNewBookmarkAdded}` }) }}
+          list={bookmarks.data.map((item) => ({id:`${item.url}`, isFolder: item.url.indexOf(urlFolder) > -1, item: <>{
+            (item.url.indexOf(urlFolder) > -1) ?
+              <LabelAndTextFieldWithFolder
+                text={item.title}
+                onChange={(newText) => undefined}
+                setOpenFolder={() => undefined}/>
+            :
+              <LabelAndUrlField
+                textToShow={item.title}
+                textUrl={item.url}
+                onChange={editActionList(action, `${item.url}`)}/>
+              }
+            </>
           }))}
         />
         <SaveNotesComponent tree={tree!}/>
