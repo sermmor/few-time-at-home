@@ -84,7 +84,7 @@ export const TitleAndListWithFolders = ({title, id, list, deleteAction, addActio
           <Button onClick={() => setMoveItemMode(!isInMoveItemMode)}>{isInMoveItemMode ? <ContentPasteIcon /> : <DriveFileMoveIcon />}</Button>
       }
       {
-        isInSelectListMode && 
+        isInSelectListMode && !isInMoveItemMode && 
           <Button onClick={() => undefined}>{<FileCopyIcon />}</Button>
       }
       {
