@@ -38,9 +38,15 @@ const buttonListStyle: SxProps<Theme> = {
   width: widthBoxes,
 }
 
-export const TitleAndListWithFolders = ({title, id, list, deleteAction, addAction, addFolder, goBackToParent}: {
+const breadcrumbStyle: SxProps<Theme> = {
+  paddingLeft: '1rem',
+  fontStyle: 'oblique',
+}
+
+export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, addAction, addFolder, goBackToParent}: {
   title: string;
   id: string;
+  path: string;
   list: { id: string, isFolder: boolean, item: string | JSX.Element }[];
   deleteAction?: (id: string) => void;
   addAction?: () => void;
@@ -97,6 +103,9 @@ export const TitleAndListWithFolders = ({title, id, list, deleteAction, addActio
         !isInSelectListMode && 
           <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
       }
+    </Box>
+    <Box sx={{...buttonListStyle, ...breadcrumbStyle}}>
+      { path }
     </Box>
     <Card sx={listComponentStyle}>
       <CardContent>

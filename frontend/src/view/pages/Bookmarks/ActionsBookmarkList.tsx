@@ -20,10 +20,10 @@ export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setC
   setBookmarks({data: [...cloneList]});
 
   if (currentTreeNode && isFolder(elementToDelete)) {
-    currentTreeNode.removeChild(
-      new GenericTree<BookmarkItem>(elementToDelete.title, elementToDelete), // ! IT'S WORKING FINE??? Check!!
-      (item1, item2) => item1.url === item2.url
-    );
+    const indexToRemove = currentTreeNode.searchLabelInChild(elementToDelete.title);
+    const toRemove = currentTreeNode.children[indexToRemove];
+    
+    currentTreeNode.removeChild(toRemove, (item1, item2) => item1.url === item2.url);
     setCurrentTreeNode(currentTreeNode);
   } else if (currentTreeNode) {
     currentTreeNode.removeChild(
@@ -106,7 +106,7 @@ export const setOpenFolder = ({setBookmarks, currentTreeNode, setCurrentTreeNode
   }
 }
 
-export const goBackToParentFolder = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode, breadcrumb, setBreadcrumb}: ActionsProps) => {
+export const goBackToParentFolder = ({setBookmarks, setCurrentTreeNode, breadcrumb, setBreadcrumb}: ActionsProps) => {
   const cloneBreadcrumb = [...breadcrumb];
   const parentTreeNode = cloneBreadcrumb.pop();
 

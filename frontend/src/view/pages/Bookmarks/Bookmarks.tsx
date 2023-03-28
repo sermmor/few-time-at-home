@@ -58,11 +58,13 @@ export const Bookmarks = () => {
   const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb};
   
   // TODO: CREATE folder, RENAME folder, OPEN folder, REMOVE folder, DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder.
+
   return <Box sx={formStyle}> 
     {bookmarks && <>
         <TitleAndListWithFolders
           title='Bookmarks'
           id='Bookmarks_0'
+          path={`${currentTreeNode?.label}`}
           deleteAction={(id) => deleteActionList(action, id)}
           // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
