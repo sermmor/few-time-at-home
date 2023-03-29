@@ -6,7 +6,7 @@ import { GenericTree } from "../../../service/trees/genericTree";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
-import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, goBackToParentFolder, setOpenFolder } from "./ActionsBookmarkList";
+import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, goBackToParentFolder, isSelectedItemList, moveItemListToFolder, setOpenFolder } from "./ActionsBookmarkList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -49,15 +49,16 @@ export const Bookmarks = () => {
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<BookmarkItem>>(); // Current path === currentTreeNode.label
   const [bookmarks, setBookmarks] = React.useState<{data: BookmarkItem[]}>();
   const [breadcrumb, setBreadcrumb] = React.useState<GenericTree<BookmarkItem>[]>([]);
+  const [selectedNodes, setSelectedNodes] = React.useState<GenericTree<BookmarkItem>[]>([]);
   React.useEffect(() => { BookmarksActions.getBookmarks().then(data => {
     setTree(data.data);
     setCurrentTreeNode(data.data);
     setBookmarks({data: data.data.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))});
   })}, []);
 
-  const action: ActionsProps = { bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb};
+  const action: ActionsProps = { tree: tree!, bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
   
-  // TODO: DUPLICATE item (folders too), and MOVE & PASTE items (folders too) to folder. 
+  // TODO: MOVE & PASTE items (folders too) to folder. 
   // TODO: Search item!!
 
   return <Box sx={formStyle}> 
@@ -67,6 +68,9 @@ export const Bookmarks = () => {
           id='Bookmarks_0'
           path={`${currentTreeNode?.label}`}
           duplicateItem={() => undefined}
+          onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
+          onOutSelectionMode={() => setSelectedNodes([])}
+          onMoveItem={(idList) => moveItemListToFolder(action, idList)}
           deleteAction={(id) => deleteActionList(action, id)}
           // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }

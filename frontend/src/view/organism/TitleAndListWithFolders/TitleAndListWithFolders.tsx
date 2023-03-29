@@ -43,7 +43,8 @@ const breadcrumbStyle: SxProps<Theme> = {
   fontStyle: 'oblique',
 }
 
-export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, addAction, addFolder, duplicateItem, goBackToParent}: {
+
+export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, addAction, addFolder, duplicateItem, goBackToParent, onMoveItem, onSelectItem, onOutSelectionMode}: {
   title: string;
   id: string;
   path: string;
@@ -52,24 +53,55 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
   addAction?: () => void;
   addFolder?: () => void;
   duplicateItem?: () => void;
+  onOutSelectionMode?: () => void;
+  onSelectItem?: (id: string, isSelected: boolean) => void;
+  onMoveItem?: (listIdItemSelect: string[]) => void;
   goBackToParent?: () => void;
 }) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
   const [toSearch, setToSearch] = React.useState<string>('');
   const [isCheckedList, setCheckedList] = React.useState<boolean[]>(list.map(() => false));
+  const [checkedIdList, setCheckedIdList] = React.useState<string[]>([]);
 
-  const onSelectItem = (index: number) => (id: string, checked: boolean) => {
+  const onSelectItemGeneral = (index: number) => (id: string, checked: boolean) => {
+    if (checked && checkedIdList.indexOf(id) === -1) {
+      const cloneCheckedIdList = [...checkedIdList];
+      cloneCheckedIdList.push(id);
+      setCheckedIdList(cloneCheckedIdList);
+    } else if (!checked) {
+      const cloneCheckedIdList = [...checkedIdList];
+      const index = cloneCheckedIdList.indexOf(id);
+      cloneCheckedIdList.splice(index, 1);
+      setCheckedIdList(cloneCheckedIdList);
+    }
     const cloneChecked = [...isCheckedList]
     cloneChecked[index] = checked;
+
     setCheckedList(cloneChecked);
+    if (onSelectItem) onSelectItem(id, checked);
   }
 
   const onSelectListMode = (enable: boolean) => {
-    if (!enable) {
+    if (enable) {
       setCheckedList(isCheckedList.map(() => false));
     }
     setSelectListMode(enable);
+  }
+
+  const moveItemProcess = (isMoveBegins: boolean) => () => {
+    if (isInMoveItemMode) {
+      onMoveItem!(checkedIdList);
+    }
+    if (!isMoveBegins) {
+      checkOnSelectListMode(!isInSelectListMode);
+    }
+    setMoveItemMode(isMoveBegins);
+  }
+
+  const checkOnSelectListMode = (newIsInSelectListMode: boolean) => {
+    onSelectListMode(newIsInSelectListMode);
+    if (onOutSelectionMode && !newIsInSelectListMode) onOutSelectionMode();
   }
 
   // TODO: DO FROM Bookmarks.tsx OR HERE: Searcher, move item (folder and links) in other path. Save all this changes in paths. Tree structure to get lists.
@@ -87,13 +119,21 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
             : (evt.key === 'Enter') ? undefined : undefined }
         />
     <Box sx={buttonListStyle}>
-      <Button onClick={() => onSelectListMode(!isInSelectListMode)}>{isInSelectListMode ? <CheckBoxOutlineBlankIcon /> : <CheckBoxIcon />}</Button>
-      {
-        isInSelectListMode && 
-          <Button onClick={() => setMoveItemMode(!isInMoveItemMode)}>{isInMoveItemMode ? <ContentPasteIcon /> : <DriveFileMoveIcon />}</Button>
-      }
+      <Button onClick={() => {
+        checkOnSelectListMode(!isInSelectListMode);
+        moveItemProcess(false);
+        setMoveItemMode(false);
+      }}>{isInSelectListMode ? <CheckBoxOutlineBlankIcon /> : <CheckBoxIcon />}</Button>
       {
         isInSelectListMode && !isInMoveItemMode && 
+          <Button onClick={moveItemProcess(true)}>{<DriveFileMoveIcon />}</Button>
+      }
+      {
+        isInMoveItemMode && 
+          <Button onClick={moveItemProcess(false)}>{<ContentPasteIcon />}</Button>
+      }
+      {
+        !isInMoveItemMode && 
           <Button onClick={duplicateItem}>{<FileCopyIcon />}</Button>
       }
       {
@@ -101,7 +141,7 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
           <Button onClick={addFolder}><CreateNewFolderIcon /></Button>
       }
       {
-        !isInSelectListMode && 
+        (!isInSelectListMode || isInMoveItemMode) && 
           <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
       }
     </Box>
@@ -113,7 +153,7 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
         {
           list.map((element, index) =>
             <Box key={element.id} sx={itemListStyle}>
-              <ItemListWithFoldersComponent {...{element, deleteAction, isInSelectListMode, isElementSelected: isCheckedList[index], onSelect: onSelectItem(index)}}/>
+              <ItemListWithFoldersComponent {...{element, deleteAction, isInSelectListMode, isElementSelected: isCheckedList[index], onSelect: onSelectItemGeneral(index)}}/>
             </Box>
           )
         }

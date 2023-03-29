@@ -3,13 +3,15 @@ import { GenericTree } from "../../../service/trees/genericTree";
 import { PathUtils } from "../../../service/trees/pathUtils";
 
 export interface ActionsProps {
+  tree: GenericTree<BookmarkItem>;
   bookmarks: {data: BookmarkItem[]};
   setBookmarks: React.Dispatch<React.SetStateAction<{ data: BookmarkItem[]; } | undefined>>;
   currentTreeNode: GenericTree<BookmarkItem>;
   setCurrentTreeNode: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem> | undefined>>;
   breadcrumb: GenericTree<BookmarkItem>[];
   setBreadcrumb: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem>[]>>;
-
+  selectedNodes: GenericTree<BookmarkItem>[];
+  setSelectedNodes: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem>[]>>;
 }
 
 export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => {
@@ -119,4 +121,34 @@ export const goBackToParentFolder = ({setBookmarks, setCurrentTreeNode, breadcru
     setBookmarks(newBookmark);
     setCurrentTreeNode(parentTreeNode);
   }
+}
+
+export const isSelectedItemList = ({bookmarks, currentTreeNode, selectedNodes, setSelectedNodes}: ActionsProps, id: string, isSelected: boolean) => {
+  const cloneSelectedNodes = [...selectedNodes];
+  // Search node
+  const bookmarkItemIndex = bookmarks.data.findIndex(bm => bm.url === id);
+  const bookmarkItem = bookmarks.data[bookmarkItemIndex];
+  const indexChild = (id.indexOf(urlFolder) > -1) ? currentTreeNode.searchLabelInChild(bookmarkItem.title)
+    : currentTreeNode.searchNodeLeafInChild(bookmarkItem, (node1, node2) => node1.url === node2.url);
+  const treeNodeClicked = currentTreeNode.children[indexChild];
+
+  if (isSelected) {
+    cloneSelectedNodes.push(treeNodeClicked);
+  } else {
+    const unselectedItemIndex = selectedNodes.findIndex(bm => treeNodeClicked.node && bm.node ?  bm.node.url === treeNodeClicked.node.url : bm.label === treeNodeClicked.label);
+    cloneSelectedNodes.splice(unselectedItemIndex, 1);
+  }
+
+  setSelectedNodes(cloneSelectedNodes);
+}
+
+export const moveItemListToFolder = ({setBookmarks, bookmarks, tree, currentTreeNode, setCurrentTreeNode, selectedNodes, setSelectedNodes}: ActionsProps, idList: string[]) => {
+  idList.forEach(id => {
+    const labelFrom = selectedNodes[0].label;
+    const labelToMove = currentTreeNode.label;
+    const equalsBookmark = (node1: BookmarkItem, node2: BookmarkItem) => node1.url === node2.url;
+
+    selectedNodes.forEach(node => tree.moveNode(labelFrom, labelToMove, node.node, equalsBookmark));
+    setBookmarks({data: currentTreeNode.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))});
+  });
 }
