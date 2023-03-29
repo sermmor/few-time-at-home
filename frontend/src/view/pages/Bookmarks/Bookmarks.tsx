@@ -71,7 +71,6 @@ export const Bookmarks = () => {
           onOutSelectionMode={() => setSelectedNodes([])}
           onMoveItem={(idList) => moveItemListToFolder(action, idList)}
           deleteAction={(id) => deleteActionList(action, id)}
-          // addAction={() => addActionList({ url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`, path: currentlyPath! }) }
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
           addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
             title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),

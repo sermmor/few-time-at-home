@@ -21,7 +21,7 @@ export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setC
   cloneList.splice(index, 1);
   setBookmarks({data: [...cloneList]});
 
-  if (currentTreeNode && isFolder(elementToDelete)) { // TODO: THERE IS A RANDOM CRASH HERE!!!
+  if (currentTreeNode && isFolder(elementToDelete)) {
     const indexToRemove = currentTreeNode.searchLabelInChild(elementToDelete.title);
     const toRemove = currentTreeNode.children[indexToRemove];
 
@@ -142,7 +142,7 @@ export const isSelectedItemList = ({bookmarks, currentTreeNode, selectedNodes, s
   setSelectedNodes(cloneSelectedNodes);
 }
 
-export const moveItemListToFolder = ({setBookmarks, bookmarks, tree, currentTreeNode, setCurrentTreeNode, selectedNodes, setSelectedNodes}: ActionsProps, idList: string[]) => {
+export const moveItemListToFolder = ({setBookmarks, tree, currentTreeNode, selectedNodes}: ActionsProps, idList: string[]) => {
   idList.forEach(id => {
     const labelFrom = selectedNodes[0].label;
     const labelToMove = currentTreeNode.label;
