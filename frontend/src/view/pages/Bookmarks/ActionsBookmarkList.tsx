@@ -1,6 +1,5 @@
 import { BookmarkItem, isFolder, urlFolder } from "../../../data-model/bookmarks";
 import { GenericTree } from "../../../service/trees/genericTree";
-import { PathUtils } from "../../../service/trees/pathUtils";
 
 export interface ActionsProps {
   tree: GenericTree<BookmarkItem>;

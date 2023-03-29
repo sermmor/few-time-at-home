@@ -1,6 +1,5 @@
-import { Box, Checkbox, IconButton, SxProps, Theme } from "@mui/material";
+import { Checkbox, IconButton } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import React from "react";
 
 interface Props {
