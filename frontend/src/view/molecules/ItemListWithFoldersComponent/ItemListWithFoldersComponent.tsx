@@ -25,7 +25,7 @@ export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isEle
               }
               setChecked(evt.target.checked);
             })}
-            checked={isChecked}
+            // checked={isChecked} // This doesn't be useful, refactor all related to this.
           />
         }
         { deleteAction && !isInSelectListMode && <IconButton aria-label="delete" onClick={() => deleteAction(element.id)}>
