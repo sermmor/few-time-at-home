@@ -2,7 +2,7 @@
 import { BookmarksDataModel, BookmarksDataModelFromFetch, parseFromDataModelToFetchToSend, parseFromFetchToDataModel } from "../../data-model/bookmarks";
 import { bookmarksDataModelMock } from "../../data-model/mock/bookmarksMock";
 import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
-import { bookmarksEndpoint } from "../urls-and-end-points";
+import { bookmarksEndpoint, searchBookmarksEndpoint } from "../urls-and-end-points";
 
 const getBookmarks = (): Promise<BookmarksDataModel> => new Promise<BookmarksDataModel>(resolve => {
   fetchJsonReceive<BookmarksDataModelFromFetch>(bookmarksEndpoint(), bookmarksDataModelMock())
@@ -20,4 +20,7 @@ const sendBookmarks = (data: BookmarksDataModel) => new Promise<BookmarksDataMod
 
 });
 
-export const BookmarksActions = { getBookmarks, sendBookmarks };
+const searchBookmarks = (textToSearch: string) => 
+  fetchJsonSendAndReceive<BookmarksDataModelFromFetch>(searchBookmarksEndpoint(), {data: textToSearch}, bookmarksDataModelMock());
+
+export const BookmarksActions = { getBookmarks, sendBookmarks, searchBookmarks };

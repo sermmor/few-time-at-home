@@ -7,5 +7,6 @@ export const configurationEndpoint = (): string => `${getUrlApi()}/configuration
 export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
 export const bookmarksEndpoint = (): string => `${getUrlApi()}/bookmarks`;
+export const searchBookmarksEndpoint = (): string => `${getUrlApi()}/search-bookmarks`;
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;

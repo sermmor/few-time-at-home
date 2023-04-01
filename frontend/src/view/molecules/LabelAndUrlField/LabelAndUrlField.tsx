@@ -3,10 +3,11 @@ import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndUrlField = ({textToShow, textUrl, onChange}: {
+export const LabelAndUrlField = ({textToShow, textUrl, onChange, isReadOnly}: {
   textToShow: string,
   textUrl: string,
-  onChange: (newTextToShow: string, newtextUrl: string) => void
+  onChange?: (newTextToShow: string, newtextUrl: string) => void,
+  isReadOnly?: boolean,
 }) => {
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   const [isTextToShowChanged, setIsTextToShowChanged] = React.useState<boolean>(false);
@@ -19,11 +20,11 @@ export const LabelAndUrlField = ({textToShow, textUrl, onChange}: {
       UnfurlActions.getUnfurl({url: newUrl}).then(data => {
         setTextToShowEditing(data.title);
         setEditMode(false);
-        onChange(data.title, newUrl);
+        onChange!(data.title, newUrl);
       });
     } else {
       setEditMode(false);
-      onChange(newTextToShow, newUrl);
+      onChange!(newTextToShow, newUrl);
     }
   }
 
@@ -51,7 +52,7 @@ export const LabelAndUrlField = ({textToShow, textUrl, onChange}: {
       </Box>
     :
     <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
-      <Box sx={{cursor: 'pointer', color: '#1976d2'}} onClick={() => setEditMode(true)}>
+      <Box sx={isReadOnly ? undefined : {cursor: 'pointer', color: '#1976d2'}} onClick={() => isReadOnly ? undefined : setEditMode(true)}>
         {textToShowEditing ? textToShowEditing : '<No title>'}
       </Box>
       <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>

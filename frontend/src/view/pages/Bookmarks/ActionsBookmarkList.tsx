@@ -1,3 +1,5 @@
+import { Link } from "@mui/material";
+import { BookmarksActions } from "../../../core/actions/bookmarks";
 import { BookmarkItem, isFolder, urlFolder } from "../../../data-model/bookmarks";
 import { GenericTree } from "../../../service/trees/genericTree";
 
@@ -151,3 +153,13 @@ export const moveItemListToFolder = ({setBookmarks, tree, currentTreeNode, selec
     setBookmarks({data: currentTreeNode.children.map((item, index) => item.node ? item.node : ({title: item.label, url: `${urlFolder}_${index}`}))});
   });
 }
+
+export const onSearchItem = (textToSearch: string) => new Promise<(string | JSX.Element)[]>(resolve => {
+  BookmarksActions.searchBookmarks(textToSearch).then(bookmarksGetted => {
+    resolve(bookmarksGetted.data.map(({ title, url }) => 
+      <p><Link href={url} target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
+        {title}
+      </Link></p>
+    ));
+  })
+});

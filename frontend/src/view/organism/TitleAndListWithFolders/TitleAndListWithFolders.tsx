@@ -9,6 +9,7 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
+import { SearchAndList } from "../SearchAndList/SearchAndList";
 
 const widthBoxes = {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'};
 
@@ -43,8 +44,7 @@ const breadcrumbStyle: SxProps<Theme> = {
   fontStyle: 'oblique',
 }
 
-
-export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, addAction, addFolder, duplicateItem, goBackToParent, onMoveItem, onSelectItem, onOutSelectionMode}: {
+interface Props {
   title: string;
   id: string;
   path: string;
@@ -57,10 +57,25 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
   onSelectItem?: (id: string, isSelected: boolean) => void;
   onMoveItem?: (listIdItemSelect: string[]) => void;
   goBackToParent?: () => void;
-}) => {
+  onSearch?: (textToSearch: string) => Promise<(string | JSX.Element)[]>;
+}
+
+export const TitleAndListWithFolders = ({
+  title,
+  path,
+  list,
+  deleteAction,
+  addAction,
+  addFolder,
+  duplicateItem,
+  goBackToParent,
+  onMoveItem,
+  onSelectItem,
+  onOutSelectionMode,
+  onSearch,
+}: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
-  const [toSearch, setToSearch] = React.useState<string>('');
   const [isCheckedList, setCheckedList] = React.useState<boolean[]>(list.map(() => false));
   const [checkedIdList, setCheckedIdList] = React.useState<string[]>([]);
 
@@ -104,20 +119,12 @@ export const TitleAndListWithFolders = ({title, id, path, list, deleteAction, ad
     if (onOutSelectionMode && !newIsInSelectListMode) onOutSelectionMode();
   }
 
-  // TODO: DO FROM Bookmarks.tsx OR HERE: Searcher, move item (folder and links) in other path. Save all this changes in paths. Tree structure to get lists.
+  // TODO: DO FROM Bookmarks.tsx OR HERE: Searcher.
   return <>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
       {title}
     </Typography>
-    <TextField
-          variant="outlined"
-          value={toSearch}
-          helperText="Search bookmark"
-          sx={{width: widthBoxes}}
-          onChange={evt => setToSearch(evt.target.value)}
-          onKeyDown={(evt) => evt.key === 'Escape' ? setToSearch('')
-            : (evt.key === 'Enter') ? undefined : undefined }
-        />
+    {onSearch && <SearchAndList helperText="Search bookmark" widthBoxes={widthBoxes} onSearch={onSearch} />}
     <Box sx={buttonListStyle}>
       <Button onClick={() => {
         checkOnSelectListMode(!isInSelectListMode);

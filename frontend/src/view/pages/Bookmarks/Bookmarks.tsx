@@ -6,7 +6,7 @@ import { GenericTree } from "../../../service/trees/genericTree";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
-import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, goBackToParentFolder, isSelectedItemList, moveItemListToFolder, setOpenFolder } from "./ActionsBookmarkList";
+import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, goBackToParentFolder, isSelectedItemList, moveItemListToFolder, onSearchItem, setOpenFolder } from "./ActionsBookmarkList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -71,6 +71,7 @@ export const Bookmarks = () => {
           onOutSelectionMode={() => setSelectedNodes([])}
           onMoveItem={(idList) => moveItemListToFolder(action, idList)}
           deleteAction={(id) => deleteActionList(action, id)}
+          onSearch={onSearchItem}
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
           addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
             title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),

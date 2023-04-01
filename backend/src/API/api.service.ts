@@ -19,6 +19,7 @@ export class APIService {
   static notesEndpoint = "/notes";
   static alertsEndpoint = "/alerts";
   static bookmarksEndpoint = "/bookmarks";
+  static searchBookmarksEndpoint = "/search-bookmarks";
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
 
@@ -117,6 +118,14 @@ export class APIService {
             console.error("Received NO body text");
         } else {
           BookmarkService.Instance.updateBookmarks(req.body.data).then(data => res.send({data}));
+        }
+    });
+
+    this.app.post(APIService.searchBookmarksEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body text");
+        } else {
+          res.send({data: BookmarkService.Instance.searchInBookmark(req.body.data)});
         }
     });
 
