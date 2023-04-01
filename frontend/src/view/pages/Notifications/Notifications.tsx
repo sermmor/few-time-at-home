@@ -38,7 +38,11 @@ const SaveNotificationsComponent = ({notifications}: {notifications: Notificatio
 
 export const Notifications = () => {
   const [notifications, setNotifications] = React.useState<NotificationsDataModel>();
-  React.useEffect(() => { NotificationsActions.getNotifications().then(data => setNotifications(data)) }, []);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
+  React.useEffect(() => {
+    NotificationsActions.getNotifications().then(data => setNotifications(data));
+    NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
+  }, []);
 
   const deleteActionList = (idTimeToLaunch: string) => {
     if (!notifications) return;
@@ -70,6 +74,7 @@ export const Notifications = () => {
     {notifications && <>
       <TitleAndList
         title='Notifications'
+        subtext={isNotificationsEnabled ? undefined : <p style={{color: 'red'}}>All notifications are disabled</p>}
         deleteAction={deleteActionList}
         addAction={() => addActionList({timeToLaunch: (new Date()).toJSON(), message: 'new alert'}) }
         list={notifications.alerts.map((item) => ({id: `${item.timeToLaunch}`, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>

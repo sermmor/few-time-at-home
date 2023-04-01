@@ -2,7 +2,7 @@
 import { notificationsDataModelMock } from "../../data-model/mock/notificationsMock";
 import { NotificationsDataModel } from "../../data-model/notifications";
 import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
-import { notificationsEndpoint } from "../urls-and-end-points";
+import { areNotificationsEnabledEndpoint, notificationsEndpoint } from "../urls-and-end-points";
 
 const getNotifications = (): Promise<NotificationsDataModel> => 
   fetchJsonReceive<NotificationsDataModel>(notificationsEndpoint(), notificationsDataModelMock());
@@ -10,4 +10,8 @@ const getNotifications = (): Promise<NotificationsDataModel> =>
 const sendNotifications = (data: NotificationsDataModel) => 
   fetchJsonSendAndReceive<NotificationsDataModel>(notificationsEndpoint(), data, notificationsDataModelMock());
 
-export const NotificationsActions = { getNotifications, sendNotifications };
+const getAreNotificationsEnabled = (): Promise<boolean> => new Promise<boolean>(resolve => {
+  fetchJsonReceive<{isAlertReady: boolean}>(areNotificationsEnabledEndpoint(), {isAlertReady: true}).then((({isAlertReady}) => resolve(isAlertReady)));
+})
+
+export const NotificationsActions = { getNotifications, sendNotifications, getAreNotificationsEnabled };

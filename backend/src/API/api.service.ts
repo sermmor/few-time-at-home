@@ -1,5 +1,6 @@
 import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
+import { TelegramBot } from '../telegramBot/telegramBot';
 import { getUnfurl } from '../unfurl/unfurl';
 import { AlertListService } from './alertNotification.service';
 import { BookmarkService } from './bookmark.service';
@@ -18,6 +19,7 @@ export class APIService {
   static configurationEndpoint = "/configuration";
   static notesEndpoint = "/notes";
   static alertsEndpoint = "/alerts";
+  static alertIsReadyEndpoint = "/alerts-is-ready";
   static bookmarksEndpoint = "/bookmarks";
   static searchBookmarksEndpoint = "/search-bookmarks";
   static quoteEndpoint = "/random-quote";
@@ -107,6 +109,10 @@ export class APIService {
 
     this.app.get(APIService.alertsEndpoint, (req, res) => {
       AlertListService.Instance.getAlerts().then(data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
+    });
+
+    this.app.get(APIService.alertIsReadyEndpoint, (req, res) => {
+      res.send({isAlertReady: TelegramBot.IsBotReady()});
     });
   }
 
