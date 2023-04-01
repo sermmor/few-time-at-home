@@ -22,6 +22,11 @@ export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
   const [toSearch, setToSearch] = React.useState<string>('');
   const [textSearched, setTextSearcher] = React.useState<(string | JSX.Element)[]>([]);
 
+  const onTyping = (value: string) => {
+    setToSearch(value);
+    setTextSearcher([]);
+  }
+
   const cleanFields = () => {
     setToSearch('');
     setTextSearcher([]);
@@ -39,7 +44,7 @@ export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
         value={toSearch}
         helperText={helperText}
         sx={{width: widthBoxes}}
-        onChange={evt => setToSearch(evt.target.value)}
+        onChange={evt => onTyping(evt.target.value)}
         onKeyDown={(evt) => evt.key === 'Escape' ? cleanFields()
           : (evt.key === 'Enter') ? searchText(toSearch) : undefined }
       />
