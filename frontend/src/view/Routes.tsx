@@ -1,6 +1,7 @@
 import { Bookmarks } from "./pages/Bookmarks/Bookmarks";
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
+import { Notepad } from "./pages/Notepad/Notepad";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
 import { Rss } from "./pages/Rss/Rss";
@@ -24,14 +25,19 @@ export const routesFTAH: RouteFTAHElement[] = [
     element: <Bookmarks/>,
   },
   {
+    name: 'Notifications',
+    path: '/notifications',
+    element: <Notifications/>,
+  },
+  {
     name: 'Rss',
     path: '/rss',
     element: <Rss/>,
   },
   {
-    name: 'Notifications',
-    path: '/notifications',
-    element: <Notifications/>,
+    name: 'Notepad',
+    path: '/notepad',
+    element: <Notepad/>,
   },
   {
     name: 'Configuration',
