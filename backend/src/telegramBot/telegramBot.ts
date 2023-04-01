@@ -35,8 +35,10 @@ export class TelegramBot {
   public static IsBotReady = (): boolean => TelegramBot.alertEnabled;
 
   private setContext(ctx: TelegrafContext) {
-    this.context = ctx;
-    this.launchAlertsToTelegram();
+    if (!this.context) {
+      this.context = ctx;
+      this.launchAlertsToTelegram();
+    }
   }
 
   start(commandList: TelegramBotCommand) {
@@ -54,6 +56,7 @@ export class TelegramBot {
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_bookmark_command, this.sendSearchBookmarksToTelegram);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_alert, this.addAlertFromTelegram);
       this.launchAlertsToTelegram();
       this.bot.launch();
       // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
@@ -160,7 +163,39 @@ export class TelegramBot {
     });
   }
 
-  private launchAlertsToTelegram = () => {
+  private addAlertFromTelegram = (ctx: TelegrafContext, message: string) => {
+    // FORMAT message: DD/MM/YYYY HH:MM MESSAGE
+    this.setContext(ctx);
+    
+    const helpMessage = 'Formato de notificación incorrecta. Debe ser el siguiente: \'DD/MM/YYYY HH:MM MESSAGE\'.';
+    const splitDateHourMessage = message.split(' ').slice(1);
+
+    if (splitDateHourMessage.length > 2) {
+      const splitDate = splitDateHourMessage[0].split('/');
+      if (splitDate.length > 2) {
+        const splitHour = splitDateHourMessage[1].split(':');
+        if (splitHour.length > 1) {
+          const messageToSend = splitDateHourMessage.slice(2).join(' ');
+          const timeToLaunch = new Date(+splitDate[2], (+splitDate[1]) - 1, +splitDate[0], +splitHour[0], +splitHour[1]);
+          AlertListService.Instance.addAlerts({ timeToLaunch, message: messageToSend }).then(alertData => {
+            this.launchAlertsToTelegram(false);
+            ctx.reply(`La notificación se ha añadido correctamente.`);
+          });
+        } else {
+          console.log(splitDateHourMessage, splitDate, splitHour)
+          ctx.reply(helpMessage);
+        }
+      } else {
+        console.log(splitDateHourMessage, splitDate)
+        ctx.reply(helpMessage);
+      }
+    } else {
+      console.log(splitDateHourMessage)
+      ctx.reply(helpMessage);
+    }
+  }
+
+  private launchAlertsToTelegram = (launchTimeout: boolean = true) => {
     if (this.context) {
       // Check alerts and prepared.
       const alertList: Alert[] = AlertListService.Instance.alertsToLaunchInTelegram();
@@ -178,9 +213,12 @@ export class TelegramBot {
             );
           }
         });
+        console.log('All alerts are launched!');
       }
       TelegramBot.alertEnabled = true;
-      setTimeout(this.launchAlertsToTelegram, 1 * 60 * 60 * 1000); // Check the next hour.
+      if (launchTimeout) {
+        setTimeout(this.launchAlertsToTelegram, 1 * 60 * 60 * 1000); // Check the next hour.
+      }
     }
   }
 }
