@@ -12,6 +12,7 @@ import { extractTelegramData, TelegramData } from "./telegramData";
 const maxMessagesToSendToTelegram = 100;
 
 export class TelegramBot {
+  private static _instance: TelegramBot;
   private static alertEnabled: boolean;
 
   private telegramBotData: TelegramData;
@@ -19,6 +20,7 @@ export class TelegramBot {
   private context: TelegrafContext | undefined;
 
   constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
+    TelegramBot._instance = this;
     TelegramBot.alertEnabled = false;
     if (!telegramBotData) {
         this.telegramBotData = extractTelegramData(userData);
@@ -32,6 +34,7 @@ export class TelegramBot {
     }
   }
 
+  public static Instance = (): TelegramBot => TelegramBot._instance;
   public static IsBotReady = (): boolean => TelegramBot.alertEnabled;
 
   private setContext(ctx: TelegrafContext) {
@@ -60,6 +63,14 @@ export class TelegramBot {
       this.launchAlertsToTelegram();
       this.bot.launch();
       // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
+  }
+
+  sendNotepadTextToTelegram = (text: string): boolean => {
+    if (!this.context) return false;
+
+    this.context.reply(`${text}`);
+    
+    return true;
   }
 
   private buildBotCommand = (

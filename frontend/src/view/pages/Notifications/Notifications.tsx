@@ -95,7 +95,7 @@ export const Notifications = () => {
             />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', fontStyle: 'oblique', fontSize: '8pt'}}>
-            <Box>¿Siempre?</Box>
+            <Box>Always?</Box>
             <Checkbox
               checked={item.isHappensEveryday}
               onChange={(evt) => editActionList(

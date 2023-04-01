@@ -1,5 +1,7 @@
-import { Box, Button, SxProps, TextareaAutosize, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
 import React from "react";
+import { NotepadActions } from "../../../core/actions/notepad";
+import { NotificationsActions } from "../../../core/actions/notifications";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -28,18 +30,23 @@ const downloadText = (text: string) => {
 
 export const Notepad = () => {
   const [textData, setTextData] = React.useState<string>('');
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
+  React.useEffect(() => {
+    NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
+  }, []);
 
   return <Box sx={formStyle}>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-      Notepad
+      Notepad ({isNotificationsEnabled ? undefined : <span style={{color: 'red'}}>No context in Telegram</span>})
     </Typography>
     <TextField
       id="outlined-multiline-static"
       label="Mi bloc de notas"
       multiline
+      autoFocus
       rows={30}
       sx={textAreaStyle}
-      placeholder="Escribe lo que quieras aquí"
+      placeholder="Write what you want"
       value={textData}
       onChange={evt => setTextData(evt.target.value)}
       onKeyDown={(evt) => {
@@ -56,21 +63,28 @@ export const Notepad = () => {
         sx={{minWidth: '15.5rem'}}
         onClick={() => navigator.clipboard.writeText(textData)}
         >
-        Copiar
+        Copy
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => setTextData('')}
         >
-        Borrar
+        Remove
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => downloadText(textData)}
         >
-        Descargar
+        Download
+      </Button>
+      <Button
+        variant='outlined'
+        sx={{minWidth: '15.5rem'}}
+        onClick={() => NotepadActions.sendTextToTelegram(textData)}
+        >
+        Send to Telegram
       </Button>
     </Box>
   </Box>;

@@ -24,6 +24,7 @@ export class APIService {
   static searchBookmarksEndpoint = "/search-bookmarks";
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
+  static sendToTelegramEndpoint = "/send-to-telegram";
 
   app: Express;
 
@@ -46,6 +47,7 @@ export class APIService {
     this.notesService();
     this.alertsService();
     this.bookmarksService();
+    this.notepadService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -152,6 +154,17 @@ export class APIService {
           console.error("Received NO body text");
       } else {
           getUnfurl(req.body.url).then(content => res.send(content));    
+      }
+    });
+  }
+
+  private notepadService() {
+    this.app.post(APIService.sendToTelegramEndpoint, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        const success = TelegramBot.Instance().sendNotepadTextToTelegram(req.body.text);
+        res.send({isSended: success});
       }
   });
   }
