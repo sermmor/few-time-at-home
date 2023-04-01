@@ -1,4 +1,4 @@
-import { Box, Button, SxProps, Theme } from "@mui/material";
+import { Box, Button, Checkbox, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { NotificationsActions } from "../../../core/actions/notifications";
 import { NotificationsDataModel } from "../../../data-model/notifications";
@@ -61,8 +61,8 @@ export const Notifications = () => {
   
   const editActionList = (
     idTimeToLaunch: string,
-    editConfig: (newConfig: any[], index: number, newData: string) => ({ timeToLaunch: string; message: string; })
-  ) => (newText: string) => {
+    editConfig: (newConfig: any[], index: number, newData: string | boolean) => ({ timeToLaunch: string; message: string; isHappensEveryday: boolean; })
+  ) => (newText: string | boolean) => {
     if (!notifications) return;
     const cloneList = [...notifications.alerts];
     const index = cloneList.findIndex(item => item.timeToLaunch === idTimeToLaunch);
@@ -82,7 +82,7 @@ export const Notifications = () => {
             text={item.message}
             onChange={editActionList(
               `${item.timeToLaunch}`,
-              (newConfig, index, message) => ({...newConfig[index], message})
+              (newConfig, index, message) => ({...newConfig[index], message, })
             )}
           />
           <Box sx={{ width:'18rem' }}>
@@ -90,8 +90,18 @@ export const Notifications = () => {
               text={item.timeToLaunch}
               onChange={editActionList(
                 `${item.timeToLaunch}`,
-                (newConfig, index, timeToLaunch) => ({...newConfig[index], timeToLaunch})
+                (newConfig, index, timeToLaunch) => ({...newConfig[index], timeToLaunch,})
               )}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', fontStyle: 'oblique', fontSize: '8pt'}}>
+            <Box>¿Siempre?</Box>
+            <Checkbox
+              checked={item.isHappensEveryday}
+              onChange={(evt) => editActionList(
+                `${item.timeToLaunch}`,
+                (newConfig, index, isHappensEveryday) => ({...newConfig[index], isHappensEveryday,})
+              )(evt.target.checked)}
             />
           </Box>
         </Box> }))}

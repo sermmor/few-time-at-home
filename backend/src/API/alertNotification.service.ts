@@ -6,6 +6,13 @@ const pathNotesFile = 'data/alerts.json';
 export interface Alert {
   timeToLaunch: Date;
   message: string;
+  isHappensEveryday?: boolean;
+}
+
+export interface AlertFormated {
+  timeToLaunch: string;
+  message: string;
+  isHappensEveryday?: boolean;
 }
 
 export class AlertListService {
@@ -17,24 +24,38 @@ export class AlertListService {
     AlertListService.Instance = this;
   }
   
-  // TODO THIS SHOULD BE A DIFERENT ENDPOINT OF CONFIGURATION (AND THIS IS USING IN TELEGRAM BOT THINK THE WAY).
-  // TODO ADD ALERTS THAT HAPPENS EVERYDAY (Never delete this alert automately)
+  updatedAlertIsHappensEveryday = () => {
+    const today = new Date();
+    const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+    let theNextDay, theNextDayInMilliseconds: number;
 
-  parseStringsToAlert = (alertString: {timeToLaunch: string; message: string}): Alert => ({
+    this.alertList.forEach(alert => {
+      while (alert.isHappensEveryday && alert.timeToLaunch < today) {
+        theNextDayInMilliseconds = alert.timeToLaunch.getTime() + oneDayInMilliseconds;
+        theNextDay = new Date(theNextDayInMilliseconds);
+        alert.timeToLaunch = theNextDay;
+      }
+    });
+  }
+
+  parseStringsToAlert = (alertString: AlertFormated): Alert => ({
     timeToLaunch: parseFromAlertDateStringToDateObject(alertString.timeToLaunch),
-    message: alertString.message
+    message: alertString.message,
+    isHappensEveryday: !!alertString.isHappensEveryday,
   });
 
-  parseAlertToString = (alert: Alert): {timeToLaunch: string; message: string} => ({
+  parseAlertToString = (alert: Alert): AlertFormated => ({
     timeToLaunch: parseFromDateObjectToAlertDateString(alert.timeToLaunch),
-    message: alert.message
+    message: alert.message,
+    isHappensEveryday: !!alert.isHappensEveryday,
   });
 
-  parseStringsListToAlertList = (alertList: {timeToLaunch: string; message: string}[]): Alert[] => alertList.map(alertString => this.parseStringsToAlert(alertString));
+  parseStringsListToAlertList = (alertList: AlertFormated[]): Alert[] => alertList.map(alertString => this.parseStringsToAlert(alertString));
 
-  parseAlertListToStringList = (alertList: Alert[]): {timeToLaunch: string; message: string}[] => alertList.map(alert => this.parseAlertToString(alert));
+  parseAlertListToStringList = (alertList: Alert[]): AlertFormated[] => alertList.map(alert => this.parseAlertToString(alert));
 
   alertsToLaunchInTelegram = (): Alert[] => {
+    this.updatedAlertIsHappensEveryday();
     const today = new Date();
     const todayNextHourTime = today.getTime() + 1 * 60 * 60 * 1000;
     const todayNextHour = new Date(todayNextHourTime);
@@ -42,6 +63,7 @@ export class AlertListService {
   };
 
   alertsToStillWaiting = (): Alert[] => {
+    this.updatedAlertIsHappensEveryday();
     const today = new Date();
     return this.alertList.filter((alert: Alert) => (alert.timeToLaunch > today));
   };
@@ -89,6 +111,7 @@ export class AlertListService {
   });
 
   saveAlerts = (): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
+    this.updatedAlertIsHappensEveryday();
     saveInAFile(JSON.stringify(this.parseAlertListToStringList(this.alertList), null, 2), pathNotesFile);
     resolve(this.alertList);
     console.log("> Alerts saved!");

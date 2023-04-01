@@ -57,8 +57,6 @@ export const Bookmarks = () => {
   })}, []);
 
   const action: ActionsProps = { tree: tree!, bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
-  
-  // TODO: Search item!!
 
   return <Box sx={formStyle}> 
     {bookmarks && <>

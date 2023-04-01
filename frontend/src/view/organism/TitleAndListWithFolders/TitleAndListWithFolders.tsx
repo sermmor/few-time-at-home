@@ -118,8 +118,7 @@ export const TitleAndListWithFolders = ({
     onSelectListMode(newIsInSelectListMode);
     if (onOutSelectionMode && !newIsInSelectListMode) onOutSelectionMode();
   }
-
-  // TODO: DO FROM Bookmarks.tsx OR HERE: Searcher.
+  
   return <>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
       {title}
