@@ -2,6 +2,7 @@ import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/materia
 import React from "react";
 import { NotepadActions } from "../../../core/actions/notepad";
 import { NotificationsActions } from "../../../core/actions/notifications";
+import { TemporalData } from "../../../service/temporalData.service";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -29,15 +30,20 @@ const downloadText = (text: string) => {
 }
 
 export const Notepad = () => {
-  const [textData, setTextData] = React.useState<string>('');
+  const [textData, setTextData] = React.useState<string>(TemporalData.NotepadTextData);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
   React.useEffect(() => {
     NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
   }, []);
 
+  const setTextNotepad = (text: string) => {
+    TemporalData.NotepadTextData = text;
+    setTextData(text);
+  }
+
   return <Box sx={formStyle}>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-      Notepad ({isNotificationsEnabled ? undefined : <span style={{color: 'red'}}>No context in Telegram</span>})
+      Notepad {isNotificationsEnabled ? undefined : <span>(<span style={{color: 'red'}}>No context in Telegram</span>)</span>}
     </Typography>
     <TextField
       id="outlined-multiline-static"
@@ -48,11 +54,11 @@ export const Notepad = () => {
       sx={textAreaStyle}
       placeholder="Write what you want"
       value={textData}
-      onChange={evt => setTextData(evt.target.value)}
+      onChange={evt => setTextNotepad(evt.target.value)}
       onKeyDown={(evt) => {
         if (evt.key === 'Tab') {
           evt.preventDefault();
-          setTextData(`${textData}\t`)
+          setTextNotepad(`${textData}\t`)
           console.log("tab pushed");
         }
       }}
@@ -68,7 +74,7 @@ export const Notepad = () => {
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
-        onClick={() => setTextData('')}
+        onClick={() => setTextNotepad('')}
         >
         Remove
       </Button>
