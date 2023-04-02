@@ -63,7 +63,7 @@ export const Notepad = () => {
         }
       }}
     />
-    <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+    <Box sx={{ display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '1rem' }}>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
