@@ -1,5 +1,5 @@
 import { writeFile, stat, mkdir, readFile, existsSync, readdir, rename } from "fs";
-import { readJSONFile } from "../utils";
+import { readJSONFile, saveInAFile } from "../utils";
 
 export interface CloudItem {
   name: string;
@@ -18,7 +18,7 @@ const defaultOrigin: Drive = { name: 'cloud', path: 'cloud', indexPath: 'data/cl
 const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
-// TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!! (for instance refleshCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder,...)
+// TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!! (refleshCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder, createBlankFile)
 export class CloudService {
   constructor(public cloudOrigins: Drive[] = []) {
     this.cloudOrigins.push(defaultOrigin);
@@ -200,6 +200,20 @@ export class CloudService {
       } else {
         resolve('Folder already exist!');
       }
+    });
+  });
+
+  createBlankFile = (nameDrive: string, newFilePath: string): Promise<string> => new Promise<string>(resolve => {
+    saveInAFile('', newFilePath, () => {
+      const splitPath = newFilePath.split('/');
+      const newItem: CloudItem = {
+        driveName: nameDrive,
+        name: splitPath[splitPath.length - 1],
+        path: newFilePath,
+      };
+      const indexDrive = this.cloudOrigins.findIndex(drive => drive.name === nameDrive);
+      this.cloudOrigins[indexDrive].contentIndexing!.push(newItem);
+      this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File created correctly.'));
     });
   });
 }
