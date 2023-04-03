@@ -18,7 +18,8 @@ const defaultOrigin: Drive = { name: 'cloud', path: 'cloud', indexPath: 'data/cl
 const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
-// TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!! (refleshCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder, createBlankFile)
+// TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!!
+// TODO (refleshCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder, createBlankFile, uploadFile, downloadFile - getPathDrive)
 export class CloudService {
   constructor(public cloudOrigins: Drive[] = []) {
     this.cloudOrigins.push(defaultOrigin);
@@ -159,8 +160,31 @@ export class CloudService {
     return index === -1 ? undefined : cloudItems[index];
   };
   
-  // TODO: Upload file
-  // TODO: Download file
+  uploadFile = (nameDrive: string, tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
+    // It's comes files from web to server.
+    stat(pathFile, (err, stat) => {
+      if (err === null) {
+        rename(tempFile, pathFile, (err) => {
+          if (err === null) {
+            const item = this.findCloudItem(nameDrive, tempFile);
+            item!.path = pathFile;
+            const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+            this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder uploaded correctly.'));
+          } else {
+            resolve('Error to uploaded file or folder.');
+          }
+        });
+      } else {
+        resolve('Folder or file already exist!');
+      }
+    });
+  });
+
+  getPathDrive = (nameDrive: string): string => {
+    // For Download file https://www.geeksforgeeks.org/express-js-res-sendfile-function/
+    const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+    return this.cloudOrigins[indexDrive].path;
+  }
 
   moveFileOrFolder = (nameDrive: string, oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => this.renameFileOrFolder(nameDrive, oldPathFileOrFolder, newPathFileOrFolder);
 
