@@ -7,8 +7,11 @@ import { BookmarkService } from './bookmark.service';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
+import { Multer } from 'multer';
 
 const cors = require('cors');
+const multer = require("multer");
+const upload: Multer = multer({ dest: 'uploads/' });
 
 export class APIService {
   static getAllRssEndpoint  = "/rss/all"; // query: http://localhost:${port}/rss/all?amount=20
