@@ -16,7 +16,7 @@ export interface Drive {
 
 const defaultOrigin: Drive = { name: 'cloud', path: 'cloud', indexPath: 'data/cloud/cloud.json' };
 const defaultIndexFileContent: string = '[\n]';
-const defaultIndexJsonFileContent: any = [];
+const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
 // TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!! (for instance refleshCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder,...)
 export class CloudService {
@@ -28,12 +28,12 @@ export class CloudService {
     });
   }
 
-  private getIndexingFilesContent = (indexPath: string): Promise<any> => new Promise<any>(resolve => {
+  private getIndexingFilesContent = (indexPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
     const folderPathSplited = indexPath.split("/");
     const folderPath = folderPathSplited.slice(0, folderPathSplited.length - 1).join("/");
 
     const saveFile = () => writeFile(indexPath, defaultIndexFileContent, () => {
-      resolve(defaultIndexJsonFileContent);
+      resolve(defaultIndexJsonFileContent());
     });
 
     stat(folderPath, (err, stat) => {
@@ -151,19 +151,28 @@ export class CloudService {
     const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
     const contentDrive = this.cloudOrigins[indexDrive].contentIndexing;
     return contentDrive ? contentDrive : [];
-  }
+  };
+
+  private findCloudItem = (nameDrive: string, pathItem: string): CloudItem | undefined => {
+    const cloudItems = this.getCloudItems(nameDrive)
+    const index = cloudItems.findIndex(item => item.path === pathItem);
+    return index === -1 ? undefined : cloudItems[index];
+  };
   
   // TODO: Upload file
   // TODO: Download file
 
-  moveFileOrFolder = (oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => this.renameFileOrFolder(oldPathFileOrFolder, newPathFileOrFolder);
+  moveFileOrFolder = (nameDrive: string, oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => this.renameFileOrFolder(nameDrive, oldPathFileOrFolder, newPathFileOrFolder);
 
-  renameFileOrFolder = (oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {
+  renameFileOrFolder = (nameDrive: string, oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {
     stat(newPathFileOrFolder, (err, stat) => {
       if (err === null) {
         rename(oldPathFileOrFolder, newPathFileOrFolder, (err) => {
           if (err === null) {
-            resolve('File or folder renamed correctly.');
+            const item = this.findCloudItem(nameDrive, oldPathFileOrFolder);
+            item!.path = newPathFileOrFolder;
+            const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+            this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
           } else {
             resolve('Error to rename file or folder.');
           }
@@ -174,10 +183,20 @@ export class CloudService {
     });
   });
   
-  createFolder = (newFolderPath: string): Promise<string> => new Promise<string>(resolve => {
+  createFolder = (nameDrive: string, newFolderPath: string): Promise<string> => new Promise<string>(resolve => {
     stat(newFolderPath, (err, stat) => {
       if (err === null) {
-        mkdir(newFolderPath, {recursive: true}, () => resolve('Folder created correctly.'));
+        mkdir(newFolderPath, {recursive: true}, () => {
+          const splitPath = newFolderPath.split('/');
+          const newItem: CloudItem = {
+            driveName: nameDrive,
+            name: splitPath[splitPath.length - 1],
+            path: newFolderPath,
+          };
+          const indexDrive = this.cloudOrigins.findIndex(drive => drive.name === nameDrive);
+          this.cloudOrigins[indexDrive].contentIndexing!.push(newItem);
+          this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('Folder created correctly.'));
+        });
       } else {
         resolve('Folder already exist!');
       }
