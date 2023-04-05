@@ -50,7 +50,7 @@ export const Notepad = () => {
       label="Mi bloc de notas"
       multiline
       autoFocus
-      rows={30}
+      rows={28}
       sx={textAreaStyle}
       placeholder="Write what you want"
       value={textData}

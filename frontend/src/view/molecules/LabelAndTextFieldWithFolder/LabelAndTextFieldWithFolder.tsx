@@ -2,20 +2,20 @@ import React from "react";
 import { Box, TextField } from "@mui/material";
 import FolderIcon from '@mui/icons-material/Folder';
 
-export const LabelAndTextFieldWithFolder = ({text, onChange, setOpenFolder}: {
+export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, onChange, setOpenFolder}: {
   text: string,
+  nameFolder: string,
+  path: string,
   onChange: (newText: string) => void,
   setOpenFolder: (label: string) => void}
 ) => {
-  const textSplited = text.split('/');
-  const path = textSplited.slice(0, textSplited.length - 1).join('/');
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
-  const [textToShow, setTextToShow] = React.useState<string>(text);
-  const [textToEdit, setTextToEdit] = React.useState<string>(textSplited[textSplited.length - 1]);
+  // const [textToShow, setTextToShow] = React.useState<string>(text);
+  const [textToEdit, setTextToEdit] = React.useState<string>(nameFolder);
 
   const setText = (newText: string) => {
     const textOnChange = `/${path}/${newText}`.split('//').join('/');
-    setTextToShow(textOnChange);
+    // setTextToShow(textOnChange);
     setEditMode(false);
     if (onChange) onChange(textOnChange);
   }
@@ -36,9 +36,9 @@ export const LabelAndTextFieldWithFolder = ({text, onChange, setOpenFolder}: {
     :
       <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
         <Box sx={{ cursor: 'pointer', color: '#1976d2' }} onClick={() => setEditMode(true)}>
-          {textToShow}
+          {text}
         </Box>
-        <Box sx={{ cursor: 'pointer', marginLeft: {xs: 'none', sm:'auto'}}} onClick={() => setOpenFolder(textToShow)}>
+        <Box sx={{ cursor: 'pointer', marginLeft: {xs: 'none', sm:'auto'}}} onClick={() => setOpenFolder(text)}>
           <FolderIcon />
         </Box>
       </Box>

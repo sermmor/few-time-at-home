@@ -19,13 +19,13 @@ const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
 // TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!!
-// TODO (refleshCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder, createBlankFile, uploadFile, downloadFile - getPathDrive)
+// TODO (updateCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder, createBlankFile, uploadFile, downloadFile - getPathDrive)
 export class CloudService {
   constructor(public cloudOrigins: Drive[] = []) {
     this.cloudOrigins.push(defaultOrigin);
 
     this.getAllIndexingFilesContent().then(driveList => {
-      this.refleshCloudItemsIndex();
+      this.updateCloudItemsIndex();
     });
   }
 
@@ -63,7 +63,7 @@ export class CloudService {
     });
   });
 
-  private refleshDriveIndex = (drive: Drive, path: string, items?: CloudItem[]): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
+  private updateDriveIndex = (drive: Drive, path: string, items?: CloudItem[]): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
     let allItemsAlreadyCollected: CloudItem[] = !items ? [] : items;
     const directories: string[] = [];
     readdir(path, (err, files) => {
@@ -89,7 +89,7 @@ export class CloudService {
               let newItems: CloudItem[] = [];
               directories.forEach(directory => {
                 setTimeout(() => {
-                  this.refleshDriveIndex(drive, `${path}/${directory}`, allItemsAlreadyCollected).then(items => {
+                  this.updateDriveIndex(drive, `${path}/${directory}`, allItemsAlreadyCollected).then(items => {
                     newItems = items.filter(i => allItemsAlreadyCollected.findIndex(i2 => i2.path === i.path) < 0);
                     allItemsAlreadyCollected = allItemsAlreadyCollected.concat(newItems);
                     numberDirectoriesLeft--;
@@ -126,11 +126,11 @@ export class CloudService {
     }
   });
 
-  refleshCloudItemsIndex = (nameDrive?: string): Promise<void> => new Promise<void>(resolve => {
+  updateCloudItemsIndex = (nameDrive?: string): Promise<void> => new Promise<void>(resolve => {
     if (!nameDrive) {
       let numberOriginLeft = this.cloudOrigins.length;
       this.cloudOrigins.forEach((drive, indexDrive) => {
-        this.refleshDriveIndex(drive, drive.path).then(data => {
+        this.updateDriveIndex(drive, drive.path).then(data => {
           this.cloudOrigins[indexDrive].contentIndexing = data;
           numberOriginLeft--;
           if (numberOriginLeft === 0) {
@@ -141,7 +141,7 @@ export class CloudService {
     } else {
       const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
       const drive: Drive = this.cloudOrigins[indexDrive];
-      this.refleshDriveIndex(drive, drive.path).then(data => {
+      this.updateDriveIndex(drive, drive.path).then(data => {
         drive.contentIndexing = data;
         this.saveIndexingFiles(drive).then(() => resolve());
       });

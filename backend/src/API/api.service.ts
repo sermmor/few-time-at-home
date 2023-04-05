@@ -8,6 +8,7 @@ import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
 import { Multer } from 'multer';
+import { CloudService } from './cloud.service';
 
 const cors = require('cors');
 const multer = require("multer");
@@ -28,6 +29,16 @@ export class APIService {
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
   static sendToTelegramEndpoint = "/send-to-telegram";
+  static cloudEndpointList = {
+    updateIndexing: '/cloud/update',
+    getAllItems: '/cloud/get-items',
+    createFolder: '/cloud/create-folder',
+    moveItem: '/cloud/move-item',
+    renameItem: '/cloud/rename-item',
+    createBlankFile: '/cloud/create-blank-file',
+    uploadFile: '/cloud/upload-file',
+    downloadFile: '/cloud/download-file',
+  };
 
   app: Express;
 
@@ -51,6 +62,7 @@ export class APIService {
     this.alertsService();
     this.bookmarksService();
     this.notepadService();
+    this.cloudService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -169,6 +181,21 @@ export class APIService {
         const success = TelegramBot.Instance().sendNotepadTextToTelegram(req.body.text);
         res.send({isSended: success});
       }
-  });
+    });
+  }
+
+  private cloudService() {
+    const cloudService = new CloudService();
+    /*
+    APIService.cloudEndpointList = {
+      updateIndexing: '/cloud/update',
+      getAllItems: '/cloud/get-items',
+      createFolder: '/cloud/create-folder',
+      moveItem: '/cloud/move-item',
+      renameItem: '/cloud/rename-item',
+      createBlankFile: '/cloud/create-blank-file',
+      uploadFile: '/cloud/upload-file',
+      downloadFile: '/cloud/download-file',
+    }; */
   }
 }

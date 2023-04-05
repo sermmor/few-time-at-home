@@ -44,6 +44,16 @@ let indexNewBookmarkAdded = 0;
 
 const cleanLabelFolder = (label: string): string => label.split('//').join('/');
 
+const getPathParentFolder = (completePath: string): string => {
+  const textSplited = completePath.split('/');
+  return textSplited.slice(0, textSplited.length - 1).join('/');
+}
+
+const getNameFolder = (completePath: string): string => {
+  const textSplited = completePath.split('/');
+  return textSplited[textSplited.length - 1];
+}
+
 export const Bookmarks = () => {
   const [tree, setTree] = React.useState<GenericTree<BookmarkItem>>();
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<BookmarkItem>>(); // Current path === currentTreeNode.label
@@ -57,6 +67,8 @@ export const Bookmarks = () => {
   })}, []);
 
   const action: ActionsProps = { tree: tree!, bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
+
+  // console.log(bookmarks)
 
   return <Box sx={formStyle}> 
     {bookmarks && <>
@@ -80,6 +92,8 @@ export const Bookmarks = () => {
             (item.url.indexOf(urlFolder) > -1) ?
               <LabelAndTextFieldWithFolder
                 text={item.title}
+                path={getPathParentFolder(item.title)}
+                nameFolder={getNameFolder(item.title)}
                 onChange={editFolderActionList(action, `${item.url}`)}
                 setOpenFolder={(label) => setOpenFolder(action, label)}/>
             :
