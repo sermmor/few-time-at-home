@@ -12,3 +12,18 @@ export const bookmarksEndpoint = (): string => `${getUrlApi()}/bookmarks`;
 export const searchBookmarksEndpoint = (): string => `${getUrlApi()}/search-bookmarks`;
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;
+
+export type CloudEndpointType = 'getDrivesList' | 'updateIndexing' | 'getAllItems' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'uploadFile' | 'downloadFile';
+const cloudEndpointList = {
+  'getDrivesList': '/cloud/drives',
+  'updateIndexing': '/cloud/update',
+  'getAllItems': '/cloud/get-items',
+  'createFolder': '/cloud/create-folder',
+  'moveItem': '/cloud/move-item',
+  'renameItem': '/cloud/rename-item',
+  'createBlankFile': '/cloud/create-blank-file',
+  'uploadFile': '/cloud/upload-file',
+  'downloadFile': '/cloud/download-file',
+};
+
+export const getCloudEndpoint = (typeEndpoint: CloudEndpointType) => `${getUrlApi()}${cloudEndpointList[typeEndpoint]}`;

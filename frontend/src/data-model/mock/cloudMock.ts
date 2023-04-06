@@ -1,4 +1,4 @@
-import { CloudDataModelFromFetch, CloudDrivesResponse } from "../cloud";
+import { CloudDataModelFromFetch, CloudDrivesResponse, MessageResponse, UpdatedResponse } from "../cloud";
 
 export const cloudDrivesResponseMock = (): CloudDrivesResponse => ({
   driveList: ['drive', 'videos', 'music'],
@@ -28,3 +28,7 @@ export const cloudDataModelMock = (): CloudDataModelFromFetch => ({
     },
   ]
 });
+
+export const updatedResponseMock = (): UpdatedResponse => ({isUpdated: true});
+
+export const messageResponseMock = (): MessageResponse => ({message: 'This is fine'});

@@ -8,6 +8,14 @@ export interface CloudDrivesResponse {
   driveList: string[];
 }
 
+export interface UpdatedResponse {
+  isUpdated: boolean;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
 export interface CloudItemFromFetch {
   name: string;
   path: string;
@@ -24,11 +32,11 @@ export interface CloudItem {
   driveName: string;
 }
 
-export interface CloudsDataModel {
+export interface CloudDataModel {
   data: GenericTree<CloudItem>;
 }
 
-export const parseFromFetchToDataModel = (cloudFetchStyle: CloudDataModelFromFetch): CloudsDataModel => {
+export const parseFromFetchToDataModel = (cloudFetchStyle: CloudDataModelFromFetch): CloudDataModel => {
   const dataForTree: {path: string, data: CloudItem}[] = cloudFetchStyle.allItems.map(item => ({
     path: item.path ? item.path : '/',
     data: {
@@ -42,7 +50,7 @@ export const parseFromFetchToDataModel = (cloudFetchStyle: CloudDataModelFromFet
   };
 }
 
-export const parseFromDataModelToFetchToSend = (Clouds: CloudsDataModel): CloudDataModelFromFetch => {
+export const parseFromDataModelToFetchToSend = (Clouds: CloudDataModel): CloudDataModelFromFetch => {
   const dataFromTree: {path: string, data: CloudItem}[] = GenericTree.parseTreeToList(Clouds.data);
   return {
     allItems: dataFromTree.map(item => ({
@@ -55,7 +63,7 @@ export const parseFromDataModelToFetchToSend = (Clouds: CloudsDataModel): CloudD
 
 export interface GenericCloudRequest {
   drive: string;
-  path: string;
+  path?: string;
 }
 
 export interface ChangePathCloudRequest {
