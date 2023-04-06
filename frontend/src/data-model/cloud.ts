@@ -36,9 +36,14 @@ export interface CloudDataModel {
   data: GenericTree<CloudItem>;
 }
 
+const buildPath = (pathWithFile: string) => {
+  const splitedPath = pathWithFile.split('/');
+  return splitedPath.slice(0, splitedPath.length - 1).join('/');
+}
+
 export const parseFromFetchToDataModel = (cloudFetchStyle: CloudDataModelFromFetch): CloudDataModel => {
   const dataForTree: {path: string, data: CloudItem}[] = cloudFetchStyle.allItems.map(item => ({
-    path: item.path ? item.path : '/',
+    path: item.path ? buildPath(item.path) : '/',
     data: {
       name: item.name,
       driveName: item.driveName,
