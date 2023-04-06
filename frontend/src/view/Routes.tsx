@@ -1,4 +1,5 @@
 import { Bookmarks } from "./pages/Bookmarks/Bookmarks";
+import { Cloud } from "./pages/Cloud/Cloud";
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
 import { Notepad } from "./pages/Notepad/Notepad";
@@ -18,6 +19,11 @@ export const routesFTAH: RouteFTAHElement[] = [
     name: 'Home',
     path: '/',
     element: <Home/>,
+  },
+  {
+    name: 'Cloud',
+    path: '/cloud',
+    element: <Cloud/>,
   },
   {
     name: 'Bookmarks',
