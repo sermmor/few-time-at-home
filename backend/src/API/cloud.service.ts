@@ -1,6 +1,8 @@
 import { writeFile, stat, mkdir, readFile, existsSync, readdir, rename } from "fs";
 import { readJSONFile, saveInAFile } from "../utils";
 
+export const cloudDefaultPath = 'cloud';
+
 export interface CloudItem {
   name: string;
   path: string;
@@ -14,7 +16,7 @@ export interface Drive {
   contentIndexing?: CloudItem[];
 }
 
-const defaultOrigin: Drive = { name: 'cloud', path: 'cloud', indexPath: 'data/cloud/cloud.json' };
+const defaultOrigin: Drive = { name: 'cloud', path: cloudDefaultPath, indexPath: 'data/cloud/cloud.json' };
 const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
@@ -169,19 +171,18 @@ export class CloudService {
             const item = this.findCloudItem(nameDrive, tempFile);
             item!.path = pathFile;
             const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
-            this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder uploaded correctly.'));
+            this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve(`File or folder ${pathFile} uploaded correctly.`));
           } else {
-            resolve('Error to uploaded file or folder.');
+            resolve(`Error to uploaded file or folder ${tempFile} in ${pathFile}.`);
           }
         });
       } else {
-        resolve('Folder or file already exist!');
+        resolve(`Folder or file ${tempFile} already exist in ${pathFile}!`);
       }
     });
   });
 
   getPathDrive = (nameDrive: string): string => {
-    // For Download file https://www.geeksforgeeks.org/express-js-res-sendfile-function/
     const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
     return this.cloudOrigins[indexDrive].path;
   }
@@ -227,7 +228,7 @@ export class CloudService {
     });
   });
 
-  createBlankFile = (nameDrive: string, newFilePath: string): Promise<string> => new Promise<string>(resolve => {
+  createBlankFile = (nameDrive: string, newFilePath: string): Promise<void> => new Promise<void>(resolve => {
     saveInAFile('', newFilePath, () => {
       const splitPath = newFilePath.split('/');
       const newItem: CloudItem = {
@@ -237,7 +238,7 @@ export class CloudService {
       };
       const indexDrive = this.cloudOrigins.findIndex(drive => drive.name === nameDrive);
       this.cloudOrigins[indexDrive].contentIndexing!.push(newItem);
-      this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File created correctly.'));
+      this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve());
     });
   });
 }

@@ -8,11 +8,12 @@ import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
 import { Multer } from 'multer';
-import { CloudService } from './cloud.service';
+import { CloudService, cloudDefaultPath } from './cloud.service';
+import path from 'path';
 
 const cors = require('cors');
 const multer = require("multer");
-const upload: Multer = multer({ dest: 'uploads/' });
+const upload: Multer = multer({ dest: 'data/uploads/' });
 
 export class APIService {
   static getAllRssEndpoint  = "/rss/all"; // query: http://localhost:${port}/rss/all?amount=20
@@ -186,16 +187,106 @@ export class APIService {
 
   private cloudService() {
     const cloudService = new CloudService();
-    /*
-    APIService.cloudEndpointList = {
-      updateIndexing: '/cloud/update',
-      getAllItems: '/cloud/get-items',
-      createFolder: '/cloud/create-folder',
-      moveItem: '/cloud/move-item',
-      renameItem: '/cloud/rename-item',
-      createBlankFile: '/cloud/create-blank-file',
-      uploadFile: '/cloud/upload-file',
-      downloadFile: '/cloud/download-file',
-    }; */
+
+    // body: drive
+    this.app.post(APIService.cloudEndpointList.updateIndexing, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.updateCloudItemsIndex(req.body.drive).then(() => res.send({isUpdated: true}));
+      }
+    });
+
+    // body: drive
+    this.app.post(APIService.cloudEndpointList.getAllItems, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        res.send({allItems: cloudService.getCloudItems(req.body.drive)});
+      }
+    });
+
+    // body: drive, path
+    this.app.post(APIService.cloudEndpointList.createFolder, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.createFolder(req.body.drive, req.body.path).then(() => res.send({isUpdated: true}));
+      }
+    });
+
+    // body: drive, path
+    this.app.post(APIService.cloudEndpointList.createBlankFile, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.createBlankFile(req.body.drive, req.body.path).then(() => res.send({isUpdated: true}));
+      }
+    });
+
+    // body: drive, oldPath, newPath
+    this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.moveFileOrFolder(req.body.drive, req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
+      }
+    });
+
+    // body: drive, oldPath, newPath
+    this.app.post(APIService.cloudEndpointList.renameItem, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.renameFileOrFolder(req.body.drive, req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
+      }
+    });
+
+    // body: req.body.drive, req.body.pathToSave, req.body.numberOfFiles, req.files
+    this.app.post(APIService.cloudEndpointList.uploadFile, upload.array('uploadCloudFiles'), (req, res) => {
+      if (!req.body || !req.files) {
+          console.error("Received NO body text");
+      } else {
+        const allFiles: Express.Multer.File[] = <Express.Multer.File[]> req.files;
+        let filesToUpload = req.body.numberOfFiles;
+        for (let i = 0; i < req.body.numberOfFiles; i++) {
+          // console.log(allFiles[i].originalname, allFiles[i].filename, allFiles[i].path)
+          cloudService.uploadFile(req.body.drive, allFiles[i].path, `${req.body.pathToSave}/${allFiles[i].filename}`).then(message => {
+            console.log(message);
+            filesToUpload--;
+            if (filesToUpload <= 0) {
+              res.send({ message: 'All files are saved!' });
+            }
+          })
+        }
+      }
+    });
+
+    // body: drive, path
+    this.app.post(APIService.cloudEndpointList.downloadFile, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        const options: {root: undefined | string} = {
+          root: undefined
+        };
+
+        if (cloudDefaultPath === req.body.path) {
+          options.root = path.join(__dirname);
+        } else {
+          options.root = cloudService.getPathDrive(req.body.drive);
+        }
+
+        const fileRelativePath = (<string> req.body.drive).split('/').slice(1).join('/');
+        
+        res.sendFile(fileRelativePath, options, (err) => {
+            if (err) {
+              console.error("Received NO body text");
+            } else {
+              console.log(`Sent: ${fileRelativePath}`);
+            }
+        });
+      }
+    });
   }
 }
