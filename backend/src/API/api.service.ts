@@ -31,6 +31,7 @@ export class APIService {
   static unfurlEndpoint = "/unfurl";
   static sendToTelegramEndpoint = "/send-to-telegram";
   static cloudEndpointList = {
+    getDrivesList: '/cloud/drives',
     updateIndexing: '/cloud/update',
     getAllItems: '/cloud/get-items',
     createFolder: '/cloud/create-folder',
@@ -186,7 +187,11 @@ export class APIService {
   }
 
   private cloudService() {
-    const cloudService = new CloudService();
+    const cloudService = new CloudService(); // TODO: Here can add more drives (FROM A FILE OR SOMETHING LIKE THAT)!!!
+
+    this.app.get(APIService.cloudEndpointList.getDrivesList, (req, res) => {
+      res.send({driveList: cloudService.getDrivesList()});
+    });
 
     // body: drive
     this.app.post(APIService.cloudEndpointList.updateIndexing, (req, res) => {

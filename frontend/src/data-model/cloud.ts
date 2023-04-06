@@ -4,14 +4,18 @@ export const urlFolder = 'urlfolder:///';
 
 export const isFolder = (element: CloudItem) => !element.isNotFolder;
 
+export interface CloudDrivesResponse {
+  driveList: string[];
+}
+
 export interface CloudItemFromFetch {
   name: string;
   path: string;
   driveName: string;
 }
 
-export interface CloudsDataModelFromFetch {
-  data: CloudItemFromFetch[];
+export interface CloudDataModelFromFetch {
+  allItems: CloudItemFromFetch[];
 }
 
 export interface CloudItem {
@@ -24,8 +28,8 @@ export interface CloudsDataModel {
   data: GenericTree<CloudItem>;
 }
 
-export const parseFromFetchToDataModel = (cloudFetchStyle: CloudsDataModelFromFetch): CloudsDataModel => {
-  const dataForTree: {path: string, data: CloudItem}[] = cloudFetchStyle.data.map(item => ({
+export const parseFromFetchToDataModel = (cloudFetchStyle: CloudDataModelFromFetch): CloudsDataModel => {
+  const dataForTree: {path: string, data: CloudItem}[] = cloudFetchStyle.allItems.map(item => ({
     path: item.path ? item.path : '/',
     data: {
       name: item.name,
@@ -38,10 +42,10 @@ export const parseFromFetchToDataModel = (cloudFetchStyle: CloudsDataModelFromFe
   };
 }
 
-export const parseFromDataModelToFetchToSend = (Clouds: CloudsDataModel): CloudsDataModelFromFetch => {
+export const parseFromDataModelToFetchToSend = (Clouds: CloudsDataModel): CloudDataModelFromFetch => {
   const dataFromTree: {path: string, data: CloudItem}[] = GenericTree.parseTreeToList(Clouds.data);
   return {
-    data: dataFromTree.map(item => ({
+    allItems: dataFromTree.map(item => ({
       name: item.data.name,
       path: item.path,
       driveName: item.data.driveName,

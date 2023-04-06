@@ -20,8 +20,6 @@ const defaultOrigin: Drive = { name: 'cloud', path: cloudDefaultPath, indexPath:
 const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
-// TODO: EACH PUBLIC METHOD IS AN ENDPOINT!!!
-// TODO (updateCloudItemsIndex, getCloudItems, createFolder, moveFileOrFolder, renameFileOrFolder, createBlankFile, uploadFile, downloadFile - getPathDrive)
 export class CloudService {
   constructor(public cloudOrigins: Drive[] = []) {
     this.cloudOrigins.push(defaultOrigin);
@@ -127,6 +125,8 @@ export class CloudService {
       });
     }
   });
+
+  getDrivesList = (): string[] => this.cloudOrigins.map(drive => drive.name);
 
   updateCloudItemsIndex = (nameDrive?: string): Promise<void> => new Promise<void>(resolve => {
     if (!nameDrive) {
