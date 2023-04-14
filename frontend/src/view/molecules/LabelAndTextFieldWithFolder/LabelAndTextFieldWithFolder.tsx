@@ -1,14 +1,16 @@
 import React from "react";
-import { Box, TextField } from "@mui/material";
+import { Box, SxProps, TextField, Theme } from "@mui/material";
 import FolderIcon from '@mui/icons-material/Folder';
 
-export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, onChange, setOpenFolder}: {
+export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, backgroundColor, onChange, setOpenFolder}: {
   text: string,
   nameFolder: string,
   path: string,
+  backgroundColor?: string,
   onChange: (newText: string) => void,
-  setOpenFolder: (label: string) => void}
-) => {
+  setOpenFolder: (label: string) => void
+}) => {
+  const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   // const [textToShow, setTextToShow] = React.useState<string>(text);
   const [textToEdit, setTextToEdit] = React.useState<string>(nameFolder);
@@ -22,7 +24,7 @@ export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, onChange, s
 
   return <> {
     isInEditMode ?
-      <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
+      <Box sx={{...colorRow, width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
         <TextField
           variant="standard"
           value={textToEdit}
@@ -34,7 +36,7 @@ export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, onChange, s
         />
       </Box>
     :
-      <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
+      <Box sx={{...colorRow, width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
         <Box sx={{ cursor: 'pointer', color: '#1976d2' }} onClick={() => setEditMode(true)}>
           {text}
         </Box>

@@ -1,14 +1,16 @@
-import { Box, Button, Link, TextField } from "@mui/material";
+import { Box, Button, Link, SxProps, TextField, Theme } from "@mui/material";
 import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndUrlField = ({textToShow, textUrl, onChange, isReadOnly}: {
+export const LabelAndUrlField = ({textToShow, textUrl, backgroundColor, onChange, isReadOnly}: {
   textToShow: string,
   textUrl: string,
+  backgroundColor?: string,
   onChange?: (newTextToShow: string, newtextUrl: string) => void,
   isReadOnly?: boolean,
 }) => {
+  const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   const [isTextToShowChanged, setIsTextToShowChanged] = React.useState<boolean>(false);
   const [isUrlChanged, setIsUrlChanged] = React.useState<boolean>(false);
@@ -30,7 +32,7 @@ export const LabelAndUrlField = ({textToShow, textUrl, onChange, isReadOnly}: {
 
   return <> {
     isInEditMode ?
-      <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
+      <Box sx={{...colorRow, width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
         <TextField
           variant="standard"
           value={textUrlEditing}
@@ -51,7 +53,7 @@ export const LabelAndUrlField = ({textToShow, textUrl, onChange, isReadOnly}: {
         <Button onClick={() => setText(textToShowEditing, textUrlEditing)}>Ok</Button>
       </Box>
     :
-    <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
+    <Box sx={{...colorRow, width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, alignItems: 'center'}}>
       <Box sx={isReadOnly ? undefined : {cursor: 'pointer', color: '#1976d2'}} onClick={() => isReadOnly ? undefined : setEditMode(true)}>
         {textToShowEditing ? textToShowEditing : '<No title>'}
       </Box>
