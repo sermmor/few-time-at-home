@@ -91,7 +91,7 @@ export const Bookmarks = () => {
           list={bookmarks.data.map((item, index) => ({id:`${item.url}`, isFolder: item.url.indexOf(urlFolder) > -1, item: <>{
             (item.url.indexOf(urlFolder) > -1) ?
               <LabelAndTextFieldWithFolder
-                backgroundColor={(index % 2 === 0) ? "#D3D3D3" : undefined}
+                backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 text={item.title}
                 path={getPathParentFolder(item.title)}
                 nameFolder={getNameFolder(item.title)}
@@ -99,7 +99,7 @@ export const Bookmarks = () => {
                 setOpenFolder={(label) => setOpenFolder(action, label)}/>
             :
               <LabelAndUrlField
-                backgroundColor={(index % 2 === 0) ? "#D3D3D3" : undefined}
+                backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 textToShow={item.title}
                 textUrl={item.url}
                 onChange={editActionList(action, `${item.url}`)}/>
