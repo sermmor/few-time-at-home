@@ -68,8 +68,6 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { tree: tree!, bookmarks: bookmarks!, setBookmarks, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
 
-  // console.log(bookmarks)
-
   return <Box sx={formStyle}> 
     {bookmarks && <>
         <TitleAndListWithFolders

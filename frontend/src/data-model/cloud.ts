@@ -30,6 +30,7 @@ export interface CloudItem {
   name: string;
   isNotFolder: boolean;
   driveName: string;
+  path: string;
 }
 
 export interface CloudDataModel {
@@ -48,6 +49,7 @@ export const parseFromFetchToDataModel = (cloudFetchStyle: CloudDataModelFromFet
       name: item.name,
       driveName: item.driveName,
       isNotFolder: true,
+      path: `${item.path}`,
     }
   }));
   return {
