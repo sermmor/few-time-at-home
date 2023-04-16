@@ -3,12 +3,13 @@ import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndUrlField = ({textToShow, textUrl, backgroundColor, onChange, isReadOnly}: {
+export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly}: {
   textToShow: string,
   textUrl: string,
   backgroundColor?: string,
   onChange?: (newTextToShow: string, newtextUrl: string) => void,
   isReadOnly?: boolean,
+  hideUrl?: boolean,
 }) => {
   const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
@@ -33,7 +34,7 @@ export const LabelAndUrlField = ({textToShow, textUrl, backgroundColor, onChange
   return <> {
     isInEditMode ?
       <Box sx={{...colorRow, width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
-        <TextField
+        {!hideUrl && <TextField
           variant="standard"
           value={textUrlEditing}
           sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}, width:'100%'}}
@@ -41,7 +42,7 @@ export const LabelAndUrlField = ({textToShow, textUrl, backgroundColor, onChange
           onKeyDown={(evt) => evt.key === 'Escape' ? setText(textToShowEditing, textUrlEditing)
             : (evt.key === 'Enter') ? setText(textToShowEditing, textUrlEditing) : undefined }
           autoFocus={isInEditMode}
-        />
+        />}
         <TextField
           variant="standard"
           value={textToShowEditing}

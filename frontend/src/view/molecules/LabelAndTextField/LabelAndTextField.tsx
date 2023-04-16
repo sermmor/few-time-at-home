@@ -1,7 +1,8 @@
-import { Box, TextField } from "@mui/material";
+import { Box, SxProps, TextField, Theme } from "@mui/material";
 import React from "react";
 
-export const LabelAndTextField = ({text, onChange}: {text: string, onChange: (newText: string) => void}) => {
+export const LabelAndTextField = ({text, backgroundColor, onChange}: {text: string, backgroundColor?: string, onChange: (newText: string) => void}) => {
+  const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   const [textEditing, setTextEditing] = React.useState<string>(text);
 
@@ -12,7 +13,7 @@ export const LabelAndTextField = ({text, onChange}: {text: string, onChange: (ne
 
   return <> {
     isInEditMode ?
-      <Box sx={{width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
+      <Box sx={{...colorRow, width:'100%', display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '0.25rem', alignItems: 'center'}}>
         <TextField
           variant="standard"
           value={textEditing}
@@ -24,7 +25,7 @@ export const LabelAndTextField = ({text, onChange}: {text: string, onChange: (ne
         />
       </Box>
     :
-      <Box sx={{width:'100%', cursor: 'pointer', color: '#1976d2'}} onClick={() => setEditMode(true)}>
+      <Box sx={{...colorRow, width:'100%', cursor: 'pointer', color: '#1976d2'}} onClick={() => setEditMode(true)}>
         {textEditing}
       </Box>
   }</>;

@@ -1,5 +1,5 @@
 
-import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse } from "../../data-model/cloud";
+import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
 import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
@@ -23,10 +23,10 @@ const createFolder = (data: GenericCloudRequest) =>
 const createBlankFile = (data: GenericCloudRequest) => 
   fetchJsonSendAndReceive<UpdatedResponse>(getCloudEndpoint("createBlankFile"), data, updatedResponseMock());
 
-const moveItem = (data: GenericCloudRequest) => 
+const moveItem = (data: ChangePathCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("moveItem"), data, messageResponseMock());
 
-const renameItem = (data: GenericCloudRequest) => 
+const renameItem = (data: ChangePathCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("renameItem"), data, messageResponseMock());
 
 // TODO uploadFile, downloadFile

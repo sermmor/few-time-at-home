@@ -190,12 +190,14 @@ export class CloudService {
   moveFileOrFolder = (nameDrive: string, oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => this.renameFileOrFolder(nameDrive, oldPathFileOrFolder, newPathFileOrFolder);
 
   renameFileOrFolder = (nameDrive: string, oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {
-    stat(newPathFileOrFolder, (err, stat) => {
+    stat(oldPathFileOrFolder, (err, stat) => {
       if (err === null) {
         rename(oldPathFileOrFolder, newPathFileOrFolder, (err) => {
           if (err === null) {
+            const pathSplited = newPathFileOrFolder.split('/');
             const item = this.findCloudItem(nameDrive, oldPathFileOrFolder);
             item!.path = newPathFileOrFolder;
+            item!.name = pathSplited[pathSplited.length - 1];
             const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
             this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
           } else {
