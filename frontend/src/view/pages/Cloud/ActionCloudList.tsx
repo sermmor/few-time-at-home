@@ -54,9 +54,7 @@ export const renameCloudItem = (item: CloudItem, newTextToShow: string) => {
     oldPath: item.path,
     newPath: `${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`}
   ).then((data) => {
-    // console.log(`Renamed ${item.path}`);
-    console.log(data) // ! ERROR 'Folder or file already exist'
-
+    console.log(data)
     // TODO: REFLESH ALL THE TREE!!!
   });
 }
