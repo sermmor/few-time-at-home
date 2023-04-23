@@ -55,6 +55,7 @@ export const renameCloudItem = (item: CloudItem, newTextToShow: string) => {
     newPath: `${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`}
   ).then((data) => {
     console.log(data)
-    // TODO: REFLESH ALL THE TREE!!!
+    // TODO: Show data.message in the app.
+    // TODO: REFLESH ALL THE TREE AND DATA!!!
   });
 }

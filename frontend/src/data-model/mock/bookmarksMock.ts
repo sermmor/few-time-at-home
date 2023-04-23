@@ -1,3 +1,4 @@
+import { DataToGetInPieces } from "../../core/actions/bookmarks";
 import { BookmarksDataModelFromFetch } from "../bookmarks";
 
 export const bookmarksDataModelMock = (): BookmarksDataModelFromFetch => ({
@@ -23,4 +24,13 @@ export const bookmarksDataModelMock = (): BookmarksDataModelFromFetch => ({
       path: "/periodicos"
     }
   ]
+});
+
+export const dataToGetInPiecesMock = (): {data: DataToGetInPieces} => ({
+  data: {
+    data: bookmarksDataModelMock().data,
+    pieceIndex: 1,
+    totalPieces: 1,
+    isFinished: true,
+  }
 });

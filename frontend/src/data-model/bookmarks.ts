@@ -46,3 +46,33 @@ export const parseFromDataModelToFetchToSend = (bookmarks: BookmarksDataModel): 
     }))
   };
 }
+
+export interface DataToSendInPieces {
+  data: BookmarkItemFromFetch[];
+  isFinished: boolean;
+}
+
+export const prepareInPiecesDataModelToSend = (bookmarks: BookmarksDataModelFromFetch, numberItemsPerPiece: number = 100): DataToSendInPieces[] => {
+  const numberOfPieces = Math.ceil(bookmarks.data.length / numberItemsPerPiece);
+  const dataToSend: DataToSendInPieces[] = [];
+  let indexCurrent = 0;
+
+  for (let i = 0; i < numberOfPieces; i++) {
+    if (indexCurrent + numberItemsPerPiece < bookmarks.data.length) {
+      dataToSend.push({
+        data: bookmarks.data.slice(indexCurrent, indexCurrent + numberItemsPerPiece),
+        isFinished: false,
+      });
+      indexCurrent = indexCurrent + numberItemsPerPiece;
+    } else {
+      dataToSend.push({
+        data: bookmarks.data.slice(indexCurrent, bookmarks.data.length),
+        isFinished: true,
+      });
+      indexCurrent = bookmarks.data.length;
+    }
+  }
+  
+  return dataToSend;
+}
+

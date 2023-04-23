@@ -32,11 +32,13 @@ export class BookmarkService {
   searchInBookmark = (wordlist: string): Bookmark[] => {
     // The bookmarks had 1 or more words.
     const words = wordlist.toLowerCase().split(' ').filter(value => value !== '');
-    return this.bookmarks.filter(bm => words.filter(w =>
+    const maxResults = 100;
+    const result = this.bookmarks.filter(bm => words.filter(w =>
       bm.title.toLowerCase().indexOf(w) >= 0
       || bm.url.toLowerCase().indexOf(w) >= 0
       || bm.path.toLowerCase().indexOf(w) >= 0
       ).length > 0);
+    return (result.length > maxResults) ? result.slice(0, maxResults) : result;
   }
 
   addBookmark = (urlBookmark: string, path: string = '/'): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {

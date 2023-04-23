@@ -3,7 +3,7 @@ import { QuoteListUtilities } from '../quote/quoteList';
 import { TelegramBot } from '../telegramBot/telegramBot';
 import { getUnfurl } from '../unfurl/unfurl';
 import { AlertListService } from './alertNotification.service';
-import { BookmarkService } from './bookmark.service';
+import { Bookmark, BookmarkService } from './bookmark.service';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
@@ -14,6 +14,13 @@ import path from 'path';
 const cors = require('cors');
 const multer = require("multer");
 const upload: Multer = multer({ dest: 'data/uploads/' });
+
+export interface DataToSendInPieces {
+  data: Bookmark[];
+  pieceIndex: number;
+  totalPieces: number;
+  isFinished: boolean;
+}
 
 export class APIService {
   static getAllRssEndpoint  = "/rss/all"; // query: http://localhost:${port}/rss/all?amount=20
@@ -26,6 +33,7 @@ export class APIService {
   static alertsEndpoint = "/alerts";
   static alertIsReadyEndpoint = "/alerts-is-ready";
   static bookmarksEndpoint = "/bookmarks";
+  static bookmarksPieceEndpoint = "/bookmarks-piece";
   static searchBookmarksEndpoint = "/search-bookmarks";
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
@@ -136,27 +144,84 @@ export class APIService {
   }
 
   private bookmarksService() {
+    let bookmarkPostExecuting: Bookmark[] = [];
+    let bookmarkGetExecuting: DataToSendInPieces[] = [];
     const bookmark = new BookmarkService();
     bookmark.getBookmarks();
+
     this.app.post(APIService.bookmarksEndpoint, (req, res) => {
         if (!req.body) {
-            console.error("Received NO body text");
+          console.error("Received NO body text");
         } else {
-          BookmarkService.Instance.updateBookmarks(req.body.data).then(data => res.send({data}));
+          bookmarkPostExecuting = bookmarkPostExecuting.concat(req.body.data);
+          if (req.body.isFinished) {
+            BookmarkService.Instance.updateBookmarks(bookmarkPostExecuting).then(data => {
+              bookmarkPostExecuting = [];
+              res.send({response: 'OK'});
+            });
+          } else {
+            res.send({response: 'Waiting'});
+          }
         }
     });
 
     this.app.post(APIService.searchBookmarksEndpoint, (req, res) => {
         if (!req.body) {
-            console.error("Received NO body text");
+          console.error("Received NO body text");
         } else {
           res.send({data: BookmarkService.Instance.searchInBookmark(req.body.data)});
         }
     });
 
     this.app.get(APIService.bookmarksEndpoint, (req, res) => {
-      BookmarkService.Instance.getBookmarks().then(data => res.send({ data }))
+
+      BookmarkService.Instance.getBookmarks().then(data => {
+        bookmarkGetExecuting = this.prepareInPiecesDataModelToSend(data);
+        console.log(data.length) // ! REMOVE THIS LINE
+        
+        const toSend = bookmarkGetExecuting.length > 0 ? bookmarkGetExecuting[0] : undefined;
+
+        if (bookmarkGetExecuting.length > 1) {
+          bookmarkGetExecuting = bookmarkGetExecuting.splice(1);
+        }
+        res.send({ data: toSend });
+      });
+
     });
+
+    this.app.get(APIService.bookmarksPieceEndpoint, (req, res) => {
+      const toSend = bookmarkGetExecuting[0];
+      bookmarkGetExecuting = bookmarkGetExecuting.splice(1);
+      res.send({ data: toSend });
+    });
+  }
+
+  private prepareInPiecesDataModelToSend = (bookmarks: Bookmark[], numberItemsPerPiece: number = 100): DataToSendInPieces[] => {
+    const numberOfPieces = Math.ceil(bookmarks.length / numberItemsPerPiece);
+    const dataToSend: DataToSendInPieces[] = [];
+    let indexCurrent = 0;
+  
+    for (let i = 0; i < numberOfPieces; i++) {
+      if (indexCurrent + numberItemsPerPiece < bookmarks.length) {
+        dataToSend.push({
+          data: bookmarks.slice(indexCurrent, indexCurrent + numberItemsPerPiece),
+          pieceIndex: i + 1,
+          totalPieces: numberOfPieces,
+          isFinished: false,
+        });
+        indexCurrent = indexCurrent + numberItemsPerPiece;
+      } else {
+        dataToSend.push({
+          data: bookmarks.slice(indexCurrent, bookmarks.length),
+          pieceIndex: i + 1,
+          totalPieces: numberOfPieces,
+          isFinished: true,
+        });
+        indexCurrent = bookmarks.length;
+      }
+    }
+    
+    return dataToSend;
   }
 
   private getRandomQuoteService() {
