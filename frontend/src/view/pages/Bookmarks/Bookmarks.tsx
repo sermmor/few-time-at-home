@@ -19,9 +19,12 @@ const formStyle: SxProps<Theme> = {
 
 const SaveNotesComponent = ({ tree, }: { tree: GenericTree<BookmarkItem>, }) => {
   const [isSave, setSave] = React.useState<boolean>(false);
+  const [isInSavingProcess, setInSavingProcess] = React.useState<boolean>(false);
   const setConfiguration = () => {
+    setInSavingProcess(true);
     // console.log(GenericTree.toString(tree, current => `{${current.title} | ${current.url}}`))
     BookmarksActions.sendBookmarks({data: tree}).then(() => {
+      setInSavingProcess(false);
       setSave(true);
       setTimeout(() => setSave(false), 500);
     });
@@ -33,6 +36,7 @@ const SaveNotesComponent = ({ tree, }: { tree: GenericTree<BookmarkItem>, }) => 
         variant='contained'
         sx={{minWidth: '15.5rem'}}
         onClick={() => setConfiguration()}
+        disabled={isInSavingProcess }
         >
         Save
         </Button>
