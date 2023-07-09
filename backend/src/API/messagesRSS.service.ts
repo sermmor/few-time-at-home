@@ -5,7 +5,7 @@ import { NitterRSSMessageList } from "../nitterRSS";
 import { YoutubeRSSMessageList } from "../youtubeRSS";
 
 export interface ChannelMediaRSSCollection {
-    nitterRSS: NitterRSSMessageList,
+    // nitterRSS: NitterRSSMessageList, // TODO: Cancelated because Elon Musk has cut the access to Nitter.
     mastodonRSS: MastodonRSSMessageList,
     blogRSS: BlogRSSMessageList,
     youtubeRSS: YoutubeRSSMessageList,
@@ -13,7 +13,7 @@ export interface ChannelMediaRSSCollection {
 
 export interface TelegramBotCommand {
     onCommandAll: () => Promise<string[]>;
-    onCommandNitter: () => Promise<string[]>;
+    // onCommandNitter: () => Promise<string[]>;
     onCommandMasto: () => Promise<string[]>;
     onCommandBlog: () => Promise<string[]>;
     onCommandYoutube: () => Promise<string[]>;
@@ -22,26 +22,37 @@ export interface TelegramBotCommand {
 export const getAllMessageCommands = (channelCollections: ChannelMediaRSSCollection): TelegramBotCommand => ({
     onCommandAll: getAllMessages(channelCollections),
     onCommandMasto: getAllMessagesChannelMediaRSS(channelCollections.mastodonRSS),
-    onCommandNitter: getAllMessagesChannelMediaRSS(channelCollections.nitterRSS),
+    // onCommandNitter: getAllMessagesChannelMediaRSS(channelCollections.nitterRSS),
     onCommandBlog: getAllMessagesChannelMediaRSS(channelCollections.blogRSS),
     onCommandYoutube: getAllMessagesChannelMediaRSS(channelCollections.youtubeRSS),
 
 });
 
-const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
-    resolve => nitterRSS.updateRSSList().then(() =>
-        mastodonRSS.updateRSSList().then(() => {
+// const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
+//     resolve => nitterRSS.updateRSSList().then(() =>
+//         mastodonRSS.updateRSSList().then(() => {
+//           youtubeRSS.updateRSSList().then(() => {
+//             blogRSS.updateRSSList().then(() => {
+//                 resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
+//                     nitterRSS,
+//                     mastodonRSS,
+//                     youtubeRSS,
+//                     blogRSS
+//                 ]));
+//             })
+//           })
+//         })));
+const getAllMessages = ({blogRSS, mastodonRSS, youtubeRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
+    resolve => mastodonRSS.updateRSSList().then(() => {
           youtubeRSS.updateRSSList().then(() => {
             blogRSS.updateRSSList().then(() => {
                 resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
-                    nitterRSS,
                     mastodonRSS,
                     youtubeRSS,
                     blogRSS
                 ]));
             })
-          })
-        })));
+        })}));
 
 const getAllMessagesChannelMediaRSS = (channelMediaRSS: ChannelMediaRSSMessageList) => (): Promise<string[]> => new Promise<string[]>(
     resolve => channelMediaRSS.updateRSSList().then(() => {
