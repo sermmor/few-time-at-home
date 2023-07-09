@@ -62,7 +62,7 @@ export class APIService {
 
     this.getRSS(APIService.getAllRssEndpoint, this.commands.onCommandAll);
     this.getRSS(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
-    this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
+    // this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
     this.getRSS(APIService.getRssYoutubeEndpoint, this.commands.onCommandYoutube);
     this.unfurlService();

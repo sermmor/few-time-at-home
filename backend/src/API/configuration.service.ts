@@ -73,7 +73,7 @@ export class ConfigurationService {
 
         channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
         channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
-        channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
+        // channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
         channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
           console.log("> Configuration changed!");
           resolve();
