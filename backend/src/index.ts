@@ -26,7 +26,7 @@ readFile(keysPath, (err, data) => {
         const configurationService = new ConfigurationService(JSON.parse(<string> <any> data));
 
         channelMediaCollection = {
-            // nitterRSS: new NitterRSSMessageList(),
+            nitterRSS: new NitterRSSMessageList(),
             mastodonRSS: new MastodonRSSMessageList(),
             blogRSS: new BlogRSSMessageList(),
             youtubeRSS: new YoutubeRSSMessageList()

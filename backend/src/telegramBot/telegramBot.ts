@@ -51,7 +51,7 @@ export class TelegramBot {
           this.setContext(ctx);
       });
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
-      // this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
+      this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_youtube_command, commandList.onCommandYoutube);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
