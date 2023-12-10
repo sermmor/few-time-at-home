@@ -22,7 +22,6 @@ const getBookmarks = (): Promise<BookmarksDataModel> => new Promise<BookmarksDat
           resolve(parseFromFetchToDataModel({data: fetchPieceData.data.data}));
         } else {
           getBookmarksRecursive(fetchPieceData.data.data).then(finalData => {
-            console.log(finalData.length)
             isInGetBookmarkProcess = false;
             resolve(parseFromFetchToDataModel({data: finalData}));
           });

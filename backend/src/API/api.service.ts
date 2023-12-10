@@ -177,7 +177,6 @@ export class APIService {
 
       BookmarkService.Instance.getBookmarks().then(data => {
         bookmarkGetExecuting = this.prepareInPiecesDataModelToSend(data);
-        console.log(data.length) // ! REMOVE THIS LINE
         
         const toSend = bookmarkGetExecuting.length > 0 ? bookmarkGetExecuting[0] : undefined;
 
