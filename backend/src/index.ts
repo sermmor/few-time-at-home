@@ -5,6 +5,7 @@ import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { YoutubeRSSMessageList } from './youtubeRSS';
+import { runBackup } from './utils';
 
 const keysPath = 'build/keys.json';
 const configurationPath = 'build/configuration.json';
@@ -16,6 +17,8 @@ let apiService: APIService;
 
 // TODO: Poder crear un comando personalizado por API y asociarlo a un conjunto de RSS (pueden ser de Twitter, Mastodon o blogs), al lanzarlo dará los recursos RSS.
 // TODO: ^ sería como un ChannelMediaRSSMessageList que sería una colección de listas personalizadas de ChannelMediaRSSMessageList. 
+
+runBackup('C:\\Workspace\\few-time-at-home\\backups');
 
 readFile(keysPath, (err, data) => {
     if (err) throw err;

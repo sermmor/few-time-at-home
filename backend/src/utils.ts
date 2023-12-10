@@ -1,4 +1,4 @@
-import { writeFile, stat, mkdir, readFile } from "fs";
+import { writeFile, stat, mkdir, readFile, copyFile } from "fs";
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -106,4 +106,54 @@ export class ExtractorUtilities {
   public static cutInnerHTML = (content: string): string => content.split(">")[1].split("<")[0];
 
   public static removeAllEndOfLine = (content: string): string => content.split("\n").join("");
+};
+
+const pathToCopyList = [
+  'data/cloud/cloud.json',
+  'data/notes.txt',
+  'data/alerts.json',
+  'data/bookmark.json',
+  'allRss.json',
+  'configuration.json',
+  'keys.json'
+];
+
+const pathToPasteList = [
+  'cloud.json',
+  'notes.txt',
+  'alerts.json',
+  'bookmark.json',
+  'allRss.json',
+  'configuration.json',
+  'keys.json'
+]
+
+// TODO: Se hace el backup cuando se inicia la aplicación y una vez a la semana.
+const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promise<void> => {
+  return new Promise<void>(resolve => copyFile(sourcePath, destinyPath, (err) => {
+    if (err) throw err;
+    resolve();
+  }));
+}
+
+export const runBackup = (pathRootToPaste: string, indexToCopy = 0, nameFolderDate = '') => {
+  if (indexToCopy < pathToCopyList.length) {
+    if (indexToCopy === 0) {
+      const currentDate = new Date();
+      nameFolderDate = `${currentDate.getUTCFullYear()}-${currentDate.getUTCMonth()}-${currentDate.getUTCDate()}_${currentDate.getUTCHours()}-${currentDate.getUTCMinutes()}-${currentDate.getUTCSeconds()}-${currentDate.getUTCMilliseconds()}`;
+      mkdir(`${pathRootToPaste}/${nameFolderDate}`, {recursive: true}, () => {
+        copyAFileToBackupFolder(
+          pathToCopyList[indexToCopy],
+          `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
+        .then(() => runBackup(pathRootToPaste, indexToCopy + 1, nameFolderDate));
+      });
+    } else {
+      copyAFileToBackupFolder(
+        pathToCopyList[indexToCopy],
+        `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
+      .then(() => runBackup(pathRootToPaste, indexToCopy + 1, nameFolderDate));
+    }
+  } else {
+    console.log('> Backup created!');
+  }
 }
