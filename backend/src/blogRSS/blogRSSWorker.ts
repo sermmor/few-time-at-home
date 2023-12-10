@@ -17,14 +17,17 @@ const updateRSS = (
             const currentMessages: ChannelMediaRSSMessage[] = mapRSSBlogPostsToMessages(data);
             console.log(`${endpoint}  ${currentMessages.length}`);
             resolve(currentMessages);
-        }).catch(() => {
-            if (currentTry > 0) {
-                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
-            } else {
-                console.error(`Blog profile ${endpoint} is broken or deleted!`);
-                resolve([]);
-            }
-    }));
+        }).catch((err) => {
+          if ((`${err}`).indexOf('error code 504') > -1) {
+            console.log('Error: Request failed with error code 504');
+            resolve([]);
+          } else if (currentTry > 0) {
+            setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
+          } else {
+            console.error(`Blog profile ${endpoint} is broken or deleted!`);
+            resolve([]);
+          }
+      }));
 }
 
 const mapRSSBlogPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.entries.map((rssMessage: any) => ({

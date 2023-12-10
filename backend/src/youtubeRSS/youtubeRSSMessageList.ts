@@ -6,6 +6,8 @@ import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
 const fetch = require("node-fetch");
 
+const DEFAULT_TRIES = 10;
+
 export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
   
   public isYoutubeListLoaded = false;
@@ -24,10 +26,18 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
 
   waitUntilIsChargedYoutubeList = (): Promise<void> => new Promise<void>(resolve => checkUntilConditionIsTrue(() => this.isYoutubeListLoaded, () => resolve()));
 
-  private static getYoutubeRSSUrl = (channelUrl: string): Promise<string> => new Promise<string>(resolve => {
+  private static getYoutubeRSSUrl = (channelUrl: string, currentTry = DEFAULT_TRIES): Promise<string> => new Promise<string>(resolve => {
     fetch(channelUrl).then((res: any) => res.text()).then((text: string) => {
       const code = ExtractorUtilities.cut(text, 'browse_id","value":"', "\"}");
+      console.log(`> Loaded ${channelUrl} at try ${DEFAULT_TRIES - currentTry}`)
       resolve(`https://www.youtube.com/feeds/videos.xml?channel_id=${code}`);
+    }).catch(() => {
+      if (currentTry > 0) {
+        setTimeout(() => YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl, currentTry - 1).then(data => resolve(data)), 100);
+    } else {
+        console.error(`> getYoutubeRSSUrl profile ${channelUrl} is broken or deleted!`);
+        resolve('');
+    }
     });
   });
 
@@ -48,7 +58,9 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
           // console.log(channelUrl, rssUrl, numberOfElements)
           if (numberOfElements === 0) {
             this.isYoutubeListLoaded = true;
-            resolve(this.urlProfiles);      
+            const allProfiles = this.urlProfiles.filter(url => url !== '');
+            console.log(`> Loaded ${allProfiles.length} youtube profiles of ${ConfigurationService.Instance.youtubeRssList.length}.`)
+            resolve(allProfiles);
           }
         });
       }

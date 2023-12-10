@@ -42,6 +42,17 @@ const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS}: ChannelMe
             })
           })
         })));
+// const getAllMessages = ({blogRSS, mastodonRSS, youtubeRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
+//     resolve => mastodonRSS.updateRSSList().then(() => {
+//           youtubeRSS.updateRSSList().then(() => {
+//             blogRSS.updateRSSList().then(() => {
+//                 resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
+//                     mastodonRSS,
+//                     youtubeRSS,
+//                     blogRSS
+//                 ]));
+//             })
+//         })}));
 
 const getAllMessagesChannelMediaRSS = (channelMediaRSS: ChannelMediaRSSMessageList) => (): Promise<string[]> => new Promise<string[]>(
     resolve => channelMediaRSS.updateRSSList().then(() => {
