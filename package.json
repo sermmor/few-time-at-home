@@ -1,0 +1,24 @@
+{
+  "name": "few-time-at-home",
+  "version": "1.0.0",
+  "description": "Do a lot of things when I'm away from home.",
+  "main": "index.js",
+  "scripts": {
+    "start":  "concurrently --kill-others \"cd frontend && npm run start\" \"cd backend && npm run start\"",
+    "start:ios":  "concurrently --kill-others \"cd frontend && npm run start:ios\" \"cd backend && npm run start\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sermmor/rss-link-telegram-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sermmor/rss-link-telegram-bot/issues"
+  },
+  "homepage": "https://github.com/sermmor/rss-link-telegram-bot#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
