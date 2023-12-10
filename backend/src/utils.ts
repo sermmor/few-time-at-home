@@ -1,4 +1,6 @@
-import { writeFile, stat, mkdir, readFile, copyFile } from "fs";
+import { writeFile, stat, mkdir, readFile, copyFile } from 'fs';
+import { RecurrenceRule, scheduleJob } from 'node-schedule';
+import { TelegramBot } from './telegramBot/telegramBot';
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -128,7 +130,6 @@ const pathToPasteList = [
   'keys.json'
 ]
 
-// TODO: Se hace el backup cuando se inicia la aplicación y una vez a la semana.
 const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promise<void> => {
   return new Promise<void>(resolve => copyFile(sourcePath, destinyPath, (err) => {
     if (err) throw err;
@@ -136,7 +137,7 @@ const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promi
   }));
 }
 
-export const runBackup = (pathRootToPaste: string, indexToCopy = 0, nameFolderDate = '') => {
+const runBackup = (pathRootToPaste: string, indexToCopy = 0, nameFolderDate = '') => {
   if (indexToCopy < pathToCopyList.length) {
     if (indexToCopy === 0) {
       const currentDate = new Date();
@@ -156,4 +157,12 @@ export const runBackup = (pathRootToPaste: string, indexToCopy = 0, nameFolderDa
   } else {
     console.log('> Backup created!');
   }
+}
+
+export const startBackupEveryWeek = (pathRootToPaste: string) => {
+  scheduleJob('do a backup once a week', { hour: 12, minute: 0, dayOfWeek: 1}, () => {
+    runBackup(pathRootToPaste);
+    TelegramBot.Instance().sendNotepadTextToTelegram('Backup created today!');
+  });
+  runBackup(pathRootToPaste);
 }
