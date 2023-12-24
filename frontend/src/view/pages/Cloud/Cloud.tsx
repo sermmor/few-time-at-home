@@ -63,6 +63,8 @@ export const Cloud = () => {
   const [currentDrive, setCurrentDrive] = React.useState<string>();
   const [breadcrumb, setBreadcrumb] = React.useState<GenericTree<CloudItem>[]>([]);
   const [selectedNodes, setSelectedNodes] = React.useState<GenericTree<CloudItem>[]>([]);
+  const [dragIsOver, setDragIsOver] = React.useState(false);
+  const [files, setFiles] = React.useState<File[]>([]);
 
   React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
     // For now, I'll choose the first one drive list.
@@ -84,8 +86,57 @@ export const Cloud = () => {
   // TODO: Las carpetas no se crean en la cloud hasta que algo esté dentro de ellas.
   // TODO: Cada acción que modifique el árbol conlleva un guardado del árbol en la nube, es decir hay un guardado automático.
 
+  // Define the event handlers
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragIsOver(true);
+  };
+ 
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragIsOver(false);
+  };
+ 
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragIsOver(false);
+    
+    if (`${currentTreeNode?.label}` === '/') {
+      console.log('It\'s the root path, here don\'t upload anything!!!');
+      return;
+    }
+    
+    // Fetch the files
+    const droppedFiles = Array.from(event.dataTransfer.files);
+    setFiles(droppedFiles);
+    
+    droppedFiles.forEach((file) => {
+      const reader = new FileReader();
+      
+      reader.onloadend = () => {
+        console.log(file.name);
+        console.log(`${currentTreeNode?.label}`)
+        console.log(reader.result);
+      };
+  
+      reader.onerror = () => {
+        console.error('There was an issue reading the file.');
+      };
+  
+      reader.readAsDataURL(file);
+      return reader;
+    });
+  };
+
   return <Box sx={formStyle}>
-    {fileList && <>
+    {fileList && <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        style={{
+          backgroundColor: dragIsOver ? 'lightgray' : 'white',
+        }}
+      >
       <TitleAndListWithFolders
         title='Bookmarks'
         id='Bookmarks_0'
@@ -131,7 +182,7 @@ export const Cloud = () => {
 
         }
       />
-    </>
+    </div>
     }
   </Box>;
 };

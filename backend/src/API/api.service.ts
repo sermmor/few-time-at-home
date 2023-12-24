@@ -316,18 +316,23 @@ export class APIService {
       if (!req.body || !req.files || !req.file) {
           console.error("Received NO body text");
       } else {
-        const allFiles: Express.Multer.File[] = <Express.Multer.File[]> req.files; // TODO: Revisar si usar mejor req.file
+        console.log(req)
+        const allFiles: Express.Multer.File = <Express.Multer.File> req.file; // TODO: Revisar si usar mejor req.file
         let filesToUpload = req.body.numberOfFiles;
-        for (let i = 0; i < req.body.numberOfFiles; i++) {
-          // console.log(allFiles[i].originalname, allFiles[i].filename, allFiles[i].path)
-          cloudService.uploadFile(req.body.drive, allFiles[i].path, `${req.body.pathToSave}/${allFiles[i].filename}`).then(message => {
-            console.log(message);
-            filesToUpload--;
-            if (filesToUpload <= 0) {
-              res.send({ message: 'All files are saved!' });
-            }
+        cloudService.uploadFile(req.body.drive, allFiles.path, `${req.body.pathToSave}/${allFiles.filename}`).then(message => {
+          console.log(message);
+          res.send({ message: 'All files are saved!' });
           })
-        }
+        // for (let i = 0; i < req.body.numberOfFiles; i++) {
+        //   // console.log(allFiles[i].originalname, allFiles[i].filename, allFiles[i].path)
+        //   cloudService.uploadFile(req.body.drive, allFiles[i].path, `${req.body.pathToSave}/${allFiles[i].filename}`).then(message => {
+        //     console.log(message);
+        //     filesToUpload--;
+        //     if (filesToUpload <= 0) {
+        //       res.send({ message: 'All files are saved!' });
+        //     }
+        //   })
+        // }
       }
     });
 
