@@ -1,4 +1,5 @@
 import { GenericTree } from "../service/trees/genericTree";
+import { UploadFiles } from "./commons";
 
 export const urlFolder = 'urlfolder:///';
 
@@ -79,9 +80,5 @@ export interface ChangePathCloudRequest {
   newPath: string;
 }
 
-export interface UploadFilesToCloudRequest {
-  drive: string;
-  pathToSave: string;
-  numberOfFiles: number;
-  files: any[];
+export interface UploadFilesToCloudRequest extends UploadFiles {
 }

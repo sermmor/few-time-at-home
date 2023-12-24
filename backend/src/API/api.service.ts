@@ -313,10 +313,10 @@ export class APIService {
 
     // body: req.body.drive, req.body.pathToSave, req.body.numberOfFiles, req.files
     this.app.post(APIService.cloudEndpointList.uploadFile, upload.array('uploadCloudFiles'), (req, res) => {
-      if (!req.body || !req.files) {
+      if (!req.body || !req.files || !req.file) {
           console.error("Received NO body text");
       } else {
-        const allFiles: Express.Multer.File[] = <Express.Multer.File[]> req.files;
+        const allFiles: Express.Multer.File[] = <Express.Multer.File[]> req.files; // TODO: Revisar si usar mejor req.file
         let filesToUpload = req.body.numberOfFiles;
         for (let i = 0; i < req.body.numberOfFiles; i++) {
           // console.log(allFiles[i].originalname, allFiles[i].filename, allFiles[i].path)

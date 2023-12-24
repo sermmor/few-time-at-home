@@ -80,6 +80,9 @@ export const Cloud = () => {
   const action: ActionsProps = { tree: tree!, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
   
   // TODO: Searcher field!!!
+  // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error.
+  // TODO: Las carpetas no se crean en la cloud hasta que algo esté dentro de ellas.
+  // TODO: Cada acción que modifique el árbol conlleva un guardado del árbol en la nube, es decir hay un guardado automático.
 
   return <Box sx={formStyle}>
     {fileList && <>
@@ -91,8 +94,9 @@ export const Cloud = () => {
         // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
         // onOutSelectionMode={() => setSelectedNodes([])}
         // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
-        // deleteAction={(id) => deleteActionList(action, id)}
+        // onRenameAction={(id) => renameActionList(action, id)}
         // onSearch={onSearchItem}
+        // createFile={(nameFile) => undefined}
         // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
         // addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
         //   title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),

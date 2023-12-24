@@ -1,3 +1,4 @@
+import { UploadFiles } from "../data-model/commons";
 import { ConfigurationService } from "../service/configuration/configuration.service";
 
 export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Promise<T>(resolve => {
@@ -29,4 +30,23 @@ export const fetchJsonSendAndReceive = <T>(url: string, data: any, mock: T): Pro
 export const fetchReceiveText = (url: string): Promise<string> => new Promise<string>(resolve => {
   fetch(url).then(res => res.text())
     .then(text => resolve(text));
+});
+
+export const fetchSendFileAndReceiveConfirmation = <T>(url: string, data: UploadFiles, mock: T): Promise<T> => new Promise<T>(resolve => {
+  if (ConfigurationService.Instance.isUsingMocks) {
+    resolve(mock);
+  } else {
+    // https://developer.mozilla.org/es/docs/Web/API/Fetch_API/Using_Fetch
+    const formData = new FormData();
+    formData.append('drive', data.drive);
+    formData.append('pathToSave', data.pathToSave);
+    formData.append('numberOfFiles', `${data.numberOfFiles}`);
+    formData.append('file', data.files[0]);
+
+    fetch(url, {
+      method: 'POST',
+      body: formData,
+    }).then(res => res.json())
+      .then(json => resolve({...json}));
+  }
 });

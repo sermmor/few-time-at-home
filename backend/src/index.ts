@@ -15,9 +15,6 @@ let apiService: APIService;
 
 // TODO: Add configuration.json to README.md (update README.md with all the details).
 
-// TODO: Poder crear un comando personalizado por API y asociarlo a un conjunto de RSS (pueden ser de Twitter, Mastodon o blogs), al lanzarlo dará los recursos RSS.
-// TODO: ^ sería como un ChannelMediaRSSMessageList que sería una colección de listas personalizadas de ChannelMediaRSSMessageList. 
-
 startBackupEveryWeek('C:\\Workspace\\few-time-at-home\\backups');
 
 readFile(keysPath, (err, data) => {
