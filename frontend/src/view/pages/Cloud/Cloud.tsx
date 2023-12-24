@@ -123,6 +123,7 @@ export const Cloud = () => {
         }).then(message => {
           // TODO: Show message in a user friendly way like a green notification at the top.
           console.log(message);
+          // TODO: Update Cloud file list!!!
         });
       };
   

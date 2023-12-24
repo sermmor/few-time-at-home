@@ -33,5 +33,6 @@ const uploadFile = (data: UploadFilesToCloudRequest) =>
   fetchSendFileAndReceiveConfirmation<MessageResponse>(getCloudEndpoint('uploadFile'), data, messageResponseMock());
 
 // TODO downloadFile
+// TODO https://stackoverflow.com/questions/7288814/download-a-file-from-nodejs-server-using-express
 
 export const CloudActions = { getDrivesList, updateIndexing, getAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile };
