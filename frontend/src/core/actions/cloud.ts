@@ -32,9 +32,6 @@ const renameItem = (data: ChangePathCloudRequest) =>
 const uploadFile = (data: UploadFilesToCloudRequest) =>
   fetchSendFileAndReceiveConfirmation<MessageResponse>(getCloudEndpoint('uploadFile'), data, messageResponseMock());
 
-// TODO uploadFile, downloadFile
-// TODO: To uploadFile use https://stackoverflow.com/a/36082038 (revisa: https://stackoverflow.com/questions/64488160/typescript-and-react-with-file-upload-typing ;;; https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgIilQ3wG4BYAKCrQgDsBneAYV0jqTvgF44AKAJRxuAPjgBvKnGlxajeAG1MwADZIAykjUYkAEwA0cBkhgAxVRq1IdugLrDExGADoArsfUwUMJAB5zaiKCcAD0IXAoKgwQcDBQwHpwvkzxdADmcAA+cABCKhAARiJUUjJyTHAAFih0umoAkiAoaUjM1elIDpiudBjA9PxIAFyO6C5tNS0AogBunDC+ABIAKgCyADL1dGCuMFNqIPMiQpKUMuey9BXKauvAFbxIzl5QLS43SAwU1GcX0sCYfgAQg+dyYQiIMFcUDo31Kf2MZgsmm0Pl0fFB9xgCgADLYBN9zgBfOG-aTleCuMD5FC6AKdXjdXowfp0QYjZBjZyrCDuJCzeZLNbrdRgGr7JCHLiGHl8gVcY4SeEXAH8D4o6xok7Kv7kq5YaAgAAi3hQDg4AHc4KZDSavIJCbrzphbabnCgwGBOOj8KBmkh8IZ1VYbEHkSG0c46ChDgSdTIicqSVQiUA
-// TODO: AND DRAG & DROP https://claritydev.net/blog/react-typescript-drag-drop-file-upload-guide
-// TODO si las cosas fallan en la parte servidor, ojear esto https://code.tutsplus.com/es/file-upload-with-multer-in-node--cms-32088t ;;; https://github.com/tutsplus/file-upload-with-multer-in-node
+// TODO downloadFile
 
 export const CloudActions = { getDrivesList, updateIndexing, getAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile };

@@ -7,13 +7,13 @@ import { Bookmark, BookmarkService } from './bookmark.service';
 import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
-import { Multer } from 'multer';
+import Multer from 'multer';
 import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
 
 const cors = require('cors');
-const multer = require("multer");
-const upload: Multer = multer({ dest: 'data/uploads/' });
+// const multer = require("multer");
+const upload: Multer.Multer = Multer({ dest: 'data/uploads/' });
 
 export interface DataToSendInPieces {
   data: Bookmark[];
@@ -312,17 +312,15 @@ export class APIService {
     });
 
     // body: req.body.drive, req.body.pathToSave, req.body.numberOfFiles, req.files
-    this.app.post(APIService.cloudEndpointList.uploadFile, upload.array('uploadCloudFiles'), (req, res) => {
-      if (!req.body || !req.files || !req.file) {
+    this.app.post(APIService.cloudEndpointList.uploadFile, upload.single('file'), (req, res) => {// upload.array('files')
+      if (!req.body || !req.file) { //  || !req.files
           console.error("Received NO body text");
       } else {
-        console.log(req)
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file; // TODO: Revisar si usar mejor req.file
         let filesToUpload = req.body.numberOfFiles;
-        cloudService.uploadFile(req.body.drive, allFiles.path, `${req.body.pathToSave}/${allFiles.filename}`).then(message => {
-          console.log(message);
+        cloudService.uploadFile(req.body.drive, allFiles.path, `${req.body.pathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
           res.send({ message: 'All files are saved!' });
-          })
+          });
         // for (let i = 0; i < req.body.numberOfFiles; i++) {
         //   // console.log(allFiles[i].originalname, allFiles[i].filename, allFiles[i].path)
         //   cloudService.uploadFile(req.body.drive, allFiles[i].path, `${req.body.pathToSave}/${allFiles[i].filename}`).then(message => {

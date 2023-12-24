@@ -105,7 +105,7 @@ export const Cloud = () => {
       console.log('It\'s the root path, here don\'t upload anything!!!');
       return;
     }
-    
+
     // Fetch the files
     const droppedFiles = Array.from(event.dataTransfer.files);
     setFiles(droppedFiles);
@@ -114,9 +114,16 @@ export const Cloud = () => {
       const reader = new FileReader();
       
       reader.onloadend = () => {
-        console.log(file.name);
-        console.log(`${currentTreeNode?.label}`)
-        console.log(reader.result);
+        // TODO: Don't upload files until all is readed.
+        CloudActions.uploadFile({
+          drive: currentDrive || '/',
+          files: [file],
+          numberOfFiles: 1, // TODO: Upload more than one file.
+          pathToSave: `${currentTreeNode?.label}`,
+        }).then(message => {
+          // TODO: Show message in a user friendly way like a green notification at the top.
+          console.log(message);
+        });
       };
   
       reader.onerror = () => {
@@ -134,7 +141,7 @@ export const Cloud = () => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
-          backgroundColor: dragIsOver ? 'lightgray' : 'white',
+          backgroundColor: dragIsOver ? 'Highlight' : 'white',
         }}
       >
       <TitleAndListWithFolders

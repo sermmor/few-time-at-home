@@ -164,19 +164,26 @@ export class CloudService {
   
   uploadFile = (nameDrive: string, tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
     // It's comes files from web to server.
-    stat(pathFile, (err, stat) => {
+    stat(tempFile, (err, stat) => {
       if (err === null) {
         rename(tempFile, pathFile, (err) => {
           if (err === null) {
-            const item = this.findCloudItem(nameDrive, tempFile);
-            item!.path = pathFile;
             const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+            const pathFileSplit = pathFile.split('/');
+            this.cloudOrigins[indexDrive].contentIndexing?.push({
+              name: pathFileSplit[pathFileSplit.length - 1],
+              path: pathFile,
+              driveName: nameDrive,
+            });
+            console.log(this.cloudOrigins[indexDrive])
             this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve(`File or folder ${pathFile} uploaded correctly.`));
           } else {
+            console.log(err);
             resolve(`Error to uploaded file or folder ${tempFile} in ${pathFile}.`);
           }
         });
       } else {
+        console.log(err);
         resolve(`Folder or file ${tempFile} already exist in ${pathFile}!`);
       }
     });
