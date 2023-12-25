@@ -175,7 +175,6 @@ export class CloudService {
               path: pathFile, // TODO: OJO que LA RUTA puede variar dependiendo del drive seleccionado.
               driveName: nameDrive,
             });
-            console.log(this.cloudOrigins[indexDrive])
             this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve(`File or folder ${pathFile} uploaded correctly.`));
           } else {
             console.log(err);

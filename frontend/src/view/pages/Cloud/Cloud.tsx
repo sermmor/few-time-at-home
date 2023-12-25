@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFile } from "./ActionCloudList";
+import { ActionsProps, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -113,7 +113,7 @@ export const Cloud = () => {
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragIsOver(false);
-    uploadFile(action, event, setFiles);
+    uploadFiles(action, event, setFiles);
   };
 
   return <Box sx={formStyle}>
