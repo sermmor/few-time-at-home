@@ -1,12 +1,21 @@
 import React from "react";
+import { Box, Button, SxProps, Theme } from "@mui/material";
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { CloudItem, urlFolder } from "../../../data-model/cloud";
 import { GenericTree } from "../../../service/trees/genericTree";
 import { CloudActions } from "../../../core/actions/cloud";
-import { Box, Button, SxProps, Theme } from "@mui/material";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { ActionsProps, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFile } from "./ActionCloudList";
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref,
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -65,6 +74,10 @@ export const Cloud = () => {
   const [selectedNodes, setSelectedNodes] = React.useState<GenericTree<CloudItem>[]>([]);
   const [dragIsOver, setDragIsOver] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
+  const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
+  const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
 
   React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
     // For now, I'll choose the first one drive list.
@@ -79,7 +92,7 @@ export const Cloud = () => {
     });
   })}, []);
 
-  const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
+  const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar};
   
   // TODO: Searcher field!!!
   // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error.
@@ -160,5 +173,10 @@ export const Cloud = () => {
       />
     </div>
     }
+  <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} key={'topcenter'}>
+    <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
+      {snackBarMessage}
+    </Alert>
+  </Snackbar>
   </Box>;
 };

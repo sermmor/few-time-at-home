@@ -14,6 +14,9 @@ export interface ActionsProps {
   selectedNodes: GenericTree<CloudItem>[];
   setSelectedNodes: React.Dispatch<React.SetStateAction<GenericTree<CloudItem>[]>>;
   currentDrive: string;
+  setSnackBarMessage: React.Dispatch<React.SetStateAction<string>>;
+  setOpenSnackbar: React.Dispatch<React.SetStateAction<boolean>>;
+  setErrorSnackbar: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 
@@ -62,12 +65,15 @@ export const renameCloudItem = (item: CloudItem, newTextToShow: string) => {
 }
 
 export const uploadFile = (
-  {setFileList, currentTreeNode, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive, setTree}: ActionsProps,
+  {setFileList, currentTreeNode, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive, setTree, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
   event: React.DragEvent<HTMLDivElement>,
   setFiles: React.Dispatch<React.SetStateAction<File[]>>
 ) => {
   if (`${currentTreeNode?.label}` === '/') {
-    console.log('It\'s the root path, here don\'t upload anything!!!');
+    console.error('It\'s the root path, here don\'t upload anything!!!');
+    setSnackBarMessage(`It's the root path, here don't upload anything!!!`);
+    setErrorSnackbar(true);
+    setOpenSnackbar(true);
     return;
   }
 
@@ -75,6 +81,7 @@ export const uploadFile = (
   const droppedFiles = Array.from(event.dataTransfer.files);
   setFiles(droppedFiles);
   
+  // TODO: LO SUYO es ir subiendo los ficheros de uno en uno, cuando reciba que se ha subido uno, paso al siguiente.
   droppedFiles.forEach((file) => {
     const reader = new FileReader();
     
@@ -85,9 +92,12 @@ export const uploadFile = (
         files: [file],
         numberOfFiles: 1, // TODO: Upload more than one file.
         pathToSave: `${currentTreeNode?.label}`,
-      }).then(message => {
+      }).then(res => {
         // TODO: Show message in a user friendly way like a green notification at the top.
-        console.log(message);
+        console.log(res.message);
+        setSnackBarMessage(`File '${file.name}' has uploaded to the cloud.`);
+        setErrorSnackbar(false);
+        setOpenSnackbar(true);
         CloudActions.getAllItems(currentDrive || '/').then(data => {
           // console.log(data)
           setTree(data.data);
@@ -105,6 +115,9 @@ export const uploadFile = (
 
     reader.onerror = () => {
       console.error('There was an issue reading the file.');
+      setSnackBarMessage(`There was an issue reading the file.`);
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
     };
 
     reader.readAsDataURL(file);
@@ -113,7 +126,7 @@ export const uploadFile = (
 };
 
 export const downloadFile = (
-  {currentTreeNode, currentDrive}: ActionsProps,
+  {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
   item: CloudItem,
 ) => {
   CloudActions.downloadFile({
@@ -122,5 +135,8 @@ export const downloadFile = (
   }).then(() => {
     // TODO: Show message in a user friendly way like a green notification at the top.
     console.log('File downloaded!!');
+    setSnackBarMessage(`File '${item.name}' has downloaded.`);
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
   });
 };
