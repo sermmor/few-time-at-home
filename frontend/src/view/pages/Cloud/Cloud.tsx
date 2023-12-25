@@ -6,7 +6,7 @@ import { Box, Button, SxProps, Theme } from "@mui/material";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, goBackToParentFolder, renameCloudItem, setOpenFolder } from "./ActionCloudList";
+import { ActionsProps, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFile } from "./ActionCloudList";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -76,10 +76,10 @@ export const Cloud = () => {
       setTree(data.data);
       setCurrentTreeNode(data.data);
       setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: defaultDrive, path: `${urlFolder}_${index}` }))})
-    })
+    });
   })}, []);
 
-  const action: ActionsProps = { tree: tree!, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
+  const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes};
   
   // TODO: Searcher field!!!
   // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error.
@@ -100,40 +100,7 @@ export const Cloud = () => {
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragIsOver(false);
-    
-    if (`${currentTreeNode?.label}` === '/') {
-      console.log('It\'s the root path, here don\'t upload anything!!!');
-      return;
-    }
-
-    // Fetch the files
-    const droppedFiles = Array.from(event.dataTransfer.files);
-    setFiles(droppedFiles);
-    
-    droppedFiles.forEach((file) => {
-      const reader = new FileReader();
-      
-      reader.onloadend = () => {
-        // TODO: Don't upload files until all is readed.
-        CloudActions.uploadFile({
-          drive: currentDrive || '/',
-          files: [file],
-          numberOfFiles: 1, // TODO: Upload more than one file.
-          pathToSave: `${currentTreeNode?.label}`,
-        }).then(message => {
-          // TODO: Show message in a user friendly way like a green notification at the top.
-          console.log(message);
-          // TODO: Update Cloud file list!!!
-        });
-      };
-  
-      reader.onerror = () => {
-        console.error('There was an issue reading the file.');
-      };
-  
-      reader.readAsDataURL(file);
-      return reader;
-    });
+    uploadFile(action, event, setFiles);
   };
 
   return <Box sx={formStyle}>
@@ -182,21 +149,8 @@ export const Cloud = () => {
                 textToShow={item.name}
                 hideUrl={true}
                 textUrl={`${currentTreeNode?.label}/${item.name}`}
-                onClickUrl={
-                  () => {
-                    // TODO: Download file
-                    // console.log(`${currentDrive}`)
-                    // console.log(`${currentTreeNode?.label}/${item.name}`)
-                    CloudActions.downloadFile({
-                      drive: currentDrive || '/',
-                      path: `${currentTreeNode?.label}/${item.name}`,
-                    }).then(() => {
-                      // TODO: Show message in a user friendly way like a green notification at the top.
-                      console.log('File downloaded!!');
-                    });
-                  }
-                }
-                onChange={(newTextToShow, newTextUrl) => renameCloudItem(item, newTextToShow)}
+                onClickUrl={() => downloadFile(action, item)}
+                onChange={(newTextToShow, newTextUrl) => renameCloudItem(item, newTextToShow)} // TODO function rename.
                 />
               }
             </>
