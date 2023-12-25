@@ -1,7 +1,7 @@
 
-import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest } from "../../data-model/cloud";
+import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
-import { fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
+import { fetchDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
 
 const getDrivesList = (): Promise<CloudDrivesResponse> => 
@@ -32,7 +32,7 @@ const renameItem = (data: ChangePathCloudRequest) =>
 const uploadFile = (data: UploadFilesToCloudRequest) =>
   fetchSendFileAndReceiveConfirmation<MessageResponse>(getCloudEndpoint('uploadFile'), data, messageResponseMock());
 
-// TODO downloadFile
-// TODO https://stackoverflow.com/questions/7288814/download-a-file-from-nodejs-server-using-express
+const downloadFile = (data: DownloadFileToCloudResquest) => 
+  fetchDownloadFile(getCloudEndpoint('downloadFile'), data);
 
-export const CloudActions = { getDrivesList, updateIndexing, getAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile };
+export const CloudActions = { getDrivesList, updateIndexing, getAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile };

@@ -172,7 +172,7 @@ export class CloudService {
             const pathFileSplit = pathFile.split('/');
             this.cloudOrigins[indexDrive].contentIndexing?.push({
               name: pathFileSplit[pathFileSplit.length - 1],
-              path: pathFile, // TODO: OJO que puede variar dependiendo del drive seleccionado.
+              path: pathFile, // TODO: OJO que LA RUTA puede variar dependiendo del drive seleccionado.
               driveName: nameDrive,
             });
             console.log(this.cloudOrigins[indexDrive])

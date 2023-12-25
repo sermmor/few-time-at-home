@@ -181,7 +181,21 @@ export const Cloud = () => {
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 textToShow={item.name}
                 hideUrl={true}
-                textUrl={item.name}
+                textUrl={`${currentTreeNode?.label}/${item.name}`}
+                onClickUrl={
+                  () => {
+                    // TODO: Download file
+                    // console.log(`${currentDrive}`)
+                    // console.log(`${currentTreeNode?.label}/${item.name}`)
+                    CloudActions.downloadFile({
+                      drive: currentDrive || '/',
+                      path: `${currentTreeNode?.label}/${item.name}`,
+                    }).then(() => {
+                      // TODO: Show message in a user friendly way like a green notification at the top.
+                      console.log('File downloaded!!');
+                    });
+                  }
+                }
                 onChange={(newTextToShow, newTextUrl) => renameCloudItem(item, newTextToShow)}
                 />
               }

@@ -1,4 +1,4 @@
-import { UploadFiles } from "../data-model/commons";
+import { DownloadFile, UploadFiles } from "../data-model/commons";
 import { ConfigurationService } from "../service/configuration/configuration.service";
 
 export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Promise<T>(resolve => {
@@ -49,4 +49,27 @@ export const fetchSendFileAndReceiveConfirmation = <T>(url: string, data: Upload
     }).then(res => res.json())
       .then(json => resolve({...json}));
   }
+});
+
+export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void> => new Promise<void>(resolve => {
+  const fileNamePathSplitted = data.path.split('/');
+  const fileName = fileNamePathSplitted[fileNamePathSplitted.length - 1];
+  fetch(url, {
+    method: 'POST',
+    headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data, null, 2)
+  }).then(res => res.blob())
+  .then( blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+    a.click();    
+    a.remove();  //afterwards we remove the element again 
+    resolve();
+  });;
 });

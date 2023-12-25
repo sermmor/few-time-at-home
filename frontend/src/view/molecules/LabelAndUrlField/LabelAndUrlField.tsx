@@ -3,13 +3,14 @@ import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly}: {
+export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly, onClickUrl}: {
   textToShow: string,
   textUrl: string,
   backgroundColor?: string,
   onChange?: (newTextToShow: string, newtextUrl: string) => void,
   isReadOnly?: boolean,
   hideUrl?: boolean,
+  onClickUrl?: () => void,
 }) => {
   const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
@@ -58,9 +59,16 @@ export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor,
       <Box sx={isReadOnly ? undefined : {cursor: 'pointer', color: '#1976d2'}} onClick={() => isReadOnly ? undefined : setEditMode(true)}>
         {textToShowEditing ? textToShowEditing : '<No title>'}
       </Box>
-      <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
-        <OpenInNewIcon />
-      </Link>
+      {
+        onClickUrl ? 
+          <Link target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onClickUrl}>
+            <OpenInNewIcon />
+          </Link>
+        :
+          <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
+            <OpenInNewIcon />
+          </Link>
+      }
     </Box>
   }</>;
 }

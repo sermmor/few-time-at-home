@@ -316,7 +316,7 @@ export class APIService {
       if (!req.body || !req.file) { //  || !req.files
           console.error("Received NO body text");
       } else {
-        const allFiles: Express.Multer.File = <Express.Multer.File> req.file; // TODO: Revisar si usar mejor req.file
+        const allFiles: Express.Multer.File = <Express.Multer.File> req.file; // TODO: req.files
         let filesToUpload = req.body.numberOfFiles;
         cloudService.uploadFile(req.body.drive, allFiles.path, `${req.body.pathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
           res.send({ message: 'All files are saved!' });
@@ -343,13 +343,14 @@ export class APIService {
           root: undefined
         };
 
-        if (cloudDefaultPath === req.body.path) {
+        
+        if (cloudDefaultPath === req.body.cloud) {
           options.root = path.join(__dirname);
         } else {
           options.root = cloudService.getPathDrive(req.body.drive);
         }
-
-        const fileRelativePath = (<string> req.body.drive).split('/').slice(1).join('/');
+        
+        const fileRelativePath = (<string> req.body.path).split('/').slice(2).join('/'); // Remove '', and 'drive'.
         
         res.sendFile(fileRelativePath, options, (err) => {
             if (err) {
