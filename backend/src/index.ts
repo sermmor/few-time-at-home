@@ -15,7 +15,7 @@ let apiService: APIService;
 
 // TODO: Add configuration.json to README.md (update README.md with all the details).
 
-startBackupEveryWeek('C:\\Workspace\\few-time-at-home\\backups');
+startBackupEveryWeek('C:\\Workspace\\few-time-at-home\\backups'); // TODO: PUT THIS URL IN CONFIGURATION!!
 
 readFile(keysPath, (err, data) => {
     if (err) throw err;

@@ -1,17 +1,24 @@
 import { ReaderOptions } from "@extractus/feed-extractor";
 import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
-import { checkUntilConditionIsTrue, ExtractorUtilities } from "../utils";
+import { checkUntilConditionIsTrue, ExtractorUtilities, readJSONFile, saveInAFile } from "../utils";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
 const fetch = require("node-fetch");
 
 const DEFAULT_TRIES = 10;
 
+const pathBookmarkFile = 'data/youtube_rss_urls.json';
+
+interface YouTubeRSSUrl {
+  channelUrl: string;
+  rssUrl: string;
+}
+
 export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
   
   public isYoutubeListLoaded = false;
-  public youtubeLinkAndRssList: {channelUrl: string; rssUrl: string}[] = [];
+  public youtubeLinkAndRssList: YouTubeRSSUrl[] = [];
 
   constructor(
       private rssOptions: ReaderOptions = {
@@ -21,24 +28,47 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
       }
   ) {
     super();
-    this.refleshChannelMediaConfiguration();
+    this.loadChannelsRssFile().then(() => this.refleshChannelMediaConfiguration());
   }
+
+  private loadChannelsRssFile = (): Promise<YouTubeRSSUrl[]> => new Promise<YouTubeRSSUrl[]>(resolve => {
+    readJSONFile(pathBookmarkFile, '[]').then(dataJson => {
+      this.youtubeLinkAndRssList = dataJson;
+      if (Object.values(dataJson).length === 0) {
+        this.youtubeLinkAndRssList = [];
+      }
+      resolve(this.youtubeLinkAndRssList);
+    });
+  });
+
+  private saveChannelsRssFile = (): Promise<YouTubeRSSUrl[]> => new Promise<YouTubeRSSUrl[]>(resolve => {
+    saveInAFile(JSON.stringify(this.youtubeLinkAndRssList, null, 2), pathBookmarkFile);
+    resolve(this.youtubeLinkAndRssList);
+    console.log("> Youtube RSS channels saved!");
+  });
 
   waitUntilIsChargedYoutubeList = (): Promise<void> => new Promise<void>(resolve => checkUntilConditionIsTrue(() => this.isYoutubeListLoaded, () => resolve()));
 
-  private static getYoutubeRSSUrl = (channelUrl: string, currentTry = DEFAULT_TRIES): Promise<string> => new Promise<string>(resolve => {
-    fetch(channelUrl).then((res: any) => res.text()).then((text: string) => {
-      const code = ExtractorUtilities.cut(text, 'browse_id","value":"', "\"}");
-      console.log(`> Loaded ${channelUrl} at try ${DEFAULT_TRIES - currentTry}`)
-      resolve(`https://www.youtube.com/feeds/videos.xml?channel_id=${code}`);
-    }).catch(() => {
-      if (currentTry > 0) {
-        setTimeout(() => YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl, currentTry - 1).then(data => resolve(data)), 100);
+  private static getYoutubeRSSUrl = (channelUrl: string, youtubeRssUrlFileLoaded: YouTubeRSSUrl[], currentTry = DEFAULT_TRIES): Promise<string> => new Promise<string>(resolve => {
+    const rssUrlInFile = (currentTry < DEFAULT_TRIES) ? -1 : youtubeRssUrlFileLoaded.findIndex((rssAndChannelUrl) => rssAndChannelUrl.channelUrl === channelUrl);
+    if (rssUrlInFile !== -1) {
+      console.log('> LOADED FROM FILE', youtubeRssUrlFileLoaded[rssUrlInFile].channelUrl);
+      resolve(youtubeRssUrlFileLoaded[rssUrlInFile].rssUrl);
     } else {
-        console.error(`> getYoutubeRSSUrl profile ${channelUrl} is broken or deleted!`);
-        resolve('');
+      // Use webscrapping.
+      fetch(channelUrl).then((res: any) => res.text()).then((text: string) => {
+        const code = ExtractorUtilities.cut(text, 'browse_id","value":"', "\"}");
+        console.log(`> Loaded ${channelUrl} at try ${DEFAULT_TRIES - currentTry}`)
+        resolve(`https://www.youtube.com/feeds/videos.xml?channel_id=${code}`);
+      }).catch(() => {
+        if (currentTry > 0) {
+          setTimeout(() => YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl, youtubeRssUrlFileLoaded, currentTry - 1).then(data => resolve(data)), 100);
+      } else {
+          console.error(`> getYoutubeRSSUrl profile ${channelUrl} is broken or deleted!`);
+          resolve('');
+      }
+      });
     }
-    });
   });
 
   refleshChannelMediaConfiguration = (): Promise<string[]> => new Promise<string[]>(resolve => {
@@ -51,15 +81,18 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
         this.urlProfiles.push(this.youtubeLinkAndRssList[rssUrlCandidateIndex].rssUrl);
         numberOfElements--;
       } else {
-        YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl).then(rssUrl => {
-          this.youtubeLinkAndRssList.push({channelUrl, rssUrl});
+        YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl, this.youtubeLinkAndRssList).then(rssUrl => {
+          if (this.youtubeLinkAndRssList.findIndex((rssAndChannelUrl) => rssAndChannelUrl.channelUrl === channelUrl) === -1) {
+            this.youtubeLinkAndRssList.push({channelUrl, rssUrl});
+          }
           this.urlProfiles.push(rssUrl);
           numberOfElements--;
           // console.log(channelUrl, rssUrl, numberOfElements)
           if (numberOfElements === 0) {
             this.isYoutubeListLoaded = true;
             const allProfiles = this.urlProfiles.filter(url => url !== '');
-            console.log(`> Loaded ${allProfiles.length} youtube profiles of ${ConfigurationService.Instance.youtubeRssList.length}.`)
+            console.log(`> Loaded ${allProfiles.length} youtube profiles of ${ConfigurationService.Instance.youtubeRssList.length}.`);
+            this.saveChannelsRssFile();
             resolve(allProfiles);
           }
         });

@@ -115,9 +115,10 @@ const pathToCopyList = [
   'data/notes.txt',
   'data/alerts.json',
   'data/bookmark.json',
+  'data/youtube_rss_urls.json',
   'allRss.json',
   'configuration.json',
-  'keys.json'
+  'keys.json',
 ];
 
 const pathToPasteList = [
@@ -125,14 +126,15 @@ const pathToPasteList = [
   'notes.txt',
   'alerts.json',
   'bookmark.json',
+  'youtube_rss_urls.json',
   'allRss.json',
   'configuration.json',
-  'keys.json'
+  'keys.json',
 ]
 
 const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promise<void> => {
   return new Promise<void>(resolve => copyFile(sourcePath, destinyPath, (err) => {
-    if (err) throw err;
+    if (err) console.log(`> File ${sourcePath} can't backup (it doesn't exist)!`); //throw err;
     resolve();
   }));
 }
