@@ -51,6 +51,13 @@ export const fetchSendFileAndReceiveConfirmation = <T>(url: string, data: Upload
   }
 });
 
+const fileTypesToShowInNewTab = ['pdf', 'jpg', 'jpeg', 'gif', 'png'];
+
+const isTypeFileToShowInNewTab = (fileName: string): boolean => {
+  const fileNameSplitted = fileName.split('.');
+  return fileTypesToShowInNewTab.findIndex(fileType => fileType === fileNameSplitted[fileNameSplitted.length - 1].toLowerCase()) !== -1;
+};
+
 export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void> => new Promise<void>(resolve => {
   const fileNamePathSplitted = data.path.split('/');
   const fileName = fileNamePathSplitted[fileNamePathSplitted.length - 1];
@@ -64,12 +71,18 @@ export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void
   }).then(res => res.blob())
   .then( blob => {
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
-    a.click();    
-    a.remove();  //afterwards we remove the element again 
-    resolve();
+    if (isTypeFileToShowInNewTab(fileName)) {
+      // Show in new tab.
+      window.open(URL.createObjectURL(blob));
+    } else {
+      // Download file.
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+      a.click();    
+      a.remove();  //afterwards we remove the element again 
+      resolve();
+    }
   });;
 });
