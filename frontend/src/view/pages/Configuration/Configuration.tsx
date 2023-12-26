@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataModel } from "../../../data-model/configuration";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
@@ -210,6 +210,20 @@ export const ConfigurationComponent = () => {
           }))}
         />
         <Box sx={footerStyle}>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Checkbox
+              checked={config.showNitterRSSInAll}
+              onChange={evt => {
+                setConfig({
+                  ...config,
+                  showNitterRSSInAll: evt.target.checked,
+                });
+              }}
+            />
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+              Show Twitter in 'all' rss option?
+            </Typography>
+          </Box>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
               Backup path
