@@ -19,8 +19,6 @@ export interface ActionsProps {
   setErrorSnackbar: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-
-
 export const goBackToParentFolder = ({setFileList, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive}: ActionsProps) => {
   const cloneBreadcrumb = [...breadcrumb];
   const parentTreeNode = cloneBreadcrumb.pop();
@@ -50,6 +48,21 @@ export const setOpenFolder = ({setFileList, currentTreeNode, setCurrentTreeNode,
     setFileList(newFileList);
     setCurrentTreeNode(newCurrentTreeNode);
   }
+}
+
+const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList }: ActionsProps) => {
+  CloudActions.getAllItems(currentDrive || '/').then(data => {
+    setTree(data.data);
+    setCurrentTreeNode(data.data);
+
+    setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({
+      name: item.label,
+      isNotFolder: false,
+      driveName: currentDrive,
+      path: `${urlFolder}_${index}`
+    } as CloudItem))});
+    // TODO: Return to the last folder, not root.
+  });
 }
 
 const uploadOnlyOneFile = (
@@ -88,25 +101,15 @@ const uploadListFilesOneToOne = (
   actions: ActionsProps,
   fileList: File[]
 ) => {
-  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setTree, setCurrentTreeNode, currentDrive, setFileList } = actions;
+  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar } = actions;
   if (fileList.length === 0) {
     console.log('All files has uploaded to cloud!');
     setSnackBarMessage(`All files has uploaded to cloud!`);
     setErrorSnackbar(false);
     setOpenSnackbar(true);
 
-    CloudActions.getAllItems(currentDrive || '/').then(data => {
-      setTree(data.data);
-      setCurrentTreeNode(data.data);
-
-      setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({
-        name: item.label,
-        isNotFolder: false,
-        driveName: currentDrive,
-        path: `${urlFolder}_${index}`
-      } as CloudItem))});
-      // TODO: Return to the last folder, not root.
-    });
+    // Reflesh cloud and return to the current folder.
+    refleshCloudView(actions);
   } else {
     uploadOnlyOneFile(actions, fileList[0]).then(() => uploadListFilesOneToOne(actions, fileList.slice(1)));
   }
