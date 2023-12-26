@@ -126,7 +126,7 @@ export const Cloud = () => {
         }}
       >
       <TitleAndListWithFolders
-        title='Bookmarks'
+        title='Cloud'
         id='Bookmarks_0'
         path={`${currentTreeNode?.label}`}
         // duplicateItem={() => undefined}
