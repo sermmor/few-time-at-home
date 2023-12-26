@@ -50,7 +50,10 @@ export const setOpenFolder = ({setFileList, currentTreeNode, setCurrentTreeNode,
   }
 }
 
-const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList }: ActionsProps) => {
+const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList, breadcrumb, setBreadcrumb, currentTreeNode }: ActionsProps) => {
+  const breadcrumbCopy = [...breadcrumb];
+  breadcrumbCopy.push(currentTreeNode);
+
   CloudActions.getAllItems(currentDrive || '/').then(data => {
     setTree(data.data);
     setCurrentTreeNode(data.data);
@@ -61,7 +64,20 @@ const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileLi
       driveName: currentDrive,
       path: `${urlFolder}_${index}`
     } as CloudItem))});
+
     // TODO: Return to the last folder, not root.
+    setBreadcrumb([]);
+    setTimeout(
+      () => {
+        // TODO: Lo siguiente no funciona, así que hay que pensar una forma de cómo hacerlo sin usar el setOpenFolder.
+        // let bc;
+        // for (let i = 0; i < breadcrumbCopy.length; i++) {
+        //   bc = breadcrumbCopy[i];
+        //   setOpenFolder(actions, bc.label);
+        //   console.log(bc.label);
+        // }
+      }, 0
+    )
   });
 }
 
