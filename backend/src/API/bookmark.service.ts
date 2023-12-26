@@ -29,15 +29,34 @@ export class BookmarkService {
     }
   });
 
+  searchPredicate = (bm: Bookmark) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
+    || bm.url.toLowerCase().indexOf(w) >= 0
+    || bm.path.toLowerCase().indexOf(w) >= 0;
+
   searchInBookmark = (wordlist: string): Bookmark[] => {
     // The bookmarks had 1 or more words.
     const words = wordlist.toLowerCase().split(' ').filter(value => value !== '');
     const maxResults = 100;
-    const result = this.bookmarks.filter(bm => words.filter(w =>
-      bm.title.toLowerCase().indexOf(w) >= 0
-      || bm.url.toLowerCase().indexOf(w) >= 0
-      || bm.path.toLowerCase().indexOf(w) >= 0
-      ).length > 0);
+    const resultOr = this.bookmarks.filter(bm => words.filter(
+      this.searchPredicate(bm)
+    ).length > 0);
+
+    const resultAnd = this.bookmarks.filter(bm => {
+      let w: string;
+      const searchCondition = this.searchPredicate(bm);
+      for (let i = 0; i < words.length; i++) {
+        w = words[i];
+        if (!searchCondition(w)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    // Create results, the first ones has to be the results with all results. Then the or results. The and results are in the or results, so...
+    const resultsOrWithoutAnd = resultOr.filter(bmOr => resultAnd.findIndex(bmAnd => bmAnd.url === bmOr.url) === -1);
+    const result = resultAnd.concat(resultsOrWithoutAnd);
+
     return (result.length > maxResults) ? result.slice(0, maxResults) : result;
   }
 
