@@ -87,6 +87,7 @@ export const Home = () => {
         list={notes.data.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={editActionList(`${item}`)}/> }))}
       />
       <SaveNotesComponent notes={notes}/>
+      <Box>{window.innerWidth}</Box>
       </>
     }
   </Box>
