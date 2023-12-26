@@ -114,8 +114,9 @@ const uploadListFilesOneToOne = (
 
 export const uploadFiles = (
   actions: ActionsProps,
-  event: React.DragEvent<HTMLDivElement>,
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+  event?: React.DragEvent<HTMLDivElement>,
+  setFiles?: React.Dispatch<React.SetStateAction<File[]>>,
+  file?: File
 ) => {
   const { currentTreeNode, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar} = actions;
   if (`${currentTreeNode?.label}` === '/') {
@@ -127,9 +128,16 @@ export const uploadFiles = (
   }
 
   // Fetch the files
-  const droppedFiles = Array.from(event.dataTransfer.files);
-  setFiles(droppedFiles);
-  uploadListFilesOneToOne(actions, droppedFiles);
+  let droppedFiles;
+  if (!file && event && setFiles) {
+    droppedFiles = Array.from(event.dataTransfer.files);
+    setFiles(droppedFiles);
+  } else if (file) {
+    droppedFiles = [file];
+  }
+  if (droppedFiles) {
+    uploadListFilesOneToOne(actions, droppedFiles);
+  }
 };
 
 export const downloadFile = (

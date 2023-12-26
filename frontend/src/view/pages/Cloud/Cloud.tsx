@@ -117,6 +117,13 @@ export const Cloud = () => {
     uploadFiles(action, event, setFiles);
   };
 
+  const handleUploadButton = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    if (event.target.files && event.target.files.length > 0) {
+      uploadFiles(action, undefined, undefined, event.target.files[0]);
+    }
+  }
+
   return <Box sx={formStyle}>
     {fileList && <div
         onDragOver={handleDragOver}
@@ -130,6 +137,7 @@ export const Cloud = () => {
         title='Cloud'
         id='cloud_0'
         path={`${currentTreeNode?.label}`}
+        onUploadItem={handleUploadButton}
         // duplicateItem={() => undefined}
         // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
         // onOutSelectionMode={() => setSelectedNodes([])}
