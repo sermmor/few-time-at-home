@@ -53,6 +53,7 @@ export const configurationDataModelMock = (): ConfigurationDataModel => ({
       author: "Aristóteles"
     },
   ],
+  backupUrls: "C:\\Workspace\\few-time-at-home\\backups",
   numberOfWorkers: 4,
   apiPort: 8080,
 });

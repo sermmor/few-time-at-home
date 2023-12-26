@@ -212,6 +212,23 @@ export const ConfigurationComponent = () => {
         <Box sx={footerStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+              Backup path
+            </Typography>
+            <TextField
+              label="Backup path"
+              variant="standard"
+              value={config.backupUrls}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
+              onChange={evt => {
+                setConfig({
+                  ...config,
+                  backupUrls: evt.target.value,
+                });
+              }}
+            />
+          </Box>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
               Number of workers
             </Typography>
             <TextField

@@ -29,6 +29,7 @@ export class ConfigurationService {
         bot_add_alert: string;
     };
     quoteList: Quote[];
+    backupUrls: string;
     numberOfWorkers: number;
     apiPort: number;
     
@@ -40,6 +41,7 @@ export class ConfigurationService {
         this.youtubeRssList = configurationData.youtubeRssList;
         this.listBotCommands = configurationData.listBotCommands;
         this.numberOfWorkers = configurationData.numberOfWorkers;
+        this.backupUrls = configurationData.backupUrls;
         this.apiPort = configurationData.apiPort;
         this.quoteList = configurationData.quoteList;
 
@@ -54,6 +56,7 @@ export class ConfigurationService {
         youtubeRssList: this.youtubeRssList,
         listBotCommands: this.listBotCommands,
         quoteList: this.quoteList,
+        backupUrls: this.backupUrls,
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
     })
@@ -66,6 +69,7 @@ export class ConfigurationService {
         if (body.youtubeRssList) this.youtubeRssList = body.youtubeRssList;
         if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
         if (body.quoteList) this.quoteList = body.quoteList;
+        if (body.backupUrls) this.backupUrls = body.backupUrls;
         if (body.numberOfWorkers) this.numberOfWorkers = body.numberOfWorkers;
         if (body.apiPort) this.apiPort = body.apiPort;
 

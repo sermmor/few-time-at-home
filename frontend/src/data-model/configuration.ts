@@ -6,6 +6,7 @@ export interface ConfigurationDataModel {
   youtubeRssList: string[],
   listBotCommands: {[key: string]: string},
   quoteList: {quote: string; author: string}[],
+  backupUrls: string,
   numberOfWorkers: number,
   apiPort: number,
 }
