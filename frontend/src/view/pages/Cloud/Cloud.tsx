@@ -97,7 +97,6 @@ export const Cloud = () => {
   // TODO: Searcher field!!!
   // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error. <= OTRA OPCIÓN: CARPETA PAPELERA
   // TODO: Las carpetas se crean en la cloud y en el backend se les añade un fichero vacío para que persistan y no se borren en el árbol.
-  // TODO: Añadir botón de subir fichero, para así subir a la cloud mis dibujos desde el ipad.
   // TODO: Cada acción que modifique el árbol conlleva un guardado del árbol en la nube, es decir hay un guardado automático.
 
   // Define the event handlers
