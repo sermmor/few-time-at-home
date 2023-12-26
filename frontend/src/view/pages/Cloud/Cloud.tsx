@@ -95,8 +95,8 @@ export const Cloud = () => {
   const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar};
   
   // TODO: Searcher field!!!
-  // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error.
-  // TODO: Las carpetas no se crean en la cloud hasta que algo esté dentro de ellas.
+  // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error. <= OTRA OPCIÓN: CARPETA PAPELERA
+  // TODO: Las carpetas se crean en la cloud y en el backend se les añade un fichero vacío para que persistan y no se borren en el árbol.
   // TODO: Cada acción que modifique el árbol conlleva un guardado del árbol en la nube, es decir hay un guardado automático.
 
   // Define the event handlers
@@ -116,6 +116,13 @@ export const Cloud = () => {
     uploadFiles(action, event, setFiles);
   };
 
+  const handleUploadButton = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    if (event.target.files && event.target.files.length > 0) {
+      uploadFiles(action, undefined, undefined, event.target.files[0]);
+    }
+  }
+
   return <Box sx={formStyle}>
     {fileList && <div
         onDragOver={handleDragOver}
@@ -129,6 +136,7 @@ export const Cloud = () => {
         title='Cloud'
         id='cloud_0'
         path={`${currentTreeNode?.label}`}
+        onUploadItem={handleUploadButton}
         // duplicateItem={() => undefined}
         // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
         // onOutSelectionMode={() => setSelectedNodes([])}

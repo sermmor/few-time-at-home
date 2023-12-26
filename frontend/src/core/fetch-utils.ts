@@ -71,7 +71,9 @@ export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void
   }).then(res => res.blob())
   .then( blob => {
     const url = window.URL.createObjectURL(blob);
-    if (isTypeFileToShowInNewTab(fileName)) {
+    const isAndroidOS = navigator.appVersion.toLowerCase().indexOf('android') !== -1;
+    const isTabletScreenSize = window.innerWidth < 1400; // If we are in iOS is imposible know if it's a Mac or a iPad, so we use the screen width.
+    if (!isAndroidOS && !isTabletScreenSize && isTypeFileToShowInNewTab(fileName)) {
       // Show in new tab.
       window.open(URL.createObjectURL(blob));
     } else {

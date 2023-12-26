@@ -50,7 +50,10 @@ export const setOpenFolder = ({setFileList, currentTreeNode, setCurrentTreeNode,
   }
 }
 
-const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList }: ActionsProps) => {
+const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList, breadcrumb, setBreadcrumb, currentTreeNode }: ActionsProps) => {
+  const breadcrumbCopy = [...breadcrumb];
+  breadcrumbCopy.push(currentTreeNode);
+
   CloudActions.getAllItems(currentDrive || '/').then(data => {
     setTree(data.data);
     setCurrentTreeNode(data.data);
@@ -61,7 +64,20 @@ const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileLi
       driveName: currentDrive,
       path: `${urlFolder}_${index}`
     } as CloudItem))});
+
     // TODO: Return to the last folder, not root.
+    setBreadcrumb([]);
+    setTimeout(
+      () => {
+        // TODO: Lo siguiente no funciona, así que hay que pensar una forma de cómo hacerlo sin usar el setOpenFolder.
+        // let bc;
+        // for (let i = 0; i < breadcrumbCopy.length; i++) {
+        //   bc = breadcrumbCopy[i];
+        //   setOpenFolder(actions, bc.label);
+        //   console.log(bc.label);
+        // }
+      }, 0
+    )
   });
 }
 
@@ -117,8 +133,9 @@ const uploadListFilesOneToOne = (
 
 export const uploadFiles = (
   actions: ActionsProps,
-  event: React.DragEvent<HTMLDivElement>,
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+  event?: React.DragEvent<HTMLDivElement>,
+  setFiles?: React.Dispatch<React.SetStateAction<File[]>>,
+  file?: File
 ) => {
   const { currentTreeNode, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar} = actions;
   if (`${currentTreeNode?.label}` === '/') {
@@ -130,9 +147,16 @@ export const uploadFiles = (
   }
 
   // Fetch the files
-  const droppedFiles = Array.from(event.dataTransfer.files);
-  setFiles(droppedFiles);
-  uploadListFilesOneToOne(actions, droppedFiles);
+  let droppedFiles;
+  if (!file && event && setFiles) {
+    droppedFiles = Array.from(event.dataTransfer.files);
+    setFiles(droppedFiles);
+  } else if (file) {
+    droppedFiles = [file];
+  }
+  if (droppedFiles) {
+    uploadListFilesOneToOne(actions, droppedFiles);
+  }
 };
 
 export const downloadFile = (

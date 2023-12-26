@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Card, CardContent, IconButton, Typography, SxProps, Theme, Button } from "@mui/material";
+import { Box, Card, CardContent, IconButton, Typography, SxProps, Theme, Button, Input } from "@mui/material";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
@@ -8,6 +8,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import UploadFile from '@mui/icons-material/UploadFile';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
@@ -58,6 +59,7 @@ interface Props {
   onMoveItem?: (listIdItemSelect: string[]) => void;
   goBackToParent?: () => void;
   onSearch?: (textToSearch: string) => Promise<(string | JSX.Element)[]>;
+  onUploadItem?: (event: any) => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -73,6 +75,7 @@ export const TitleAndListWithFolders = ({
   onSelectItem,
   onOutSelectionMode,
   onSearch,
+  onUploadItem,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -145,6 +148,13 @@ export const TitleAndListWithFolders = ({
       {
         !isInSelectListMode && 
           <Button onClick={addFolder}><CreateNewFolderIcon /></Button>
+      }
+      {
+        !isInSelectListMode && onUploadItem &&
+        <>
+          <Button onClick={() => {document.getElementById('fileToUpload')!.click()}}><UploadFile /></Button>
+          <Input type='file' id='fileToUpload' sx={{'display': 'none'}} onChange={onUploadItem}/>
+        </>
       }
       {
         (!isInSelectListMode || isInMoveItemMode) && 
