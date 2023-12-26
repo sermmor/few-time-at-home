@@ -127,7 +127,7 @@ export const Cloud = () => {
       >
       <TitleAndListWithFolders
         title='Cloud'
-        id='Bookmarks_0'
+        id='cloud_0'
         path={`${currentTreeNode?.label}`}
         // duplicateItem={() => undefined}
         // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
