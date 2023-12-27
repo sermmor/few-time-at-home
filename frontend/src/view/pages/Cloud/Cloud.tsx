@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, checkToReturnToPath, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -77,6 +77,8 @@ export const Cloud = () => {
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
+  const [isMarkToReturnToPath, setMarkToReturnToPath] = React.useState(false);
+  const [pathToReturn, setPathToReturn] = React.useState<GenericTree<CloudItem>[]>([]);
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
 
   React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
@@ -92,7 +94,9 @@ export const Cloud = () => {
     });
   })}, []);
 
-  const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!, setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar};
+  const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!,
+    setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
+    isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn };
   
   // TODO: Searcher field!!!
   // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error. <= OTRA OPCIÓN: CARPETA PAPELERA
@@ -122,6 +126,8 @@ export const Cloud = () => {
       uploadFiles(action, undefined, undefined, event.target.files[0]);
     }
   }
+
+  checkToReturnToPath(action);
 
   return <Box sx={formStyle}>
     {fileList && <div

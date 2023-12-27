@@ -16,7 +16,11 @@ export interface ActionsProps {
   currentDrive: string;
   setSnackBarMessage: React.Dispatch<React.SetStateAction<string>>;
   setOpenSnackbar: React.Dispatch<React.SetStateAction<boolean>>;
-  setErrorSnackbar: React.Dispatch<React.SetStateAction<boolean>>
+  setErrorSnackbar: React.Dispatch<React.SetStateAction<boolean>>;
+  isMarkToReturnToPath: boolean;
+  setMarkToReturnToPath: React.Dispatch<React.SetStateAction<boolean>>;
+  pathToReturn: GenericTree<CloudItem>[];
+  setPathToReturn: React.Dispatch<React.SetStateAction<GenericTree<CloudItem>[]>>;
 }
 
 export const goBackToParentFolder = ({setFileList, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive}: ActionsProps) => {
@@ -50,7 +54,47 @@ export const setOpenFolder = ({setFileList, currentTreeNode, setCurrentTreeNode,
   }
 }
 
-const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList, breadcrumb, setBreadcrumb, currentTreeNode }: ActionsProps) => {
+let renderCounter = 0;
+
+export const checkToReturnToPath = ({ currentTreeNode, currentDrive, setCurrentTreeNode, breadcrumb, setBreadcrumb, setFileList, isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn }: ActionsProps) => {
+  if (isMarkToReturnToPath) {
+    // Prevent for multiple render using a setTimeout and a checking counter var.
+    renderCounter++;
+    if (renderCounter === 1) {
+      setTimeout(() => {
+        const cloneBreadcrumb = [...breadcrumb];
+
+        let labelFolder, childIndex, newCurrentTreeNode, newFileList;
+        newCurrentTreeNode = currentTreeNode;
+
+        cloneBreadcrumb.push(newCurrentTreeNode);
+
+        for (let i = 1; i < pathToReturn.length; i++) {
+          labelFolder = pathToReturn[i].label;
+          childIndex = newCurrentTreeNode.searchLabelInChild(labelFolder);
+          newCurrentTreeNode = newCurrentTreeNode.children[childIndex];
+
+          newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
+            item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
+  
+          cloneBreadcrumb.push(newCurrentTreeNode);
+        }
+
+        cloneBreadcrumb.pop(); // The 2 last ones are the same node.
+
+        setBreadcrumb(cloneBreadcrumb);
+        setFileList(newFileList);
+        setCurrentTreeNode(newCurrentTreeNode);
+
+        setMarkToReturnToPath(false);
+        setPathToReturn([]);
+        renderCounter = 0;
+      }, 0);
+    }
+  }
+};
+
+const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList, breadcrumb, setBreadcrumb, currentTreeNode, setMarkToReturnToPath, setPathToReturn }: ActionsProps) => {
   const breadcrumbCopy = [...breadcrumb];
   breadcrumbCopy.push(currentTreeNode);
 
@@ -65,21 +109,11 @@ const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileLi
       path: `${urlFolder}_${index}`
     } as CloudItem))});
 
-    // TODO: Return to the last folder, not root.
     setBreadcrumb([]);
-    setTimeout(
-      () => {
-        // TODO: Lo siguiente no funciona, así que hay que pensar una forma de cómo hacerlo sin usar el setOpenFolder.
-        // let bc;
-        // for (let i = 0; i < breadcrumbCopy.length; i++) {
-        //   bc = breadcrumbCopy[i];
-        //   setOpenFolder(actions, bc.label);
-        //   console.log(bc.label);
-        // }
-      }, 0
-    )
+    setMarkToReturnToPath(true);
+    setPathToReturn(breadcrumbCopy);
   });
-}
+};
 
 const uploadOnlyOneFile = (
   { currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
