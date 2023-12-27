@@ -210,19 +210,21 @@ export const downloadFile = (
 };
 
 export const renameCloudItem = (item: CloudItem, newTextToShow: string) => {
-  CloudActions.renameItem({
-    drive: item.driveName,
-    oldPath: item.path,
-    newPath: `${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`}
-  ).then((data) => {
-    console.log(data)
-    // TODO: Show data.message in the app.
-    // TODO: REFLESH ALL THE TREE AND DATA!!!
-  });
+  console.log(`${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`)
+  // CloudActions.renameItem({
+  //   drive: item.driveName,
+  //   oldPath: item.path,
+  //   newPath: `${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`}
+  // ).then((data) => {
+  //   console.log(data)
+  //   // TODO: Show data.message in the app.
+  //   // TODO: REFLESH ALL THE TREE AND DATA!!! refleshCloudView(actions);
+
+  // });
 };
 
 export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: CloudItem) => {
-  const {currentDrive, currentTreeNode, setCurrentTreeNode, fileList, setFileList, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  const {currentDrive, currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
   if (`${currentTreeNode?.label}` === '/') {
     console.error('It\'s the root path, here don\'t upload anything!!!');
     setSnackBarMessage(`It's the root path, here don't upload anything!!!`);
@@ -230,7 +232,7 @@ export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: Clou
     setOpenSnackbar(true);
     return;
   }
-  // TODO: Create a folder and create a file inside that folder. Use endpoint to create folder and then enpoint to create file.
+  
   const newEmptyFile: CloudItem = {
     driveName: currentDrive || '/',
     isNotFolder: true,
