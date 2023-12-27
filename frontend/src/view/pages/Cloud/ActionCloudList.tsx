@@ -197,6 +197,7 @@ export const downloadFile = (
   {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
   item: CloudItem,
 ) => {
+  // console.log(item)
   CloudActions.downloadFile({
     drive: currentDrive || '/',
     path: `${currentTreeNode?.label}/${item.name}`,
@@ -219,3 +220,39 @@ export const renameCloudItem = (item: CloudItem, newTextToShow: string) => {
     // TODO: REFLESH ALL THE TREE AND DATA!!!
   });
 };
+
+export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: CloudItem) => {
+  const {currentDrive, currentTreeNode, setCurrentTreeNode, fileList, setFileList, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  if (`${currentTreeNode?.label}` === '/') {
+    console.error('It\'s the root path, here don\'t upload anything!!!');
+    setSnackBarMessage(`It's the root path, here don't upload anything!!!`);
+    setErrorSnackbar(true);
+    setOpenSnackbar(true);
+    return;
+  }
+  // TODO: Create a folder and create a file inside that folder. Use endpoint to create folder and then enpoint to create file.
+  const newEmptyFile: CloudItem = {
+    driveName: currentDrive || '/',
+    isNotFolder: true,
+    name: `emptyfile.txt`,
+    path: `${folderToAdd!.path}/emptyfile.txt`.split('//').join('/'),
+  };
+  console.log(folderToAdd)
+  console.log(folderToAdd.path)
+  console.log(newEmptyFile)
+
+  CloudActions.createFolder({
+    drive: folderToAdd.driveName,
+    path: folderToAdd.path,
+  }).then(() => {
+      CloudActions.createBlankFile({
+        drive: newEmptyFile.driveName,
+        path: newEmptyFile.path,
+      }).then(() => {
+        console.log(`Created folder '${folderToAdd.path}' with file '${newEmptyFile.name}'`);
+        refleshCloudView(actions);
+      });
+    }
+  );
+};
+

@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, checkToReturnToPath, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -53,6 +53,8 @@ const formStyle: SxProps<Theme> = {
 let indexNewCloudItemAdded = 0;
 
 const cleanLabelFolder = (label: string): string => label.split('//').join('/');
+
+const removeRootFromPath = (path: string): string => path.substring(1);
 
 const getPathParentFolder = (completePath: string): string => {
   const textSplited = completePath.split('/');
@@ -151,10 +153,12 @@ export const Cloud = () => {
         // onSearch={onSearchItem}
         // createFile={(nameFile) => undefined}
         // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
-        // addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
-        //   title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),
-        //   url: `${urlFolder}_${indexNewBookmarkAdded}`
-        // }) }}
+        addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
+          driveName: currentDrive || '/',
+          isNotFolder: false,
+          name: `new folder ${indexNewCloudItemAdded}`,
+          path: removeRootFromPath(cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewCloudItemAdded}`)),
+        })}}
         goBackToParent={() => goBackToParentFolder(action)}
         list={
           fileList.data.map((item, index) => ({id:`${item.name}`, isFolder: !item.isNotFolder, item: <>{
