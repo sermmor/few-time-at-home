@@ -28,7 +28,11 @@ export class ConfigurationService {
         bot_search_bookmark_command: string;
         bot_add_alert: string;
         bot_search_file: string;
-        bot_give_file: string;
+        bot_give_file_from_search: string;
+        bot_cloud_cd_path: string,
+        bot_cloud_ls_path: string,
+        bot_cloud_return_path: string
+        bot_cloud_upload_to_current_path: string;
     };
     quoteList: Quote[];
     backupUrls: string;

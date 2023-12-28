@@ -20,6 +20,7 @@ export class TelegramBot {
   private bot: Telegraf<TelegrafContext>;
   private context: TelegrafContext | undefined;
   private lastSearchInCloudPathList: string[] = [];
+  private currentCloudDir: string = '/';
 
   constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
     TelegramBot._instance = this;
@@ -62,7 +63,11 @@ export class TelegramBot {
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_bookmark_command, this.sendSearchBookmarksToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_file, this.searchFilesInCloud);
-      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_give_file, this.giveMeFileIndexInCloud);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_give_file_from_search, this.giveMeFileIndexInCloud);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_cloud_cd_path, this.cdDirInCloud);
+      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_ls_path, this.lsDirInCloud);
+      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_return_path, this.returnToParentInCloud);
+      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_upload_to_current_path, this.uploadFileToCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_alert, this.addAlertFromTelegram);
       this.launchAlertsToTelegram();
       this.bot.launch();
@@ -179,12 +184,71 @@ export class TelegramBot {
     });
   }
 
+  cdDirInCloud = (ctx: TelegrafContext, message: string) => {
+    this.setContext(ctx);
+    const candidate = (this.currentCloudDir === '/') ? `${message.substring(1)}` : `${this.currentCloudDir}/${message.substring(1)}`;
+    if (CloudService.Instance.lsDirOperation(cloudDefaultPath, candidate).length > 0) {
+      // Exists, then we can change of dir.
+      this.currentCloudDir = candidate;
+      ctx.reply(`Nuevo path '${this.currentCloudDir}'.`);
+    } else {
+      ctx.reply(`Error al cambiar al path '${candidate}'.`);
+    }
+  }
+
+  lsDirInCloud = (ctx: TelegrafContext) => {
+    this.setContext(ctx);
+    const pathList = CloudService.Instance.lsDirOperation(cloudDefaultPath, this.currentCloudDir);
+    const bookmarksPerMessage = 10;
+    const numberOfMessages = Math.ceil(pathList.length / bookmarksPerMessage);
+    const messagesToSend = [];
+    let indexItem = 0;
+    let message = '';
+    
+    for (let i = 0; i < numberOfMessages; i++) {
+      message = '';
+      for (let j = bookmarksPerMessage * i; j < bookmarksPerMessage * (i + 1) && j < pathList.length; j++) {
+        message = message === '' ? `${indexItem}. - ${pathList[j]}` : `${message}\n${indexItem}. - ${pathList[j]}`;
+        indexItem++;
+      }
+      messagesToSend.push(message);
+    }
+    this.sendAllMessagesToTelegram(ctx, messagesToSend);
+  }
+
+  returnToParentInCloud = (ctx: TelegrafContext) => {
+    this.setContext(ctx);
+    if (this.currentCloudDir === '/') {
+      return;
+    }
+    const splittedPath = this.currentCloudDir.split('/');
+    splittedPath.pop();
+    this.currentCloudDir = splittedPath.join('/');
+    if (this.currentCloudDir.length === 0) {
+      this.currentCloudDir = '/';
+    }
+    ctx.reply(`Nuevo path '${this.currentCloudDir}'.`);
+  }
+
+  uploadFileToCloud = (ctx: TelegrafContext) => {
+    this.setContext(ctx);
+    
+    if (ctx.message?.photo || ctx.message?.audio || ctx.message?.document || ctx.message?.caption || ctx.message?.video) {
+      // TODO: Upload document to cloud USING CloudService.Instance.uploadFile in the path this.currentCloudDir
+      
+      // this.bot.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
+      
+      this.setContext(ctx);
+    }
+  }
+
   giveMeFileIndexInCloud = (ctx: TelegrafContext, index: string) => {
     const i = +index;
     if (i && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
       ctx.replyWithDocument({source: this.lastSearchInCloudPathList[i]});
     }
   }
+
   searchFilesInCloud = (ctx: TelegrafContext, wordToSearch: string) => {
     this.setContext(ctx);
     this.lastSearchInCloudPathList = CloudService.Instance.searchCloudItem(cloudDefaultPath, wordToSearch).map(item => item.path);

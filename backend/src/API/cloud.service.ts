@@ -194,9 +194,30 @@ export class CloudService {
   };
 
   private findCloudFolderItemsList = (nameDrive: string, pathItem: string): CloudItem[] => {
-    const cloudItems = this.getCloudItems(nameDrive)
+    const cloudItems = this.getCloudItems(nameDrive);
     const cloudItemsFinded = cloudItems.filter(item => item.path.includes(pathItem));
     return cloudItemsFinded;
+  };
+
+  private removeDuplicatesItems = (pathList: string[]): string[] => {
+    const newPathList: string[] = [];
+    pathList.forEach(path => {
+      if (newPathList.indexOf(path) < 0) {
+        newPathList.push(path);
+      }
+    });
+    return newPathList;
+  }
+
+  lsDirOperation = (nameDrive: string, pathItem: string): string[] => {
+    const cloudItems = this.getCloudItems(nameDrive);
+    const cloudItemsFinded = cloudItems.filter(item => item.path.includes(pathItem)).map(item => {
+      const splittedPathItemParent = pathItem.split('/');
+      const splittedPathItemOffspring = item.path.split('/');
+      const splittedPathChild = splittedPathItemOffspring.slice(0, splittedPathItemParent.length + 1);
+      return splittedPathChild.join('/');
+    });
+    return this.removeDuplicatesItems(cloudItemsFinded);
   };
   
   uploadFile = (nameDrive: string, tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
