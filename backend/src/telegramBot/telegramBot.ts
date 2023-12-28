@@ -6,6 +6,7 @@ import { BookmarkService } from "../API/bookmark.service";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
+import { CloudService, cloudDefaultPath } from "../API/cloud.service";
 
 // const pathFinishedVideo = 'build/finished.mp4';
 // const pathStartedVideo = 'build/start.mp4';
@@ -18,6 +19,7 @@ export class TelegramBot {
   private telegramBotData: TelegramData;
   private bot: Telegraf<TelegrafContext>;
   private context: TelegrafContext | undefined;
+  private lastSearchInCloudPathList: string[] = [];
 
   constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
     TelegramBot._instance = this;
@@ -59,9 +61,12 @@ export class TelegramBot {
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_bookmark_command, this.sendSearchBookmarksToTelegram);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_file, this.searchFilesInCloud);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_give_file, this.giveMeFileIndexInCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_alert, this.addAlertFromTelegram);
       this.launchAlertsToTelegram();
       this.bot.launch();
+      
       // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
   }
 
@@ -172,6 +177,32 @@ export class TelegramBot {
     BookmarkService.Instance.addBookmark(urlBookmark).then(() => {
       ctx.reply(`El marcador se ha añadido correctamente.`);
     });
+  }
+
+  giveMeFileIndexInCloud = (ctx: TelegrafContext, index: string) => {
+    const i = +index;
+    if (i && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
+      ctx.replyWithDocument({source: this.lastSearchInCloudPathList[i]});
+    }
+  }
+  searchFilesInCloud = (ctx: TelegrafContext, wordToSearch: string) => {
+    this.setContext(ctx);
+    this.lastSearchInCloudPathList = CloudService.Instance.searchCloudItem(cloudDefaultPath, wordToSearch).map(item => item.path);
+    const bookmarksPerMessage = 10;
+    const numberOfMessages = Math.ceil(this.lastSearchInCloudPathList.length / bookmarksPerMessage);
+    const messagesToSend = [];
+    let indexItem = 0;
+    let message = '';
+    
+    for (let i = 0; i < numberOfMessages; i++) {
+      message = '';
+      for (let j = bookmarksPerMessage * i; j < bookmarksPerMessage * (i + 1) && j < this.lastSearchInCloudPathList.length; j++) {
+        message = message === '' ? `${indexItem}. - ${this.lastSearchInCloudPathList[j]}` : `${message}\n${indexItem}. - ${this.lastSearchInCloudPathList[j]}`;
+        indexItem++;
+      }
+      messagesToSend.push(message);
+    }
+    this.sendAllMessagesToTelegram(ctx, messagesToSend);
   }
 
   private addAlertFromTelegram = (ctx: TelegrafContext, message: string) => {

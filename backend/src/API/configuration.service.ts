@@ -27,6 +27,8 @@ export class ConfigurationService {
         bot_add_bookmark_command: string;
         bot_search_bookmark_command: string;
         bot_add_alert: string;
+        bot_search_file: string;
+        bot_give_file: string;
     };
     quoteList: Quote[];
     backupUrls: string;

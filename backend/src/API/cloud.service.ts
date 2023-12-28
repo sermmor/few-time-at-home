@@ -21,7 +21,10 @@ const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
 export class CloudService {
+  static Instance: CloudService;
+  
   constructor(public cloudOrigins: Drive[] = []) {
+    CloudService.Instance = this;
     this.cloudOrigins.push(defaultOrigin);
 
     this.getAllIndexingFilesContent().then(driveList => {
