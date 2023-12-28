@@ -156,6 +156,14 @@ export class CloudService {
     return contentDrive ? contentDrive : [];
   };
 
+  searchCloudItem = (nameDrive: string, searchTokken: string): { path: string }[] => {
+    const cloudItems = this.getCloudItems(nameDrive);
+    const searchTokkenLower = searchTokken.toLowerCase();
+    // TODO: trocear tokken no buscar por el nombre completo
+    const cloudItemsFinded = cloudItems.filter(item => item.path.toLowerCase().includes(searchTokkenLower)).map(item => ({path: item.path}));
+    return cloudItemsFinded;
+  };
+
   private findCloudItem = (nameDrive: string, pathItem: string): CloudItem | undefined => {
     const cloudItems = this.getCloudItems(nameDrive)
     const index = cloudItems.findIndex(item => item.path === pathItem);

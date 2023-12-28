@@ -1,5 +1,5 @@
 
-import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest } from "../../data-model/cloud";
+import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
 import { fetchDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
@@ -16,6 +16,9 @@ const getAllItems = (drive: string): Promise<CloudDataModel> => new Promise<Clou
       resolve(parseFromFetchToDataModel(fetchData));
     });
 });
+
+const searchAllItems = (data: SearchItemsResquest) => 
+  fetchJsonSendAndReceive<SearchItemsResponse>(getCloudEndpoint('search'), data, {search: []});
 
 const createFolder = (data: GenericCloudRequest) => 
   fetchJsonSendAndReceive<UpdatedResponse>(getCloudEndpoint("createFolder"), data, updatedResponseMock());
@@ -35,4 +38,4 @@ const uploadFile = (data: UploadFilesToCloudRequest) =>
 const downloadFile = (data: DownloadFileToCloudResquest) => 
   fetchDownloadFile(getCloudEndpoint('downloadFile'), data);
 
-export const CloudActions = { getDrivesList, updateIndexing, getAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile };
+export const CloudActions = { getDrivesList, updateIndexing, getAllItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile };

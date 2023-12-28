@@ -48,6 +48,7 @@ export class APIService {
     createBlankFile: '/cloud/create-blank-file',
     uploadFile: '/cloud/upload-file',
     downloadFile: '/cloud/download-file',
+    search: '/cloud/search',
   };
 
   app: Express;
@@ -317,10 +318,19 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        let filesToUpload = req.body.numberOfFiles;
         cloudService.uploadFile(req.body.drive, allFiles.path, `${req.body.pathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
           res.send({ message: 'All files are saved!' });
           });
+      }
+    });
+
+    // body: req.body.nameDrive, req.body.searchTokken
+    this.app.post(APIService.cloudEndpointList.search, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        const search = cloudService.searchCloudItem(req.body.nameDrive, req.body.searchTokken);
+        res.send({ search });
       }
     });
 

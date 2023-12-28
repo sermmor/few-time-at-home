@@ -1,3 +1,4 @@
+import { Link } from "@mui/material";
 import { CloudActions } from "../../../core/actions/cloud";
 import { CloudItem, addPrefixUrlFolder, urlFolder } from "../../../data-model/cloud";
 import { GenericTree } from "../../../service/trees/genericTree";
@@ -226,9 +227,6 @@ export const renameCloudItem = (
     name: newName,
   };
 
-  console.log(elementToEdit)
-  console.log(cloneList[index])
-
   setFileList({data: [...cloneList]});
 
   if (currentTreeNode) {
@@ -297,9 +295,6 @@ export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: Clou
     name: `emptyfile.txt`,
     path: `${folderToAdd!.path}/emptyfile.txt`.split('//').join('/'),
   };
-  console.log(folderToAdd)
-  console.log(folderToAdd.path)
-  console.log(newEmptyFile)
 
   CloudActions.createFolder({
     drive: folderToAdd.driveName,
@@ -316,3 +311,30 @@ export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: Clou
   );
 };
 
+export const onSearchFileOrFolder = (actions: ActionsProps) => (textToSearch: string) => new Promise<(string | JSX.Element)[]>(resolve => {
+  const { currentDrive } = actions;
+  CloudActions.searchAllItems({
+    nameDrive: currentDrive,
+    searchTokken: textToSearch,
+  }).then(allFilesAndFolderGetted => {
+    resolve(allFilesAndFolderGetted.search.map(({ path }) => 
+      <p><Link target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={downloadFileOnlyWithPath(actions, `/${path}`)}>
+         {path}
+       </Link></p>
+    ));
+})});
+
+const downloadFileOnlyWithPath = (
+  {currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
+  path: string,
+) => () => {
+  CloudActions.downloadFile({
+    drive: currentDrive || '/',
+    path,
+  }).then(() => {
+    console.log('File downloaded!!');
+    setSnackBarMessage(`File '${path}' has downloaded.`);
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
+  });
+};

@@ -87,3 +87,12 @@ export interface UploadFilesToCloudRequest extends UploadFiles {
 
 export interface DownloadFileToCloudResquest extends DownloadFile {
 }
+
+export interface SearchItemsResquest {
+  nameDrive: string;
+  searchTokken: string;
+}
+
+export interface SearchItemsResponse {
+  search: { path: string }[];
+}

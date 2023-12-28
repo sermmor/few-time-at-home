@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, renameCloudFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -148,8 +148,7 @@ export const Cloud = () => {
         // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
         // onOutSelectionMode={() => setSelectedNodes([])}
         // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
-        // onRenameAction={(id) => renameActionList(action, id)}
-        // onSearch={onSearchItem}
+        onSearch={onSearchFileOrFolder(action)}
         // createFile={(nameFile) => undefined}
         // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
         addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
@@ -179,7 +178,7 @@ export const Cloud = () => {
                 hideUrl={true}
                 textUrl={`${currentTreeNode?.label}/${item.name}`}
                 onClickUrl={() => downloadFile(action, item)}
-                onChange={(newTextToShow, newTextUrl) => renameCloudItem(action, item, newTextToShow, newTextUrl)} // TODO function rename.
+                onChange={(newTextToShow, newTextUrl) => renameCloudItem(action, item, newTextToShow, newTextUrl)}
                 />
               }
             </>
