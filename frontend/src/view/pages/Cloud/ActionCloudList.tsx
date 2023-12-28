@@ -1,5 +1,5 @@
 import { CloudActions } from "../../../core/actions/cloud";
-import { CloudItem, urlFolder } from "../../../data-model/cloud";
+import { CloudItem, addPrefixUrlFolder, urlFolder } from "../../../data-model/cloud";
 import { GenericTree } from "../../../service/trees/genericTree";
 
 export interface ActionsProps {
@@ -209,19 +209,73 @@ export const downloadFile = (
   });
 };
 
-export const renameCloudItem = (item: CloudItem, newTextToShow: string) => {
-  console.log(`${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`)
-  // CloudActions.renameItem({
-  //   drive: item.driveName,
-  //   oldPath: item.path,
-  //   newPath: `${item.path.split('/').slice(0, -1).join('/')}/${newTextToShow}`}
-  // ).then((data) => {
-  //   console.log(data)
-  //   // TODO: Show data.message in the app.
-  //   // TODO: REFLESH ALL THE TREE AND DATA!!! refleshCloudView(actions);
+export const renameCloudItem = (
+  {fileList, setFileList, currentTreeNode, setCurrentTreeNode}: ActionsProps, 
+  item: CloudItem,
+  newName: string,
+  oldPath: string
+) => {
+  const newPath = `/${item.path.split('/').slice(0, -1).join('/')}/${newName}`;
 
-  // });
+  const cloneList = [...fileList.data];
+  const index = cloneList.findIndex(itemCanditate => itemCanditate.path === item.path);
+  const elementToEdit = {...cloneList[index]};
+  cloneList[index] = {
+    ...cloneList[index],
+    path: newPath,
+    name: newName,
+  };
+
+  console.log(elementToEdit)
+  console.log(cloneList[index])
+
+  setFileList({data: [...cloneList]});
+
+  if (currentTreeNode) {
+    const childIndex = currentTreeNode.searchNodeLeafInChild(elementToEdit, (item1, item2) => item1.path === item2.path);
+    currentTreeNode.children[childIndex].node!.name = newName;
+    currentTreeNode.children[childIndex].node!.path = newPath;
+    
+    setCurrentTreeNode(currentTreeNode);
+  }
+  
+  CloudActions.renameItem({
+    drive: item.driveName,
+    oldPath: oldPath.substring(1),
+    newPath: newPath.substring(1),
+  }).then((data) => {
+    console.log(data);
+  });
 };
+
+export const renameCloudFolder = ({fileList, setFileList, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => (newName: string) => {
+  const pathSplitted = newName.split('/');
+  const newPath = addPrefixUrlFolder(pathSplitted.pop());
+
+  const cloneList = [...fileList.data];
+  const index = cloneList.findIndex(item => item.path === id);
+  const elementToEdit = {...cloneList[index]};
+
+  cloneList[index] = {
+    ...cloneList[index],
+    name: newName,
+    path: newPath,
+  };
+
+  setFileList({data: [...cloneList]});
+
+  if (currentTreeNode) {
+    const childIndex = currentTreeNode.searchLabelInChild(elementToEdit.name);
+    const splitNameFolder = newName.split('/');
+    currentTreeNode.children[childIndex].renameLabelNode(splitNameFolder[splitNameFolder.length - 1]);
+
+    console.log(currentTreeNode)
+
+    setCurrentTreeNode(currentTreeNode);
+
+    // TODO: Change name folder in server.
+  }
+}
 
 export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: CloudItem) => {
   const {currentDrive, currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;

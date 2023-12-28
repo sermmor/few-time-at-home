@@ -3,6 +3,8 @@ import { DownloadFile, UploadFiles } from "./commons";
 
 export const urlFolder = 'urlfolder:///';
 
+export const addPrefixUrlFolder = (nameFolder: string | undefined): string => urlFolder + nameFolder;
+
 export const isFolder = (element: CloudItem) => !element.isNotFolder;
 
 export interface CloudDrivesResponse {

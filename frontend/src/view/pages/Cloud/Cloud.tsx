@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, SxProps, Theme } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { CloudItem, urlFolder } from "../../../data-model/cloud";
@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, renameCloudFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -166,12 +166,11 @@ export const Cloud = () => {
               <LabelAndTextFieldWithFolder
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 text={item.name}
-                path={getPathParentFolder(item.path)}
-                nameFolder={getNameFolder(item.path)}
-                onChange={() => undefined}
+                path={getPathParentFolder(item.name)}
+                nameFolder={getNameFolder(item.name)}
                 // path={getPathParentFolder(item.title)}
                 // nameFolder={getNameFolder(item.title)}
-                // onChange={editFolderActionList(action, `${item.url}`)}
+                onChange={renameCloudFolder(action, `${item.path}`)}
                 setOpenFolder={(label) => setOpenFolder(action, label)}
                 />
             :
@@ -181,7 +180,7 @@ export const Cloud = () => {
                 hideUrl={true}
                 textUrl={`${currentTreeNode?.label}/${item.name}`}
                 onClickUrl={() => downloadFile(action, item)}
-                onChange={(newTextToShow, newTextUrl) => renameCloudItem(item, newTextToShow)} // TODO function rename.
+                onChange={(newTextToShow, newTextUrl) => renameCloudItem(action, item, newTextToShow, newTextUrl)} // TODO function rename.
                 />
               }
             </>
