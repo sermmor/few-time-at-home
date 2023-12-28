@@ -156,12 +156,32 @@ export class CloudService {
     return contentDrive ? contentDrive : [];
   };
 
+  private searchPredicate = (ci: CloudItem) => (w: string): boolean => ci.name.toLowerCase().indexOf(w) >= 0 || ci.path.toLowerCase().indexOf(w) >= 0;
+
   searchCloudItem = (nameDrive: string, searchTokken: string): { path: string }[] => {
+    const words = searchTokken.toLowerCase().split(' ').filter(value => value !== '');
+    const maxResults = 100;
+    
     const cloudItems = this.getCloudItems(nameDrive);
-    const searchTokkenLower = searchTokken.toLowerCase();
-    // TODO: trocear tokken no buscar por el nombre completo
-    const cloudItemsFinded = cloudItems.filter(item => item.path.toLowerCase().includes(searchTokkenLower)).map(item => ({path: item.path}));
-    return cloudItemsFinded;
+
+    const resultOr = cloudItems.filter(ci => words.filter(this.searchPredicate(ci)).length > 0);
+
+    const resultAnd = cloudItems.filter(ci => {
+      let w: string;
+      const searchCondition = this.searchPredicate(ci);
+      for (let i = 0; i < words.length; i++) {
+        w = words[i];
+        if (!searchCondition(w)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    const resultsOrWithoutAnd = resultOr.filter(bmOr => resultAnd.findIndex(bmAnd => bmAnd.path === bmOr.path) === -1);
+    const result = resultAnd.concat(resultsOrWithoutAnd);
+
+    return (result.length > maxResults) ? result.slice(0, maxResults) : result;
   };
 
   private findCloudItem = (nameDrive: string, pathItem: string): CloudItem | undefined => {

@@ -29,7 +29,7 @@ export class BookmarkService {
     }
   });
 
-  searchPredicate = (bm: Bookmark) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
+  private searchPredicate = (bm: Bookmark) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
     || bm.url.toLowerCase().indexOf(w) >= 0
     || bm.path.toLowerCase().indexOf(w) >= 0;
 

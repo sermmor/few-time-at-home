@@ -100,9 +100,10 @@ export const Cloud = () => {
     setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn };
   
-  // TODO: Searcher field!!!
-  // TODO: En la cloud no se borra nada. Se borran las cosas en el gestor de ficheros. Así evitamos pérdidas de ficheros o carpetas por error. <= OTRA OPCIÓN: CARPETA PAPELERA
-  // TODO: Cada acción que modifique el árbol conlleva un guardado del árbol en la nube, es decir hay un guardado automático.
+  // TODO: Crear opción de borrar con diálogo de aviso y CARPETA PAPELERA. Que se oculten los ficheros 'emptyfile.txt' y se borren automáticamente en cuanto tengamos algo en la carpeta.
+  // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta. La idea es poder crear estos ficheros y editarlos en la cloud con un editor.
+  // TODO: La cloud se lía un poco parda cuando voy a reemplazar un fichero por otro con el mismo nombre. Esto hay que arreglarlo, porque se debe poder reemplazar ficheros sin problemas.
+  // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
 
   // Define the event handlers
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
