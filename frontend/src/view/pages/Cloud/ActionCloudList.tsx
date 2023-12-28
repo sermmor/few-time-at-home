@@ -269,11 +269,15 @@ export const renameCloudFolder = ({fileList, setFileList, currentTreeNode, setCu
     const splitNameFolder = newName.split('/');
     currentTreeNode.children[childIndex].renameLabelNode(splitNameFolder[splitNameFolder.length - 1]);
 
-    console.log(currentTreeNode)
-
     setCurrentTreeNode(currentTreeNode);
-
-    // TODO: Change name folder in server.
+    
+    CloudActions.renameItem({
+      drive: elementToEdit.driveName,
+      oldPath: elementToEdit.name.substring(1),
+      newPath: newName.substring(1),
+    }).then((data) => {
+      console.log(data);
+    });
   }
 }
 

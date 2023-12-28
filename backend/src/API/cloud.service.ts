@@ -161,6 +161,12 @@ export class CloudService {
     const index = cloudItems.findIndex(item => item.path === pathItem);
     return index === -1 ? undefined : cloudItems[index];
   };
+
+  private findCloudFolderItemsList = (nameDrive: string, pathItem: string): CloudItem[] => {
+    const cloudItems = this.getCloudItems(nameDrive)
+    const cloudItemsFinded = cloudItems.filter(item => item.path.includes(pathItem));
+    return cloudItemsFinded;
+  };
   
   uploadFile = (nameDrive: string, tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
     // It's comes files from web to server.
@@ -200,12 +206,23 @@ export class CloudService {
       if (err === null) {
         rename(oldPathFileOrFolder, newPathFileOrFolder, (err) => {
           if (err === null) {
-            const pathSplited = newPathFileOrFolder.split('/');
-            const item = this.findCloudItem(nameDrive, oldPathFileOrFolder);
-            item!.path = newPathFileOrFolder;
-            item!.name = pathSplited[pathSplited.length - 1];
-            const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
-            this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
+            if (stat.isDirectory()) {
+              const pathSplited = newPathFileOrFolder.split('/');
+              const itemList = this.findCloudFolderItemsList(nameDrive, oldPathFileOrFolder);
+              itemList.forEach(item => {
+                const pathItemWithoutOldFolderPath = item.path.substring(oldPathFileOrFolder.length);
+                item.path = newPathFileOrFolder + pathItemWithoutOldFolderPath;
+              })
+              const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+              this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
+            } else {
+              const pathSplited = newPathFileOrFolder.split('/');
+              const item = this.findCloudItem(nameDrive, oldPathFileOrFolder);
+              item!.path = newPathFileOrFolder;
+              item!.name = pathSplited[pathSplited.length - 1];
+              const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+              this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
+            }
           } else {
             resolve('Error to rename file or folder.');
           }
