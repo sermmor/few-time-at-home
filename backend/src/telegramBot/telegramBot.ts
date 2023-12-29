@@ -259,6 +259,11 @@ export class TelegramBot {
 
   uploadFileToCloud = (ctx: TelegrafContext) => {
     this.setContext(ctx);
+
+    if (this.currentCloudDir === '/' || this.currentCloudDir === '') {
+      ctx.reply(`No se puede subir un fichero a la raíz. Cambia a un directorio hijo.`);
+      return;
+    }
     
     if (ctx.message?.photo || ctx.message?.audio || ctx.message?.document || ctx.message?.caption || ctx.message?.video || ctx.message?.voice || ctx.message?.animation) {
       const fileItemId = this.getItemIdFromTelegram(ctx);

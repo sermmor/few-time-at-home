@@ -148,11 +148,16 @@ const uploadOnlyOneFile = (
   reader.readAsDataURL(file);
 });
 
+const getFolderName = (label: string): string => {
+  const labelSplitted = label.split('/');
+  return labelSplitted[labelSplitted.length - 1];
+};
+
 const uploadListFilesOneToOne = (
   actions: ActionsProps,
   fileList: File[]
 ) => {
-  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar } = actions;
+  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, currentTreeNode } = actions;
   if (fileList.length === 0) {
     console.log('All files has uploaded to cloud!');
     setSnackBarMessage(`All files has uploaded to cloud!`);
@@ -162,7 +167,18 @@ const uploadListFilesOneToOne = (
     // Reflesh cloud and return to the current folder.
     refleshCloudView(actions);
   } else {
-    uploadOnlyOneFile(actions, fileList[0]).then(() => uploadListFilesOneToOne(actions, fileList.slice(1)));
+    const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
+
+    if (nameFileAndFolderList.indexOf(fileList[0].name) < 0) {
+      uploadOnlyOneFile(actions, fileList[0]).then(() => uploadListFilesOneToOne(actions, fileList.slice(1)));
+    } else {
+      // Item already in cloud, not replace!
+      console.log(`Already there is a '${fileList[0].name}' in the cloud.`);
+      setSnackBarMessage(`Already there is a '${fileList[0].name}' in the cloud.`);
+      setErrorSnackbar(false);
+      setOpenSnackbar(true);
+      uploadListFilesOneToOne(actions, fileList.slice(1));
+    }
   }
 }
 
