@@ -285,7 +285,7 @@ export class TelegramBot {
           }) 
         }).catch(rejected => {
           console.log(rejected);
-          ctx.reply(`The file can't upload. Is too big!!`);
+          ctx.reply(`No se puede subir el fichero a la cloud. Es demasiado grande!!`);
         })
       }
     }
