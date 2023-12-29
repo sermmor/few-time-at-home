@@ -7,6 +7,12 @@ import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
 import { CloudService, cloudDefaultPath } from "../API/cloud.service";
+import { createWriteStream, existsSync, mkdir } from "fs";
+import { WritableStream } from 'stream/web';
+import { Readable } from "stream";
+import { finished } from "stream/promises";
+
+const fetch = require("node-fetch");
 
 // const pathFinishedVideo = 'build/finished.mp4';
 // const pathStartedVideo = 'build/start.mp4';
@@ -67,7 +73,13 @@ export class TelegramBot {
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_cloud_cd_path, this.cdDirInCloud);
       this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_ls_path, this.lsDirInCloud);
       this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_return_path, this.returnToParentInCloud);
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_upload_to_current_path, this.uploadFileToCloud);
+      // this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_upload_to_current_path, this.uploadFileToCloud);
+      this.bot.on('photo', this.uploadFileToCloud);
+      this.bot.on('audio', this.uploadFileToCloud);
+      this.bot.on('document', this.uploadFileToCloud);
+      this.bot.on('video', this.uploadFileToCloud);
+      this.bot.on('voice', this.uploadFileToCloud);
+      this.bot.on('animation', this.uploadFileToCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_alert, this.addAlertFromTelegram);
       this.launchAlertsToTelegram();
       this.bot.launch();
@@ -190,7 +202,7 @@ export class TelegramBot {
     if (CloudService.Instance.lsDirOperation(cloudDefaultPath, candidate).length > 0) {
       // Exists, then we can change of dir.
       this.currentCloudDir = candidate;
-      ctx.reply(`Nuevo path '${this.currentCloudDir}'.`);
+      ctx.reply(`Cambio al path '${this.currentCloudDir}'.`);
     } else {
       ctx.reply(`Error al cambiar al path '${candidate}'.`);
     }
@@ -227,18 +239,55 @@ export class TelegramBot {
     if (this.currentCloudDir.length === 0) {
       this.currentCloudDir = '/';
     }
-    ctx.reply(`Nuevo path '${this.currentCloudDir}'.`);
+    ctx.reply(`Cambio al path '${this.currentCloudDir}'.`);
+  }
+  
+  private getItemIdFromTelegram = (ctx: TelegrafContext) => (ctx.message?.photo && ctx.message?.photo[0].file_id) || ctx.message?.audio?.file_id || ctx.message?.document?.file_id || ctx.message?.video?.file_id || ctx.message?.voice?.file_id || ctx.message?.animation?.file_id;
+  private getNameFromTelegram = (ctx: TelegrafContext) => ctx.message?.audio?.title || ctx.message?.document?.file_name || ctx.message?.animation?.file_name;
+
+  private saveFileInCloud = (ctx: TelegrafContext, response: any, tempDirectory: string, nameFile: string, extensionFile: string) => {
+    const tempPath = `${tempDirectory}/${nameFile}`;
+    const definitivePath = `${this.currentCloudDir}/${nameFile}.${extensionFile}`;
+    const body = Readable.Readable.from(response.body);
+    const download_write_stream = createWriteStream(tempPath);
+    finished(body.pipe(download_write_stream)).then(() => {
+      CloudService.Instance.uploadFile(cloudDefaultPath, tempPath, definitivePath);
+      console.log(`Downloaded from telegram file '${nameFile}' in '${definitivePath}`);
+      ctx.reply(`Saved file '${definitivePath}'`);
+    });
   }
 
   uploadFileToCloud = (ctx: TelegrafContext) => {
     this.setContext(ctx);
     
-    if (ctx.message?.photo || ctx.message?.audio || ctx.message?.document || ctx.message?.caption || ctx.message?.video) {
-      // TODO: Upload document to cloud USING CloudService.Instance.uploadFile in the path this.currentCloudDir
-      
-      // this.bot.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
-      
-      this.setContext(ctx);
+    if (ctx.message?.photo || ctx.message?.audio || ctx.message?.document || ctx.message?.caption || ctx.message?.video || ctx.message?.voice || ctx.message?.animation) {
+      const fileItemId = this.getItemIdFromTelegram(ctx);
+      console.log(`fileItemId: ${fileItemId}`);
+      if (fileItemId) {
+        const tempDirectory = 'temp_telegram';
+        this.bot.telegram.getFile(fileItemId).then(file => {
+          const nameFile = this.getNameFromTelegram(ctx) || fileItemId;
+          const filePathSplitted = file.file_path?.split('.');
+          const extensionFile = filePathSplitted ? filePathSplitted[filePathSplitted.length - 1] : '';
+          console.log(`nameFile: ${nameFile}`);
+          console.log(`extension file: ${extensionFile}`);
+          this.bot.telegram.getFileLink(fileItemId).then(linkFile => {
+            console.log(`linkFile: ${linkFile}`);
+            fetch(linkFile).then((response: any) => {
+              if (!existsSync(tempDirectory)) {
+                mkdir(tempDirectory, () => {
+                  this.saveFileInCloud(ctx, response, tempDirectory, nameFile, extensionFile);
+                });
+              } else {
+                this.saveFileInCloud(ctx, response, tempDirectory, nameFile, extensionFile);
+              }
+            });
+          }) 
+        }).catch(rejected => {
+          console.log(rejected);
+          ctx.reply(`The file can't upload. Is too big!!`);
+        })
+      }
     }
   }
 
