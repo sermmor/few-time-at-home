@@ -293,7 +293,7 @@ export class TelegramBot {
 
   giveMeFileIndexInCloud = (ctx: TelegrafContext, index: string) => {
     const i = +index;
-    if (i && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
+    if (i !== undefined && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
       ctx.replyWithDocument({source: this.lastSearchInCloudPathList[i]});
     }
   }
