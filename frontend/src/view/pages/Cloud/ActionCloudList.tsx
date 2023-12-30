@@ -298,12 +298,19 @@ const isCreatedFolder = ({ currentTreeNode, setSnackBarMessage, setErrorSnackbar
 }
 
 export const renameCloudFolder = (actions: ActionsProps, id: string) => (newName: string) => {
-  const {fileList, setFileList, currentTreeNode, setCurrentTreeNode} = actions;
-  if (isCreatedFolder(actions, undefined, newName)) {
-    console.log(newName)
+  const {fileList, setFileList, currentTreeNode, setCurrentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  if (currentTreeNode.label === '/') {
+    console.log(`You can't change a root folder name.`);
+    setSnackBarMessage(`You can't change a root folder name.`);
+    setErrorSnackbar(true);
+    setOpenSnackbar(true);
     return;
   }
 
+  if (isCreatedFolder(actions, undefined, newName)) {
+    return;
+  }
+  
   const pathSplitted = newName.split('/');
   const newPath = addPrefixUrlFolder(pathSplitted.pop());
 
