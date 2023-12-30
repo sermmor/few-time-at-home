@@ -175,7 +175,7 @@ const uploadListFilesOneToOne = (
       // Item already in cloud, not replace!
       console.log(`Already there is a '${fileList[0].name}' in the cloud.`);
       setSnackBarMessage(`Already there is a '${fileList[0].name}' in the cloud.`);
-      setErrorSnackbar(false);
+      setErrorSnackbar(true);
       setOpenSnackbar(true);
       uploadListFilesOneToOne(actions, fileList.slice(1));
     }
@@ -226,12 +226,31 @@ export const downloadFile = (
   });
 };
 
+const isCreatedFile = (actions: ActionsProps, nameFile: string) => {
+  const { currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar } = actions;
+  const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
+
+  if (nameFileAndFolderList.indexOf(nameFile) > -1) {
+    // Item already in cloud, not replace!
+    console.log(`Already there is a '${nameFile}' in the cloud.`);
+    setSnackBarMessage(`Already there is a '${nameFile}' in the cloud.`);
+    setErrorSnackbar(true);
+    setOpenSnackbar(true);
+    return true;
+  }
+  return false;
+}
+
 export const renameCloudItem = (
-  {fileList, setFileList, currentTreeNode, setCurrentTreeNode}: ActionsProps, 
+  actions: ActionsProps, 
   item: CloudItem,
   newName: string,
   oldPath: string
 ) => {
+  if (isCreatedFile(actions, newName)) {
+    return;
+  }
+  const {fileList, setFileList, currentTreeNode, setCurrentTreeNode} = actions;
   const newPath = `/${item.path.split('/').slice(0, -1).join('/')}/${newName}`;
 
   const cloneList = [...fileList.data];
@@ -262,7 +281,29 @@ export const renameCloudItem = (
   });
 };
 
-export const renameCloudFolder = ({fileList, setFileList, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => (newName: string) => {
+const isCreatedFolder = ({ currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar}: ActionsProps, folderToAdd?: CloudItem, folderPath?: string): boolean => {
+  const folderName = getFolderName(folderToAdd ? folderToAdd.path : folderPath || '');
+  const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
+
+  console.log(folderName, nameFileAndFolderList, nameFileAndFolderList.indexOf(folderName))
+
+  if (nameFileAndFolderList.indexOf(folderName) > -1) {
+    console.log(`Already there is a '${folderName}' in the cloud.`);
+    setSnackBarMessage(`Already there is a '${folderName}' in the cloud.`);
+    setErrorSnackbar(true);
+    setOpenSnackbar(true);
+    return true;
+  }
+  return false;
+}
+
+export const renameCloudFolder = (actions: ActionsProps, id: string) => (newName: string) => {
+  const {fileList, setFileList, currentTreeNode, setCurrentTreeNode} = actions;
+  if (isCreatedFolder(actions, undefined, newName)) {
+    console.log(newName)
+    return;
+  }
+
   const pathSplitted = newName.split('/');
   const newPath = addPrefixUrlFolder(pathSplitted.pop());
 
@@ -302,6 +343,10 @@ export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: Clou
     setSnackBarMessage(`It's the root path, here don't upload anything!!!`);
     setErrorSnackbar(true);
     setOpenSnackbar(true);
+    return;
+  }
+
+  if (isCreatedFolder(actions, folderToAdd)) {
     return;
   }
   
