@@ -219,6 +219,25 @@ export class CloudService {
     });
     return this.removeDuplicatesItems(cloudItemsFinded);
   };
+
+  getListFolderFiles = (nameDrive: string, pathItem: string): Promise<string[]> => new Promise<string[]>(resolve => {
+    const filesAndFolderList = this.lsDirOperation(nameDrive, pathItem);
+    const fileList: string[] = [];
+    let counterDown = filesAndFolderList.length;
+
+    filesAndFolderList.forEach((path) => {
+      stat(path, (err, stat) => {
+        if (!stat.isDirectory()) {
+          fileList.push(path);
+        }
+        counterDown--;
+        
+        if (counterDown === 0) {
+          resolve(fileList);
+        }
+      });
+    });
+  });
   
   uploadFile = (nameDrive: string, tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
     // It's comes files from web to server.

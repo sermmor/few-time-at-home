@@ -33,6 +33,8 @@ export class ConfigurationService {
         bot_cloud_ls_path: string,
         bot_cloud_return_path: string
         bot_cloud_upload_to_current_path: string;
+        bot_cloud_get_current_path: string;
+        bot_cloud_download_folder: string;
     };
     quoteList: Quote[];
     backupUrls: string;

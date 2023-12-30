@@ -73,7 +73,8 @@ export class TelegramBot {
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_cloud_cd_path, this.cdDirInCloud);
       this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_ls_path, this.lsDirInCloud);
       this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_return_path, this.returnToParentInCloud);
-      // this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_upload_to_current_path, this.uploadFileToCloud);
+      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_get_current_path, this.getCurrentPathInCloud);
+      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_download_folder, this.giveFolderContentInCloud);
       this.bot.on('photo', this.uploadFileToCloud);
       this.bot.on('audio', this.uploadFileToCloud);
       this.bot.on('document', this.uploadFileToCloud);
@@ -241,6 +242,10 @@ export class TelegramBot {
     }
     ctx.reply(`Cambio al path '${this.currentCloudDir}'.`);
   }
+
+  getCurrentPathInCloud = (ctx: TelegrafContext) => {
+    ctx.reply(`El path actual es: '${this.currentCloudDir}'.`);
+  }
   
   private getItemIdFromTelegram = (ctx: TelegrafContext) => (ctx.message?.photo && ctx.message?.photo[0].file_id) || ctx.message?.audio?.file_id || ctx.message?.document?.file_id || ctx.message?.video?.file_id || ctx.message?.voice?.file_id || ctx.message?.animation?.file_id;
   private getNameFromTelegram = (ctx: TelegrafContext) => ctx.message?.audio?.title || ctx.message?.document?.file_name || ctx.message?.animation?.file_name;
@@ -290,7 +295,7 @@ export class TelegramBot {
           }) 
         }).catch(rejected => {
           console.log(rejected);
-          ctx.reply(`No se puede subir el fichero a la cloud. Es demasiado grande!!`);
+          ctx.reply(`No se puede subir el fichero a la cloud. Es demasiado grande para Telegram!!`);
         })
       }
     }
@@ -299,8 +304,35 @@ export class TelegramBot {
   giveMeFileIndexInCloud = (ctx: TelegrafContext, index: string) => {
     const i = +index;
     if (i !== undefined && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
-      ctx.replyWithDocument({source: this.lastSearchInCloudPathList[i]});
+      ctx.reply(`Enviando el fichero '${this.lastSearchInCloudPathList[i]}'. Paciencia.`);
+      ctx.replyWithDocument({source: this.lastSearchInCloudPathList[i]}).catch(rejected => {
+        console.log(rejected);
+        ctx.reply(`No se puede descargar el fichero de la cloud. Es demasiado grande para Telegram!!`);
+      });
     }
+  }
+
+  private giveFolderContentInCloudOneToOne = (ctx: TelegrafContext, listPathFilesToSend: string[], index: number = 0) => {
+    if (index >= listPathFilesToSend.length) {
+      ctx.reply(`Enviados todos los ficheros`);
+    } else {
+      ctx.reply(`Enviando el fichero '${listPathFilesToSend[index]}'. Paciencia.`);
+      ctx.replyWithDocument({source: listPathFilesToSend[index]}).then(() => {
+        this.giveFolderContentInCloudOneToOne(ctx, listPathFilesToSend, index + 1);
+      }).catch(rejected => {
+        console.log(rejected);
+        ctx.reply(`No se puede descargar el fichero de la cloud. Es demasiado grande para Telegram!!`);
+        this.giveFolderContentInCloudOneToOne(ctx, listPathFilesToSend, index + 1);
+      });
+    }
+  }
+
+  giveFolderContentInCloud = (ctx: TelegrafContext) => {
+    this.setContext(ctx);
+    const maxFiles = 30;
+    CloudService.Instance.getListFolderFiles(cloudDefaultPath, this.currentCloudDir).then(listFilesComplete => {
+      this.giveFolderContentInCloudOneToOne(ctx, listFilesComplete.slice(0, maxFiles), 0);
+    });
   }
 
   searchFilesInCloud = (ctx: TelegrafContext, wordToSearch: string) => {
