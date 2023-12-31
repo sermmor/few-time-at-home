@@ -139,7 +139,7 @@ export const synchronizeWithCloud = (actions: ActionsProps) => {
   const { currentDrive } = actions;
 
   CloudActions.updateIndexing({drive: currentDrive}).then(() => {
-    console.log("UPDATED CLOUD")
+    console.log("UPDATED CLOUD");
     refleshCloudView(actions);
   });
 
@@ -443,7 +443,6 @@ const downloadFileOnlyWithPath = (
 };
 
 export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive, setBreadcrumb}: ActionsProps, driveNameToChange: string) => () => {
-  // const driveNameToChange = 'trash';
   if (currentDrive !== driveNameToChange && driveList) {
     const driveIndex = driveList.indexOf(driveNameToChange);
     if (driveIndex > -1 && indexCurrentDrive !== driveIndex) {
@@ -451,4 +450,37 @@ export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setInde
       setIndexCurrentDrive(driveIndex);
     }
   }
+}
+
+const getItemIndexFromTreeNode = (currentTreeNode: GenericTree<CloudItem>, nameFile: string): number => currentTreeNode.children.findIndex(child => child.node?.name === nameFile);
+
+export const deleteItemAction = (actions: ActionsProps, id: string) => {
+  const {currentTreeNode, currentDrive, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  if (currentTreeNode.label === '/') {
+    return;
+  }
+  // ¿Es fichero o folder?
+  let itemIndexInList = currentTreeNode.searchLabelInChild(id);
+  let path = '';
+  if (itemIndexInList === -1) {
+    // Is a item, search!!
+    itemIndexInList = getItemIndexFromTreeNode(currentTreeNode, id);
+    path = currentTreeNode.children[itemIndexInList].node?.path || '';
+  } else {
+    path = id.substring(1);
+  }
+  
+  CloudActions.deleteFileOrFolder({
+    drive: currentDrive || '/',
+    path,
+  }).then(({message}) => {
+    console.log(message);
+    if (message !== 'ok') {
+      setSnackBarMessage(message);
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
+    }
+    refleshCloudView(actions);
+    // TODO: Actualizar arbol visualmente si no se ha actualizado solo (en teoría debería)
+  });
 }

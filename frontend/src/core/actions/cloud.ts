@@ -38,4 +38,7 @@ const uploadFile = (data: UploadFilesToCloudRequest) =>
 const downloadFile = (data: DownloadFileToCloudResquest) => 
   fetchDownloadFile(getCloudEndpoint('downloadFile'), data);
 
-export const CloudActions = { getDrivesList, updateIndexing, getAllItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile };
+const deleteFileOrFolder = (data: GenericCloudRequest) => 
+  fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("deleteFileOrFolder"), data, messageResponseMock());
+
+export const CloudActions = { getDrivesList, updateIndexing, getAllItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder };

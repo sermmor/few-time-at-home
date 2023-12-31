@@ -343,21 +343,22 @@ export class CloudService {
 
   deleteFileOrFolder = (nameDrive: string, path: string): Promise<string> => new Promise<string>(resolve => {
     stat(path, (err, stat) => {
-      if (err !== null) {
+      if (err === null) {
         if (nameDrive === trashDefaultPath) {
           // Delete forever.
           if (stat.isDirectory()) {
-            rmdir(path, err => {
-              if (err !== null) {
+            rm(path, { recursive: true, force: true }, err => {
+              if (err === null) {
                 this.updateCloudItemsIndex(trashDefaultPath).then(() => resolve('ok'));
               } else {        
+                console.log(err);
                 console.log(`Error when delete folder ${path}.`);
                 resolve(`Error when delete folder ${path}.`);
               }
             });
           } else {
             rm(path, err => {
-              if (err !== null) {
+              if (err === null) {
                 this.updateCloudItemsIndex(trashDefaultPath).then(() => resolve('ok'));
               } else {        
                 console.log(`Error when delete file ${path}.`);
