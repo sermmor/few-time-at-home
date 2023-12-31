@@ -211,6 +211,11 @@ export class TelegramBot {
 
   lsDirInCloud = (ctx: TelegrafContext) => {
     this.setContext(ctx);
+    if (this.currentCloudDir === '/') {
+      ctx.reply(`${cloudDefaultPath}`);
+      return;
+    }
+
     const pathList = CloudService.Instance.lsDirOperation(cloudDefaultPath, this.currentCloudDir);
     const bookmarksPerMessage = 10;
     const numberOfMessages = Math.ceil(pathList.length / bookmarksPerMessage);

@@ -1,5 +1,5 @@
-import { writeFile, stat, mkdir, readFile, existsSync, readdir, rename } from "fs";
-import { readJSONFile, saveInAFile } from "../utils";
+import { writeFile, stat, mkdir, existsSync, readdir, rename, rmdir, rm } from "fs";
+import { getCurrentStringDateAndHour, readJSONFile, saveInAFile } from "../utils";
 
 export const cloudDefaultPath = 'cloud';
 export const trashDefaultPath = 'trash';
@@ -288,14 +288,14 @@ export class CloudService {
                 item.path = newPathFileOrFolder + pathItemWithoutOldFolderPath;
               })
               const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
-              this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
+              this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('Folder renamed correctly.'));
             } else {
               const pathSplited = newPathFileOrFolder.split('/');
               const item = this.findCloudItem(nameDrive, oldPathFileOrFolder);
               item!.path = newPathFileOrFolder;
               item!.name = pathSplited[pathSplited.length - 1];
               const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
-              this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File or folder renamed correctly.'));
+              this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve('File renamed correctly.'));
             }
           } else {
             resolve('Error to rename file or folder.');
@@ -338,6 +338,72 @@ export class CloudService {
       const indexDrive = this.cloudOrigins.findIndex(drive => drive.name === nameDrive);
       this.cloudOrigins[indexDrive].contentIndexing!.push(newItem);
       this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => resolve());
+    });
+  });
+
+  deleteFileOrFolder = (nameDrive: string, path: string): Promise<string> => new Promise<string>(resolve => {
+    stat(path, (err, stat) => {
+      if (err !== null) {
+        if (nameDrive === trashDefaultPath) {
+          // Delete forever.
+          if (stat.isDirectory()) {
+            rmdir(path, err => {
+              if (err !== null) {
+                this.updateCloudItemsIndex(trashDefaultPath).then(() => resolve('ok'));
+              } else {        
+                console.log(`Error when delete folder ${path}.`);
+                resolve(`Error when delete folder ${path}.`);
+              }
+            });
+          } else {
+            rm(path, err => {
+              if (err !== null) {
+                this.updateCloudItemsIndex(trashDefaultPath).then(() => resolve('ok'));
+              } else {        
+                console.log(`Error when delete file ${path}.`);
+                resolve(`Error when delete file ${path}.`);
+              }
+            });
+          }
+        } else {
+          // Move to drive trashDefaultPath.
+          const pathSplitted = path.split('/');
+          const nameFileOrFolfer = pathSplitted[pathSplitted.length - 1];
+          const trashPathFile = `${trashDefaultPath}/${getCurrentStringDateAndHour()}_${nameFileOrFolfer}`;
+
+          rename(path, trashPathFile, (err) => {
+            if (err === null) {
+              if (stat.isDirectory()) {
+                // Moved to trash directory.
+                this.updateCloudItemsIndex(nameDrive).then(() => resolve('ok'));
+              } else {
+                // Moved to trash file. => Update old cloudOrigins and trash.
+                const pathSplited = trashPathFile.split('/');
+                const item = this.findCloudItem(nameDrive, path);
+                const newTrashItem: CloudItem = {
+                  path: trashPathFile,
+                  name: pathSplited[pathSplited.length - 1],
+                  driveName: trashDefaultPath,
+                };
+                const indexDrive = this.cloudOrigins.findIndex(item => item.name === nameDrive);
+                const indexItem = this.cloudOrigins[indexDrive].contentIndexing!.findIndex(itemCandidate => itemCandidate.path === item!.path);
+                this.cloudOrigins[indexDrive].contentIndexing!.splice(indexItem, 1);
+
+                const indexTrashDrive = this.cloudOrigins.findIndex(item => item.name === trashDefaultPath);
+                this.cloudOrigins[indexTrashDrive].contentIndexing!.push(newTrashItem);
+
+                this.saveIndexingFiles(this.cloudOrigins[indexDrive]).then(() => this.saveIndexingFiles(this.cloudOrigins[indexTrashDrive]).then(() => resolve('ok')));
+              }
+            } else {
+              console.log(`Error to move file or folder ${path} to trash folder`);
+              resolve(`Error to move file or folder ${path} to trash folder`);
+            }
+          });
+        }
+      } else {
+        console.log(`File or folder ${path} don\'t exists!`);
+        resolve(`File or folder ${path} don\'t exists!`);
+      }
     });
   });
 }

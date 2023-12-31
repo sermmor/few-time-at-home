@@ -49,6 +49,7 @@ export class APIService {
     uploadFile: '/cloud/upload-file',
     downloadFile: '/cloud/download-file',
     search: '/cloud/search',
+    deleteFileOrFolder: '/cloud/delete',
   };
 
   app: Express;
@@ -331,6 +332,15 @@ export class APIService {
       } else {
         const search = cloudService.searchCloudItem(req.body.nameDrive, req.body.searchTokken);
         res.send({ search });
+      }
+    });
+
+    // body: drive, path
+    this.app.post(APIService.cloudEndpointList.deleteFileOrFolder, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.deleteFileOrFolder(req.body.drive, req.body.path).then((message) => res.send({message}));
       }
     });
 
