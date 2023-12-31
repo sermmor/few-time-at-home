@@ -8,7 +8,8 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import UploadFile from '@mui/icons-material/UploadFile';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import SyncIcon from '@mui/icons-material/Sync';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
@@ -60,6 +61,7 @@ interface Props {
   goBackToParent?: () => void;
   onSearch?: (textToSearch: string) => Promise<(string | JSX.Element)[]>;
   onUploadItem?: (event: any) => void;
+  updateContent?: () => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -76,6 +78,7 @@ export const TitleAndListWithFolders = ({
   onOutSelectionMode,
   onSearch,
   onUploadItem,
+  updateContent,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -152,13 +155,17 @@ export const TitleAndListWithFolders = ({
       {
         !isInSelectListMode && onUploadItem &&
         <>
-          <Button onClick={() => {document.getElementById('fileToUpload')!.click()}}><UploadFile /></Button>
+          <Button onClick={() => {document.getElementById('fileToUpload')!.click()}}><CloudUploadIcon /></Button>
           <Input type='file' id='fileToUpload' sx={{'display': 'none'}} onChange={onUploadItem}/>
         </>
       }
       {
+        updateContent && 
+          <Button onClick={updateContent}><SyncIcon /></Button>
+      }
+      {
         (!isInSelectListMode || isInMoveItemMode) && 
-          <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
+        <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
       }
     </Box>
     <Box sx={{...buttonListStyle, ...breadcrumbStyle}}>

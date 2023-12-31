@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, CloudStateName, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
@@ -103,10 +103,6 @@ export const Cloud = () => {
     setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn };
   
-  // TODO: Poder actualizar con un botón el árbol, anteriormente habrá que llamar al endpoint de actualizar y tras llamar al endpoint usar las siguientes tres líneas:
-  // setBreadcrumb([]);
-  // setMarkToReturnToPath(true);
-  // setPathToReturn(breadcrumbCopy);
   // TODO: Crear opción de borrar con diálogo de aviso y CARPETA PAPELERA. Que se oculten los ficheros 'emptyfile.txt' y se borren automáticamente en cuanto tengamos algo en la carpeta.
   // TODO: Borrar automáticamente los 'emptyfile.txt' en cuanto se vea que una carpeta contiene otros ficheros que no sean ése (lo mejor sería hacer ese trabajo directamente desde el servidor).
   // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
@@ -166,6 +162,7 @@ export const Cloud = () => {
           name: `new folder ${indexNewCloudItemAdded}`,
           path: removeRootFromPath(cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewCloudItemAdded}`)),
         })}}
+        updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action)}
         list={
           fileList.data.map((item, index) => ({id:`${item.name}`, isFolder: !item.isNotFolder, item: <>{

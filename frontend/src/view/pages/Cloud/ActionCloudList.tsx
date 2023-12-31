@@ -99,7 +99,7 @@ export const checkToReturnToPath = ({ currentTreeNode, currentDrive, setCurrentT
         } catch (e) {
           console.log('Error to auto-reflesh cloud view, reflesh manually.');
           setSnackBarMessage('Error to auto-reflesh cloud view, reflesh manually.');
-          setErrorSnackbar(false);
+          setErrorSnackbar(true);
           setOpenSnackbar(true);
           
           setBreadcrumb([]);
@@ -131,6 +131,16 @@ const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileLi
     setPathToReturn(breadcrumbCopy);
   });
 };
+
+export const synchronizeWithCloud = (actions: ActionsProps) => {
+  const { currentDrive } = actions;
+
+  CloudActions.updateIndexing({drive: currentDrive}).then(() => {
+    console.log("UPDATED CLOUD")
+    refleshCloudView(actions);
+  });
+
+}
 
 const uploadOnlyOneFile = (
   { currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
