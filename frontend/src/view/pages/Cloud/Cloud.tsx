@@ -102,8 +102,14 @@ export const Cloud = () => {
   const action: ActionsProps = { cloudState, setCloudState, tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!,
     setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn };
-    
+  
+  // TODO: Poder actualizar con un botón el árbol, anteriormente habrá que llamar al endpoint de actualizar y tras llamar al endpoint usar las siguientes tres líneas:
+  // setBreadcrumb([]);
+  // setMarkToReturnToPath(true);
+  // setPathToReturn(breadcrumbCopy);
   // TODO: Crear opción de borrar con diálogo de aviso y CARPETA PAPELERA. Que se oculten los ficheros 'emptyfile.txt' y se borren automáticamente en cuanto tengamos algo en la carpeta.
+  // TODO: Borrar automáticamente los 'emptyfile.txt' en cuanto se vea que una carpeta contiene otros ficheros que no sean ése (lo mejor sería hacer ese trabajo directamente desde el servidor).
+  // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
   // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta. La idea es poder crear estos ficheros y editarlos en la cloud con un editor.
   // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
 

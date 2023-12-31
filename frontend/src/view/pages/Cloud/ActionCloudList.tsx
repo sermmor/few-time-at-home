@@ -60,40 +60,53 @@ export const setOpenFolder = ({setFileList, currentTreeNode, setCurrentTreeNode,
 
 let renderCounter = 0;
 
-export const checkToReturnToPath = ({ currentTreeNode, currentDrive, setCurrentTreeNode, breadcrumb, setBreadcrumb, setFileList, isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn }: ActionsProps) => {
+export const checkToReturnToPath = ({ currentTreeNode, currentDrive, setCurrentTreeNode, breadcrumb, setBreadcrumb, setFileList,
+  isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar }: ActionsProps
+) => {
   if (isMarkToReturnToPath) {
     // Prevent for multiple render using a setTimeout and a checking counter var.
     renderCounter++;
     if (renderCounter === 1) {
       setTimeout(() => {
-        const cloneBreadcrumb = [...breadcrumb];
-
-        let labelFolder, childIndex, newCurrentTreeNode, newFileList;
-        newCurrentTreeNode = currentTreeNode;
-
-        cloneBreadcrumb.push(newCurrentTreeNode);
-
-        for (let i = 1; i < pathToReturn.length; i++) {
-          labelFolder = pathToReturn[i].label;
-          childIndex = newCurrentTreeNode.searchLabelInChild(labelFolder);
-          newCurrentTreeNode = newCurrentTreeNode.children[childIndex];
-
-          newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
-            item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
+        try {
+          const cloneBreadcrumb = [...breadcrumb];
+  
+          let labelFolder, childIndex, newCurrentTreeNode, newFileList;
+          newCurrentTreeNode = currentTreeNode;
   
           cloneBreadcrumb.push(newCurrentTreeNode);
+  
+          for (let i = 1; i < pathToReturn.length; i++) {
+            labelFolder = pathToReturn[i].label;
+            childIndex = newCurrentTreeNode.searchLabelInChild(labelFolder);
+            newCurrentTreeNode = newCurrentTreeNode.children[childIndex];
+  
+            newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
+              item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
+    
+            cloneBreadcrumb.push(newCurrentTreeNode);
+          }
+  
+          cloneBreadcrumb.pop(); // The 2 last ones are the same node.
+  
+          setBreadcrumb(cloneBreadcrumb);
+          setFileList(newFileList);
+          setCurrentTreeNode(newCurrentTreeNode);
+  
+          setMarkToReturnToPath(false);
+          setPathToReturn([]);
+          renderCounter = 0;
+        } catch (e) {
+          console.log('Error to auto-reflesh cloud view, reflesh manually.');
+          setSnackBarMessage('Error to auto-reflesh cloud view, reflesh manually.');
+          setErrorSnackbar(false);
+          setOpenSnackbar(true);
+          
+          setBreadcrumb([]);
+          setMarkToReturnToPath(true);
+          setPathToReturn(pathToReturn);
         }
-
-        cloneBreadcrumb.pop(); // The 2 last ones are the same node.
-
-        setBreadcrumb(cloneBreadcrumb);
-        setFileList(newFileList);
-        setCurrentTreeNode(newCurrentTreeNode);
-
-        setMarkToReturnToPath(false);
-        setPathToReturn([]);
-        renderCounter = 0;
-      }, 0);
+      }, 100);
     }
   }
 };
