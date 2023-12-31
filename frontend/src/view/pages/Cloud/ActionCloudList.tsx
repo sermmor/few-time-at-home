@@ -25,6 +25,9 @@ export interface ActionsProps {
   setMarkToReturnToPath: React.Dispatch<React.SetStateAction<boolean>>;
   pathToReturn: GenericTree<CloudItem>[];
   setPathToReturn: React.Dispatch<React.SetStateAction<GenericTree<CloudItem>[]>>;
+  setIndexCurrentDrive: React.Dispatch<React.SetStateAction<number>>;
+  indexCurrentDrive: number;
+  driveList: string[] | undefined;
 }
 
 export const goBackToParentFolder = ({setFileList, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive}: ActionsProps) => {
@@ -438,3 +441,14 @@ const downloadFileOnlyWithPath = (
     setOpenSnackbar(true);
   });
 };
+
+export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive, setBreadcrumb}: ActionsProps, driveNameToChange: string) => () => {
+  // const driveNameToChange = 'trash';
+  if (currentDrive !== driveNameToChange && driveList) {
+    const driveIndex = driveList.indexOf(driveNameToChange);
+    if (driveIndex > -1 && indexCurrentDrive !== driveIndex) {
+      setBreadcrumb([]);
+      setIndexCurrentDrive(driveIndex);
+    }
+  }
+}

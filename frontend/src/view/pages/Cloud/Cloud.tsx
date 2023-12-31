@@ -8,9 +8,12 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
-import { CloudState, CloudStateName, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
+import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
+
+const cloudDriveName = 'cloud';
+const trashDriveName = 'trash';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -74,6 +77,7 @@ export const Cloud = () => {
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<CloudItem>>();
   const [fileList, setFileList] = React.useState<{data: CloudItem[]}>();
   const [driveList, setDriveList] = React.useState<string[]>();
+  const [indexCurrentDrive, setIndexCurrentDrive] = React.useState<number>(0);
   const [currentDrive, setCurrentDrive] = React.useState<string>();
   const [breadcrumb, setBreadcrumb] = React.useState<GenericTree<CloudItem>[]>([]);
   const [selectedNodes, setSelectedNodes] = React.useState<GenericTree<CloudItem>[]>([]);
@@ -89,7 +93,7 @@ export const Cloud = () => {
   React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
     // For now, I'll choose the first one drive list.
     setDriveList(driveList);
-    const defaultDrive = driveList[0];
+    const defaultDrive = driveList[indexCurrentDrive];
     setCurrentDrive(defaultDrive);
     CloudActions.getAllItems(defaultDrive).then(data => {
       // console.log(data)
@@ -97,11 +101,11 @@ export const Cloud = () => {
       setCurrentTreeNode(data.data);
       setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: defaultDrive, path: `${urlFolder}_${index}` }))})
     });
-  })}, []);
+  })}, [indexCurrentDrive]);
 
   const action: ActionsProps = { cloudState, setCloudState, tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!,
     setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
-    isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn };
+    isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setIndexCurrentDrive, indexCurrentDrive, driveList };
   
   // TODO: Crear opción de borrar con diálogo de aviso y CARPETA PAPELERA. Que se oculten los ficheros 'emptyfile.txt' y se borren automáticamente en cuanto tengamos algo en la carpeta.
   // TODO: Borrar automáticamente los 'emptyfile.txt' en cuanto se vea que una carpeta contiene otros ficheros que no sean ése (lo mejor sería hacer ese trabajo directamente desde el servidor).
@@ -162,6 +166,8 @@ export const Cloud = () => {
           name: `new folder ${indexNewCloudItemAdded}`,
           path: removeRootFromPath(cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewCloudItemAdded}`)),
         })}}
+        seeCloudDrive={ changeDrive(action, cloudDriveName) }
+        seeTrashDrive={ changeDrive(action, trashDriveName) }
         updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action)}
         list={

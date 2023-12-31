@@ -2,6 +2,7 @@ import { writeFile, stat, mkdir, readFile, existsSync, readdir, rename } from "f
 import { readJSONFile, saveInAFile } from "../utils";
 
 export const cloudDefaultPath = 'cloud';
+export const trashDefaultPath = 'trash';
 
 export interface CloudItem {
   name: string;
@@ -17,6 +18,7 @@ export interface Drive {
 }
 
 const defaultOrigin: Drive = { name: 'cloud', path: cloudDefaultPath, indexPath: 'data/cloud/cloud.json' };
+const defaultTrash: Drive = { name: 'trash', path: trashDefaultPath, indexPath: 'data/cloud/trash.json' };
 const defaultIndexFileContent: string = '[\n]';
 const defaultIndexJsonFileContent = (): CloudItem[] => [];
 
@@ -26,6 +28,7 @@ export class CloudService {
   constructor(public cloudOrigins: Drive[] = []) {
     CloudService.Instance = this;
     this.cloudOrigins.push(defaultOrigin);
+    this.cloudOrigins.push(defaultTrash);
 
     this.getAllIndexingFilesContent().then(driveList => {
       this.updateCloudItemsIndex();

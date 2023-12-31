@@ -10,6 +10,8 @@ import FileCopyIcon from '@mui/icons-material/FileCopy';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SyncIcon from '@mui/icons-material/Sync';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloudCircleIcon from '@mui/icons-material/CloudCircle';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
@@ -62,6 +64,8 @@ interface Props {
   onSearch?: (textToSearch: string) => Promise<(string | JSX.Element)[]>;
   onUploadItem?: (event: any) => void;
   updateContent?: () => void;
+  seeTrashDrive?: () => void;
+  seeCloudDrive?: () => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -79,6 +83,8 @@ export const TitleAndListWithFolders = ({
   onSearch,
   onUploadItem,
   updateContent,
+  seeTrashDrive,
+  seeCloudDrive,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -158,6 +164,14 @@ export const TitleAndListWithFolders = ({
           <Button onClick={() => {document.getElementById('fileToUpload')!.click()}}><CloudUploadIcon /></Button>
           <Input type='file' id='fileToUpload' sx={{'display': 'none'}} onChange={onUploadItem}/>
         </>
+      }
+      {
+        seeCloudDrive && 
+          <Button onClick={seeCloudDrive}><CloudCircleIcon /></Button>
+      }
+      {
+        seeTrashDrive && 
+          <Button onClick={seeTrashDrive}><DeleteIcon /></Button>
       }
       {
         updateContent && 
