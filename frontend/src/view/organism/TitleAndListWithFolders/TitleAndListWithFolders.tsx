@@ -66,6 +66,7 @@ interface Props {
   updateContent?: () => void;
   seeTrashDrive?: () => void;
   seeCloudDrive?: () => void;
+  filterItemPredicate?: (id: string) => boolean;
 }
 
 export const TitleAndListWithFolders = ({
@@ -85,6 +86,7 @@ export const TitleAndListWithFolders = ({
   updateContent,
   seeTrashDrive,
   seeCloudDrive,
+  filterItemPredicate,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -190,7 +192,10 @@ export const TitleAndListWithFolders = ({
         {
           list.map((element, index) =>
             <Box key={element.id} sx={itemListStyle}>
-              <ItemListWithFoldersComponent {...{element, deleteAction, isInSelectListMode, isElementSelected: isCheckedList[index], onSelect: onSelectItemGeneral(index)}}/>
+              {
+                (!filterItemPredicate || filterItemPredicate(element.id)) && 
+                <ItemListWithFoldersComponent {...{element, deleteAction, isInSelectListMode, isElementSelected: isCheckedList[index], onSelect: onSelectItemGeneral(index)}}/>
+              }
             </Box>
           )
         }

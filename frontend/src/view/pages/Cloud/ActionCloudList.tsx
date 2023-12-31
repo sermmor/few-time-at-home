@@ -376,6 +376,8 @@ export const renameCloudFolder = (actions: ActionsProps, id: string) => (newName
   }
 }
 
+export const nameFileForEmptyFolder = `emptyfile.txt`;
+
 export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: CloudItem) => {
   const {currentDrive, currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
   if (`${currentTreeNode?.label}` === '/') {
@@ -393,8 +395,8 @@ export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: Clou
   const newEmptyFile: CloudItem = {
     driveName: currentDrive || '/',
     isNotFolder: true,
-    name: `emptyfile.txt`,
-    path: `${folderToAdd!.path}/emptyfile.txt`.split('//').join('/'),
+    name: nameFileForEmptyFolder,
+    path: `${folderToAdd!.path}/${nameFileForEmptyFolder}`.split('//').join('/'),
   };
 
   CloudActions.createFolder({

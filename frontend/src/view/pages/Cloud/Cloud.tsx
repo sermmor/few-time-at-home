@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, deleteItemAction, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, deleteItemAction, downloadFile, goBackToParentFolder, nameFileForEmptyFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
@@ -107,10 +107,9 @@ export const Cloud = () => {
     setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setIndexCurrentDrive, indexCurrentDrive, driveList };
   
-  // TODO: Borrar automáticamente los 'emptyfile.txt' en cuanto se vea que una carpeta contiene otros ficheros que no sean ése (lo mejor sería hacer ese trabajo directamente desde el servidor).
-  // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
-  // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta. La idea es poder crear estos ficheros y editarlos en la cloud con un editor.
-  // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
+    // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta. La idea es poder crear estos ficheros y editarlos en la cloud con un editor.
+    // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
+    // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
 
   // Define the event handlers
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -165,6 +164,7 @@ export const Cloud = () => {
           name: `new folder ${indexNewCloudItemAdded}`,
           path: removeRootFromPath(cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewCloudItemAdded}`)),
         })}}
+        filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
         deleteAction={(id) => deleteItemAction(action, id)}
         seeCloudDrive={ changeDrive(action, cloudDriveName) }
         seeTrashDrive={ changeDrive(action, trashDriveName) }
