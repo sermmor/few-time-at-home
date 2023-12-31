@@ -76,6 +76,7 @@ export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void
     if (!isAndroidOS && !isTabletScreenSize && isTypeFileToShowInNewTab(fileName)) {
       // Show in new tab.
       window.open(URL.createObjectURL(blob));
+      resolve();
     } else {
       // Download file.
       const a = document.createElement('a');

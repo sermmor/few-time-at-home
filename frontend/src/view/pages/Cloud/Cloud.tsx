@@ -9,6 +9,8 @@ import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { ActionsProps, addFolderActionItemList, checkToReturnToPath, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, uploadFiles } from "./ActionCloudList";
+import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
+import { CloudState, CloudStateName, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -67,6 +69,7 @@ const getNameFolder = (completePath: string): string => {
 }
 
 export const Cloud = () => {
+  const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [tree, setTree] = React.useState<GenericTree<CloudItem>>();
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<CloudItem>>();
   const [fileList, setFileList] = React.useState<{data: CloudItem[]}>();
@@ -96,14 +99,13 @@ export const Cloud = () => {
     });
   })}, []);
 
-  const action: ActionsProps = { tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!,
+  const action: ActionsProps = { cloudState, setCloudState, tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!,
     setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn };
-  
-  // TODO: Cuando se suba uno o varios ficheros, poner un diálogo o algo que no deje que se pueda hacer ninguna otra acción y que se vea un círculo de cargando/subiendo.
+    
   // TODO: Crear opción de borrar con diálogo de aviso y CARPETA PAPELERA. Que se oculten los ficheros 'emptyfile.txt' y se borren automáticamente en cuanto tengamos algo en la carpeta.
-  // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
   // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta. La idea es poder crear estos ficheros y editarlos en la cloud con un editor.
+  // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
 
   // Define the event handlers
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -131,7 +133,7 @@ export const Cloud = () => {
 
   checkToReturnToPath(action);
 
-  return <Box sx={formStyle}>
+  return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
     {fileList && <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -189,10 +191,11 @@ export const Cloud = () => {
       />
     </div>
     }
-  <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} key={'topcenter'}>
-    <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
-      {snackBarMessage}
-    </Alert>
-  </Snackbar>
-  </Box>;
+    <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} key={'topcenter'}>
+      <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
+        {snackBarMessage}
+      </Alert>
+    </Snackbar>
+  </Box>
+  </ModalProgressComponent>;
 };

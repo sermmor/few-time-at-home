@@ -2,8 +2,11 @@ import { Link } from "@mui/material";
 import { CloudActions } from "../../../core/actions/cloud";
 import { CloudItem, addPrefixUrlFolder, urlFolder } from "../../../data-model/cloud";
 import { GenericTree } from "../../../service/trees/genericTree";
+import { CloudState, CloudStateName } from "./Models/CloudState";
 
 export interface ActionsProps {
+  cloudState: CloudState;
+  setCloudState: React.Dispatch<React.SetStateAction<CloudState>>;
   tree: GenericTree<CloudItem>;
   setTree: React.Dispatch<React.SetStateAction<GenericTree<CloudItem> | undefined>>;
   fileList: {data: CloudItem[]};
@@ -157,8 +160,9 @@ const uploadListFilesOneToOne = (
   actions: ActionsProps,
   fileList: File[]
 ) => {
-  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, currentTreeNode } = actions;
+  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, currentTreeNode, setCloudState } = actions;
   if (fileList.length === 0) {
+    setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('All files has uploaded to cloud!');
     setSnackBarMessage(`All files has uploaded to cloud!`);
     setErrorSnackbar(false);
@@ -170,6 +174,7 @@ const uploadListFilesOneToOne = (
     const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
 
     if (nameFileAndFolderList.indexOf(fileList[0].name) < 0) {
+      setCloudState({ name: CloudStateName.UPLOADING, description: `Uploading file '${fileList[0].name}'`, });
       uploadOnlyOneFile(actions, fileList[0]).then(() => uploadListFilesOneToOne(actions, fileList.slice(1)));
     } else {
       // Item already in cloud, not replace!
@@ -211,14 +216,16 @@ export const uploadFiles = (
 };
 
 export const downloadFile = (
-  {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
+  {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
   item: CloudItem,
 ) => {
   // console.log(item)
+  setCloudState({ name: CloudStateName.DOWNLOADING, description: `Downloading file '${item.name}'`, });
   CloudActions.downloadFile({
     drive: currentDrive || '/',
     path: `${currentTreeNode?.label}/${item.name}`,
   }).then(() => {
+    setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('File downloaded!!');
     setSnackBarMessage(`File '${item.name}' has downloaded.`);
     setErrorSnackbar(false);
@@ -393,13 +400,15 @@ export const onSearchFileOrFolder = (actions: ActionsProps) => (textToSearch: st
 })});
 
 const downloadFileOnlyWithPath = (
-  {currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
+  {currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
   path: string,
 ) => () => {
+  setCloudState({ name: CloudStateName.DOWNLOADING, description: `Downloading file '${path}'`, });
   CloudActions.downloadFile({
     drive: currentDrive || '/',
     path,
   }).then(() => {
+    setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('File downloaded!!');
     setSnackBarMessage(`File '${path}' has downloaded.`);
     setErrorSnackbar(false);
