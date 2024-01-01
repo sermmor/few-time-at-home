@@ -24,6 +24,7 @@ export class TelegramBot {
 
   private telegramBotData: TelegramData;
   private bot: Telegraf<TelegrafContext>;
+  private userClient: string;
   private context: TelegrafContext | undefined;
   private lastSearchInCloudPathList: string[] = [];
   private currentCloudDir: string = '/';
@@ -36,6 +37,7 @@ export class TelegramBot {
     } else {
         this.telegramBotData = telegramBotData;
     }
+    this.userClient = this.telegramBotData.username_client;
     if (!bot) {
         this.bot = new Telegraf(this.telegramBotData.telegram_bot_token) // Also you can use process.env.BOT_TOKEN here.
     } else {
@@ -53,11 +55,17 @@ export class TelegramBot {
     }
   }
 
+  private isUserClient = (ctx: TelegrafContext): boolean => {
+    const condition = ctx.from?.username === this.userClient;
+    if (condition) this.setContext(ctx);
+    return condition;
+  }
+
   start(commandList: TelegramBotCommand) {
       this.bot.start(ctx => {
           // ctx.replyWithVideo({ source: pathStartedVideo });
+          if (!this.isUserClient(ctx)) return;
           ctx.reply(`I'm here!! :D`);
-          this.setContext(ctx);
       });
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
@@ -88,6 +96,8 @@ export class TelegramBot {
       // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
   }
 
+  
+
   sendNotepadTextToTelegram = (text: string): boolean => {
     if (!this.context) return false;
 
@@ -106,11 +116,11 @@ export class TelegramBot {
           bot.command(
               `${nameCommand}${telegramNumberOfTweetsWithLinks}`,
               (ctx: TelegrafContext) => {
+                  if (!this.isUserClient(ctx)) return;
                   console.log("Doing");
                   actionToDoWhenCallCommand().then(messagesToSend => {
                       this.sendAllMessagesToTelegram(ctx, messagesToSend.slice(messagesToSend.length - telegramNumberOfTweetsWithLinks));
                   });
-                  this.setContext(ctx);
               }
           );
       });
@@ -121,11 +131,11 @@ export class TelegramBot {
     actionWithMessage: (ctx: TelegrafContext, message: string) => void
   ) => {
     this.bot.command(nameCommand, (ctx) => {
+      if (!this.isUserClient(ctx)) return;
       if (ctx.message?.text) {
         const note = ctx.message.text.split(nameCommand)[1];
         // this.bot.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
         actionWithMessage(ctx, note);
-        this.setContext(ctx);
       }
     });
   }
@@ -147,6 +157,7 @@ export class TelegramBot {
   }
 
   private sendAllNotesToTelegram = (ctx: TelegrafContext) => {
+    if (!this.isUserClient(ctx)) return;
     console.log("> The bot is going to send the notes.");
     const notesPerMessage = 10;
     const numberOfMessages = Math.ceil(NotesService.Instance.notes.length / notesPerMessage);
@@ -160,18 +171,18 @@ export class TelegramBot {
       }
       messagesToSend.push(message);
     }
-    this.setContext(ctx);
     this.sendAllMessagesToTelegram(ctx, messagesToSend);
   }
 
   private addNoteFromTelegram = (ctx: TelegrafContext, note: string) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     NotesService.Instance.addNotes(note).then(() => {
       ctx.reply(`La nota se ha añadido correctamente.`);
     });
   }
 
   private sendSearchBookmarksToTelegram = (ctx: TelegrafContext, wordToSearch: string) => {
+    if (!this.isUserClient(ctx)) return;
     console.log("> The bot is going to send the bookmark searched.");
     const bookmarksStrings = BookmarkService.Instance.searchInBookmark(wordToSearch).map(bm => `${bm.title}\n${bm.url}`);
     const bookmarksPerMessage = 10;
@@ -186,19 +197,18 @@ export class TelegramBot {
       }
       messagesToSend.push(message);
     }
-    this.setContext(ctx);
     this.sendAllMessagesToTelegram(ctx, messagesToSend);
   }
 
   private addBookmarkFromTelegram = (ctx: TelegrafContext, urlBookmark: string) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     BookmarkService.Instance.addBookmark(urlBookmark).then(() => {
       ctx.reply(`El marcador se ha añadido correctamente.`);
     });
   }
 
   cdDirInCloud = (ctx: TelegrafContext, message: string) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     const candidate = (this.currentCloudDir === '/') ? `${message.substring(1)}` : `${this.currentCloudDir}/${message.substring(1)}`;
     if (CloudService.Instance.lsDirOperation(cloudDefaultPath, candidate).length > 0) {
       // Exists, then we can change of dir.
@@ -210,7 +220,7 @@ export class TelegramBot {
   }
 
   lsDirInCloud = (ctx: TelegrafContext) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     if (this.currentCloudDir === '/') {
       ctx.reply(`${cloudDefaultPath}`);
       return;
@@ -235,7 +245,7 @@ export class TelegramBot {
   }
 
   returnToParentInCloud = (ctx: TelegrafContext) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     if (this.currentCloudDir === '/') {
       return;
     }
@@ -249,6 +259,7 @@ export class TelegramBot {
   }
 
   getCurrentPathInCloud = (ctx: TelegrafContext) => {
+    if (!this.isUserClient(ctx)) return;
     ctx.reply(`El path actual es: '${this.currentCloudDir}'.`);
   }
   
@@ -268,7 +279,7 @@ export class TelegramBot {
   }
 
   uploadFileToCloud = (ctx: TelegrafContext) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
 
     if (this.currentCloudDir === '/' || this.currentCloudDir === '') {
       ctx.reply(`No se puede subir un fichero a la raíz. Cambia a un directorio hijo.`);
@@ -307,6 +318,7 @@ export class TelegramBot {
   }
 
   giveMeFileIndexInCloud = (ctx: TelegrafContext, index: string) => {
+    if (!this.isUserClient(ctx)) return;
     const i = +index;
     if (i !== undefined && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
       ctx.reply(`Enviando el fichero '${this.lastSearchInCloudPathList[i]}'. Paciencia.`);
@@ -333,7 +345,7 @@ export class TelegramBot {
   }
 
   giveFolderContentInCloud = (ctx: TelegrafContext) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     const maxFiles = 30;
     CloudService.Instance.getListFolderFiles(cloudDefaultPath, this.currentCloudDir).then(listFilesComplete => {
       this.giveFolderContentInCloudOneToOne(ctx, listFilesComplete.slice(0, maxFiles), 0);
@@ -341,7 +353,7 @@ export class TelegramBot {
   }
 
   searchFilesInCloud = (ctx: TelegrafContext, wordToSearch: string) => {
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     this.lastSearchInCloudPathList = CloudService.Instance.searchCloudItem(cloudDefaultPath, wordToSearch).map(item => item.path);
     const bookmarksPerMessage = 10;
     const numberOfMessages = Math.ceil(this.lastSearchInCloudPathList.length / bookmarksPerMessage);
@@ -362,7 +374,7 @@ export class TelegramBot {
 
   private addAlertFromTelegram = (ctx: TelegrafContext, message: string) => {
     // FORMAT message: DD/MM/YYYY HH:MM MESSAGE
-    this.setContext(ctx);
+    if (!this.isUserClient(ctx)) return;
     
     const helpMessage = 'Formato de notificación incorrecta. Debe ser el siguiente: \'DD/MM/YYYY HH:MM MESSAGE\'.';
     const splitDateHourMessage = message.split(' ').slice(1);
