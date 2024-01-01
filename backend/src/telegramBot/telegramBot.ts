@@ -66,7 +66,8 @@ export class TelegramBot {
       this.bot.start(ctx => {
           // ctx.replyWithVideo({ source: pathStartedVideo });
           if (!this.isUserClient(ctx)) return;
-          ctx.reply(`I'm here!! :D`);
+          const commandTextInfo = Object.values(ConfigurationService.Instance.listBotCommands).reduce((prev, current) => `${prev}\n> ${current}`);
+          ctx.reply(`I'm here!! :D \nHere a list of commands:\n> ${commandTextInfo}`);
       });
       this.bot.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
