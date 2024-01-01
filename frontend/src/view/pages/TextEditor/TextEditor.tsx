@@ -1,6 +1,5 @@
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
 import React from "react";
-import { NotificationsActions } from "../../../core/actions/notifications";
+import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
 
 const formStyle: SxProps<Theme> = {
@@ -28,12 +27,12 @@ const downloadText = (text: string) => {
   document.body.removeChild(anchor);
 }
 
-const ViewBox = ({ textData }: {textData: string}) => {
-  return <Box
+const ViewBox = ({ textData }: {textData: string}) => (
+  <Box
     style={{width: '80%', height: '28rem', overflow: "hidden", overflowY: "scroll",}}
     dangerouslySetInnerHTML={{ __html: textData }}
-  />;
-}
+  />
+);
 
 export const TextEditor = () => {
   const [textData, setTextData] = React.useState<string>(TemporalData.EditorTextData);

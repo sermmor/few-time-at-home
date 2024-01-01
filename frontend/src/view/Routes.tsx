@@ -5,6 +5,7 @@ import { Home } from "./pages/Home/Home";
 import { Notepad } from "./pages/Notepad/Notepad";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
+import { Pomodoro } from "./pages/Pomodoro/Pomodoro";
 import { Rss } from "./pages/Rss/Rss";
 import { TextEditor } from "./pages/TextEditor/TextEditor";
 
@@ -35,6 +36,11 @@ export const routesFTAH: RouteFTAHElement[] = [
     name: 'Notifications',
     path: '/notifications',
     element: <Notifications/>,
+  },
+  {
+    name: 'Pomodoro',
+    path: '/Pomodoro',
+    element: <Pomodoro/>,
   },
   {
     name: 'Rss',
