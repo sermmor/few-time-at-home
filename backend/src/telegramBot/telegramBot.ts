@@ -178,7 +178,6 @@ export class TelegramBot {
     if (ctx.message?.text) {
       const passWithSpaces = ctx.message.text.split(ConfigurationService.Instance.listBotCommands.bot_login)[1];
       this.tokenPassGetUser = passWithSpaces.substring(1);
-      console.log(this.tokenPassGetUser)
       if (this.isUserClient(ctx)) {
         ctx.reply(`Usuario logueado correctamente. :D`);
       };
