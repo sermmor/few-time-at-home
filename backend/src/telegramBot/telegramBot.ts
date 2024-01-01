@@ -23,8 +23,8 @@ export class TelegramBot {
   private static alertEnabled: boolean;
 
   private telegramBotData: TelegramData;
-  private bot: Telegraf<TelegrafContext>;
-  private userClient: string;
+  private bot: Telegraf<TelegrafContext> | undefined;
+  private userClient: string | undefined;
   private tokenPassGetUser: string = '';
   private context: TelegrafContext | undefined;
   private lastSearchInCloudPathList: string[] = [];
@@ -38,11 +38,13 @@ export class TelegramBot {
     } else {
         this.telegramBotData = telegramBotData;
     }
-    this.userClient = this.telegramBotData.username_client;
-    if (!bot) {
-        this.bot = new Telegraf(this.telegramBotData.telegram_bot_token) // Also you can use process.env.BOT_TOKEN here.
-    } else {
-        this.bot = bot;
+    if (this.telegramBotData.connect_to_telegram) {
+      this.userClient = this.telegramBotData.username_client;
+      if (!bot) {
+          this.bot = new Telegraf(this.telegramBotData.telegram_bot_token) // Also you can use process.env.BOT_TOKEN here.
+      } else {
+          this.bot = bot;
+      }
     }
   }
 
@@ -63,38 +65,39 @@ export class TelegramBot {
   }
 
   start(commandList: TelegramBotCommand) {
-      this.bot.start(ctx => {
+    if (!this.telegramBotData.connect_to_telegram) return;
+      this.bot!.start(ctx => {
           // ctx.replyWithVideo({ source: pathStartedVideo });
           if (!this.isUserClient(ctx)) return;
           const commandTextInfo = Object.values(ConfigurationService.Instance.listBotCommands).reduce((prev, current) => `${prev}\n> ${current}`);
           ctx.reply(`I'm here!! :D \nHere a list of commands:\n> ${commandTextInfo}`);
       });
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
-      this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
-      this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
-      this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
-      this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_youtube_command, commandList.onCommandYoutube);
-      this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
+      this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_youtube_command, commandList.onCommandYoutube);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
+      this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_bookmark_command, this.sendSearchBookmarksToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_file, this.searchFilesInCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_give_file_from_search, this.giveMeFileIndexInCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_cloud_cd_path, this.cdDirInCloud);
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_ls_path, this.lsDirInCloud);
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_return_path, this.returnToParentInCloud);
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_get_current_path, this.getCurrentPathInCloud);
-      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_cloud_download_folder, this.giveFolderContentInCloud);
-      this.bot.on('photo', this.uploadFileToCloud);
-      this.bot.on('audio', this.uploadFileToCloud);
-      this.bot.on('document', this.uploadFileToCloud);
-      this.bot.on('video', this.uploadFileToCloud);
-      this.bot.on('voice', this.uploadFileToCloud);
-      this.bot.on('animation', this.uploadFileToCloud);
+      this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_cloud_ls_path, this.lsDirInCloud);
+      this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_cloud_return_path, this.returnToParentInCloud);
+      this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_cloud_get_current_path, this.getCurrentPathInCloud);
+      this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_cloud_download_folder, this.giveFolderContentInCloud);
+      this.bot!.on('photo', this.uploadFileToCloud);
+      this.bot!.on('audio', this.uploadFileToCloud);
+      this.bot!.on('document', this.uploadFileToCloud);
+      this.bot!.on('video', this.uploadFileToCloud);
+      this.bot!.on('voice', this.uploadFileToCloud);
+      this.bot!.on('animation', this.uploadFileToCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_alert, this.addAlertFromTelegram);
       this.launchAlertsToTelegram();
-      this.bot.launch();
+      this.bot!.launch();
       
       // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
   }
@@ -131,11 +134,11 @@ export class TelegramBot {
     nameCommand: string,
     actionWithMessage: (ctx: TelegrafContext, message: string) => void
   ) => {
-    this.bot.command(nameCommand, (ctx) => {
+    this.bot!.command(nameCommand, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       if (ctx.message?.text) {
         const note = ctx.message.text.split(nameCommand)[1];
-        // this.bot.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
+        // this.bot!.hears('hiii', (ctx) => ctx.reply('Hiiiiii'));
         actionWithMessage(ctx, note);
       }
     });
@@ -302,13 +305,13 @@ export class TelegramBot {
       console.log(`fileItemId: ${fileItemId}`);
       if (fileItemId) {
         const tempDirectory = 'temp_telegram';
-        this.bot.telegram.getFile(fileItemId).then(file => {
+        this.bot!.telegram.getFile(fileItemId).then(file => {
           const nameFile = this.getNameFromTelegram(ctx) || fileItemId;
           const filePathSplitted = file.file_path?.split('.');
           const extensionFile = filePathSplitted ? filePathSplitted[filePathSplitted.length - 1] : '';
           console.log(`nameFile: ${nameFile}`);
           console.log(`extension file: ${extensionFile}`);
-          this.bot.telegram.getFileLink(fileItemId).then(linkFile => {
+          this.bot!.telegram.getFileLink(fileItemId).then(linkFile => {
             console.log(`linkFile: ${linkFile}`);
             fetch(linkFile).then((response: any) => {
               if (!existsSync(tempDirectory)) {
