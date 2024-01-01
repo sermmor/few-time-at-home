@@ -244,6 +244,8 @@ export const ConfigurationComponent = () => {
                   setLineToSendResult(result.stdout);
                 } else if (result.stderr) {
                   setLineToSendResult(result.stderr);
+                } else if (result.stdout === '' && result.stderr === '') {
+                  setLineToSendResult('FINISHED');
                 } else {
                   console.log(result);
                 }
