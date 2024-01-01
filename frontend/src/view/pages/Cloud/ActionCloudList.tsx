@@ -3,6 +3,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { CloudItem, addPrefixUrlFolder, urlFolder } from "../../../data-model/cloud";
 import { GenericTree } from "../../../service/trees/genericTree";
 import { CloudState, CloudStateName } from "./Models/CloudState";
+import { TemporalData } from "../../../service/temporalData.service";
 
 export interface ActionsProps {
   cloudState: CloudState;
@@ -258,6 +259,29 @@ export const downloadFile = (
     setOpenSnackbar(true);
   });
 };
+
+export const downloadAndOpenFileInEditor = (
+  {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
+  id: string,
+): Promise<void> => new Promise<void>(resolve => {
+  // console.log(item)
+  const itemIndexInList = getItemIndexFromTreeNode(currentTreeNode, id);
+  const item = currentTreeNode.children[itemIndexInList].node!;
+
+  setCloudState({ name: CloudStateName.DOWNLOADING, description: `Opening file '${item.name}'`, });
+  CloudActions.openFileContentInEditor({
+    drive: currentDrive || '/',
+    path: `${currentTreeNode?.label}/${item.name}`,
+  }).then((text) => {
+    TemporalData.EditorTextData = text;
+    setCloudState({ name: CloudStateName.NORMAL, description: '', });
+    console.log('File in editor!!');
+    setSnackBarMessage(`File '${item.name}' is in Text Editor.`);
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
+    resolve();
+  });
+});;
 
 const isCreatedFile = (actions: ActionsProps, nameFile: string) => {
   const { currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar } = actions;

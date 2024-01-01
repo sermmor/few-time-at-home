@@ -67,6 +67,8 @@ interface Props {
   seeTrashDrive?: () => void;
   seeCloudDrive?: () => void;
   filterItemPredicate?: (id: string) => boolean;
+  filterFileInEditor?: (id: string) => boolean;
+  openFileInEditor?: (id: string) => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -87,6 +89,8 @@ export const TitleAndListWithFolders = ({
   seeTrashDrive,
   seeCloudDrive,
   filterItemPredicate,
+  filterFileInEditor,
+  openFileInEditor,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -194,7 +198,14 @@ export const TitleAndListWithFolders = ({
             <Box key={element.id} sx={itemListStyle}>
               {
                 (!filterItemPredicate || filterItemPredicate(element.id)) && 
-                <ItemListWithFoldersComponent {...{element, deleteAction, isInSelectListMode, isElementSelected: isCheckedList[index], onSelect: onSelectItemGeneral(index)}}/>
+                <ItemListWithFoldersComponent {...{
+                  element,
+                  deleteAction,
+                  isInSelectListMode,
+                  isElementSelected: isCheckedList[index],
+                  onSelect: onSelectItemGeneral(index),
+                  onOpenFileInEditor: filterFileInEditor && openFileInEditor && filterFileInEditor(element.id) ? openFileInEditor : undefined,
+                }}/>
               }
             </Box>
           )

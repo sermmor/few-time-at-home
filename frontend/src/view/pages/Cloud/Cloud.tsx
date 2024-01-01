@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
 import { Box, SxProps, Theme } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
@@ -8,7 +9,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, deleteItemAction, downloadFile, goBackToParentFolder, nameFileForEmptyFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, nameFileForEmptyFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
@@ -72,6 +73,7 @@ const getNameFolder = (completePath: string): string => {
 }
 
 export const Cloud = () => {
+  const navigate = useNavigate();
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [tree, setTree] = React.useState<GenericTree<CloudItem>>();
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<CloudItem>>();
@@ -108,7 +110,7 @@ export const Cloud = () => {
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setIndexCurrentDrive, indexCurrentDrive, driveList };
   
     // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
-    // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta. La idea es poder crear estos ficheros y editarlos en la cloud con un editor.
+    // TODO: El endpoint de crear fichero vacío existe ya y se está usando cuando se crea nueva carpeta.
     // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
 
   // Define the event handlers
@@ -158,6 +160,8 @@ export const Cloud = () => {
         onSearch={onSearchFileOrFolder(action)}
         // createFile={(nameFile) => undefined}
         // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
+        filterFileInEditor={(id) => id.indexOf('.txt') > -1}
+        openFileInEditor={(id) => downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'))}
         addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
           driveName: currentDrive || '/',
           isNotFolder: false,

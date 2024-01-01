@@ -1,5 +1,6 @@
 import { Checkbox, IconButton } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import React from "react";
 
 interface Props {
@@ -8,9 +9,10 @@ interface Props {
   element: { id: string, isFolder: boolean, item: string | JSX.Element };
   onSelect?: (id: string, checked: boolean) => void;
   deleteAction?: (id: string) => void;
+  onOpenFileInEditor?: (id: string) => void;
 }
 
-export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isElementSelected, deleteAction, onSelect}: Props) => {
+export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isElementSelected, deleteAction, onSelect, onOpenFileInEditor}: Props) => {
   const [isChecked, setChecked] = React.useState<boolean>(isElementSelected);
 
   if (isChecked !== isElementSelected) setChecked(isElementSelected);
@@ -32,5 +34,10 @@ export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isEle
           </IconButton>
         }
         {element.item}
+        {
+          onOpenFileInEditor  && !isInSelectListMode && <IconButton aria-label="edit" onClick={() => onOpenFileInEditor(element.id)}>
+            <EditIcon />
+          </IconButton>
+        }
   </>;
 }

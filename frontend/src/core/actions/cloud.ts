@@ -1,7 +1,7 @@
 
 import { CloudDataModel, CloudDataModelFromFetch, CloudDrivesResponse, parseFromFetchToDataModel, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
-import { fetchDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
+import { fetchDownloadFile, fetchGetTextDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
 
 const getDrivesList = (): Promise<CloudDrivesResponse> => 
@@ -38,7 +38,10 @@ const uploadFile = (data: UploadFilesToCloudRequest) =>
 const downloadFile = (data: DownloadFileToCloudResquest) => 
   fetchDownloadFile(getCloudEndpoint('downloadFile'), data);
 
+const openFileContentInEditor = (data: DownloadFileToCloudResquest): Promise<string> => 
+  fetchGetTextDownloadFile(getCloudEndpoint('downloadFile'), data);
+
 const deleteFileOrFolder = (data: GenericCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("deleteFileOrFolder"), data, messageResponseMock());
 
-export const CloudActions = { getDrivesList, updateIndexing, getAllItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder };
+export const CloudActions = { getDrivesList, updateIndexing, getAllItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };
