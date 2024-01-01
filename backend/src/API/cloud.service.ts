@@ -76,7 +76,8 @@ export class CloudService {
       let numberFilesLeft = files.length;
       files.forEach(filePath => {
         stat(`${path}/${filePath}`, (err, stat) => {
-          if (stat.isDirectory()) {
+          if (!stat || !stat.isDirectory) console.log(`> Crash? : ${path}/${filePath}`);
+          if (stat && stat.isDirectory()) {
             directories.push(filePath);
           } else {
             allItemsAlreadyCollected.push({
