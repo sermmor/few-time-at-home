@@ -76,7 +76,7 @@ export const Notifications = () => {
         title='Notifications'
         subtext={isNotificationsEnabled ? undefined : <p style={{color: 'red'}}>All notifications are disabled</p>}
         deleteAction={deleteActionList}
-        addAction={() => addActionList({timeToLaunch: (new Date()).toJSON(), message: 'new alert'}) }
+        addAction={() => {const today = new Date(); addActionList({timeToLaunch: today.toJSON(), message: 'new alert'})} }
         list={notifications.alerts.map((item) => ({id: `${item.timeToLaunch}`, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
           <LabelAndTextField
             text={item.message}

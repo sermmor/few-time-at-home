@@ -16,6 +16,7 @@ export const LabelAndDateTimeTextField = ({text, onChange}: {text: string, onCha
   const [textEditing, setTextEditing] = React.useState<string>(text);
 
   const setText = (newText: string) => {
+    setTextEditing(newText);
     setEditMode(false);
     if (onChange) onChange(newText);
   }
