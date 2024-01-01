@@ -6,6 +6,7 @@ import { Notepad } from "./pages/Notepad/Notepad";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
 import { Rss } from "./pages/Rss/Rss";
+import { TextEditor } from "./pages/TextEditor/TextEditor";
 
 interface RouteFTAHElement {
   name: string;
@@ -44,6 +45,11 @@ export const routesFTAH: RouteFTAHElement[] = [
     name: 'Notepad',
     path: '/notepad',
     element: <Notepad/>,
+  },
+  {
+    name: 'Text Editor',
+    path: '/text-editor',
+    element: <TextEditor/>,
   },
   {
     name: 'Configuration',
