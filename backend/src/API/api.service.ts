@@ -304,6 +304,7 @@ export class APIService {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
+        console.log(req.body.drive, req.body.path)
         cloudService.createBlankFile(req.body.drive, req.body.path).then(() => res.send({isUpdated: true}));
       }
     });

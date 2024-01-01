@@ -438,6 +438,32 @@ export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: Clou
   );
 };
 
+export const createBlankFile = (actions: ActionsProps, nameFile: string) => {
+  const {currentDrive, currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  if (`${currentTreeNode?.label}` === '/') {
+    console.error('You can\'t create a file in root path!!!');
+    setSnackBarMessage(`You can't create a file in root path`);
+    setErrorSnackbar(true);
+    setOpenSnackbar(true);
+    return;
+  }
+
+  const newEmptyFile: CloudItem = {
+    driveName: currentDrive || '/',
+    isNotFolder: true,
+    name: nameFile,
+    path: `${currentTreeNode.label.substring(1)}/${nameFile}`.split('//').join('/'),
+  };
+  
+  CloudActions.createBlankFile({
+    drive: newEmptyFile.driveName,
+    path: newEmptyFile.path,
+  }).then(() => {
+    console.log(`Created file '${currentTreeNode.label}/${nameFile}'`);
+    refleshCloudView(actions);
+  });
+}
+
 export const onSearchFileOrFolder = (actions: ActionsProps) => (textToSearch: string) => new Promise<(string | JSX.Element)[]>(resolve => {
   const { currentDrive } = actions;
   CloudActions.searchAllItems({

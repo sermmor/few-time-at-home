@@ -12,6 +12,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SyncIcon from '@mui/icons-material/Sync';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloudCircleIcon from '@mui/icons-material/CloudCircle';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
@@ -69,6 +70,7 @@ interface Props {
   filterItemPredicate?: (id: string) => boolean;
   filterFileInEditor?: (id: string) => boolean;
   openFileInEditor?: (id: string) => void;
+  createFile?: () => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -91,6 +93,7 @@ export const TitleAndListWithFolders = ({
   filterItemPredicate,
   filterFileInEditor,
   openFileInEditor,
+  createFile,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -161,6 +164,10 @@ export const TitleAndListWithFolders = ({
           <Button onClick={duplicateItem}>{<FileCopyIcon />}</Button>
       }
       {
+        !isInSelectListMode && createFile && 
+          <Button onClick={createFile}>{<NoteAddIcon />}</Button>
+      }
+      {
         !isInSelectListMode && 
           <Button onClick={addFolder}><CreateNewFolderIcon /></Button>
       }
@@ -172,15 +179,15 @@ export const TitleAndListWithFolders = ({
         </>
       }
       {
-        seeCloudDrive && 
+        !isInSelectListMode && seeCloudDrive && 
           <Button onClick={seeCloudDrive}><CloudCircleIcon /></Button>
       }
       {
-        seeTrashDrive && 
+        !isInSelectListMode && seeTrashDrive && 
           <Button onClick={seeTrashDrive}><DeleteIcon /></Button>
       }
       {
-        updateContent && 
+        !isInSelectListMode && updateContent && 
           <Button onClick={updateContent}><SyncIcon /></Button>
       }
       {
