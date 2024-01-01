@@ -1,3 +1,4 @@
+import { ExecException, exec } from 'child_process';
 import { Quote } from "../quote/quoteList";
 import { saveInAFile } from "../utils";
 import { ChannelMediaRSSCollection } from "./messagesRSS.service";
@@ -99,5 +100,22 @@ export class ConfigurationService {
 
     private saveConfiguration = () => {
         saveInAFile(JSON.stringify(this.getConfigurationJson(), null, 2), pathConfigFile);
+    }
+
+    launchCommandLine = (cmd: string): Promise<ExecException | { stdout: string, stderr: string }>=> {
+      return new Promise((resolve, reject) => {
+        try{
+          exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+              console.log(err);
+              resolve({ stdout: '', stderr: `${err}` });
+            } else {
+              resolve({ stdout, stderr });
+            }
+          });
+        } catch (e) {
+          resolve({ stdout: '', stderr: `${e}` });
+        }
+      });
     }
 }

@@ -4,6 +4,7 @@ const getUrlApi = (): string => `http://${ConfigurationService.Instance.ip}:${Co
 
 export const queryRssEndpoint  = (nameEndpoint: 'all' | 'mastodon' | 'twitter' | 'blog' | 'youtube', amount: number): string => `${getUrlApi()}/rss/${nameEndpoint}?amount=${amount}`;
 export const configurationEndpoint = (): string => `${getUrlApi()}/configuration`;
+export const configurationSendCommandEndpoint = (): string => `${getUrlApi()}/configuration/launch-command`;
 export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
 export const sendToTelegramEndpoint = (): string => `${getUrlApi()}/send-to-telegram`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;

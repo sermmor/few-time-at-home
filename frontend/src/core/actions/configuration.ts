@@ -1,7 +1,7 @@
-import { ConfigurationDataModel } from "../../data-model/configuration";
-import { configurationDataModelMock } from "../../data-model/mock/configurationMock";
+import { ComandLineRequest, ComandLineResponse, ConfigurationDataModel } from "../../data-model/configuration";
+import { comandLineResponseMock, configurationDataModelMock } from "../../data-model/mock/configurationMock";
 import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
-import { configurationEndpoint } from "../urls-and-end-points";
+import { configurationEndpoint, configurationSendCommandEndpoint } from "../urls-and-end-points";
 
 const getConfiguration = (): Promise<ConfigurationDataModel> => 
   fetchJsonReceive<ConfigurationDataModel>(configurationEndpoint(), configurationDataModelMock());
@@ -9,4 +9,7 @@ const getConfiguration = (): Promise<ConfigurationDataModel> =>
 const sendConfiguration = (data: ConfigurationDataModel) => 
   fetchJsonSendAndReceive<ConfigurationDataModel>(configurationEndpoint(), data, configurationDataModelMock());
 
-export const ConfigurationActions = { getConfiguration, sendConfiguration };
+const sendCommandLine = (data: ComandLineRequest) => 
+  fetchJsonSendAndReceive<ComandLineResponse>(configurationSendCommandEndpoint(), data, comandLineResponseMock());
+
+export const ConfigurationActions = { getConfiguration, sendConfiguration, sendCommandLine };

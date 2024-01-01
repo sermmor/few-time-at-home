@@ -11,3 +11,12 @@ export interface ConfigurationDataModel {
   numberOfWorkers: number,
   apiPort: number,
 }
+
+export interface ComandLineRequest {
+  commandLine: string;
+}
+
+export interface ComandLineResponse {
+  stdout: string;
+  stderr: string;
+}

@@ -29,6 +29,7 @@ export class APIService {
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static configurationEndpoint = "/configuration";
+  static configurationLaunchCommandEndpoint = "/configuration/launch-command";
   static notesEndpoint = "/notes";
   static alertsEndpoint = "/alerts";
   static alertIsReadyEndpoint = "/alerts-is-ready";
@@ -102,9 +103,21 @@ export class APIService {
             });
         }
     });
-
+    
     this.app.get(APIService.configurationEndpoint, (req, res) => {
-        res.send(ConfigurationService.Instance.getConfigurationJson());
+      res.send(ConfigurationService.Instance.getConfigurationJson());
+    });
+
+    // body: commandLine
+    this.app.post(APIService.configurationLaunchCommandEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body JSON");
+            res.send({ stdout: '', stderr: 'Received NO body JSON' });
+        } else {
+          ConfigurationService.Instance.launchCommandLine(req.body.commandLine).then((response) => {
+            res.send(response);
+          });
+        }
     });
   }
 

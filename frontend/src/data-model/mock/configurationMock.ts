@@ -58,3 +58,8 @@ export const configurationDataModelMock = (): ConfigurationDataModel => ({
   numberOfWorkers: 4,
   apiPort: 8080,
 });
+
+export const comandLineResponseMock = () => ({
+  stdout: 'ok',
+  stderr: 'undefined',
+});

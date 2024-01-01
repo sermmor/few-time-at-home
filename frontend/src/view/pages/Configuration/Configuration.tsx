@@ -14,10 +14,23 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
-const footerStyle: SxProps<Theme> = {
+const commandLineStyle: SxProps<Theme> = {
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
+  alignItems: 'left',
+  justifyContent: 'initial',
+  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  marginBottom: '2rem',
+  padding: '1rem',
+  color: 'rgb(30, 30, 30)',
+  backgroundColor: 'whitesmoke',
+};
+
+const footerStyle: SxProps<Theme> = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2rem',
   alignItems: 'left',
   justifyContent: 'initial',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
@@ -48,6 +61,8 @@ let indexNewItemAdded = 0;
 
 export const ConfigurationComponent = () => {
   const [config, setConfig] = React.useState<ConfigurationDataModel>();
+  const [lineToSend, setLineToSend] = React.useState<string>('');
+  const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   React.useEffect(() => { ConfigurationActions.getConfiguration().then(data => setConfig(data)) }, []);
 
   const deleteActionList = (keyList: string, equals: (item: any, idToDelete: string) => boolean) => (id: string) => {
@@ -209,6 +224,43 @@ export const ConfigurationComponent = () => {
             </>
           }))}
         />
+        <Box sx={commandLineStyle}>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
+            <TextField
+              label="line to send"
+              variant="standard"
+              value={lineToSend}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
+              onChange={evt => {
+                setLineToSend(evt.target.value);
+              }}
+            />
+            <Button
+              variant='outlined'
+              sx={{minWidth: '15.5rem'}}
+              onClick={() => ConfigurationActions.sendCommandLine({commandLine: lineToSend}).then(result => {
+                if (result.stdout) {
+                  setLineToSendResult(result.stdout);
+                } else if (result.stderr) {
+                  setLineToSendResult(result.stderr);
+                } else {
+                  console.log(result);
+                }
+              })}
+              >
+              Send command line
+            </Button>
+          </Box>
+          <TextField
+            id="outlined-multiline-static"
+            label="Resultado"
+            multiline
+            rows={5}
+            sx={{width: '100%'}}
+            value={lineToSendResult}
+          />
+        </Box>
         <Box sx={footerStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Checkbox
