@@ -25,6 +25,7 @@ export class TelegramBot {
   private telegramBotData: TelegramData;
   private bot: Telegraf<TelegrafContext>;
   private userClient: string;
+  private tokenPassGetUser: string = '';
   private context: TelegrafContext | undefined;
   private lastSearchInCloudPathList: string[] = [];
   private currentCloudDir: string = '/';
@@ -56,7 +57,7 @@ export class TelegramBot {
   }
 
   private isUserClient = (ctx: TelegrafContext): boolean => {
-    const condition = ctx.from?.username === this.userClient;
+    const condition = ctx.from?.username === this.userClient && this.telegramBotData.token_pass === this.tokenPassGetUser;
     if (condition) this.setContext(ctx);
     return condition;
   }
@@ -67,6 +68,7 @@ export class TelegramBot {
           if (!this.isUserClient(ctx)) return;
           ctx.reply(`I'm here!! :D`);
       });
+      this.bot.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
       this.buildBotCommand(this.bot, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
@@ -95,8 +97,6 @@ export class TelegramBot {
       
       // setTimeout(() => this.context ? this.context.reply('Remember to a thing') : console.log('NO CONTEXT NO PARTY'), 30000); // TODO: Alert service.
   }
-
-  
 
   sendNotepadTextToTelegram = (text: string): boolean => {
     if (!this.context) return false;
@@ -172,6 +172,17 @@ export class TelegramBot {
       messagesToSend.push(message);
     }
     this.sendAllMessagesToTelegram(ctx, messagesToSend);
+  }
+
+  private login = (ctx: TelegrafContext) => {
+    if (ctx.message?.text) {
+      const passWithSpaces = ctx.message.text.split(ConfigurationService.Instance.listBotCommands.bot_login)[1];
+      this.tokenPassGetUser = passWithSpaces.substring(1);
+      console.log(this.tokenPassGetUser)
+      if (this.isUserClient(ctx)) {
+        ctx.reply(`Usuario logueado correctamente. :D`);
+      };
+    }
   }
 
   private addNoteFromTelegram = (ctx: TelegrafContext, note: string) => {

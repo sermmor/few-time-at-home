@@ -17,6 +17,7 @@ export class ConfigurationService {
     blogRssList: string[];
     youtubeRssList: string[];
     listBotCommands: {
+        bot_login: string;
         bot_all_command: string;
         bot_masto_command: string;
         bot_nitter_command: string;
