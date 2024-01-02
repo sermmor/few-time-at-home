@@ -64,6 +64,6 @@ export const Pomodoro = (): JSX.Element => {
         Start
       </Button>
     </Box>
-    <Typography sx={{textTransform: 'uppercase', fontSize: '20rem'}}>{timeToShow}</Typography>
+    <Typography sx={{textTransform: 'uppercase', fontSize: '20rem'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
   </Box>;
 };
