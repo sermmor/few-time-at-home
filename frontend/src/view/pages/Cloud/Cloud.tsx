@@ -174,7 +174,7 @@ export const Cloud = () => {
         updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action)}
         list={
-          fileList.data.map((item, index) => ({id:`${item.name}`, isFolder: !item.isNotFolder, item: <>{
+          fileList.data.sort((item1, item2) => item1.name.localeCompare(item2.name)).map((item, index) => ({id:`${item.name}`, isFolder: !item.isNotFolder, item: <>{
             !item.isNotFolder ?
               <LabelAndTextFieldWithFolder
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}

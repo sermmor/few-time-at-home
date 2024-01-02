@@ -31,7 +31,7 @@ export class CloudService {
     this.cloudOrigins.push(defaultTrash);
 
     this.getAllIndexingFilesContent().then(driveList => {
-      this.updateCloudItemsIndex();
+      this.updateCloudItemsIndex().then(() => console.log("Indexing FINISHED!"));
     });
   }
 
@@ -76,36 +76,44 @@ export class CloudService {
       let numberFilesLeft = files.length;
       files.forEach(filePath => {
         stat(`${path}/${filePath}`, (err, stat) => {
-          if (stat.isDirectory()) {
-            directories.push(filePath);
-          } else {
-            allItemsAlreadyCollected.push({
-              name: filePath,
-              path: `${path}/${filePath}`,
-              driveName: drive.name,
-            });
-          }
-          numberFilesLeft--;
-
-          if (numberFilesLeft === 0) {
-            if (directories.length === 0) {
-              resolve(allItemsAlreadyCollected);
-            } else {
-              let numberDirectoriesLeft = directories.length;
-              let newItems: CloudItem[] = [];
-              directories.forEach(directory => {
-                setTimeout(() => {
-                  this.updateDriveIndex(drive, `${path}/${directory}`, allItemsAlreadyCollected).then(items => {
-                    newItems = items.filter(i => allItemsAlreadyCollected.findIndex(i2 => i2.path === i.path) < 0);
-                    allItemsAlreadyCollected = allItemsAlreadyCollected.concat(newItems);
-                    numberDirectoriesLeft--;
-                    if (numberDirectoriesLeft === 0) {
-                      resolve(allItemsAlreadyCollected);
-                    }
-                  })},
-                0);
-              })
+          if (!stat || !stat.isDirectory) console.log(`> Crash? : ${path}/${filePath}`);
+          try {
+            if (stat && stat.isDirectory) {
+              if (stat.isDirectory()) {
+                directories.push(filePath);
+              } else {
+                allItemsAlreadyCollected.push({
+                  name: filePath,
+                  path: `${path}/${filePath}`,
+                  driveName: drive.name,
+                });
+              }
+              numberFilesLeft--;
+    
+              if (numberFilesLeft === 0) {
+                if (directories.length === 0) {
+                  resolve(allItemsAlreadyCollected);
+                } else {
+                  let numberDirectoriesLeft = directories.length;
+                  let newItems: CloudItem[] = [];
+                  directories.forEach(directory => {
+                    setTimeout(() => {
+                      this.updateDriveIndex(drive, `${path}/${directory}`, allItemsAlreadyCollected).then(items => {
+                        newItems = items.filter(i => allItemsAlreadyCollected.findIndex(i2 => i2.path === i.path) < 0);
+                        allItemsAlreadyCollected = allItemsAlreadyCollected.concat(newItems);
+                        numberDirectoriesLeft--;
+                        if (numberDirectoriesLeft === 0) {
+                          resolve(allItemsAlreadyCollected);
+                        }
+                      })},
+                    0);
+                  })
+                }
+              }
             }
+          } catch (e) {
+            console.log(e);
+            console.log(`> Crash with exception : ${path}/${filePath}`);
           }
         });
       });
