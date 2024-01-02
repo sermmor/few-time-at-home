@@ -31,7 +31,7 @@ export class CloudService {
     this.cloudOrigins.push(defaultTrash);
 
     this.getAllIndexingFilesContent().then(driveList => {
-      this.updateCloudItemsIndex();
+      this.updateCloudItemsIndex().then(() => console.log("Indexing FINISHED!"));
     });
   }
 
