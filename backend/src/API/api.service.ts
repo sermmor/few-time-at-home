@@ -8,7 +8,7 @@ import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
 import Multer from 'multer';
-import { CloudService, cloudDefaultPath } from './cloud.service';
+import { CloudService, cloudDefaultPath } from './cloudV2.service';
 import path from 'path';
 
 const cors = require('cors');
@@ -41,15 +41,14 @@ export class APIService {
   static sendToTelegramEndpoint = "/send-to-telegram";
   static cloudEndpointList = {
     getDrivesList: '/cloud/drives',
-    updateIndexing: '/cloud/update',
-    getAllItems: '/cloud/get-items',
+    getFolderContent: '/cloud/get-folder-content',
     createFolder: '/cloud/create-folder',
     moveItem: '/cloud/move-item',
     renameItem: '/cloud/rename-item',
     createBlankFile: '/cloud/create-blank-file',
     uploadFile: '/cloud/upload-file',
     downloadFile: '/cloud/download-file',
-    search: '/cloud/search',
+    searchInFolder: '/cloud/search-in-folder',
     deleteFileOrFolder: '/cloud/delete',
   };
 
@@ -272,79 +271,69 @@ export class APIService {
       res.send({driveList: cloudService.getDrivesList()});
     });
 
-    // body: drive
-    this.app.post(APIService.cloudEndpointList.updateIndexing, (req, res) => {
+    // body: drive, folderPath
+    this.app.post(APIService.cloudEndpointList.getFolderContent, (req, res) => { // TODO: NEW ENDPOINT
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        cloudService.updateCloudItemsIndex(req.body.drive).then(() => res.send({isUpdated: true}));
+        cloudService.getFolderContent(req.body.drive, req.body.folderPath).then(() => res.send({isUpdated: true}));
       }
     });
 
-    // body: drive
-    this.app.post(APIService.cloudEndpointList.getAllItems, (req, res) => {
+    // body: path
+    this.app.post(APIService.cloudEndpointList.createFolder, (req, res) => { // TODO: ENDPOINT MODIFIED
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        res.send({allItems: cloudService.getCloudItems(req.body.drive)});
+        cloudService.createFolder(req.body.path).then(() => res.send({isUpdated: true}));
       }
     });
 
-    // body: drive, path
-    this.app.post(APIService.cloudEndpointList.createFolder, (req, res) => {
+    // body: path
+    this.app.post(APIService.cloudEndpointList.createBlankFile, (req, res) => { // TODO: ENDPOINT MODIFIED
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        cloudService.createFolder(req.body.drive, req.body.path).then(() => res.send({isUpdated: true}));
+        cloudService.createBlankFile(req.body.path).then(() => res.send({isUpdated: true}));
       }
     });
 
-    // body: drive, path
-    this.app.post(APIService.cloudEndpointList.createBlankFile, (req, res) => {
+    // body: oldPath, newPath
+    this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => { // TODO: ENDPOINT MODIFIED
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        console.log(req.body.drive, req.body.path)
-        cloudService.createBlankFile(req.body.drive, req.body.path).then(() => res.send({isUpdated: true}));
+        cloudService.moveFileOrFolder(req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
       }
     });
 
-    // body: drive, oldPath, newPath
-    this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => {
+    // body: oldPath, newPath
+    this.app.post(APIService.cloudEndpointList.renameItem, (req, res) => { // TODO: ENDPOINT MODIFIED
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        cloudService.moveFileOrFolder(req.body.drive, req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
+        cloudService.renameFileOrFolder(req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
       }
     });
 
-    // body: drive, oldPath, newPath
-    this.app.post(APIService.cloudEndpointList.renameItem, (req, res) => {
-      if (!req.body) {
-          console.error("Received NO body text");
-      } else {
-        cloudService.renameFileOrFolder(req.body.drive, req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
-      }
-    });
-
-    // body: req.body.drive, req.body.pathToSave, req.body.numberOfFiles, req.file
-    this.app.post(APIService.cloudEndpointList.uploadFile, upload.single('file'), (req, res) => {
+    // body: req.body.pathToSave, req.body.numberOfFiles, req.file
+    this.app.post(APIService.cloudEndpointList.uploadFile, upload.single('file'), (req, res) => { // TODO: ENDPOINT MODIFIED
       if (!req.body || !req.file) {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        cloudService.uploadFile(req.body.drive, allFiles.path, `${req.body.pathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
+        cloudService.uploadFile(allFiles.path, `${req.body.pathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
           res.send({ message: 'All files are saved!' });
           });
       }
     });
 
-    // body: req.body.nameDrive, req.body.searchTokken
-    this.app.post(APIService.cloudEndpointList.search, (req, res) => {
+    // body: req.body.nameDrive, req.body.folderPath, req.body.searchTokken
+    this.app.post(APIService.cloudEndpointList.searchInFolder, (req, res) => { // TODO: NEW ENDPOINT
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        const search = cloudService.searchCloudItem(req.body.nameDrive, req.body.searchTokken);
+        const search = cloudService.searchCloudItemInDirectory(req.body.nameDrive, req.body.folderPath, req.body.searchTokken);
         res.send({ search });
       }
     });
@@ -377,11 +366,11 @@ export class APIService {
         const fileRelativePath = (<string> req.body.path).split('/').slice(2).join('/'); // Remove '', and 'drive'.
         
         res.sendFile(fileRelativePath, options, (err) => {
-            if (err) {
-              console.error("Received NO body text");
-            } else {
-              console.log(`Sent: ${fileRelativePath}`);
-            }
+          if (err) {
+            console.error("Received NO body text");
+          } else {
+            console.log(`Sent: ${fileRelativePath}`);
+          }
         });
       }
     });
