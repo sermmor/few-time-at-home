@@ -37,4 +37,4 @@ const openFileContentInEditor = (data: DownloadFileToCloudResquest): Promise<str
 const deleteFileOrFolder = (data: GenericCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("deleteFileOrFolder"), data, messageResponseMock());
 
-export const CloudActions = { getDrivesList, getAllItems: getAllFolderItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };

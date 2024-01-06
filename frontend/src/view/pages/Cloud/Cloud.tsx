@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, SxProps, Theme } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import { CloudItem, urlFolder } from "../../../data-model/cloud";
-import { GenericTree } from "../../../service/trees/genericTree";
+import { CloudItem } from "../../../data-model/cloud";
 import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
@@ -32,81 +31,43 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
-// const SaveNotesComponent = ({ tree, }: { tree: GenericTree<CloudItem>, }) => {
-//   const [isSave, setSave] = React.useState<boolean>(false);
-//   const setConfiguration = () => {
-    // console.log(GenericTree.toString(tree, current => `{${current.title} | ${current.url}}`))
-    
-    // BookmarksActions.sendBookmarks({data: tree}).then(() => {
-    //   setSave(true);
-    //   setTimeout(() => setSave(false), 500);
-    // });
-//   }
-//   return <Box
-//     sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingRight: { xs: '0rem', sm: '3rem'}, paddingBottom: '3rem'}}
-//     >
-//       <Button
-//         variant='contained'
-//         sx={{minWidth: '15.5rem'}}
-//         onClick={() => setConfiguration()}
-//         >
-//         Save
-//         </Button>
-//         {isSave && <Box sx={{paddingLeft: '1rem'}}>Saved!</Box>}
-//     </Box>
-// };
-
 let indexNewCloudItemAdded = 0;
-
-const cleanLabelFolder = (label: string): string => label.split('//').join('/');
-
-const removeRootFromPath = (path: string): string => path.substring(1);
-
-const getPathParentFolder = (completePath: string): string => {
-  const textSplited = completePath.split('/');
-  return textSplited.slice(0, textSplited.length - 1).join('/');
-}
-
-const getNameFolder = (completePath: string): string => {
-  const textSplited = completePath.split('/');
-  return textSplited[textSplited.length - 1];
-}
 
 export const Cloud = () => {
   const navigate = useNavigate();
+  const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
-  const [tree, setTree] = React.useState<GenericTree<CloudItem>>();
-  const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<CloudItem>>();
-  const [fileList, setFileList] = React.useState<{data: CloudItem[]}>();
+  const [fileList, setFileList] = React.useState<CloudItem[]>([]);
   const [driveList, setDriveList] = React.useState<string[]>();
   const [indexCurrentDrive, setIndexCurrentDrive] = React.useState<number>(0);
-  const [currentDrive, setCurrentDrive] = React.useState<string>();
-  const [breadcrumb, setBreadcrumb] = React.useState<GenericTree<CloudItem>[]>([]);
-  const [selectedNodes, setSelectedNodes] = React.useState<GenericTree<CloudItem>[]>([]);
+  const [currentDrive, setCurrentDrive] = React.useState<string>('');
+  const [breadcrumb, setBreadcrumb] = React.useState<CloudItem[]>([]);
+  const [selectedNodes, setSelectedNodes] = React.useState<CloudItem[]>([]);
   const [dragIsOver, setDragIsOver] = React.useState(false);
-  const [files, setFiles] = React.useState<File[]>([]);
+  const [, setFiles] = React.useState<File[]>([]);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
   const [isMarkToReturnToPath, setMarkToReturnToPath] = React.useState(false);
-  const [pathToReturn, setPathToReturn] = React.useState<GenericTree<CloudItem>[]>([]);
+  const [pathToReturn, setPathToReturn] = React.useState<CloudItem[]>([]);
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
 
   React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
-    // For now, I'll choose the first one drive list.
+    // For now, I'll choose the cloud drive.
     setDriveList(driveList);
-    const defaultDrive = driveList[indexCurrentDrive];
+    const indexCloudDrive = driveList.indexOf(cloudDriveName);
+    setIndexCurrentDrive(indexCloudDrive);
+    const defaultDrive = driveList[indexCloudDrive];
     setCurrentDrive(defaultDrive);
-    CloudActions.getAllItems(defaultDrive).then(data => {
+    setCurrentPathFolder(defaultDrive);
+    CloudActions.getAllFolderItems({ drive: defaultDrive, path: defaultDrive }).then(data => {
       // console.log(data)
-      setTree(data.data);
-      setCurrentTreeNode(data.data);
-      setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: defaultDrive, path: `${urlFolder}_${index}` }))})
+      setFileList(data.data);
     });
   })}, [indexCurrentDrive]);
 
-  const action: ActionsProps = { cloudState, setCloudState, tree: tree!, setTree, fileList: fileList!, currentDrive: currentDrive!, setFileList, currentTreeNode: currentTreeNode!,
-    setCurrentTreeNode, breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
+  const action: ActionsProps = { cloudState, setCloudState, currentPathFolder, setCurrentPathFolder, fileList, setFileList, currentDrive,
+    breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
     isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setIndexCurrentDrive, indexCurrentDrive, driveList };
   
     // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
@@ -150,7 +111,7 @@ export const Cloud = () => {
       <TitleAndListWithFolders
         title='Cloud'
         id='cloud_0'
-        path={`${currentTreeNode?.label}`}
+        path={currentPathFolder}
         onUploadItem={handleUploadButton}
         // // duplicateItem={() => undefined}
         // // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
@@ -165,7 +126,7 @@ export const Cloud = () => {
           driveName: currentDrive || '/',
           isFolder: true,
           name: `new folder ${indexNewCloudItemAdded}`,
-          path: removeRootFromPath(cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewCloudItemAdded}`)),
+          path: `${currentPathFolder}/new folder ${indexNewCloudItemAdded}`,
         })}}
         filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
         deleteAction={(id) => deleteItemAction(action, id)}
@@ -174,15 +135,13 @@ export const Cloud = () => {
         updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action)}
         list={
-          fileList.data.sort((item1, item2) => item1.name.localeCompare(item2.name)).map((item, index) => ({id:`${item.name}`, isFolder: !item.isNotFolder, item: <>{
+          fileList.sort((item1, item2) => item1.name.localeCompare(item2.name)).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
             item.isFolder ?
               <LabelAndTextFieldWithFolder
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 text={item.name}
-                path={getPathParentFolder(item.name)}
-                nameFolder={getNameFolder(item.name)}
-                // path={getPathParentFolder(item.title)}
-                // nameFolder={getNameFolder(item.title)}
+                path={item.path}
+                nameFolder={item.name}
                 onChange={renameCloudFolder(action, `${item.path}`)}
                 setOpenFolder={(label) => setOpenFolder(action, label)}
                 />
@@ -191,7 +150,7 @@ export const Cloud = () => {
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 textToShow={item.name}
                 hideUrl={true}
-                textUrl={`${currentTreeNode?.label}/${item.name}`}
+                textUrl={`${item.path}`}
                 onClickUrl={() => downloadFile(action, item)}
                 onChange={(newTextToShow, newTextUrl) => renameCloudItem(action, item, newTextToShow, newTextUrl)}
                 />
