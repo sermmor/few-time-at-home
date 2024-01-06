@@ -1,29 +1,33 @@
-import { CloudDataModelFromFetch, CloudDrivesResponse, MessageResponse, UpdatedResponse } from "../cloud";
+import { CloudDataModel, CloudDrivesResponse, MessageResponse, UpdatedResponse } from "../cloud";
 
 export const cloudDrivesResponseMock = (): CloudDrivesResponse => ({
   driveList: ['drive', 'videos', 'music'],
 });
 
-export const cloudDataModelMock = (): CloudDataModelFromFetch => ({
-  allItems: [
+export const cloudDataModelMock = (): CloudDataModel => ({
+  data: [
     {
       name: "Andalucía 2.jpeg",
       path: "cloud/Imagenes/Andalucía 2.jpeg",
+      isFolder: false,
       driveName: "cloud"
     },
     {
       name: "Juan y medio.jpg",
       path: "cloud/Imagenes/Juan y medio.jpg",
+      isFolder: false,
       driveName: "cloud"
     },
     {
-      name: "Documento1.txt",
-      path: "cloud/Documentos/Documento1.txt",
+      name: "Fotos",
+      path: "cloud/Imagenes/Fotos",
+      isFolder: true,
       driveName: "cloud"
     },
     {
       name: "Documento2.txt",
-      path: "cloud/Documentos/Documento2.txt",
+      path: "cloud/Imagenes/Documento2.txt",
+      isFolder: false,
       driveName: "cloud"
     },
   ]

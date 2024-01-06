@@ -38,9 +38,7 @@ export const fetchSendFileAndReceiveConfirmation = <T>(url: string, data: Upload
   } else {
     // https://developer.mozilla.org/es/docs/Web/API/Fetch_API/Using_Fetch
     const formData = new FormData();
-    formData.append('drive', data.drive);
-    formData.append('pathToSave', data.pathToSave);
-    formData.append('numberOfFiles', `${data.numberOfFiles}`);
+    formData.append('folderPathToSave', data.folderPathToSave);
     formData.append('file', data.files[0]);
 
     fetch(url, {

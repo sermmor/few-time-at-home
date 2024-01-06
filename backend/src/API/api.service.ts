@@ -276,7 +276,7 @@ export class APIService {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        cloudService.getFolderContent(req.body.drive, req.body.folderPath).then(() => res.send({isUpdated: true}));
+        cloudService.getFolderContent(req.body.drive, req.body.folderPath).then(cloudItemList => res.send({data: cloudItemList}));
       }
     });
 
@@ -285,7 +285,7 @@ export class APIService {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        cloudService.createFolder(req.body.path).then(() => res.send({isUpdated: true}));
+        cloudService.createFolder(req.body.path).then((message) => res.send({message}));
       }
     });
 
@@ -316,14 +316,14 @@ export class APIService {
       }
     });
 
-    // body: req.body.pathToSave, req.body.numberOfFiles, req.file
+    // body: req.body.folderPathToSave, req.file
     this.app.post(APIService.cloudEndpointList.uploadFile, upload.single('file'), (req, res) => { // TODO: ENDPOINT MODIFIED
       if (!req.body || !req.file) {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        cloudService.uploadFile(allFiles.path, `${req.body.pathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
-          res.send({ message: 'All files are saved!' });
+        cloudService.uploadFile(allFiles.path, `${req.body.folderPathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
+          res.send({ message });
           });
       }
     });

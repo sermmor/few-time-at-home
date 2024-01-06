@@ -1,7 +1,5 @@
 export interface UploadFiles {
-  drive: string;
-  pathToSave: string;
-  numberOfFiles: number;
+  folderPathToSave: string;
   files: any[];
 }
 

@@ -15,18 +15,17 @@ export const searchBookmarksEndpoint = (): string => `${getUrlApi()}/search-book
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;
 
-export type CloudEndpointType = 'getDrivesList' | 'updateIndexing' | 'getAllItems' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'uploadFile' | 'downloadFile' | 'search' | 'deleteFileOrFolder';
+export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'uploadFile' | 'downloadFile' | 'searchInFolder' | 'deleteFileOrFolder';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',
-  'updateIndexing': '/cloud/update',
-  'getAllItems': '/cloud/get-items',
+  'getFolderContent': '/cloud/get-folder-content',
   'createFolder': '/cloud/create-folder',
   'moveItem': '/cloud/move-item',
   'renameItem': '/cloud/rename-item',
   'createBlankFile': '/cloud/create-blank-file',
   'uploadFile': '/cloud/upload-file',
   'downloadFile': '/cloud/download-file',
-  'search': '/cloud/search',
+  'searchInFolder': '/cloud/search-in-folder',
   'deleteFileOrFolder': '/cloud/delete',
 };
 

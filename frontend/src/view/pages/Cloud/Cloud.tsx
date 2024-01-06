@@ -152,18 +152,18 @@ export const Cloud = () => {
         id='cloud_0'
         path={`${currentTreeNode?.label}`}
         onUploadItem={handleUploadButton}
-        // duplicateItem={() => undefined}
-        // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
-        // onOutSelectionMode={() => setSelectedNodes([])}
-        // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
+        // // duplicateItem={() => undefined}
+        // // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
+        // // onOutSelectionMode={() => setSelectedNodes([])}
+        // // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
         onSearch={onSearchFileOrFolder(action)}
         createFile={() => {indexNewCloudItemAdded++; createBlankFile(action, `new file ${indexNewCloudItemAdded}.txt`);}}
-        // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
+        // // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
         filterFileInEditor={(id) => id.indexOf('.txt') > -1}
         openFileInEditor={(id) => downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'))}
         addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
           driveName: currentDrive || '/',
-          isNotFolder: false,
+          isFolder: true,
           name: `new folder ${indexNewCloudItemAdded}`,
           path: removeRootFromPath(cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewCloudItemAdded}`)),
         })}}
@@ -175,7 +175,7 @@ export const Cloud = () => {
         goBackToParent={() => goBackToParentFolder(action)}
         list={
           fileList.data.sort((item1, item2) => item1.name.localeCompare(item2.name)).map((item, index) => ({id:`${item.name}`, isFolder: !item.isNotFolder, item: <>{
-            !item.isNotFolder ?
+            item.isFolder ?
               <LabelAndTextFieldWithFolder
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
                 text={item.name}
