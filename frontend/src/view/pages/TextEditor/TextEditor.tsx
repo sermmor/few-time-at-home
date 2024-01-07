@@ -115,23 +115,9 @@ export const TextEditor = () => {
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
-        onClick={() => navigator.clipboard.writeText(applyEOFToText(textData))}
-        >
-        Copy
-      </Button>
-      <Button
-        variant='outlined'
-        sx={{minWidth: '15.5rem'}}
         onClick={() => setTextEditor('')}
         >
-        Remove
-      </Button>
-      <Button
-        variant='outlined'
-        sx={{minWidth: '15.5rem'}}
-        onClick={() => saveTextInCloud(textData, pathData, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar)}
-        >
-        Save In Cloud
+        Clear All
       </Button>
       <Button
         variant='outlined'
@@ -139,6 +125,20 @@ export const TextEditor = () => {
         onClick={() => downloadText(textData)}
         >
         Download
+      </Button>
+      <Button
+        variant='outlined'
+        sx={{minWidth: '15.5rem'}}
+        onClick={() => navigator.clipboard.writeText(textData)}
+        >
+        Copy
+      </Button>
+      <Button
+        variant='outlined'
+        sx={{minWidth: '15.5rem'}}
+        onClick={() => saveTextInCloud(textData, pathData, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar)}
+        >
+        Save In Cloud
       </Button>
     </Box>
     <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} key={'topcenter'}>
