@@ -8,7 +8,7 @@ import { ConfigurationService } from './configuration.service';
 import { ChannelMediaRSSCollection, TelegramBotCommand } from './messagesRSS.service';
 import { NotesService } from './notes.service';
 import Multer from 'multer';
-import { CloudService, cloudDefaultPath } from './cloudV2.service';
+import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
 
 const cors = require('cors');

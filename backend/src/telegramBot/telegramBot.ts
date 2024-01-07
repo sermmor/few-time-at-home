@@ -6,7 +6,7 @@ import { BookmarkService } from "../API/bookmark.service";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
-import { CloudService, cloudDefaultPath } from "../API/cloudV2.service";
+import { CloudService, cloudDefaultPath } from "../API/cloud.service";
 import { createWriteStream, existsSync, mkdir } from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
