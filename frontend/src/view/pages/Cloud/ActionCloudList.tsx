@@ -1,7 +1,6 @@
 import { Link } from "@mui/material";
 import { CloudActions } from "../../../core/actions/cloud";
 import { CloudItem, getPathFolderContainer } from "../../../data-model/cloud";
-import { GenericTree } from "../../../service/trees/genericTree";
 import { CloudState, CloudStateName } from "./Models/CloudState";
 import { TemporalData } from "../../../service/temporalData.service";
 
@@ -50,81 +49,6 @@ export const setOpenFolder = ({currentPathFolder, currentDrive, setCurrentPathFo
     setFileList(res.data);
   });
 }
-
-let renderCounter = 0;
-
-// TODO: CANDIDATO A BORRAR
-export const checkToReturnToPath = ({ currentDrive, setFileList,
-  isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar }: ActionsProps
-) => {
-  // if (isMarkToReturnToPath) {
-  //   // Prevent for multiple render using a setTimeout and a checking counter var.
-  //   renderCounter++;
-  //   if (renderCounter === 1) {
-  //     setTimeout(() => {
-  //       try {
-  //         const cloneBreadcrumb = [...breadcrumb];
-  
-  //         let labelFolder, childIndex, newCurrentTreeNode, newFileList;
-  //         newCurrentTreeNode = currentTreeNode;
-  
-  //         cloneBreadcrumb.push(newCurrentTreeNode);
-  
-  //         for (let i = 1; i < pathToReturn.length; i++) {
-  //           labelFolder = pathToReturn[i].label;
-  //           childIndex = newCurrentTreeNode.searchLabelInChild(labelFolder);
-  //           newCurrentTreeNode = newCurrentTreeNode.children[childIndex];
-  
-  //           newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
-  //             item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
-    
-  //           cloneBreadcrumb.push(newCurrentTreeNode);
-  //         }
-  
-  //         cloneBreadcrumb.pop(); // The 2 last ones are the same node.
-  
-  //         setBreadcrumb(cloneBreadcrumb);
-  //         setFileList(newFileList);
-  //         setCurrentTreeNode(newCurrentTreeNode);
-  
-  //         setMarkToReturnToPath(false);
-  //         setPathToReturn([]);
-  //         renderCounter = 0;
-  //       } catch (e) {
-  //         console.log('Error to auto-reflesh cloud view, reflesh manually.');
-  //         setSnackBarMessage('Error to auto-reflesh cloud view, reflesh manually.');
-  //         setErrorSnackbar(true);
-  //         setOpenSnackbar(true);
-          
-  //         setBreadcrumb([]);
-  //         setMarkToReturnToPath(true);
-  //         setPathToReturn(pathToReturn);
-  //       }
-  //     }, 100);
-  //   }
-  // }
-};
-
-const refleshCloudView = ({ currentDrive, setFileList, setMarkToReturnToPath, setPathToReturn }: ActionsProps) => {
-  // const breadcrumbCopy = [...breadcrumb];
-  // breadcrumbCopy.push(currentTreeNode);
-
-  // CloudActions.getAllItems(currentDrive || '/').then(data => {
-  //   setTree(data.data);
-  //   setCurrentTreeNode(data.data);
-
-  //   setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({
-  //     name: item.label,
-  //     isNotFolder: false,
-  //     driveName: currentDrive,
-  //     path: `${urlFolder}_${index}`
-  //   } as CloudItem))});
-
-  //   setBreadcrumb([]);
-  //   setMarkToReturnToPath(true);
-  //   setPathToReturn(breadcrumbCopy);
-  // });
-};
 
 export const synchronizeWithCloud = ({currentDrive, currentPathFolder, setCurrentPathFolder, setFileList}: ActionsProps) => {
   CloudActions.getAllFolderItems({
@@ -377,15 +301,12 @@ const downloadFileOnlyWithPath = (
 
 export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive}: ActionsProps, driveNameToChange: string) => () => {
   if (currentDrive !== driveNameToChange && driveList) {
-    // console.log(driveList, currentDrive, driveNameToChange)
     const driveIndex = driveList.indexOf(driveNameToChange);
     if (driveIndex > -1 && indexCurrentDrive !== driveIndex) {
       setIndexCurrentDrive(driveIndex);
     }
   }
 }
-
-const getItemIndexFromTreeNode = (currentTreeNode: GenericTree<CloudItem>, nameFile: string): number => currentTreeNode.children.findIndex(child => child.node?.name === nameFile);
 
 export const deleteItemAction = (actions: ActionsProps, nameFile: string) => {
   const {currentPathFolder, currentDrive, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar, fileList, setFileList} = actions;

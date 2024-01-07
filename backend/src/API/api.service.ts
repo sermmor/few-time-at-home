@@ -272,7 +272,7 @@ export class APIService {
     });
 
     // body: drive, folderPath
-    this.app.post(APIService.cloudEndpointList.getFolderContent, (req, res) => { // TODO: NEW ENDPOINT
+    this.app.post(APIService.cloudEndpointList.getFolderContent, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
@@ -281,7 +281,7 @@ export class APIService {
     });
 
     // body: path
-    this.app.post(APIService.cloudEndpointList.createFolder, (req, res) => { // TODO: ENDPOINT MODIFIED
+    this.app.post(APIService.cloudEndpointList.createFolder, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
@@ -290,7 +290,7 @@ export class APIService {
     });
 
     // body: path
-    this.app.post(APIService.cloudEndpointList.createBlankFile, (req, res) => { // TODO: ENDPOINT MODIFIED
+    this.app.post(APIService.cloudEndpointList.createBlankFile, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
@@ -299,7 +299,7 @@ export class APIService {
     });
 
     // body: oldPath, newPath
-    this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => { // TODO: ENDPOINT MODIFIED
+    this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
@@ -308,7 +308,7 @@ export class APIService {
     });
 
     // body: oldPath, newPath
-    this.app.post(APIService.cloudEndpointList.renameItem, (req, res) => { // TODO: ENDPOINT MODIFIED
+    this.app.post(APIService.cloudEndpointList.renameItem, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
@@ -317,7 +317,7 @@ export class APIService {
     });
 
     // body: req.body.folderPathToSave, req.file
-    this.app.post(APIService.cloudEndpointList.uploadFile, upload.single('file'), (req, res) => { // TODO: ENDPOINT MODIFIED
+    this.app.post(APIService.cloudEndpointList.uploadFile, upload.single('file'), (req, res) => {
       if (!req.body || !req.file) {
           console.error("Received NO body text");
       } else {
@@ -329,7 +329,7 @@ export class APIService {
     });
 
     // body: req.body.nameDrive, req.body.folderPath, req.body.searchTokken
-    this.app.post(APIService.cloudEndpointList.searchInFolder, (req, res) => { // TODO: NEW ENDPOINT
+    this.app.post(APIService.cloudEndpointList.searchInFolder, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {

@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
@@ -106,8 +106,6 @@ export const Cloud = () => {
     }
   }
 
-  checkToReturnToPath(action); // TODO ¿REMOVE THIS?
-
   return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
     {fileList && <div
         onDragOver={handleDragOver}
@@ -122,13 +120,13 @@ export const Cloud = () => {
         id='cloud_0'
         path={currentPathFolder}
         onUploadItem={handleUploadButton}
-        // // duplicateItem={() => undefined}
-        // // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
-        // // onOutSelectionMode={() => setSelectedNodes([])}
-        // // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
+        // duplicateItem={() => undefined}
+        // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
+        // onOutSelectionMode={() => setSelectedNodes([])}
+        // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
         onSearch={onSearchFileOrFolder(action)}
         createFile={() => {indexNewCloudItemAdded++; createBlankFile(action, `new file ${indexNewCloudItemAdded}.txt`);}}
-        // // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
+        // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
         filterFileInEditor={(id) => id.indexOf('.txt') > -1}
         openFileInEditor={(id) => downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'))}
         addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
