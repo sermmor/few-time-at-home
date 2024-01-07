@@ -38,14 +38,14 @@ export const routesFTAH: RouteFTAHElement[] = [
     element: <Notifications/>,
   },
   {
-    name: 'Pomodoro',
-    path: '/Pomodoro',
-    element: <Pomodoro/>,
-  },
-  {
     name: 'Rss',
     path: '/rss',
     element: <Rss/>,
+  },
+  {
+    name: 'Pomodoro',
+    path: '/Pomodoro',
+    element: <Pomodoro/>,
   },
   {
     name: 'Notepad',
