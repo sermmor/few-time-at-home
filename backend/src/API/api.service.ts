@@ -322,7 +322,7 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        cloudService.uploadFile(allFiles.path, `${req.body.folderPathToSave.substring(1)}/${allFiles.originalname}`).then(message => {
+        cloudService.uploadFile(allFiles.path, `${req.body.folderPathToSave}/${allFiles.originalname}`).then(message => {
           res.send({ message });
           });
       }
@@ -333,8 +333,9 @@ export class APIService {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        const search = cloudService.searchCloudItemInDirectory(req.body.nameDrive, req.body.folderPath, req.body.searchTokken);
-        res.send({ search });
+        cloudService.searchCloudItemInDirectory(req.body.nameDrive, req.body.folderPath, req.body.searchTokken).then(search => {
+          res.send({ search });
+        })
       }
     });
 
@@ -363,7 +364,7 @@ export class APIService {
           options.root = cloudService.getPathDrive(req.body.drive);
         }
         
-        const fileRelativePath = (<string> req.body.path).split('/').slice(2).join('/'); // Remove '', and 'drive'.
+        const fileRelativePath = (<string> req.body.path).split('/').slice(1).join('/'); // Remove 'drive'.
         
         res.sendFile(fileRelativePath, options, (err) => {
           if (err) {

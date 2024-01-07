@@ -1,6 +1,6 @@
 import { Link } from "@mui/material";
 import { CloudActions } from "../../../core/actions/cloud";
-import { CloudItem, addPrefixUrlFolder, urlFolder } from "../../../data-model/cloud";
+import { CloudItem, getPathFolderContainer } from "../../../data-model/cloud";
 import { GenericTree } from "../../../service/trees/genericTree";
 import { CloudState, CloudStateName } from "./Models/CloudState";
 import { TemporalData } from "../../../service/temporalData.service";
@@ -12,8 +12,6 @@ export interface ActionsProps {
   setCurrentPathFolder: React.Dispatch<React.SetStateAction<string>>;
   fileList: CloudItem[];
   setFileList: React.Dispatch<React.SetStateAction<CloudItem[]>>;
-  breadcrumb: CloudItem[];
-  setBreadcrumb: React.Dispatch<React.SetStateAction<CloudItem[]>>;
   selectedNodes: CloudItem[];
   setSelectedNodes: React.Dispatch<React.SetStateAction<CloudItem[]>>;
   currentDrive: string;
@@ -29,133 +27,125 @@ export interface ActionsProps {
   driveList: string[] | undefined;
 }
 
-export const goBackToParentFolder = ({setFileList, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive}: ActionsProps) => {
-  const cloneBreadcrumb = [...breadcrumb];
-  const parentTreeNode = cloneBreadcrumb.pop();
-
-  if (parentTreeNode) {
-    const newFileList = {data: parentTreeNode.children.map((item, index) => 
-      item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
-  
-    setBreadcrumb(cloneBreadcrumb);
-    setFileList(newFileList);
-    setCurrentTreeNode(parentTreeNode);
+export const goBackToParentFolder = ({currentPathFolder, setCurrentPathFolder, setFileList, currentDrive}: ActionsProps) => {
+  const parentPathFolder = getPathFolderContainer(currentPathFolder);
+  if (parentPathFolder !== '') {
+    CloudActions.getAllFolderItems({
+      drive: currentDrive,
+      folderPath: parentPathFolder,
+    }).then(res => {
+      setCurrentPathFolder(parentPathFolder);
+      setFileList(res.data);
+    });
   }
 }
 
-export const setOpenFolder = ({setFileList, currentTreeNode, setCurrentTreeNode, breadcrumb, setBreadcrumb, currentDrive}: ActionsProps, labelFolder: string) => {
-  if (currentTreeNode) {
-    const childIndex = currentTreeNode.searchLabelInChild(labelFolder);
-    const newCurrentTreeNode = currentTreeNode.children[childIndex];
-
-    const newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
-      item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
-    
-    const cloneBreadcrumb = [...breadcrumb];
-    cloneBreadcrumb.push(currentTreeNode);
-
-    setBreadcrumb(cloneBreadcrumb);
-    setFileList(newFileList);
-    setCurrentTreeNode(newCurrentTreeNode);
-  }
+export const setOpenFolder = ({currentPathFolder, currentDrive, setCurrentPathFolder, setFileList}: ActionsProps, labelFolder: string) => {
+  const newPath = `${currentPathFolder}/${labelFolder}`;
+  CloudActions.getAllFolderItems({
+    drive: currentDrive,
+    folderPath: newPath,
+  }).then(res => {
+    setCurrentPathFolder(newPath);
+    setFileList(res.data);
+  });
 }
 
 let renderCounter = 0;
 
-export const checkToReturnToPath = ({ currentTreeNode, currentDrive, setCurrentTreeNode, breadcrumb, setBreadcrumb, setFileList,
+// TODO: CANDIDATO A BORRAR
+export const checkToReturnToPath = ({ currentDrive, setFileList,
   isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar }: ActionsProps
 ) => {
-  if (isMarkToReturnToPath) {
-    // Prevent for multiple render using a setTimeout and a checking counter var.
-    renderCounter++;
-    if (renderCounter === 1) {
-      setTimeout(() => {
-        try {
-          const cloneBreadcrumb = [...breadcrumb];
+  // if (isMarkToReturnToPath) {
+  //   // Prevent for multiple render using a setTimeout and a checking counter var.
+  //   renderCounter++;
+  //   if (renderCounter === 1) {
+  //     setTimeout(() => {
+  //       try {
+  //         const cloneBreadcrumb = [...breadcrumb];
   
-          let labelFolder, childIndex, newCurrentTreeNode, newFileList;
-          newCurrentTreeNode = currentTreeNode;
+  //         let labelFolder, childIndex, newCurrentTreeNode, newFileList;
+  //         newCurrentTreeNode = currentTreeNode;
   
-          cloneBreadcrumb.push(newCurrentTreeNode);
+  //         cloneBreadcrumb.push(newCurrentTreeNode);
   
-          for (let i = 1; i < pathToReturn.length; i++) {
-            labelFolder = pathToReturn[i].label;
-            childIndex = newCurrentTreeNode.searchLabelInChild(labelFolder);
-            newCurrentTreeNode = newCurrentTreeNode.children[childIndex];
+  //         for (let i = 1; i < pathToReturn.length; i++) {
+  //           labelFolder = pathToReturn[i].label;
+  //           childIndex = newCurrentTreeNode.searchLabelInChild(labelFolder);
+  //           newCurrentTreeNode = newCurrentTreeNode.children[childIndex];
   
-            newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
-              item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
+  //           newFileList = {data: newCurrentTreeNode.children.map((item, index) => 
+  //             item.node ? item.node : ({ name: item.label, isNotFolder: false, driveName: currentDrive, path: `${urlFolder}_${index}` }))};
     
-            cloneBreadcrumb.push(newCurrentTreeNode);
-          }
+  //           cloneBreadcrumb.push(newCurrentTreeNode);
+  //         }
   
-          cloneBreadcrumb.pop(); // The 2 last ones are the same node.
+  //         cloneBreadcrumb.pop(); // The 2 last ones are the same node.
   
-          setBreadcrumb(cloneBreadcrumb);
-          setFileList(newFileList);
-          setCurrentTreeNode(newCurrentTreeNode);
+  //         setBreadcrumb(cloneBreadcrumb);
+  //         setFileList(newFileList);
+  //         setCurrentTreeNode(newCurrentTreeNode);
   
-          setMarkToReturnToPath(false);
-          setPathToReturn([]);
-          renderCounter = 0;
-        } catch (e) {
-          console.log('Error to auto-reflesh cloud view, reflesh manually.');
-          setSnackBarMessage('Error to auto-reflesh cloud view, reflesh manually.');
-          setErrorSnackbar(true);
-          setOpenSnackbar(true);
+  //         setMarkToReturnToPath(false);
+  //         setPathToReturn([]);
+  //         renderCounter = 0;
+  //       } catch (e) {
+  //         console.log('Error to auto-reflesh cloud view, reflesh manually.');
+  //         setSnackBarMessage('Error to auto-reflesh cloud view, reflesh manually.');
+  //         setErrorSnackbar(true);
+  //         setOpenSnackbar(true);
           
-          setBreadcrumb([]);
-          setMarkToReturnToPath(true);
-          setPathToReturn(pathToReturn);
-        }
-      }, 100);
-    }
-  }
+  //         setBreadcrumb([]);
+  //         setMarkToReturnToPath(true);
+  //         setPathToReturn(pathToReturn);
+  //       }
+  //     }, 100);
+  //   }
+  // }
 };
 
-const refleshCloudView = ({ setTree, setCurrentTreeNode, currentDrive, setFileList, breadcrumb, setBreadcrumb, currentTreeNode, setMarkToReturnToPath, setPathToReturn }: ActionsProps) => {
-  const breadcrumbCopy = [...breadcrumb];
-  breadcrumbCopy.push(currentTreeNode);
+const refleshCloudView = ({ currentDrive, setFileList, setMarkToReturnToPath, setPathToReturn }: ActionsProps) => {
+  // const breadcrumbCopy = [...breadcrumb];
+  // breadcrumbCopy.push(currentTreeNode);
 
-  CloudActions.getAllItems(currentDrive || '/').then(data => {
-    setTree(data.data);
-    setCurrentTreeNode(data.data);
+  // CloudActions.getAllItems(currentDrive || '/').then(data => {
+  //   setTree(data.data);
+  //   setCurrentTreeNode(data.data);
 
-    setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({
-      name: item.label,
-      isNotFolder: false,
-      driveName: currentDrive,
-      path: `${urlFolder}_${index}`
-    } as CloudItem))});
+  //   setFileList({data: data.data.children.map((item, index) => item.node ? item.node : ({
+  //     name: item.label,
+  //     isNotFolder: false,
+  //     driveName: currentDrive,
+  //     path: `${urlFolder}_${index}`
+  //   } as CloudItem))});
 
-    setBreadcrumb([]);
-    setMarkToReturnToPath(true);
-    setPathToReturn(breadcrumbCopy);
-  });
+  //   setBreadcrumb([]);
+  //   setMarkToReturnToPath(true);
+  //   setPathToReturn(breadcrumbCopy);
+  // });
 };
 
-export const synchronizeWithCloud = (actions: ActionsProps) => {
-  const { currentDrive } = actions;
-
-  CloudActions.updateIndexing({drive: currentDrive}).then(() => {
-    console.log("UPDATED CLOUD");
-    refleshCloudView(actions);
+export const synchronizeWithCloud = ({currentDrive, currentPathFolder, setCurrentPathFolder, setFileList}: ActionsProps) => {
+  CloudActions.getAllFolderItems({
+    drive: currentDrive,
+    folderPath: currentPathFolder,
+  }).then(res => {
+    setCurrentPathFolder(currentPathFolder);
+    setFileList(res.data);
   });
-
 }
 
 const uploadOnlyOneFile = (
-  { currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
+  { currentPathFolder, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar}: ActionsProps,
   file: File
 ): Promise<FileReader> => new Promise<FileReader> (resolve => {
   const reader = new FileReader();
     
   reader.onloadend = () => {
     CloudActions.uploadFile({
-      drive: currentDrive || '/',
+      folderPathToSave: currentPathFolder,
       files: [file],
-      numberOfFiles: 1,
-      pathToSave: `${currentTreeNode?.label}`,
     }).then(res => {
       console.log(res.message);
       setSnackBarMessage(`File '${file.name}' has uploaded to the cloud.`);
@@ -176,17 +166,12 @@ const uploadOnlyOneFile = (
   reader.readAsDataURL(file);
 });
 
-const getFolderName = (label: string): string => {
-  const labelSplitted = label.split('/');
-  return labelSplitted[labelSplitted.length - 1];
-};
-
 const uploadListFilesOneToOne = (
   actions: ActionsProps,
-  fileList: File[]
+  fileListToUpload: File[]
 ) => {
-  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, currentTreeNode, setCloudState } = actions;
-  if (fileList.length === 0) {
+  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, fileList, setCloudState } = actions;
+  if (fileListToUpload.length === 0) {
     setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('All files has uploaded to cloud!');
     setSnackBarMessage(`All files has uploaded to cloud!`);
@@ -194,20 +179,18 @@ const uploadListFilesOneToOne = (
     setOpenSnackbar(true);
 
     // Reflesh cloud and return to the current folder.
-    refleshCloudView(actions);
+    synchronizeWithCloud(actions);
   } else {
-    const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
-
-    if (nameFileAndFolderList.indexOf(fileList[0].name) < 0) {
-      setCloudState({ name: CloudStateName.UPLOADING, description: `Uploading file '${fileList[0].name}'`, });
-      uploadOnlyOneFile(actions, fileList[0]).then(() => uploadListFilesOneToOne(actions, fileList.slice(1)));
+    if (fileList.findIndex(item => item.name === fileListToUpload[0].name) === -1) {
+      setCloudState({ name: CloudStateName.UPLOADING, description: `Uploading file '${fileListToUpload[0].name}'`, });
+      uploadOnlyOneFile(actions, fileListToUpload[0]).then(() => uploadListFilesOneToOne(actions, fileListToUpload.slice(1)));
     } else {
       // Item already in cloud, not replace!
-      console.log(`Already there is a '${fileList[0].name}' in the cloud.`);
-      setSnackBarMessage(`Already there is a '${fileList[0].name}' in the cloud.`);
+      console.log(`Already there is a '${fileListToUpload[0].name}' in the cloud.`);
+      setSnackBarMessage(`Already there is a '${fileListToUpload[0].name}' in the cloud.`);
       setErrorSnackbar(true);
       setOpenSnackbar(true);
-      uploadListFilesOneToOne(actions, fileList.slice(1));
+      uploadListFilesOneToOne(actions, fileListToUpload.slice(1));
     }
   }
 }
@@ -215,23 +198,12 @@ const uploadListFilesOneToOne = (
 export const uploadFiles = (
   actions: ActionsProps,
   event?: React.DragEvent<HTMLDivElement>,
-  setFiles?: React.Dispatch<React.SetStateAction<File[]>>,
   file?: File
 ) => {
-  const { currentTreeNode, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar} = actions;
-  if (`${currentTreeNode?.label}` === '/') {
-    console.error('It\'s the root path, here don\'t upload anything!!!');
-    setSnackBarMessage(`It's the root path, here don't upload anything!!!`);
-    setErrorSnackbar(true);
-    setOpenSnackbar(true);
-    return;
-  }
-
   // Fetch the files
   let droppedFiles;
-  if (!file && event && setFiles) {
+  if (!file && event) {
     droppedFiles = Array.from(event.dataTransfer.files);
-    setFiles(droppedFiles);
   } else if (file) {
     droppedFiles = [file];
   }
@@ -241,14 +213,13 @@ export const uploadFiles = (
 };
 
 export const downloadFile = (
-  {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
+  { currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
   item: CloudItem,
 ) => {
-  // console.log(item)
   setCloudState({ name: CloudStateName.DOWNLOADING, description: `Downloading file '${item.name}'`, });
   CloudActions.downloadFile({
     drive: currentDrive || '/',
-    path: `${currentTreeNode?.label}/${item.name}`,
+    path: item.path,
   }).then(() => {
     setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('File downloaded!!');
@@ -259,38 +230,35 @@ export const downloadFile = (
 };
 
 export const downloadAndOpenFileInEditor = (
-  {currentTreeNode, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
-  id: string,
+  {currentPathFolder, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
+  nameFile: string,
 ): Promise<void> => new Promise<void>(resolve => {
-  // console.log(item)
-  const itemIndexInList = getItemIndexFromTreeNode(currentTreeNode, id);
-  const item = currentTreeNode.children[itemIndexInList].node!;
-
-  setCloudState({ name: CloudStateName.DOWNLOADING, description: `Opening file '${item.name}'`, });
+  setCloudState({ name: CloudStateName.DOWNLOADING, description: `Opening file '${nameFile}'`, });
   CloudActions.openFileContentInEditor({
     drive: currentDrive || '/',
-    path: `${currentTreeNode?.label}/${item.name}`,
+    path: `${currentPathFolder}/${nameFile}`,
   }).then((text) => {
     TemporalData.EditorTextData = text;
     setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('File in editor!!');
-    setSnackBarMessage(`File '${item.name}' is in Text Editor.`);
+    setSnackBarMessage(`File '${nameFile}' is in Text Editor.`);
     setErrorSnackbar(false);
     setOpenSnackbar(true);
     resolve();
   });
 });;
 
-const isCreatedFile = (actions: ActionsProps, nameFile: string) => {
-  const { currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar } = actions;
-  const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
+const isCreatedFile = (actions: ActionsProps, nameFile: string, showSnackbar = true) => {
+  const { fileList, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar } = actions;
 
-  if (nameFileAndFolderList.indexOf(nameFile) > -1) {
+  if (fileList.findIndex(item => item.name === nameFile) > -1) {
     // Item already in cloud, not replace!
-    console.log(`Already there is a '${nameFile}' in the cloud.`);
-    setSnackBarMessage(`Already there is a '${nameFile}' in the cloud.`);
-    setErrorSnackbar(true);
-    setOpenSnackbar(true);
+    if (showSnackbar) {
+      console.log(`Already there is a '${nameFile}' in the cloud.`);
+      setSnackBarMessage(`Already there is a '${nameFile}' in the cloud.`);
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
+    }
     return true;
   }
   return false;
@@ -302,178 +270,93 @@ export const renameCloudItem = (
   newName: string,
   oldPath: string
 ) => {
-  if (isCreatedFile(actions, newName)) {
-    return;
-  }
-  const {fileList, setFileList, currentTreeNode, setCurrentTreeNode} = actions;
-  const newPath = `/${item.path.split('/').slice(0, -1).join('/')}/${newName}`;
-
-  const cloneList = [...fileList.data];
-  const index = cloneList.findIndex(itemCanditate => itemCanditate.path === item.path);
-  const elementToEdit = {...cloneList[index]};
-  cloneList[index] = {
-    ...cloneList[index],
-    path: newPath,
-    name: newName,
-  };
-
-  setFileList({data: [...cloneList]});
-
-  if (currentTreeNode) {
-    const childIndex = currentTreeNode.searchNodeLeafInChild(elementToEdit, (item1, item2) => item1.path === item2.path);
-    currentTreeNode.children[childIndex].node!.name = newName;
-    currentTreeNode.children[childIndex].node!.path = newPath;
-    
-    setCurrentTreeNode(currentTreeNode);
-  }
+  if (!isCreatedFile(actions, newName)) {
+    const newPath = `${item.path.split('/').slice(0, -1).join('/')}/${newName}`;
   
-  CloudActions.renameItem({
-    drive: item.driveName,
-    oldPath: oldPath.substring(1),
-    newPath: newPath.substring(1),
-  }).then((data) => {
-    console.log(data);
-  });
-};
-
-const isCreatedFolder = ({ currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar}: ActionsProps, folderToAdd?: CloudItem, folderPath?: string): boolean => {
-  const folderName = getFolderName(folderToAdd ? folderToAdd.path : folderPath || '');
-  const nameFileAndFolderList = currentTreeNode.children.map(child => child.node ? child.node.name : getFolderName(child.label));
-
-  console.log(folderName, nameFileAndFolderList, nameFileAndFolderList.indexOf(folderName))
-
-  if (nameFileAndFolderList.indexOf(folderName) > -1) {
-    console.log(`Already there is a '${folderName}' in the cloud.`);
-    setSnackBarMessage(`Already there is a '${folderName}' in the cloud.`);
-    setErrorSnackbar(true);
-    setOpenSnackbar(true);
-    return true;
-  }
-  return false;
-}
-
-export const renameCloudFolder = (actions: ActionsProps, id: string) => (newName: string) => {
-  const {fileList, setFileList, currentTreeNode, setCurrentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
-  if (currentTreeNode.label === '/') {
-    console.log(`You can't change a root folder name.`);
-    setSnackBarMessage(`You can't change a root folder name.`);
-    setErrorSnackbar(true);
-    setOpenSnackbar(true);
-    return;
-  }
-
-  if (isCreatedFolder(actions, undefined, newName)) {
-    return;
-  }
-  
-  const pathSplitted = newName.split('/');
-  const newPath = addPrefixUrlFolder(pathSplitted.pop());
-
-  const cloneList = [...fileList.data];
-  const index = cloneList.findIndex(item => item.path === id);
-  const elementToEdit = {...cloneList[index]};
-
-  cloneList[index] = {
-    ...cloneList[index],
-    name: newName,
-    path: newPath,
-  };
-
-  setFileList({data: [...cloneList]});
-
-  if (currentTreeNode) {
-    const childIndex = currentTreeNode.searchLabelInChild(elementToEdit.name);
-    const splitNameFolder = newName.split('/');
-    currentTreeNode.children[childIndex].renameLabelNode(splitNameFolder[splitNameFolder.length - 1]);
-
-    setCurrentTreeNode(currentTreeNode);
-    
     CloudActions.renameItem({
-      drive: elementToEdit.driveName,
-      oldPath: elementToEdit.name.substring(1),
-      newPath: newName.substring(1),
+      oldPath: oldPath,
+      newPath: newPath,
     }).then((data) => {
       console.log(data);
+      const { fileList, setFileList } = actions;
+      const cloneFileList = [...fileList];
+      const itemIndex = cloneFileList.findIndex(candidate => candidate.path === oldPath);
+      cloneFileList[itemIndex].name = newName || '';
+      cloneFileList[itemIndex].path = newPath;
+      setFileList(cloneFileList);
+    });
+  }
+};
+
+export const renameCloudFolder = (actions: ActionsProps, completeFolderPath: string) => (fakeNewName: string) => {
+  const fakeNewNameSplitted = fakeNewName.split('/');
+  const folderPathSplitted = completeFolderPath.split('/');
+  folderPathSplitted.pop();
+  const newNameWithoutPath = fakeNewNameSplitted.pop();
+  const realNewName = `${folderPathSplitted.join('/')}/${newNameWithoutPath}`;
+
+  if (!isCreatedFile(actions, newNameWithoutPath || '')) {
+    CloudActions.renameItem({
+      oldPath: completeFolderPath,
+      newPath: realNewName,
+    }).then((data) => {
+      console.log(data);
+      const { fileList, setFileList } = actions;
+      const cloneFileList = [...fileList];
+      const itemIndex = cloneFileList.findIndex(candidate => candidate.path === completeFolderPath);
+      cloneFileList[itemIndex].name = newNameWithoutPath || '';
+      cloneFileList[itemIndex].path = realNewName;
+      setFileList(cloneFileList);
     });
   }
 }
 
-export const nameFileForEmptyFolder = `emptyfile.txt`;
-
-export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: CloudItem) => {
-  const {currentDrive, currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
-  if (`${currentTreeNode?.label}` === '/') {
-    console.error('It\'s the root path, here don\'t upload anything!!!');
-    setSnackBarMessage(`It's the root path, here don't upload anything!!!`);
-    setErrorSnackbar(true);
-    setOpenSnackbar(true);
-    return;
+export const addFolderActionItemList = (actions: ActionsProps, folderToAdd: CloudItem) => {  
+  if (!isCreatedFile(actions, folderToAdd.name)) {
+    CloudActions.createFolder(folderToAdd.path).then(() => {
+      console.log(`Created folder '${folderToAdd.path}'.`);
+      const { fileList, setFileList } = actions;
+      const cloneFileList = [...fileList];
+      cloneFileList.push(folderToAdd);
+      setFileList(cloneFileList);
+    });
   }
-
-  if (isCreatedFolder(actions, folderToAdd)) {
-    return;
-  }
-  
-  const newEmptyFile: CloudItem = {
-    driveName: currentDrive || '/',
-    isNotFolder: true,
-    name: nameFileForEmptyFolder,
-    path: `${folderToAdd!.path}/${nameFileForEmptyFolder}`.split('//').join('/'),
-  };
-
-  CloudActions.createFolder({
-    drive: folderToAdd.driveName,
-    path: folderToAdd.path,
-  }).then(() => {
-      CloudActions.createBlankFile({
-        drive: newEmptyFile.driveName,
-        path: newEmptyFile.path,
-      }).then(() => {
-        console.log(`Created folder '${folderToAdd.path}' with file '${newEmptyFile.name}'`);
-        refleshCloudView(actions);
-      });
-    }
-  );
 };
 
 export const createBlankFile = (actions: ActionsProps, nameFile: string) => {
-  const {currentDrive, currentTreeNode, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
-  if (`${currentTreeNode?.label}` === '/') {
-    console.error('You can\'t create a file in root path!!!');
-    setSnackBarMessage(`You can't create a file in root path`);
-    setErrorSnackbar(true);
-    setOpenSnackbar(true);
-    return;
-  }
+  const {currentDrive, currentPathFolder, fileList, setFileList, } = actions;
 
   const newEmptyFile: CloudItem = {
     driveName: currentDrive || '/',
-    isNotFolder: true,
+    isFolder: false,
     name: nameFile,
-    path: `${currentTreeNode.label.substring(1)}/${nameFile}`.split('//').join('/'),
+    path: `${currentPathFolder}/${nameFile}`,
   };
+
+  console.log(newEmptyFile)
   
-  CloudActions.createBlankFile({
-    drive: newEmptyFile.driveName,
-    path: newEmptyFile.path,
-  }).then(() => {
-    console.log(`Created file '${currentTreeNode.label}/${nameFile}'`);
-    refleshCloudView(actions);
+  CloudActions.createBlankFile(newEmptyFile.path).then(() => {
+    console.log(`Created file '${newEmptyFile.path}'`);
+    const cloneFileList = [...fileList];
+    cloneFileList.push(newEmptyFile);
+    setFileList(cloneFileList);
   });
 }
 
 export const onSearchFileOrFolder = (actions: ActionsProps) => (textToSearch: string) => new Promise<(string | JSX.Element)[]>(resolve => {
-  const { currentDrive } = actions;
-  CloudActions.searchAllItems({
+  const { currentDrive, currentPathFolder } = actions;
+  CloudActions.searchAllItemsInFolder({
     nameDrive: currentDrive,
+    folderPath: currentPathFolder,
     searchTokken: textToSearch,
   }).then(allFilesAndFolderGetted => {
-    resolve(allFilesAndFolderGetted.search.map(({ path }) => 
-      <p><Link target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={downloadFileOnlyWithPath(actions, `/${path}`)}>
-         {path}
-       </Link></p>
+    resolve(allFilesAndFolderGetted.search.map(({ path }, index) => 
+      <p><Link target='_blank' key={`link_search_${index}`} rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={downloadFileOnlyWithPath(actions, `${path}`)}>
+          {path}
+        </Link></p>
     ));
-})});
+  });
+});
 
 const downloadFileOnlyWithPath = (
   {currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
@@ -492,11 +375,11 @@ const downloadFileOnlyWithPath = (
   });
 };
 
-export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive, setBreadcrumb}: ActionsProps, driveNameToChange: string) => () => {
+export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive}: ActionsProps, driveNameToChange: string) => () => {
   if (currentDrive !== driveNameToChange && driveList) {
+    // console.log(driveList, currentDrive, driveNameToChange)
     const driveIndex = driveList.indexOf(driveNameToChange);
     if (driveIndex > -1 && indexCurrentDrive !== driveIndex) {
-      setBreadcrumb([]);
       setIndexCurrentDrive(driveIndex);
     }
   }
@@ -504,33 +387,27 @@ export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setInde
 
 const getItemIndexFromTreeNode = (currentTreeNode: GenericTree<CloudItem>, nameFile: string): number => currentTreeNode.children.findIndex(child => child.node?.name === nameFile);
 
-export const deleteItemAction = (actions: ActionsProps, id: string) => {
-  const {currentTreeNode, currentDrive, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
-  if (currentTreeNode.label === '/') {
-    return;
+export const deleteItemAction = (actions: ActionsProps, nameFile: string) => {
+  const {currentPathFolder, currentDrive, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar, fileList, setFileList} = actions;
+  const pathFile = `${currentPathFolder}/${nameFile}`;
+
+  if (isCreatedFile(actions, nameFile, false)) {
+    CloudActions.deleteFileOrFolder({
+      drive: currentDrive,
+      path: pathFile,
+    }).then(({message}) => {
+        console.log(message);
+        if (message !== 'ok') {
+          setSnackBarMessage(message);
+          setErrorSnackbar(true);
+          setOpenSnackbar(true);
+        }
+        const indexToDelete = fileList.findIndex(item => item.name === nameFile);
+        if (indexToDelete > -1) {
+          const cloneFileList = [...fileList];
+          cloneFileList.splice(indexToDelete, 1);
+          setFileList(cloneFileList);
+        }
+      });
   }
-  // ¿Es fichero o folder?
-  let itemIndexInList = currentTreeNode.searchLabelInChild(id);
-  let path = '';
-  if (itemIndexInList === -1) {
-    // Is a item, search!!
-    itemIndexInList = getItemIndexFromTreeNode(currentTreeNode, id);
-    path = currentTreeNode.children[itemIndexInList].node?.path || '';
-  } else {
-    path = id.substring(1);
-  }
-  
-  CloudActions.deleteFileOrFolder({
-    drive: currentDrive || '/',
-    path,
-  }).then(({message}) => {
-    console.log(message);
-    if (message !== 'ok') {
-      setSnackBarMessage(message);
-      setErrorSnackbar(true);
-      setOpenSnackbar(true);
-    }
-    refleshCloudView(actions);
-    // TODO: Actualizar arbol visualmente si no se ha actualizado solo (en teoría debería)
-  });
 }

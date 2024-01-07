@@ -50,9 +50,9 @@ export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
       />
     {textSearched && (textSearched.length > 0) && <Card sx={listComponentStyle(widthBoxes)}>
       <CardContent>
-        {textSearched.map(item => {
+        {textSearched.map((item, index) => {
           if (typeof(item) === 'string') {
-            return <p>{item}</p>;
+            return <p key={`p_search_${index}`}>{item}</p>;
           } else {
             return item;
           }

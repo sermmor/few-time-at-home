@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, nameFileForEmptyFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, checkToReturnToPath, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
@@ -31,6 +31,17 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
+const compareByName = (item1: CloudItem, item2: CloudItem) => item1.name.localeCompare(item2.name);
+const compareByType = (item1: CloudItem, item2: CloudItem) => {
+  if (item1.isFolder === item2.isFolder) {
+    return 0;
+  } else if (item1.isFolder) {
+    return -1;
+  }
+  return 1;
+};
+const sortFileList = (fileList: CloudItem[]) => fileList.sort(compareByName).sort(compareByType);
+
 let indexNewCloudItemAdded = 0;
 
 export const Cloud = () => {
@@ -39,12 +50,10 @@ export const Cloud = () => {
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [fileList, setFileList] = React.useState<CloudItem[]>([]);
   const [driveList, setDriveList] = React.useState<string[]>();
-  const [indexCurrentDrive, setIndexCurrentDrive] = React.useState<number>(0);
+  const [indexCurrentDrive, setIndexCurrentDrive] = React.useState<number>(-1);
   const [currentDrive, setCurrentDrive] = React.useState<string>('');
-  const [breadcrumb, setBreadcrumb] = React.useState<CloudItem[]>([]);
   const [selectedNodes, setSelectedNodes] = React.useState<CloudItem[]>([]);
   const [dragIsOver, setDragIsOver] = React.useState(false);
-  const [, setFiles] = React.useState<File[]>([]);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
@@ -55,20 +64,20 @@ export const Cloud = () => {
   React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
     // For now, I'll choose the cloud drive.
     setDriveList(driveList);
-    const indexCloudDrive = driveList.indexOf(cloudDriveName);
+    const indexCloudDrive = (indexCurrentDrive === -1) ? driveList.indexOf(cloudDriveName) : indexCurrentDrive;
     setIndexCurrentDrive(indexCloudDrive);
     const defaultDrive = driveList[indexCloudDrive];
     setCurrentDrive(defaultDrive);
     setCurrentPathFolder(defaultDrive);
-    CloudActions.getAllFolderItems({ drive: defaultDrive, path: defaultDrive }).then(data => {
+    CloudActions.getAllFolderItems({ drive: defaultDrive, folderPath: defaultDrive }).then(data => {
       // console.log(data)
       setFileList(data.data);
     });
   })}, [indexCurrentDrive]);
 
-  const action: ActionsProps = { cloudState, setCloudState, currentPathFolder, setCurrentPathFolder, fileList, setFileList, currentDrive,
-    breadcrumb, setBreadcrumb, selectedNodes, setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar,
-    isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn, setIndexCurrentDrive, indexCurrentDrive, driveList };
+  const action: ActionsProps = { cloudState, setCloudState, currentPathFolder, setCurrentPathFolder, fileList, setFileList, currentDrive, selectedNodes,
+    setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar, isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn,
+    setIndexCurrentDrive, indexCurrentDrive, driveList };
   
     // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
     // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
@@ -87,17 +96,17 @@ export const Cloud = () => {
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragIsOver(false);
-    uploadFiles(action, event, setFiles);
+    uploadFiles(action, event);
   };
 
   const handleUploadButton = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
     if (event.target.files && event.target.files.length > 0) {
-      uploadFiles(action, undefined, undefined, event.target.files[0]);
+      uploadFiles(action, undefined, event.target.files[0]);
     }
   }
 
-  checkToReturnToPath(action);
+  checkToReturnToPath(action); // TODO ¿REMOVE THIS?
 
   return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
     {fileList && <div
@@ -128,14 +137,14 @@ export const Cloud = () => {
           name: `new folder ${indexNewCloudItemAdded}`,
           path: `${currentPathFolder}/new folder ${indexNewCloudItemAdded}`,
         })}}
-        filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
+        // filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
         deleteAction={(id) => deleteItemAction(action, id)}
         seeCloudDrive={ changeDrive(action, cloudDriveName) }
         seeTrashDrive={ changeDrive(action, trashDriveName) }
         updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action)}
         list={
-          fileList.sort((item1, item2) => item1.name.localeCompare(item2.name)).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
+          sortFileList(fileList).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
             item.isFolder ?
               <LabelAndTextFieldWithFolder
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}

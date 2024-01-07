@@ -1,5 +1,5 @@
 
-import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse } from "../../data-model/cloud";
+import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
 import { fetchDownloadFile, fetchGetTextDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
@@ -7,10 +7,10 @@ import { getCloudEndpoint } from "../urls-and-end-points";
 const getDrivesList = (): Promise<CloudDrivesResponse> => 
   fetchJsonReceive<CloudDrivesResponse>(getCloudEndpoint('getDrivesList'), cloudDrivesResponseMock());
 
-const getAllFolderItems = (data: GenericCloudRequest): Promise<CloudDataModel> =>
+const getAllFolderItems = (data: GetFolderCloudRequest): Promise<CloudDataModel> =>
   fetchJsonSendAndReceive<CloudDataModel>(getCloudEndpoint('getFolderContent'), data, cloudDataModelMock());
 
-const searchAllItems = (data: SearchItemsResquest) => 
+const searchAllItemsInFolder = (data: SearchItemsResquest) => 
   fetchJsonSendAndReceive<SearchItemsResponse>(getCloudEndpoint('searchInFolder'), data, {search: []});
 
 const createFolder = (path: string) => 
@@ -37,4 +37,4 @@ const openFileContentInEditor = (data: DownloadFileToCloudResquest): Promise<str
 const deleteFileOrFolder = (data: GenericCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("deleteFileOrFolder"), data, messageResponseMock());
 
-export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItems, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };

@@ -1,20 +1,34 @@
 import { DownloadFile, UploadFiles } from "./commons";
 
-export const urlFolder = 'urlfolder:///';
-
 export const isFileInRootPath = (nameDrive: string, itemPath: string): boolean => {
   // For instance: nameDrive='cloud' item.path='cloud/Andalucia.jpeg' is true
   const splitPath = itemPath.split('/');
   return splitPath.length === 2 && splitPath[0] === nameDrive;
 }
 
-// For instance: item.path='cloud/Images/Andalucia.jpeg' => 'Images'
+// For instance: item.path='cloud/Images/Andalucia.jpeg' => 'cloud/Images'
 export const getPathFolderContainer = (itemPath: string): string => {
   const splitPath = itemPath.split('/');
   return splitPath.slice(0, splitPath.length - 1).join('/');
 }
 
-export const addPrefixUrlFolder = (nameFolder: string | undefined): string => urlFolder + nameFolder;
+// For instance: item.path='cloud/Images/States/Spain/Andalucia.jpeg' => ['cloud', 'cloud/Images', 'cloud/Images/States', 'cloud/Images/States/Spain']
+export const getBreadcrumb = (itemPath: string): string[] => {
+  const breadcrumb: string[] = [];
+  let currentPath = '';
+
+  itemPath.split('/').forEach(folderName => {
+    currentPath = ('' === currentPath) ? folderName : `${currentPath}/${folderName}`;
+    breadcrumb.push(currentPath);
+  });
+
+  return breadcrumb.slice(0, breadcrumb.length - 1);
+}
+
+export const getNameFileOfFolder = (path: string): string => {
+  const splitPath = path.split('/');
+  return splitPath[splitPath.length - 1];
+}
 
 export interface CloudDrivesResponse {
   driveList: string[];
@@ -42,6 +56,11 @@ export interface CloudDataModel {
 export interface GenericCloudRequest {
   drive: string;
   path: string;
+}
+
+export interface GetFolderCloudRequest {
+  drive: string;
+  folderPath: string;
 }
 
 export interface ChangePathCloudRequest {

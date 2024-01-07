@@ -30,31 +30,34 @@ export class CloudService {
   
   getFolderContent = (driveName: string, folderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
     let allItemsAlreadyCollected: CloudItem[] = [];
-    let filePath: string;
     let numberOfItemLeft: number;
     readdir(folderPath, (err, fileList) => {
       numberOfItemLeft = fileList.length;
-      fileList.forEach(fileName => {
-        filePath = `${folderPath}/${fileName}`;
-        stat(filePath, (err, stat) => {
-          if (!stat || !stat.isDirectory) console.log(`> Crash? : ${folderPath}/${fileName}`);
-          try {
-            allItemsAlreadyCollected.push({
-              name: fileName,
-              path: filePath,
-              driveName: driveName,
-              isFolder: stat.isDirectory(),
-            });
-            numberOfItemLeft--;
-            if (numberOfItemLeft <= 0) { // TODO: Test from front.
-              resolve(allItemsAlreadyCollected);
+      if (numberOfItemLeft === 0) {
+        resolve([]);
+      } else {
+        fileList.forEach(fileName => {
+          const filePath = `${folderPath}/${fileName}`;
+          stat(filePath, (err, stat) => {
+            if (!stat || !stat.isDirectory) console.log(`> Crash? : ${folderPath}/${fileName}`);
+            try {
+              allItemsAlreadyCollected.push({
+                name: fileName,
+                path: filePath,
+                driveName: driveName,
+                isFolder: stat.isDirectory(),
+              });
+              numberOfItemLeft--;
+              if (numberOfItemLeft <= 0) {
+                resolve(allItemsAlreadyCollected);
+              }
+            } catch (e) {
+              console.log(e);
+              console.log(`> Crash with exception : ${filePath}`);
             }
-          } catch (e) {
-            console.log(e);
-            console.log(`> Crash with exception : ${filePath}`);
-          }
+          });
         });
-      });
+      }
     });
   });
 
@@ -92,7 +95,7 @@ export class CloudService {
     });
   });
 
-  // TODO: CHANGED TO PROMISE
+  // TODO: CHANGED TO PROMISE ¿REMOVE FUNCTION?
   private findCloudItem = (nameDrive: string, pathItem: string): Promise<CloudItem | undefined> => new Promise<CloudItem | undefined>(resolve => {
     const splitPathItem = pathItem.split('/');
     const folderPath = splitPathItem.slice(0, splitPathItem.length - 1).join('/');
@@ -166,12 +169,14 @@ export class CloudService {
   // TODO: Quit parameter "nameDrive"
   createFolder = (newFolderPath: string): Promise<string> => new Promise<string>(resolve => {
     stat(newFolderPath, (err, stat) => {
-      if (err === null) {
+      if (err !== null) {
         mkdir(newFolderPath, {recursive: true}, () => {
           resolve(`Folder ${newFolderPath} created correctly.`)
+          console.log(`Folder ${newFolderPath} created correctly.`)
         });
       } else {
         resolve(`Folder ${newFolderPath} already exist!`);
+        console.log(`Folder ${newFolderPath} already exist!`);
       }
     });
   });
