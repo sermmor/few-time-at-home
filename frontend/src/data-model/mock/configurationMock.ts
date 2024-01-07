@@ -54,6 +54,7 @@ export const configurationDataModelMock = (): ConfigurationDataModel => ({
     },
   ],
   backupUrls: "C:\\Workspace\\few-time-at-home\\backups",
+  cloudRootPath: "C:\\Workspace\\few-time-at-home\\rootCloud",
   showNitterRSSInAll: true,
   numberOfWorkers: 4,
   apiPort: 8080,

@@ -297,6 +297,23 @@ export const ConfigurationComponent = () => {
           </Box>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+              Cloud path
+            </Typography>
+            <TextField
+              label="Cloud path"
+              variant="standard"
+              value={config.cloudRootPath}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
+              onChange={evt => {
+                setConfig({
+                  ...config,
+                  cloudRootPath: evt.target.value,
+                });
+              }}
+            />
+          </Box>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
               Number of workers
             </Typography>
             <TextField

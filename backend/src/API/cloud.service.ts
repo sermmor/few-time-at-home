@@ -22,12 +22,11 @@ const defaultTrash: Drive = { name: 'trash', path: trashDefaultPath };
 const defaultTempUpload: Drive = { name: 'upload', path: `data/uploads` };
 
 export class CloudService {
-  private cloudRootPath: string;
   static Instance: CloudService;
   
   constructor(public cloudOrigins: Drive[] = []) {
     CloudService.Instance = this;
-    this.cloudRootPath = ConfigurationService.Instance.cloudRootPath;
+    // TODO use ConfigurationService.Instance.cloudRootPath;
     this.cloudOrigins.push(defaultOrigin);
     this.cloudOrigins.push(defaultTrash);
     this.cloudOrigins.push(defaultTempUpload);

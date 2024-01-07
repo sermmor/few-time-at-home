@@ -7,6 +7,7 @@ export interface ConfigurationDataModel {
   listBotCommands: {[key: string]: string},
   quoteList: {quote: string; author: string}[],
   backupUrls: string,
+  cloudRootPath: string;
   showNitterRSSInAll: boolean,
   numberOfWorkers: number,
   apiPort: number,
