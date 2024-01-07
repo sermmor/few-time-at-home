@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { TemporalData } from "../../../service/temporalData.service";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -16,26 +17,38 @@ const oneSecond = 1000;
 
 const formatToTwoDigits = (timeDigit: number): string => timeDigit < 10 ? `0${timeDigit}` : `${timeDigit}`;
 
-const countDownTime = (minutes: number, seconds: number, setTimeToShow: React.Dispatch<React.SetStateAction<string>>, setTimeRunning: React.Dispatch<React.SetStateAction<boolean>>) => {
-  if (minutes <= 0 && seconds <= 0) {
+const setTimeDispachers: {setTimeToShow: React.Dispatch<React.SetStateAction<string>> | undefined; setTimeRunning: React.Dispatch<React.SetStateAction<boolean>> | undefined} = {
+  setTimeToShow: undefined,
+  setTimeRunning: undefined
+}
+
+const countDownTime = () => {
+  if (TemporalData.TimeLeftPomodoro.minutes <= 0 && TemporalData.TimeLeftPomodoro.seconds <= 0) {
     console.log("Pomodoro FINISHED");
     const audio = new Audio(alarmPath);
     audio.play();
-    setTimeRunning(false);
-  } else if (seconds <= 0) {
-    setTimeToShow(`${formatToTwoDigits(minutes - 1)}:${formatToTwoDigits(59)}`);
-    setTimeout(()=> countDownTime(minutes - 1, 59, setTimeToShow, setTimeRunning), oneSecond);
+    setTimeDispachers.setTimeRunning!(false);
+  } else if (TemporalData.TimeLeftPomodoro.seconds <= 0) {
+    TemporalData.TimeLeftPomodoro.minutes--;
+    TemporalData.TimeLeftPomodoro.seconds = 59;
+    setTimeDispachers.setTimeToShow!(`${formatToTwoDigits(TemporalData.TimeLeftPomodoro.minutes)}:${formatToTwoDigits(TemporalData.TimeLeftPomodoro.seconds)}`);
+    setTimeout(()=> countDownTime(), oneSecond);
   } else {
-    setTimeToShow(`${formatToTwoDigits(minutes)}:${formatToTwoDigits(seconds - 1)}`);
-    setTimeout(()=> countDownTime(minutes, seconds - 1, setTimeToShow, setTimeRunning), oneSecond);
+    TemporalData.TimeLeftPomodoro.seconds--;
+    setTimeDispachers.setTimeToShow!(`${formatToTwoDigits(TemporalData.TimeLeftPomodoro.minutes)}:${formatToTwoDigits(TemporalData.TimeLeftPomodoro.seconds)}`);
+    setTimeout(()=> countDownTime(), oneSecond);
   }
 }
 
 export const Pomodoro = (): JSX.Element => {
   // MM:SS
   const [isTimeRunning, setTimeRunning] = React.useState<boolean>(false);
-  const [time, setTime] = React.useState<string>('00:00');
-  const [timeToShow, setTimeToShow] = React.useState<string>('00:00');
+  const [time, setTime] = React.useState<string>(TemporalData.getFormatTimeLeftPomodoro());
+  const [timeToShow, setTimeToShow] = React.useState<string>(TemporalData.getFormatTimeLeftPomodoro());
+
+  setTimeDispachers.setTimeRunning = setTimeRunning;
+  setTimeDispachers.setTimeToShow = setTimeToShow;
+
   return <Box sx={formStyle}>
     <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'center', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
       <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Time to countdown:</Typography>
@@ -57,7 +70,9 @@ export const Pomodoro = (): JSX.Element => {
           if (!isTimeRunning) {
             setTimeRunning(true);
             const splitedTime = time.split(':');
-            countDownTime(+splitedTime[0], +splitedTime[1], setTimeToShow, setTimeRunning);
+            TemporalData.TimeLeftPomodoro.minutes = +splitedTime[0];
+            TemporalData.TimeLeftPomodoro.seconds = +splitedTime[1];
+            countDownTime();
           }
         }}
         >
