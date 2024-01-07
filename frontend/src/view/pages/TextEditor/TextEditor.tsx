@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Alert, Box, Button, Snackbar, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
 import { CloudActions } from "../../../core/actions/cloud";
 
@@ -16,11 +16,25 @@ const textAreaStyle: SxProps<Theme> = {
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '80%'},
 }
 
-const saveTextInCloud = (textContent: string, filePath: string) => {
+const saveTextInCloud = (
+  textContent: string,
+  filePath: string,
+  setOpenSnackbar: React.Dispatch<React.SetStateAction<boolean>>,
+  setSnackBarMessage: React.Dispatch<React.SetStateAction<string>>,
+  setErrorSnackbar: React.Dispatch<React.SetStateAction<boolean>>
+) => {
   if (filePath === '') return;
   CloudActions.saveFile({ filePath, textContent }).then(({isUpdated}) => {
     if (isUpdated) {
       console.log(`Saved file in ${filePath}`);
+      setSnackBarMessage(`Saved file in ${filePath}`);
+      setErrorSnackbar(false);
+      setOpenSnackbar(true);
+    } else {
+      console.log(`Error saving file in ${filePath}`);
+      setSnackBarMessage(`Error saving file in ${filePath}`);
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
     }
   });
 }
@@ -48,6 +62,10 @@ export const TextEditor = () => {
   const [pathData, setPathData] = React.useState<string>(TemporalData.LastPathInTextEditor);
   const [textData, setTextData] = React.useState<string>(TemporalData.EditorTextData);
   const [isInViewMode, setInViewMode] = React.useState<boolean>(false);
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
+  const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
+  const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
 
   const setTextEditor = (text: string) => {
     TemporalData.EditorTextData = text;
@@ -111,7 +129,7 @@ export const TextEditor = () => {
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
-        onClick={() => saveTextInCloud(textData, pathData)}
+        onClick={() => saveTextInCloud(textData, pathData, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar)}
         >
         Save In Cloud
       </Button>
@@ -123,5 +141,10 @@ export const TextEditor = () => {
         Download
       </Button>
     </Box>
+    <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} key={'topcenter'}>
+      <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
+        {snackBarMessage}
+      </Alert>
+    </Snackbar>
   </Box>;
 }
