@@ -18,6 +18,7 @@ export interface Drive {
 
 const defaultOrigin: Drive = { name: 'cloud', path: cloudDefaultPath };
 const defaultTrash: Drive = { name: 'trash', path: trashDefaultPath };
+const defaultTempUpload: Drive = { name: 'upload', path: `data/uploads` };
 
 export class CloudService {
   static Instance: CloudService;
@@ -26,13 +27,15 @@ export class CloudService {
     CloudService.Instance = this;
     this.cloudOrigins.push(defaultOrigin);
     this.cloudOrigins.push(defaultTrash);
+    this.cloudOrigins.push(defaultTempUpload);
   }
   
   getFolderContent = (driveName: string, folderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
+    if (folderPath === '/') return cloudDefaultPath;
     let allItemsAlreadyCollected: CloudItem[] = [];
     let numberOfItemLeft: number;
     readdir(folderPath, (err, fileList) => {
-      numberOfItemLeft = fileList.length;
+      numberOfItemLeft = fileList ? fileList.length : 0;
       if (numberOfItemLeft === 0) {
         resolve([]);
       } else {
@@ -95,21 +98,11 @@ export class CloudService {
     });
   });
 
-  // TODO: CHANGED TO PROMISE ¿REMOVE FUNCTION?
-  private findCloudItem = (nameDrive: string, pathItem: string): Promise<CloudItem | undefined> => new Promise<CloudItem | undefined>(resolve => {
-    const splitPathItem = pathItem.split('/');
-    const folderPath = splitPathItem.slice(0, splitPathItem.length - 1).join('/');
-    this.getFolderContent(nameDrive, folderPath).then(cloudItems => {
-      const index = cloudItems.findIndex(item => item.path === pathItem);
-      resolve(index === -1 ? undefined : cloudItems[index]);
-    });
-  });
-
   // TODO: CHANGED TO PROMISE
   lsDirOperation = (nameDrive: string, pathItem: string): Promise<string[]> => new Promise<string[]>(resolve =>
     this.getFolderContent(nameDrive, pathItem).then(
       allItemsAlreadyCollected => resolve(allItemsAlreadyCollected.map(cloudItem => cloudItem.path))
-      ));
+      ).catch(e => resolve([])));
 
   getListFolderFiles = (nameDrive: string, pathItem: string): Promise<string[]> => new Promise<string[]>(resolve => this.getFolderContent(nameDrive, pathItem)
     .then(allItemsAlreadyCollected => {

@@ -6,9 +6,8 @@ import { BookmarkService } from "../API/bookmark.service";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
-import { CloudService, cloudDefaultPath } from "../API/cloud.service";
+import { CloudService, cloudDefaultPath } from "../API/cloudV2.service";
 import { createWriteStream, existsSync, mkdir } from "fs";
-import { WritableStream } from 'stream/web';
 import { Readable } from "stream";
 import { finished } from "stream/promises";
 
@@ -224,13 +223,17 @@ export class TelegramBot {
   cdDirInCloud = (ctx: TelegrafContext, message: string) => {
     if (!this.isUserClient(ctx)) return;
     const candidate = (this.currentCloudDir === '/') ? `${message.substring(1)}` : `${this.currentCloudDir}/${message.substring(1)}`;
-    if (CloudService.Instance.lsDirOperation(cloudDefaultPath, candidate).length > 0) {
-      // Exists, then we can change of dir.
-      this.currentCloudDir = candidate;
-      ctx.reply(`Cambio al path '${this.currentCloudDir}'.`);
-    } else {
+    CloudService.Instance.lsDirOperation(cloudDefaultPath, candidate).then(listItems => {
+      if (listItems.length > 0) {
+        // Exists, then we can change of dir.
+        this.currentCloudDir = candidate;
+        ctx.reply(`Cambio al path '${this.currentCloudDir}'.`);
+      } else {
+        ctx.reply(`Error al cambiar al path '${candidate}'.`);
+      }
+    }).catch(err => {
       ctx.reply(`Error al cambiar al path '${candidate}'.`);
-    }
+    });
   }
 
   lsDirInCloud = (ctx: TelegrafContext) => {
@@ -240,22 +243,23 @@ export class TelegramBot {
       return;
     }
 
-    const pathList = CloudService.Instance.lsDirOperation(cloudDefaultPath, this.currentCloudDir);
-    const bookmarksPerMessage = 10;
-    const numberOfMessages = Math.ceil(pathList.length / bookmarksPerMessage);
-    const messagesToSend = [];
-    let indexItem = 0;
-    let message = '';
-    
-    for (let i = 0; i < numberOfMessages; i++) {
-      message = '';
-      for (let j = bookmarksPerMessage * i; j < bookmarksPerMessage * (i + 1) && j < pathList.length; j++) {
-        message = message === '' ? `${indexItem}. - ${pathList[j]}` : `${message}\n${indexItem}. - ${pathList[j]}`;
-        indexItem++;
+    CloudService.Instance.lsDirOperation(cloudDefaultPath, this.currentCloudDir).then(pathList => {
+      const bookmarksPerMessage = 10;
+      const numberOfMessages = Math.ceil(pathList.length / bookmarksPerMessage);
+      const messagesToSend = [];
+      let indexItem = 0;
+      let message = '';
+      
+      for (let i = 0; i < numberOfMessages; i++) {
+        message = '';
+        for (let j = bookmarksPerMessage * i; j < bookmarksPerMessage * (i + 1) && j < pathList.length; j++) {
+          message = message === '' ? `${indexItem}. - ${pathList[j]}` : `${message}\n${indexItem}. - ${pathList[j]}`;
+          indexItem++;
+        }
+        messagesToSend.push(message);
       }
-      messagesToSend.push(message);
-    }
-    this.sendAllMessagesToTelegram(ctx, messagesToSend);
+      this.sendAllMessagesToTelegram(ctx, messagesToSend);
+    });
   }
 
   returnToParentInCloud = (ctx: TelegrafContext) => {
@@ -286,7 +290,7 @@ export class TelegramBot {
     const body = Readable.Readable.from(response.body);
     const download_write_stream = createWriteStream(tempPath);
     finished(body.pipe(download_write_stream)).then(() => {
-      CloudService.Instance.uploadFile(cloudDefaultPath, tempPath, definitivePath);
+      CloudService.Instance.uploadFile(tempPath, definitivePath);
       console.log(`Downloaded from telegram file '${nameFile}' in '${definitivePath}`);
       ctx.reply(`Saved file '${definitivePath}'`);
     });
@@ -368,22 +372,24 @@ export class TelegramBot {
 
   searchFilesInCloud = (ctx: TelegrafContext, wordToSearch: string) => {
     if (!this.isUserClient(ctx)) return;
-    this.lastSearchInCloudPathList = CloudService.Instance.searchCloudItem(cloudDefaultPath, wordToSearch).map(item => item.path);
-    const bookmarksPerMessage = 10;
-    const numberOfMessages = Math.ceil(this.lastSearchInCloudPathList.length / bookmarksPerMessage);
-    const messagesToSend = [];
-    let indexItem = 0;
-    let message = '';
-    
-    for (let i = 0; i < numberOfMessages; i++) {
-      message = '';
-      for (let j = bookmarksPerMessage * i; j < bookmarksPerMessage * (i + 1) && j < this.lastSearchInCloudPathList.length; j++) {
-        message = message === '' ? `${indexItem}. - ${this.lastSearchInCloudPathList[j]}` : `${message}\n${indexItem}. - ${this.lastSearchInCloudPathList[j]}`;
-        indexItem++;
+    CloudService.Instance.searchCloudItemInDirectory(cloudDefaultPath, this.currentCloudDir, wordToSearch).then(searchResult => {
+      this.lastSearchInCloudPathList = searchResult.map(item => item.path);
+      const bookmarksPerMessage = 10;
+      const numberOfMessages = Math.ceil(this.lastSearchInCloudPathList.length / bookmarksPerMessage);
+      const messagesToSend = [];
+      let indexItem = 0;
+      let message = '';
+      
+      for (let i = 0; i < numberOfMessages; i++) {
+        message = '';
+        for (let j = bookmarksPerMessage * i; j < bookmarksPerMessage * (i + 1) && j < this.lastSearchInCloudPathList.length; j++) {
+          message = message === '' ? `${indexItem}. - ${this.lastSearchInCloudPathList[j]}` : `${message}\n${indexItem}. - ${this.lastSearchInCloudPathList[j]}`;
+          indexItem++;
+        }
+        messagesToSend.push(message);
       }
-      messagesToSend.push(message);
-    }
-    this.sendAllMessagesToTelegram(ctx, messagesToSend);
+      this.sendAllMessagesToTelegram(ctx, messagesToSend);
+    });
   }
 
   private addAlertFromTelegram = (ctx: TelegrafContext, message: string) => {
