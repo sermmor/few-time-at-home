@@ -100,7 +100,7 @@ export const TextEditor = () => {
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
-        onClick={() => downloadText(applyEOFToText(textData))}
+        onClick={() => downloadText(textData)}
         >
         Download
       </Button>
