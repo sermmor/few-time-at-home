@@ -15,7 +15,7 @@ export const searchBookmarksEndpoint = (): string => `${getUrlApi()}/search-book
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;
 
-export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'uploadFile' | 'downloadFile' | 'searchInFolder' | 'deleteFileOrFolder';
+export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'searchInFolder' | 'deleteFileOrFolder';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',
   'getFolderContent': '/cloud/get-folder-content',
@@ -23,6 +23,7 @@ const cloudEndpointList = {
   'moveItem': '/cloud/move-item',
   'renameItem': '/cloud/rename-item',
   'createBlankFile': '/cloud/create-blank-file',
+  'saveFile': '/cloud/save-file',
   'uploadFile': '/cloud/upload-file',
   'downloadFile': '/cloud/download-file',
   'searchInFolder': '/cloud/search-in-folder',

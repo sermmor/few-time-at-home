@@ -71,7 +71,6 @@ export class CloudService {
 
   private searchPredicate = (ci: CloudItem) => (w: string): boolean => ci.name.toLowerCase().indexOf(w) >= 0 || ci.path.toLowerCase().indexOf(w) >= 0;
 
-  // TODO searchCloudItem changed to searchCloudItemInDirectory AND NOW USE PROMISE!!!
   searchCloudItemInDirectory = (nameDrive: string, folderPath: string, searchTokken: string): Promise<{ path: string }[]> => new Promise<{ path: string }[]>(resolve => {
     const words = searchTokken.toLowerCase().split(' ').filter(value => value !== '');
     const maxResults = 100;
@@ -98,7 +97,6 @@ export class CloudService {
     });
   });
 
-  // TODO: CHANGED TO PROMISE
   lsDirOperation = (nameDrive: string, pathItem: string): Promise<string[]> => new Promise<string[]>(resolve =>
     this.getFolderContent(nameDrive, pathItem).then(
       allItemsAlreadyCollected => resolve(allItemsAlreadyCollected.map(cloudItem => cloudItem.path))
@@ -110,7 +108,6 @@ export class CloudService {
         allItemsAlreadyCollected.filter(cloudItem => !cloudItem.isFolder).map(cloudItemFile => cloudItemFile.path)
     )}));
   
-  // TODO: Quit parameter "nameDrive"
   uploadFile = (tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
     // It's comes files from web to server.
     stat(tempFile, (err, stat) => {
@@ -135,7 +132,6 @@ export class CloudService {
     return this.cloudOrigins[indexDrive].path;
   }
 
-  // TODO: Quit parameter "nameDrive"
   moveFileOrFolder = (oldPathFileOrFolder: string[], newPathFileOrFolder: string[], numberOfErrors = 0) : Promise<string> => new Promise<string>(resolve => {
     if (oldPathFileOrFolder.length !== newPathFileOrFolder.length) {
       resolve('Error, name files to move are greater to newPathFileOrFolder list');
@@ -155,7 +151,6 @@ export class CloudService {
     }
   });
 
-  // TODO: Quit parameter "nameDrive"
   renameFileOrFolder = (oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {
     stat(oldPathFileOrFolder, (err, stat) => {
       if (err === null) {
@@ -176,7 +171,6 @@ export class CloudService {
     });
   });
   
-  // TODO: Quit parameter "nameDrive"
   createFolder = (newFolderPath: string): Promise<string> => new Promise<string>(resolve => {
     stat(newFolderPath, (err, stat) => {
       if (err !== null) {
@@ -191,9 +185,14 @@ export class CloudService {
     });
   });
 
-  // TODO: Quit parameter "nameDrive"
   createBlankFile = (newFilePath: string): Promise<void> => new Promise<void>(resolve => {
     saveInAFile('', newFilePath, () => {
+      resolve();
+    });
+  });
+
+  saveInFile = (filePath: string, textContent: string): Promise<void> => new Promise<void>(resolve => {
+    saveInAFile(textContent, filePath, () => {
       resolve();
     });
   });

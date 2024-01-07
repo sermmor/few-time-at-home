@@ -78,7 +78,6 @@ export const Bookmarks = () => {
           title='Bookmarks'
           id='Bookmarks_0'
           path={`${currentTreeNode?.label}`}
-          duplicateItem={() => undefined}
           onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
           onOutSelectionMode={() => setSelectedNodes([])}
           onMoveItem={(idList) => moveItemListToFolder(action, idList)}

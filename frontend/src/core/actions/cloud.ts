@@ -1,5 +1,5 @@
 
-import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest, MoveCloudRequest } from "../../data-model/cloud";
+import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest, MoveCloudRequest, SaveCloudFileRequest } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
 import { fetchDownloadFile, fetchGetTextDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
@@ -19,6 +19,9 @@ const createFolder = (path: string) =>
 const createBlankFile = (path: string) => 
   fetchJsonSendAndReceive<UpdatedResponse>(getCloudEndpoint("createBlankFile"), { path }, updatedResponseMock());
 
+const saveFile = (data: SaveCloudFileRequest) => 
+  fetchJsonSendAndReceive<UpdatedResponse>(getCloudEndpoint("saveFile"), data, updatedResponseMock());
+
 const moveItem = (data: MoveCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("moveItem"), data, messageResponseMock());
 
@@ -37,4 +40,4 @@ const openFileContentInEditor = (data: DownloadFileToCloudResquest): Promise<str
 const deleteFileOrFolder = (data: GenericCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("deleteFileOrFolder"), data, messageResponseMock());
 
-export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, createFolder, createBlankFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, deleteFileOrFolder, openFileContentInEditor };

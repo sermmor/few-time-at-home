@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
+import { CloudActions } from "../../../core/actions/cloud";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -13,6 +14,15 @@ const formStyle: SxProps<Theme> = {
 
 const textAreaStyle: SxProps<Theme> = {
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '80%'},
+}
+
+const saveTextInCloud = (textContent: string, filePath: string) => {
+  if (filePath === '') return;
+  CloudActions.saveFile({ filePath, textContent }).then(({isUpdated}) => {
+    if (isUpdated) {
+      console.log(`Saved file in ${filePath}`);
+    }
+  });
 }
 
 const downloadText = (text: string) => {
@@ -35,6 +45,7 @@ const ViewBox = ({ textData }: {textData: string}) => (
 );
 
 export const TextEditor = () => {
+  const [pathData, setPathData] = React.useState<string>(TemporalData.LastPathInTextEditor);
   const [textData, setTextData] = React.useState<string>(TemporalData.EditorTextData);
   const [isInViewMode, setInViewMode] = React.useState<boolean>(false);
 
@@ -96,6 +107,13 @@ export const TextEditor = () => {
         onClick={() => setTextEditor('')}
         >
         Remove
+      </Button>
+      <Button
+        variant='outlined'
+        sx={{minWidth: '15.5rem'}}
+        onClick={() => saveTextInCloud(textData, pathData)}
+        >
+        Save In Cloud
       </Button>
       <Button
         variant='outlined'

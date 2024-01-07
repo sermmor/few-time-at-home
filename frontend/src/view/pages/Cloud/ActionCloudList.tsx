@@ -163,6 +163,7 @@ export const downloadAndOpenFileInEditor = (
     path: `${currentPathFolder}/${nameFile}`,
   }).then((text) => {
     TemporalData.EditorTextData = text;
+    TemporalData.LastPathInTextEditor = `${currentPathFolder}/${nameFile}`;
     setCloudState({ name: CloudStateName.NORMAL, description: '', });
     console.log('File in editor!!');
     setSnackBarMessage(`File '${nameFile}' is in Text Editor.`);

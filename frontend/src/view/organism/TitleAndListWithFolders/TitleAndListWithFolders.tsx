@@ -160,7 +160,7 @@ export const TitleAndListWithFolders = ({
           <Button onClick={moveItemProcess(false)}>{<ContentPasteIcon />}</Button>
       }
       {
-        !isInMoveItemMode && 
+        !isInMoveItemMode && duplicateItem && 
           <Button onClick={duplicateItem}>{<FileCopyIcon />}</Button>
       }
       {

@@ -46,6 +46,7 @@ export class APIService {
     moveItem: '/cloud/move-item',
     renameItem: '/cloud/rename-item',
     createBlankFile: '/cloud/create-blank-file',
+    saveFile: '/cloud/save-file',
     uploadFile: '/cloud/upload-file',
     downloadFile: '/cloud/download-file',
     searchInFolder: '/cloud/search-in-folder',
@@ -295,6 +296,15 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         cloudService.createBlankFile(req.body.path).then(() => res.send({isUpdated: true}));
+      }
+    });
+
+    // body: filePath, textContent
+    this.app.post(APIService.cloudEndpointList.saveFile, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.saveInFile(req.body.filePath, req.body.textContent).then(() => res.send({isUpdated: true}));
       }
     });
 

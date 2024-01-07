@@ -68,6 +68,11 @@ export interface ChangePathCloudRequest {
   newPath: string;
 }
 
+export interface SaveCloudFileRequest {
+  filePath: string;
+  textContent: string;
+}
+
 export interface MoveCloudRequest {
   oldPathList: string[];
   newPathList: string[];
