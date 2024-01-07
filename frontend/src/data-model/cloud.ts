@@ -68,6 +68,11 @@ export interface ChangePathCloudRequest {
   newPath: string;
 }
 
+export interface MoveCloudRequest {
+  oldPathList: string[];
+  newPathList: string[];
+}
+
 export interface UploadFilesToCloudRequest extends UploadFiles {
 }
 

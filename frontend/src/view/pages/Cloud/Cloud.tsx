@@ -8,7 +8,7 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, onSearchFileOrFolder, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, moveItemListToFolder, onSearchFileOrFolder, putInSelectedItemList, renameCloudFolder, renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 
@@ -52,7 +52,7 @@ export const Cloud = () => {
   const [driveList, setDriveList] = React.useState<string[]>();
   const [indexCurrentDrive, setIndexCurrentDrive] = React.useState<number>(-1);
   const [currentDrive, setCurrentDrive] = React.useState<string>('');
-  const [selectedNodes, setSelectedNodes] = React.useState<CloudItem[]>([]);
+  const [selectedNodes, setSelectedNodes] = React.useState<string[]>([]);
   const [dragIsOver, setDragIsOver] = React.useState(false);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
@@ -79,7 +79,6 @@ export const Cloud = () => {
     setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar, isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn,
     setIndexCurrentDrive, indexCurrentDrive, driveList };
   
-    // TODO: Opción de poder mover listado de ficheros de una carpeta a otra (que es usar enpoints de rename file y rename folder, pero...).
     // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
 
   // Define the event handlers
@@ -121,9 +120,9 @@ export const Cloud = () => {
         path={currentPathFolder}
         onUploadItem={handleUploadButton}
         // duplicateItem={() => undefined}
-        // onSelectItem={(id, checked) => isSelectedItemList(action, id, checked)}
-        // onOutSelectionMode={() => setSelectedNodes([])}
-        // onMoveItem={(idList) => moveItemListToFolder(action, idList)}
+        onSelectItem={(id, checked) => putInSelectedItemList(action, id, checked)}
+        onOutSelectionMode={() => setSelectedNodes([])}
+        onMoveItem={() => moveItemListToFolder(action)}
         onSearch={onSearchFileOrFolder(action)}
         createFile={() => {indexNewCloudItemAdded++; createBlankFile(action, `new file ${indexNewCloudItemAdded}.txt`);}}
         // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }

@@ -1,6 +1,6 @@
 import { Link } from "@mui/material";
 import { CloudActions } from "../../../core/actions/cloud";
-import { CloudItem, getPathFolderContainer } from "../../../data-model/cloud";
+import { CloudItem, getNameFileOfFolder, getPathFolderContainer } from "../../../data-model/cloud";
 import { CloudState, CloudStateName } from "./Models/CloudState";
 import { TemporalData } from "../../../service/temporalData.service";
 
@@ -11,8 +11,8 @@ export interface ActionsProps {
   setCurrentPathFolder: React.Dispatch<React.SetStateAction<string>>;
   fileList: CloudItem[];
   setFileList: React.Dispatch<React.SetStateAction<CloudItem[]>>;
-  selectedNodes: CloudItem[];
-  setSelectedNodes: React.Dispatch<React.SetStateAction<CloudItem[]>>;
+  selectedNodes: string[];
+  setSelectedNodes: React.Dispatch<React.SetStateAction<string[]>>;
   currentDrive: string;
   setSnackBarMessage: React.Dispatch<React.SetStateAction<string>>;
   setOpenSnackbar: React.Dispatch<React.SetStateAction<boolean>>;
@@ -330,5 +330,37 @@ export const deleteItemAction = (actions: ActionsProps, nameFile: string) => {
           setFileList(cloneFileList);
         }
       });
+  }
+}
+
+export const putInSelectedItemList = ({setSelectedNodes, selectedNodes, fileList}: ActionsProps, nameFile: string, isSelected: boolean) => {
+  const cloneSelectedFileList = [...selectedNodes];
+  if (isSelected) {
+    const indexItem = fileList.findIndex(item => item.name === nameFile);
+    cloneSelectedFileList.push(fileList[indexItem].path);
+  } else {
+    const indexItem = cloneSelectedFileList.findIndex(itemPath => itemPath.includes(nameFile));
+    cloneSelectedFileList.splice(indexItem, 1);
+  }
+  console.log(cloneSelectedFileList)
+  setSelectedNodes(cloneSelectedFileList);
+}
+
+export const moveItemListToFolder = (actions: ActionsProps) => {
+  const {setSelectedNodes, selectedNodes, currentPathFolder, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar } = actions;
+  if (selectedNodes && selectedNodes.length > 0) {
+    const newPathList = selectedNodes.map(nameFile => `${currentPathFolder}/${getNameFileOfFolder(nameFile)}`);
+  
+    CloudActions.moveItem({
+      oldPathList: selectedNodes,
+      newPathList,
+    }).then(({message}) => {
+      setSnackBarMessage(message);
+      setErrorSnackbar(false);
+      setOpenSnackbar(true);
+
+      synchronizeWithCloud(actions);
+      setSelectedNodes([]);
+    })
   }
 }

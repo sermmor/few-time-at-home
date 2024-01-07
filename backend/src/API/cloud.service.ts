@@ -136,7 +136,24 @@ export class CloudService {
   }
 
   // TODO: Quit parameter "nameDrive"
-  moveFileOrFolder = (oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => this.renameFileOrFolder(oldPathFileOrFolder, newPathFileOrFolder);
+  moveFileOrFolder = (oldPathFileOrFolder: string[], newPathFileOrFolder: string[], numberOfErrors = 0) : Promise<string> => new Promise<string>(resolve => {
+    if (oldPathFileOrFolder.length !== newPathFileOrFolder.length) {
+      resolve('Error, name files to move are greater to newPathFileOrFolder list');
+    } else if (oldPathFileOrFolder.length === 0) {
+      resolve(`All files moved (number of errors = ${numberOfErrors}`);
+    } else {
+      this.renameFileOrFolder(oldPathFileOrFolder[0], newPathFileOrFolder[0]).then(response => {
+        if (response !== 'Folder renamed correctly.' && response !== 'File renamed correctly.') {
+          numberOfErrors++;
+        }
+        this.moveFileOrFolder(
+          oldPathFileOrFolder.slice(1, oldPathFileOrFolder.length),
+          newPathFileOrFolder.slice(1, newPathFileOrFolder.length),
+          numberOfErrors
+        ).then(messageResponse => resolve(messageResponse));
+      });
+    }
+  });
 
   // TODO: Quit parameter "nameDrive"
   renameFileOrFolder = (oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {

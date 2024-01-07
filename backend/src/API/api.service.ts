@@ -298,12 +298,12 @@ export class APIService {
       }
     });
 
-    // body: oldPath, newPath
+    // body: oldPathList, newPathList
     this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        cloudService.moveFileOrFolder(req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
+        cloudService.moveFileOrFolder(req.body.oldPathList, req.body.newPathList).then((message) => res.send({ message }));
       }
     });
 
