@@ -40,6 +40,7 @@ export class ConfigurationService {
     };
     quoteList: Quote[];
     backupUrls: string;
+    cloudRootPath: string;
     showNitterRSSInAll: boolean;
     numberOfWorkers: number;
     apiPort: number;
@@ -54,6 +55,7 @@ export class ConfigurationService {
         this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
         this.numberOfWorkers = configurationData.numberOfWorkers;
         this.backupUrls = configurationData.backupUrls;
+        this.cloudRootPath = configurationData.cloudRootPath;
         this.apiPort = configurationData.apiPort;
         this.quoteList = configurationData.quoteList;
 
@@ -69,6 +71,7 @@ export class ConfigurationService {
         listBotCommands: this.listBotCommands,
         quoteList: this.quoteList,
         backupUrls: this.backupUrls,
+        cloudRootPath: this.cloudRootPath,
         showNitterRSSInAll: this.showNitterRSSInAll,
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
@@ -83,6 +86,7 @@ export class ConfigurationService {
         if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
         if (body.quoteList) this.quoteList = body.quoteList;
         if (body.backupUrls) this.backupUrls = body.backupUrls;
+        if (body.cloudRootPath !== undefined) this.cloudRootPath = body.cloudRootPath;
         if (body.showNitterRSSInAll !== undefined) this.showNitterRSSInAll = body.showNitterRSSInAll;
         if (body.numberOfWorkers) this.numberOfWorkers = body.numberOfWorkers;
         if (body.apiPort) this.apiPort = body.apiPort;

@@ -1,5 +1,6 @@
 import { writeFile, stat, mkdir, existsSync, readdir, rename, rmdir, rm } from "fs";
 import { getCurrentStringDateAndHour, readJSONFile, saveInAFile } from "../utils";
+import { ConfigurationService } from "./configuration.service";
 
 export const cloudDefaultPath = 'cloud';
 export const trashDefaultPath = 'trash';
@@ -21,10 +22,12 @@ const defaultTrash: Drive = { name: 'trash', path: trashDefaultPath };
 const defaultTempUpload: Drive = { name: 'upload', path: `data/uploads` };
 
 export class CloudService {
+  private cloudRootPath: string;
   static Instance: CloudService;
   
   constructor(public cloudOrigins: Drive[] = []) {
     CloudService.Instance = this;
+    this.cloudRootPath = ConfigurationService.Instance.cloudRootPath;
     this.cloudOrigins.push(defaultOrigin);
     this.cloudOrigins.push(defaultTrash);
     this.cloudOrigins.push(defaultTempUpload);
