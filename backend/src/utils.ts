@@ -116,7 +116,6 @@ export class ExtractorUtilities {
 };
 
 const pathToCopyList = [
-  'data/cloud/cloud.json',
   'data/notes.txt',
   'data/alerts.json',
   'data/bookmark.json',
@@ -127,7 +126,6 @@ const pathToCopyList = [
 ];
 
 const pathToPasteList = [
-  'cloud.json',
   'notes.txt',
   'alerts.json',
   'bookmark.json',
