@@ -1,5 +1,5 @@
-import { writeFile, stat, mkdir, existsSync, readdir, rename, rmdir, rm } from "fs";
-import { getCurrentStringDateAndHour, readJSONFile, saveInAFile } from "../utils";
+import { stat, mkdir, readdir, rename, rm } from "fs";
+import { getCurrentStringDateAndHour, saveInAFile } from "../utils";
 import { ConfigurationService } from "./configuration.service";
 
 export const cloudDefaultPath = 'cloud';
@@ -26,13 +26,16 @@ export class CloudService {
   
   constructor(public cloudOrigins: Drive[] = []) {
     CloudService.Instance = this;
-    // TODO use ConfigurationService.Instance.cloudRootPath;
     this.cloudOrigins.push(defaultOrigin);
     this.cloudOrigins.push(defaultTrash);
     this.cloudOrigins.push(defaultTempUpload);
   }
+
+  private fromRelativePathToAbsolute = (path: string) => `${ConfigurationService.Instance.cloudRootPath}/${path}`;
+  private fromAbsolutePathToRelative = (path: string) => path.split(ConfigurationService.Instance.cloudRootPath).join('').substring(1);
   
-  getFolderContent = (driveName: string, folderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
+  getFolderContent = (driveName: string, relativefolderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
+    const folderPath = this.fromRelativePathToAbsolute(relativefolderPath);
     if (folderPath === '/') return cloudDefaultPath;
     let allItemsAlreadyCollected: CloudItem[] = [];
     let numberOfItemLeft: number;
@@ -48,7 +51,7 @@ export class CloudService {
             try {
               allItemsAlreadyCollected.push({
                 name: fileName,
-                path: filePath,
+                path: this.fromAbsolutePathToRelative(filePath),
                 driveName: driveName,
                 isFolder: stat.isDirectory(),
               });
@@ -68,16 +71,16 @@ export class CloudService {
 
   getDrivesList = (): string[] => this.cloudOrigins.map(drive => drive.name);
 
-  updateCloudItemsIndex = (nameDrive: string, folderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve =>
-    this.getFolderContent(nameDrive, folderPath).then(allItemsAlreadyCollected => resolve(allItemsAlreadyCollected)));
+  updateCloudItemsIndex = (nameDrive: string, relativeFolderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve =>
+    this.getFolderContent(nameDrive, relativeFolderPath).then(allItemsAlreadyCollected => resolve(allItemsAlreadyCollected)));
 
   private searchPredicate = (ci: CloudItem) => (w: string): boolean => ci.name.toLowerCase().indexOf(w) >= 0 || ci.path.toLowerCase().indexOf(w) >= 0;
 
-  searchCloudItemInDirectory = (nameDrive: string, folderPath: string, searchTokken: string): Promise<{ path: string }[]> => new Promise<{ path: string }[]>(resolve => {
+  searchCloudItemInDirectory = (nameDrive: string, relativeFolderPath: string, searchTokken: string): Promise<{ path: string }[]> => new Promise<{ path: string }[]>(resolve => {
     const words = searchTokken.toLowerCase().split(' ').filter(value => value !== '');
     const maxResults = 100;
     
-    this.getFolderContent(nameDrive, folderPath).then(cloudItems => {
+    this.getFolderContent(nameDrive, relativeFolderPath).then(cloudItems => {
       const resultOr = cloudItems.filter(ci => words.filter(this.searchPredicate(ci)).length > 0);
   
       const resultAnd = cloudItems.filter(ci => {
@@ -99,32 +102,33 @@ export class CloudService {
     });
   });
 
-  lsDirOperation = (nameDrive: string, pathItem: string): Promise<string[]> => new Promise<string[]>(resolve =>
-    this.getFolderContent(nameDrive, pathItem).then(
+  lsDirOperation = (nameDrive: string, relativePathItem: string): Promise<string[]> => new Promise<string[]>(resolve =>
+    this.getFolderContent(nameDrive, relativePathItem).then(
       allItemsAlreadyCollected => resolve(allItemsAlreadyCollected.map(cloudItem => cloudItem.path))
       ).catch(e => resolve([])));
 
-  getListFolderFiles = (nameDrive: string, pathItem: string): Promise<string[]> => new Promise<string[]>(resolve => this.getFolderContent(nameDrive, pathItem)
+  getListFolderFiles = (nameDrive: string, relativePathItem: string): Promise<string[]> => new Promise<string[]>(resolve => this.getFolderContent(nameDrive, relativePathItem)
     .then(allItemsAlreadyCollected => {
       resolve(
         allItemsAlreadyCollected.filter(cloudItem => !cloudItem.isFolder).map(cloudItemFile => cloudItemFile.path)
     )}));
   
-  uploadFile = (tempFile: string, pathFile: string) : Promise<string> => new Promise<string>(resolve => {
+  uploadFile = (tempFile: string, relativePathFile: string) : Promise<string> => new Promise<string>(resolve => {
     // It's comes files from web to server.
+    const pathFile = this.fromRelativePathToAbsolute(relativePathFile);
     stat(tempFile, (err, stat) => {
       if (err === null) {
         rename(tempFile, pathFile, (err) => {
           if (err === null) {
-            resolve(`File or folder ${pathFile} uploaded correctly.`);
+            resolve(`File or folder ${relativePathFile} uploaded correctly.`);
           } else {
             console.log(err);
-            resolve(`Error to uploaded file or folder ${tempFile} in ${pathFile}.`);
+            resolve(`Error to uploaded file or folder ${tempFile} in ${relativePathFile}.`);
           }
         });
       } else {
         console.log(err);
-        resolve(`Folder or file ${tempFile} already exist in ${pathFile}!`);
+        resolve(`Folder or file ${tempFile} already exist in ${relativePathFile}!`);
       }
     });
   });
@@ -134,26 +138,28 @@ export class CloudService {
     return this.cloudOrigins[indexDrive].path;
   }
 
-  moveFileOrFolder = (oldPathFileOrFolder: string[], newPathFileOrFolder: string[], numberOfErrors = 0) : Promise<string> => new Promise<string>(resolve => {
-    if (oldPathFileOrFolder.length !== newPathFileOrFolder.length) {
-      resolve('Error, name files to move are greater to newPathFileOrFolder list');
-    } else if (oldPathFileOrFolder.length === 0) {
+  moveFileOrFolder = (oldRelativePathFileOrFolder: string[], newRelativePathFileOrFolder: string[], numberOfErrors = 0) : Promise<string> => new Promise<string>(resolve => {
+    if (oldRelativePathFileOrFolder.length !== newRelativePathFileOrFolder.length) {
+      resolve('Error, name files to move are greater to newRelativePathFileOrFolder list');
+    } else if (oldRelativePathFileOrFolder.length === 0) {
       resolve(`All files moved (number of errors = ${numberOfErrors}`);
     } else {
-      this.renameFileOrFolder(oldPathFileOrFolder[0], newPathFileOrFolder[0]).then(response => {
+      this.renameFileOrFolder(oldRelativePathFileOrFolder[0], newRelativePathFileOrFolder[0]).then(response => {
         if (response !== 'Folder renamed correctly.' && response !== 'File renamed correctly.') {
           numberOfErrors++;
         }
         this.moveFileOrFolder(
-          oldPathFileOrFolder.slice(1, oldPathFileOrFolder.length),
-          newPathFileOrFolder.slice(1, newPathFileOrFolder.length),
+          oldRelativePathFileOrFolder.slice(1, oldRelativePathFileOrFolder.length),
+          newRelativePathFileOrFolder.slice(1, newRelativePathFileOrFolder.length),
           numberOfErrors
         ).then(messageResponse => resolve(messageResponse));
       });
     }
   });
 
-  renameFileOrFolder = (oldPathFileOrFolder: string, newPathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {
+  renameFileOrFolder = (oldRelativePathFileOrFolder: string, newRelativePathFileOrFolder: string) : Promise<string> => new Promise<string>(resolve => {
+    const oldPathFileOrFolder = this.fromRelativePathToAbsolute(oldRelativePathFileOrFolder);
+    const newPathFileOrFolder = this.fromRelativePathToAbsolute(newRelativePathFileOrFolder);
     stat(oldPathFileOrFolder, (err, stat) => {
       if (err === null) {
         rename(oldPathFileOrFolder, newPathFileOrFolder, (err) => {
@@ -173,33 +179,37 @@ export class CloudService {
     });
   });
   
-  createFolder = (newFolderPath: string): Promise<string> => new Promise<string>(resolve => {
+  createFolder = (newFolderRelativePath: string): Promise<string> => new Promise<string>(resolve => {
+    const newFolderPath = this.fromRelativePathToAbsolute(newFolderRelativePath);
     stat(newFolderPath, (err, stat) => {
       if (err !== null) {
         mkdir(newFolderPath, {recursive: true}, () => {
-          resolve(`Folder ${newFolderPath} created correctly.`)
+          resolve(`Folder ${newFolderRelativePath} created correctly.`)
           console.log(`Folder ${newFolderPath} created correctly.`)
         });
       } else {
-        resolve(`Folder ${newFolderPath} already exist!`);
+        resolve(`Folder ${newFolderRelativePath} already exist!`);
         console.log(`Folder ${newFolderPath} already exist!`);
       }
     });
   });
 
-  createBlankFile = (newFilePath: string): Promise<void> => new Promise<void>(resolve => {
+  createBlankFile = (newFileRelativePath: string): Promise<void> => new Promise<void>(resolve => {
+    const newFilePath = this.fromRelativePathToAbsolute(newFileRelativePath);
     saveInAFile('', newFilePath, () => {
       resolve();
     });
   });
 
-  saveInFile = (filePath: string, textContent: string): Promise<void> => new Promise<void>(resolve => {
+  saveInFile = (fileRelativePath: string, textContent: string): Promise<void> => new Promise<void>(resolve => {
+    const filePath = this.fromRelativePathToAbsolute(fileRelativePath);
     saveInAFile(textContent, filePath, () => {
       resolve();
     });
   });
 
-  deleteFileOrFolder = (nameDrive: string, path: string): Promise<string> => new Promise<string>(resolve => {
+  deleteFileOrFolder = (nameDrive: string, relativePath: string): Promise<string> => new Promise<string>(resolve => {
+    const path = this.fromRelativePathToAbsolute(relativePath);
     stat(path, (err, stat) => {
       if (err === null) {
         if (nameDrive === trashDefaultPath) {
@@ -211,7 +221,7 @@ export class CloudService {
               } else {        
                 console.log(err);
                 console.log(`Error when delete folder ${path}.`);
-                resolve(`Error when delete folder ${path}.`);
+                resolve(`Error when delete folder ${relativePath}.`);
               }
             });
           } else {
@@ -220,7 +230,7 @@ export class CloudService {
                 resolve('ok');
               } else {        
                 console.log(`Error when delete file ${path}.`);
-                resolve(`Error when delete file ${path}.`);
+                resolve(`Error when delete file ${relativePath}.`);
               }
             });
           }
@@ -228,7 +238,8 @@ export class CloudService {
           // Move to drive trashDefaultPath.
           const pathSplitted = path.split('/');
           const nameFileOrFolfer = pathSplitted[pathSplitted.length - 1];
-          const trashPathFile = `${trashDefaultPath}/${getCurrentStringDateAndHour()}_${nameFileOrFolfer}`;
+          const trashRelativePathFile = `${trashDefaultPath}/${getCurrentStringDateAndHour()}_${nameFileOrFolfer}`;
+          const trashPathFile = this.fromRelativePathToAbsolute(trashRelativePathFile);
 
           rename(path, trashPathFile, (err) => {
             if (err === null) {
@@ -236,7 +247,7 @@ export class CloudService {
               resolve('ok');
             } else {
               console.log(`Error to move file or folder ${path} to trash folder`);
-              resolve(`Error to move file or folder ${path} to trash folder`);
+              resolve(`Error to move file or folder ${relativePath} to trash folder`);
             }
           });
         }

@@ -371,7 +371,7 @@ export class APIService {
         if (cloudDefaultPath === req.body.cloud) {
           options.root = path.join(__dirname);
         } else {
-          options.root = cloudService.getPathDrive(req.body.drive);
+          options.root = `${ConfigurationService.Instance.cloudRootPath}/${cloudService.getPathDrive(req.body.drive)}`;
         }
         
         const fileRelativePath = (<string> req.body.path).split('/').slice(1).join('/'); // Remove 'drive'.
