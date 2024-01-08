@@ -33,6 +33,8 @@ export class CloudService {
 
   private fromRelativePathToAbsolute = (path: string) => `${ConfigurationService.Instance.cloudRootPath}/${path}`;
   private fromAbsolutePathToRelative = (path: string) => path.split(ConfigurationService.Instance.cloudRootPath).join('').substring(1);
+
+  giveMeRealPathFile = (path: string): string => this.fromRelativePathToAbsolute(path);
   
   getFolderContent = (driveName: string, relativefolderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
     const folderPath = this.fromRelativePathToAbsolute(relativefolderPath);

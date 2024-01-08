@@ -340,7 +340,7 @@ export class TelegramBot {
     const i = +index;
     if (i !== undefined && this.lastSearchInCloudPathList && this.lastSearchInCloudPathList.length > 0 && i < this.lastSearchInCloudPathList.length) {
       ctx.reply(`Enviando el fichero '${this.lastSearchInCloudPathList[i]}'. Paciencia.`);
-      ctx.replyWithDocument({source: this.lastSearchInCloudPathList[i]}).catch(rejected => {
+      ctx.replyWithDocument({source: CloudService.Instance.giveMeRealPathFile(this.lastSearchInCloudPathList[i])}).catch(rejected => {
         console.log(rejected);
         ctx.reply(`No se puede descargar el fichero de la cloud. Es demasiado grande para Telegram!!`);
       });
