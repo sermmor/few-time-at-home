@@ -65,7 +65,7 @@ export const Pomodoro = (): JSX.Element => {
         disabled={isTimeRunning}
         onChange={evt => {
           const timeValueSplitted = evt.target.value.split(':');
-          const timeValue = `${timeValueSplitted[1]}:${timeValueSplitted[2]}`;
+          const timeValue = `${(+timeValueSplitted[0] * 60) + +timeValueSplitted[1]}:${timeValueSplitted[2]}`;
           setTime(evt.target.value);
           setTimeToShow(timeValue);
         }}
