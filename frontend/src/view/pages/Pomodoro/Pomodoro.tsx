@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
 
 const formStyle: SxProps<Theme> = {
@@ -52,15 +52,22 @@ export const Pomodoro = (): JSX.Element => {
   return <Box sx={formStyle}>
     <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'center', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
       <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Time to countdown:</Typography>
-      <TextField
-        label="Time to send"
-        variant="standard"
+      <input
+        id="appt-time"
         type="time"
+        name="appt-time"
+        step="2"
+        style={{
+          minWidth: '7rem',
+          minHeight: '1.75rem'
+        }}
         value={time}
-        sx={{minWidth: '7rem'}}
+        disabled={isTimeRunning}
         onChange={evt => {
+          const timeValueSplitted = evt.target.value.split(':');
+          const timeValue = `${timeValueSplitted[1]}:${timeValueSplitted[2]}`;
           setTime(evt.target.value);
-          setTimeToShow(evt.target.value);
+          setTimeToShow(timeValue);
         }}
       />
       <Button
@@ -69,14 +76,19 @@ export const Pomodoro = (): JSX.Element => {
         onClick={() => {
           if (!isTimeRunning) {
             setTimeRunning(true);
-            const splitedTime = time.split(':');
+            const splitedTime = timeToShow.split(':');
             TemporalData.TimeLeftPomodoro.minutes = +splitedTime[0];
             TemporalData.TimeLeftPomodoro.seconds = +splitedTime[1];
             countDownTime();
+          } else {
+            setTimeRunning(false);
+            TemporalData.TimeLeftPomodoro.minutes = 0;
+            TemporalData.TimeLeftPomodoro.seconds = 0;
+            setTimeToShow('00:00');
           }
         }}
         >
-        Start
+        {isTimeRunning ? 'Stop' : 'Start'}
       </Button>
     </Box>
     <Typography sx={{textTransform: 'uppercase', fontSize: '20rem'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
