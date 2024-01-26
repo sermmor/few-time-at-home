@@ -17,17 +17,20 @@ const oneSecond = 1000;
 
 const formatToTwoDigits = (timeDigit: number): string => timeDigit < 10 ? `0${timeDigit}` : `${timeDigit}`;
 
-const setTimeDispachers: {setTimeToShow: React.Dispatch<React.SetStateAction<string>> | undefined; setTimeRunning: React.Dispatch<React.SetStateAction<boolean>> | undefined} = {
+const setTimeDispachers: {setTimeToShow: React.Dispatch<React.SetStateAction<string>> | undefined; setTimeRunning: React.Dispatch<React.SetStateAction<boolean>> | undefined, onFinishedCountDown: (() => void) | undefined } = {
   setTimeToShow: undefined,
-  setTimeRunning: undefined
+  setTimeRunning: undefined,
+  onFinishedCountDown: undefined,
 }
 
 const countDownTime = () => {
   if (TemporalData.TimeLeftPomodoro.minutes <= 0 && TemporalData.TimeLeftPomodoro.seconds <= 0) {
     console.log("Pomodoro FINISHED");
     const audio = new Audio(alarmPath);
+    audio.volume = 1;
     audio.play();
     setTimeDispachers.setTimeRunning!(false);
+    setTimeDispachers.onFinishedCountDown!();
   } else if (TemporalData.TimeLeftPomodoro.seconds <= 0) {
     TemporalData.TimeLeftPomodoro.minutes--;
     TemporalData.TimeLeftPomodoro.seconds = 59;
@@ -48,6 +51,11 @@ export const Pomodoro = (): JSX.Element => {
 
   setTimeDispachers.setTimeRunning = setTimeRunning;
   setTimeDispachers.setTimeToShow = setTimeToShow;
+  setTimeDispachers.onFinishedCountDown = () => {
+    const timeValueSplitted = time.split(':');
+    const timeValue = `${formatToTwoDigits((+timeValueSplitted[0] * 60) + +timeValueSplitted[1])}:${timeValueSplitted[2]}`;
+    setTimeToShow(timeValue);
+  };
 
   return <Box sx={formStyle}>
     <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'center', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
@@ -65,7 +73,7 @@ export const Pomodoro = (): JSX.Element => {
         disabled={isTimeRunning}
         onChange={evt => {
           const timeValueSplitted = evt.target.value.split(':');
-          const timeValue = `${(+timeValueSplitted[0] * 60) + +timeValueSplitted[1]}:${timeValueSplitted[2]}`;
+          const timeValue = `${formatToTwoDigits((+timeValueSplitted[0] * 60) + +timeValueSplitted[1])}:${timeValueSplitted[2]}`;
           setTime(evt.target.value);
           setTimeToShow(timeValue);
         }}
