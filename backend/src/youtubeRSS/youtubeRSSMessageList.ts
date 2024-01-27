@@ -3,6 +3,7 @@ import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { checkUntilConditionIsTrue, ExtractorUtilities, readJSONFile, saveInAFile } from "../utils";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
+import { YoutubeRSSUtils } from "./youtubeRSSUtils";
 
 const fetch = require("node-fetch");
 
@@ -16,7 +17,6 @@ interface YouTubeRSSUrl {
 }
 
 export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
-  
   public isYoutubeListLoaded = false;
   public youtubeLinkAndRssList: YouTubeRSSUrl[] = [];
 
@@ -121,10 +121,12 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
     }
   }
 
-  formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
-    `${message.title}
+  formatMessagesToTelegramTemplate = (): string[] => {
+    YoutubeRSSUtils.allLastMessages = this.allMessages;
+    return this.allMessages.map(message =>`${message.title}
 ${message.author} - ${message.date.toDateString()}
 ${message.content}
 ${message.originalLink}`
-  );
+    );
+  }
 }

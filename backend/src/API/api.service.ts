@@ -10,6 +10,7 @@ import { NotesService } from './notes.service';
 import Multer from 'multer';
 import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
+import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 
 const cors = require('cors');
 // const multer = require("multer");
@@ -86,8 +87,15 @@ export class APIService {
     this.app.get(endpoint, (req, res) => {
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
         rssCommand().then(messagesToSend => {
-            const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks);
-            res.send({ messages });
+            if (endpoint === APIService.getRssYoutubeEndpoint) {
+              // Remove shorts videos.
+              YoutubeRSSUtils.filterYoutubeShorts(webNumberOfMessagesWithLinks).then(messages => {
+                res.send({ messages });
+              });
+            } else {
+              const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks);
+              res.send({ messages });
+            }
         });
     });
   }

@@ -6,9 +6,9 @@ export class WorkerManager {
     private parentHandler: any;
     private childrenHandlerList: WorkerChildParentHandle[] = [];
 
-    public static divideArrayInNumberOfWorkers = (array: any[], numberOfWorkers: number): string[][] => {
+    public static divideArrayInNumberOfWorkers = <T>(array: T[], numberOfWorkers: number): T[][] => {
         const urlProfilesByWorker = Math.floor(array.length / numberOfWorkers);
-        const urlsProfilesToSend: string[][] = [];
+        const urlsProfilesToSend: T[][] = [];
         for (let i = 0; i < numberOfWorkers; i++) {
             urlsProfilesToSend.push(array.slice(i * urlProfilesByWorker, (i + 1) * urlProfilesByWorker));
         }
