@@ -14,7 +14,12 @@ export const showTimerChain = (modeList: TimerMode[], currentMode: string, curre
       printed = `${printed} + ${formatTimeChain(chainItem.split(':'))}`;
     }
   });
-  return printed === '0' ? formatTimeChain((`${currentTime}`).split(':')) : printed;
+  const currentTimeSplited = currentTime.split(':');
+  return printed === '0' ? (
+    (currentTimeSplited.length < 3) ?
+      formatTimeChain(['00', ...currentTimeSplited])
+      : formatTimeChain(currentTimeSplited)
+  ) : printed;
 };
 
 export const getCurrentChainFromModeName = (modeList: TimerMode[], modeName: string): string[] => modeList[modeList.findIndex(({name}) => name === modeName)].chain;
