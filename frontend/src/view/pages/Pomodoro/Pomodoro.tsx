@@ -1,7 +1,10 @@
 import React from "react";
-import { Box, Button, MenuItem, Select, SxProps, Theme, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, MenuItem, Select, SxProps, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
-import { TimerMode, formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, parseFromTimeFieldToTimeToShow, showTimerChain } from "./TimerMode";
+import { formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, parseFromTimeFieldToTimeToShow, showTimerChain } from "./TimerMode";
+import { TimerMode } from "../../../data-model/pomodoro";
+import { pomodoroDataModelMock } from "../../../data-model/mock/pomodoroMock";
+import { PomodoroActions } from "../../../core/actions/pomodoro";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -51,39 +54,21 @@ const countDownTime = () => {
   }
 };
 
-const listBaseMode: TimerMode[] = [
-  {
-    name: 'One Countdown',
-    chain: ['0'], // If 0, then use countdown field content.
-  },
-  {
-    name: 'Pomodoro',
-    chain: [
-      '00:25:00', '00:05:00',
-      '00:25:00', '00:05:00',
-      '00:25:00', '00:05:00',
-      '00:25:00', '00:05:00',
-    ],
-  },
-  // {
-  //   name: 'Test',
-  //   chain: [
-  //     '00:00:25', '00:00:05',
-  //     '00:00:25', '00:00:05',
-  //     '00:00:25', '00:00:05',
-  //     '00:00:25', '00:00:05',
-  //   ],
-  // }
-];
-
 export const Pomodoro = (): JSX.Element => {
   // MM:SS
+  const [listModes, setListModes] = React.useState<TimerMode[]>();
   const [isTimeRunning, setTimeRunning] = React.useState<boolean>(false);
   const [time, setTime] = React.useState<string>(TemporalData.getFormatTimeLeftPomodoro());
   const [timeToShow, setTimeToShow] = React.useState<string>(TemporalData.getFormatTimeLeftPomodoro());
-  const [currentMode, setCurrentMode] = React.useState<string>(listBaseMode[0].name);
-  const [currentChain, setCurrentChain] = React.useState<string[]>(listBaseMode[0].chain);
+  const [currentMode, setCurrentMode] = React.useState<string>(listModes ? listModes[0].name : '');
+  const [currentChain, setCurrentChain] = React.useState<string[]>(listModes ? listModes[0].chain : []);
   const [currentChainIndex, setCurrentChainIndex] = React.useState<number>(0);
+
+  React.useEffect(() => { PomodoroActions.getTimeModeList().then(({data}) => {
+    setListModes(data);
+    setCurrentMode(data[0].name);
+    setCurrentChain(data[0].chain);
+  } ) }, []);
 
   const runTimer = (chainIndex: number) => {
     const realTime = getCurrentChainItem(currentChain, chainIndex, time);
@@ -119,19 +104,27 @@ export const Pomodoro = (): JSX.Element => {
     }
   };
 
+  if (!listModes) {
+    return <Box sx={formStyle}>
+    <Box sx={rowFormStyle()}>
+      <CircularProgress />
+    </Box>
+  </Box>;
+  }
+
   return <Box sx={formStyle}>
     <Box sx={{...rowFormStyle(), justifyContent: 'left', marginLeft: '17.75rem'}}>
       <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Mode:</Typography>
       <Select
         value={currentMode}
-        onChange={evt => { setCurrentMode(evt.target.value); setCurrentChainIndex(0); setCurrentChain(getCurrentChainFromModeName(listBaseMode, evt.target.value)) }}
+        onChange={evt => { setCurrentMode(evt.target.value); setCurrentChainIndex(0); setCurrentChain(getCurrentChainFromModeName(listModes, evt.target.value)) }}
         sx={{minWidth: '15.5rem'}}
       >
         {
-          listBaseMode.map(({ name: nameMode }) => <MenuItem value={nameMode} key={nameMode} sx={{textTransform: 'uppercase'}}>{nameMode.toUpperCase()}</MenuItem>)
+          listModes.map(({ name: nameMode }) => <MenuItem value={nameMode} key={nameMode} sx={{textTransform: 'uppercase'}}>{nameMode.toUpperCase()}</MenuItem>)
         }
       </Select>
-      <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{showTimerChain(listBaseMode, currentMode, time)}</Typography>
+      <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{showTimerChain(listModes, currentMode, time)}</Typography>
     </Box>
     <Box sx={rowFormStyle()}>
       <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Time to countdown:</Typography>

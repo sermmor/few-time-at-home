@@ -1,7 +1,4 @@
-export interface TimerMode {
-  name: string;
-  chain: string[]; // If 0, then use countdown field content.
-}
+import { TimerMode } from "../../../data-model/pomodoro";
 
 export const formatToTwoDigits = (timeDigit: number): string => timeDigit < 10 ? `0${timeDigit}` : `${timeDigit}`;
 

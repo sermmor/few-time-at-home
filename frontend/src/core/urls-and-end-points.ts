@@ -6,6 +6,7 @@ export const queryRssEndpoint  = (nameEndpoint: 'all' | 'mastodon' | 'twitter' |
 export const configurationEndpoint = (): string => `${getUrlApi()}/configuration`;
 export const configurationSendCommandEndpoint = (): string => `${getUrlApi()}/configuration/launch-command`;
 export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
+export const pomodoroEndpoint = (): string => `${getUrlApi()}/pomodoro`;
 export const sendToTelegramEndpoint = (): string => `${getUrlApi()}/send-to-telegram`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
 export const areNotificationsEnabledEndpoint = (): string => `${getUrlApi()}/alerts-is-ready`;
