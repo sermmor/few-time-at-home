@@ -1,11 +1,7 @@
 import React from "react";
 import { Box, Button, MenuItem, Select, SxProps, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
-
-interface TimerMode {
-  name: string;
-  chain: string[]; // If 0, then use countdown field content.
-}
+import { TimerMode, formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, parseFromTimeFieldToTimeToShow, showTimerChain } from "./TimerMode";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -28,8 +24,6 @@ const rowFormStyle = (): SxProps<Theme> => ({
 const alarmPath = `${process.env.PUBLIC_URL}/alarm.mp3`;
 
 const oneSecond = 1000;
-
-const formatToTwoDigits = (timeDigit: number): string => timeDigit < 10 ? `0${timeDigit}` : `${timeDigit}`;
 
 const setTimeDispachers: {setTimeToShow: React.Dispatch<React.SetStateAction<string>> | undefined; setTimeRunning: React.Dispatch<React.SetStateAction<boolean>> | undefined, onFinishedCountDown: (() => void) | undefined } = {
   setTimeToShow: undefined,
@@ -57,21 +51,6 @@ const countDownTime = () => {
   }
 };
 
-const formatTimeChain = ([hours, minutes, seconds]: string[]) => `${Math.round((+hours) * 60 + (+minutes) + (+seconds) / 60)}`;
-
-const showTimerChain = (modeList: TimerMode[], currentMode: string, currentTime: string): string => {
-  let printed = '';
-  const modeIndex = modeList.findIndex(({name}) => name === currentMode);
-  modeList[modeIndex].chain.forEach((chainItem, i) => {
-    if (i === 0) {
-      printed = (chainItem !== '0') ? `${formatTimeChain(chainItem.split(':'))}` : '0';
-    } else {
-      printed = `${printed} + ${formatTimeChain(chainItem.split(':'))}`;
-    }
-  });
-  return printed === '0' ? formatTimeChain((`00:${currentTime}`).split(':')) : printed;
-};
-
 const listBaseMode: TimerMode[] = [
   {
     name: 'One Countdown',
@@ -96,15 +75,6 @@ const listBaseMode: TimerMode[] = [
   //   ],
   // }
 ];
-
-const getCurrentChainFromModeName = (modeList: TimerMode[], modeName: string): string[] => modeList[modeList.findIndex(({name}) => name === modeName)].chain;
-
-const getCurrentChainItem = (currentChain: string[], index: number, currentTime: string): string => currentChain[index] === '0' ? currentTime : currentChain[index];
-
-const parseFromTimeFieldToTimeToShow = (timeField: string): string => {
-  const timeValueSplitted = timeField.split(':');
-  return `${formatToTwoDigits((+timeValueSplitted[0] * 60) + +timeValueSplitted[1])}:${timeValueSplitted[2]}`;
-}
 
 export const Pomodoro = (): JSX.Element => {
   // MM:SS
