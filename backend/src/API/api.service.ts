@@ -11,6 +11,7 @@ import Multer from 'multer';
 import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
 import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
+import { PomodoroService } from './pomodoro.service';
 
 const cors = require('cors');
 // const multer = require("multer");
@@ -32,6 +33,7 @@ export class APIService {
   static configurationEndpoint = "/configuration";
   static configurationLaunchCommandEndpoint = "/configuration/launch-command";
   static notesEndpoint = "/notes";
+  static pomodoroEndpoint = "/pomodoro";
   static alertsEndpoint = "/alerts";
   static alertIsReadyEndpoint = "/alerts-is-ready";
   static bookmarksEndpoint = "/bookmarks";
@@ -73,6 +75,7 @@ export class APIService {
     this.configurationService();
     this.getRandomQuoteService();
     this.notesService();
+    this.pomodoroService();
     this.alertsService();
     this.bookmarksService();
     this.notepadService();
@@ -142,6 +145,23 @@ export class APIService {
 
     this.app.get(APIService.notesEndpoint, (req, res) => {
       NotesService.Instance.getNotes().then(data => res.send({data}));
+    });
+  }
+
+  private pomodoroService() {
+    const pomodoro = new PomodoroService();
+    pomodoro.refleshTimerModeList()
+    // { data: { name: string; chain: string[]; } }, RETURNS New Pomodoro list.
+    this.app.post(APIService.pomodoroEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body text");
+        } else {
+          PomodoroService.Instance.addTimerMode(req.body.data).then(data => res.send({data}));
+        }
+    });
+
+    this.app.get(APIService.pomodoroEndpoint, (req, res) => {
+      res.send({data: PomodoroService.Instance.timeModeList});
     });
   }
 
