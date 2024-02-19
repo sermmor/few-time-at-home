@@ -3,7 +3,6 @@ import { Box, Button, CircularProgress, MenuItem, Select, SxProps, Theme, Typogr
 import { TemporalData } from "../../../service/temporalData.service";
 import { formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, parseFromTimeFieldToTimeToShow, showTimerChain } from "./TimerMode";
 import { TimerMode } from "../../../data-model/pomodoro";
-import { pomodoroDataModelMock } from "../../../data-model/mock/pomodoroMock";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
 
 const formStyle: SxProps<Theme> = {
@@ -112,55 +111,58 @@ export const Pomodoro = (): JSX.Element => {
   </Box>;
   }
 
-  return <Box sx={formStyle}>
-    <Box sx={{...rowFormStyle(), justifyContent: 'left', marginLeft: '17.75rem'}}>
-      <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Mode:</Typography>
-      <Select
-        value={currentMode}
-        onChange={evt => { setCurrentMode(evt.target.value); setCurrentChainIndex(0); setCurrentChain(getCurrentChainFromModeName(listModes, evt.target.value)) }}
-        sx={{minWidth: '15.5rem'}}
-      >
-        {
-          listModes.map(({ name: nameMode }) => <MenuItem value={nameMode} key={nameMode} sx={{textTransform: 'uppercase'}}>{nameMode.toUpperCase()}</MenuItem>)
-        }
-      </Select>
-      <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{showTimerChain(listModes, currentMode, time)}</Typography>
-    </Box>
-    <Box sx={rowFormStyle()}>
-      <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Time to countdown:</Typography>
-      <input
-        id="appt-time"
-        type="time"
-        name="appt-time"
-        step="2"
-        style={{
-          minWidth: '7rem',
-          minHeight: '1.75rem'
-        }}
-        value={time}
-        disabled={isTimeRunning}
-        onChange={evt => {
-          setTime(evt.target.value);
-          setTimeToShow(parseFromTimeFieldToTimeToShow(evt.target.value));
-        }}
-      />
-      <Button
-        variant='outlined'
-        sx={{minWidth: '7rem'}}
-        onClick={() => {
-          if (!isTimeRunning) {
-            runTimer(currentChainIndex);
-          } else {
-            setTimeRunning(false);
-            TemporalData.TimeLeftPomodoro.minutes = 0;
-            TemporalData.TimeLeftPomodoro.seconds = 0;
-            setTimeToShow('00:00');
-          }
-        }}
+  return <>
+    <Box sx={formStyle}>
+      <Box sx={{...rowFormStyle(), justifyContent: 'left', marginLeft: '17.75rem'}}>
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Mode:</Typography>
+        <Select
+          value={currentMode}
+          onChange={evt => { setCurrentMode(evt.target.value); setCurrentChainIndex(0); setCurrentChain(getCurrentChainFromModeName(listModes, evt.target.value)) }}
+          sx={{minWidth: '15.5rem'}}
         >
-        {isTimeRunning ? 'Stop' : 'Start'}
-      </Button>
-    </Box>
-    <Typography sx={{textTransform: 'uppercase', fontSize: '20rem'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
-  </Box>;
+          {
+            listModes.map(({ name: nameMode }) => <MenuItem value={nameMode} key={nameMode} sx={{textTransform: 'uppercase'}}>{nameMode.toUpperCase()}</MenuItem>)
+          }
+        </Select>
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{showTimerChain(listModes, currentChainIndex, currentMode, time)}</Typography>
+      </Box>
+      <Box sx={rowFormStyle()}>
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Time to countdown:</Typography>
+        <input
+          id="appt-time"
+          type="time"
+          name="appt-time"
+          step="2"
+          style={{
+            minWidth: '7rem',
+            minHeight: '1.75rem'
+          }}
+          value={time}
+          disabled={isTimeRunning}
+          onChange={evt => {
+            setTime(evt.target.value);
+            setTimeToShow(parseFromTimeFieldToTimeToShow(evt.target.value));
+          }}
+        />
+        <Button
+          variant='outlined'
+          sx={{minWidth: '7rem'}}
+          onClick={() => {
+            if (!isTimeRunning) {
+              runTimer(currentChainIndex);
+            } else {
+              setTimeRunning(false);
+              TemporalData.TimeLeftPomodoro.minutes = 0;
+              TemporalData.TimeLeftPomodoro.seconds = 0;
+              setTimeToShow('00:00');
+            }
+          }}
+          >
+          {isTimeRunning ? 'Stop' : 'Start'}
+        </Button>
+      </Box>
+      <Typography sx={{textTransform: 'uppercase', fontSize: '20rem'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
+    </Box>;
+    <Typography sx={{textTransform: 'uppercase', fontSize: '3rem', textAlign:'right', position: 'fixed', bottom: '0px', right: '0px'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
+  </>
 };
