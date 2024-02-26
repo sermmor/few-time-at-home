@@ -25,6 +25,8 @@ const rowFormStyle = (): SxProps<Theme> => ({
 
 const alarmPath = `${process.env.PUBLIC_URL}/alarm.mp3`;
 
+const bigTimeFontSizeInPixel = 320;
+
 const oneSecond = 1000;
 
 const setTimeDispachers: {setTimeToShow: React.Dispatch<React.SetStateAction<string>> | undefined; setTimeRunning: React.Dispatch<React.SetStateAction<boolean>> | undefined, onFinishedCountDown: (() => void) | undefined } = {
@@ -161,8 +163,17 @@ export const Pomodoro = (): JSX.Element => {
           {isTimeRunning ? 'Stop' : 'Start'}
         </Button>
       </Box>
-      <Typography sx={{textTransform: 'uppercase', fontSize: '20rem'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
+      <Typography
+        sx={{
+          textTransform: 'uppercase',
+          fontSize: '20rem',
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)'
+        }}
+      >{timeToShow}</Typography>
     </Box>;
-    <Typography sx={{textTransform: 'uppercase', fontSize: '3rem', textAlign:'right', position: 'fixed', bottom: '0px', right: '0px'}}>{timeToShow}</Typography> {/* TODO: <= PUT STYLE FOR DIFERENTS SCREEN SIZES */}
+    <Typography sx={{textTransform: 'uppercase', fontSize: '3rem', textAlign:'right', position: 'fixed', bottom: '0px', right: '0px'}}>{timeToShow}</Typography>
   </>
 };
