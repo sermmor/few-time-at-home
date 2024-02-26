@@ -6,9 +6,9 @@ import { NitterRSSMessageList } from './nitterRSS';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { YoutubeRSSMessageList } from './youtubeRSS';
 import { startBackupEveryWeek } from './utils';
+import { readAllConfigurationsFiles } from './API/configuration.service';
 
-const keysPath = 'build/keys.json';
-const configurationPath = 'build/configuration.json';
+const keysPath = 'keys.json';
 
 let channelMediaCollection: ChannelMediaRSSCollection;
 let apiService: APIService;
@@ -19,9 +19,8 @@ readFile(keysPath, (err, data) => {
     if (err) throw err;
     const keyData = JSON.parse(<string> <any> data);
 
-    readFile(configurationPath, (err, data) => {
-        if (err) throw err;
-        const configurationService = new ConfigurationService(JSON.parse(<string> <any> data));
+    readAllConfigurationsFiles().then(data => {
+        const configurationService = new ConfigurationService(data);
 
         startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
 

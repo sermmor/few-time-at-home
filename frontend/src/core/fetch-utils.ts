@@ -11,6 +11,22 @@ export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Pro
   }
 });
 
+export const fetchJsonGetSendAndReceive = <T>(url: string, data: any, mock: T): Promise<T> => new Promise<T>(resolve => {
+  if (ConfigurationService.Instance.isUsingMocks) {
+    resolve(mock);
+  } else {
+    fetch(url, {
+      method: 'GET',
+      headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data, null, 2)
+    }).then(res => res.json())
+      .then(json => resolve({...json}));
+  }
+});
+
 export const fetchJsonSendAndReceive = <T>(url: string, data: any, mock: T): Promise<T> => new Promise<T>(resolve => {
   if (ConfigurationService.Instance.isUsingMocks) {
     resolve(mock);

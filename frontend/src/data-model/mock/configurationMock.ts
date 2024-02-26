@@ -1,4 +1,16 @@
-import { ConfigurationDataModel } from '../configuration';
+import { ConfigurationDataModel, ConfigurationTypeDataModel } from '../configuration';
+
+export const configurationTypeDataModelMock = (): ConfigurationTypeDataModel => ({
+  data: [
+    'configuration',
+    'nitterInstancesList',
+    'nitterRssUsersList',
+    'mastodonRssUsersList',
+    'blogRssList',
+    'youtubeRssList',
+    'quoteList',
+  ]
+});
 
 export const configurationDataModelMock = (): ConfigurationDataModel => ({
   nitterInstancesList: [

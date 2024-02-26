@@ -31,6 +31,8 @@ export class APIService {
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static configurationEndpoint = "/configuration";
+  static configurationTypeEndpoint = "/configuration/type";
+  static configurationListByTypeEndpoint = "/configuration/type/list";
   static configurationLaunchCommandEndpoint = "/configuration/launch-command";
   static notesEndpoint = "/notes";
   static pomodoroEndpoint = "/pomodoro";
@@ -107,16 +109,21 @@ export class APIService {
     this.app.post(APIService.configurationEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body JSON");
-            res.send(ConfigurationService.Instance.getConfigurationJson());
+            res.send({response: 'OK'});
         } else {
             ConfigurationService.Instance.updateConfiguration(this.channelMediaCollection, req.body).then(() => {
-              res.send(ConfigurationService.Instance.getConfigurationJson());
+              res.send({response: 'OK'});
             });
         }
     });
     
-    this.app.get(APIService.configurationEndpoint, (req, res) => {
-      res.send(ConfigurationService.Instance.getConfigurationJson());
+    // { type: string }, RETURNS Configuration list type in {data: }.
+    this.app.post(APIService.configurationListByTypeEndpoint, (req, res) => {
+      res.send({data: ConfigurationService.Instance.getConfigurationByType(req.body.type)});
+    });
+
+    this.app.get(APIService.configurationTypeEndpoint, (req, res) => {
+      res.send({data: ConfigurationService.Instance.getConfigTypes()});
     });
 
     // body: commandLine

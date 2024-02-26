@@ -13,6 +13,10 @@ export interface ConfigurationDataModel {
   apiPort: number,
 }
 
+export interface ConfigurationTypeDataModel {
+  data: string[];
+}
+
 export interface ComandLineRequest {
   commandLine: string;
 }

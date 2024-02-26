@@ -60,10 +60,16 @@ const SaveConfigurationComponent = ({config}: {config: ConfigurationDataModel}) 
 let indexNewItemAdded = 0;
 
 export const ConfigurationComponent = () => {
+  const [configTypes, setConfigTypes] = React.useState<string[]>();
   const [config, setConfig] = React.useState<ConfigurationDataModel>();
   const [lineToSend, setLineToSend] = React.useState<string>('');
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
-  React.useEffect(() => { ConfigurationActions.getConfiguration().then(data => setConfig(data)) }, []);
+  React.useEffect(() => {
+    ConfigurationActions.getConfigurationType().then(types => {
+      setConfigTypes(types.data);
+      ConfigurationActions.getConfiguration(types.data).then(data => setConfig(data));
+    });
+  }, []);
 
   const deleteActionList = (keyList: string, equals: (item: any, idToDelete: string) => boolean) => (id: string) => {
     if (!config) return;

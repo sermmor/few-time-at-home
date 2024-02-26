@@ -1,9 +1,47 @@
+import { readFile, writeFileSync } from 'fs';
 import { ExecException, exec } from 'child_process';
 import { Quote } from "../quote/quoteList";
 import { saveInAFile } from "../utils";
 import { ChannelMediaRSSCollection } from "./messagesRSS.service";
 
 const pathConfigFile = 'configuration.json';
+let keysConfigFile: string[] = [];
+const pathAdditionalConfigFiles: {[key: string]: string} = {
+  blogRssList: 'data/config/blogRssList.json',
+  mastodonRssUsersList: 'data/config/mastodonRssUsersList.json',
+  nitterInstancesList: 'data/config/nitterInstancesList.json',
+  nitterRssUsersList: 'data/config/nitterRssUsersList.json',
+  quoteList: 'data/config/quoteList.json',
+  youtubeRssList: 'data/config/youtubeRssList.json',
+};
+const listNamesAdditionalConfigFiles = Object.keys(pathAdditionalConfigFiles);
+
+const readAdditionalConfigFile = (
+  listNameFiles: string[],
+  configToAdd: any,
+  index = 0,
+): Promise<any> => new Promise<any>(resolve => {
+  const nameFile = listNameFiles[index];
+  readFile(pathAdditionalConfigFiles[nameFile], (err, data) => { 
+    if (err) throw err;
+    const configData = JSON.parse(<string> <any> data);
+    configToAdd[nameFile] = configData;
+    if (index + 1 < listNameFiles.length) {
+      readAdditionalConfigFile(listNameFiles, configToAdd, index + 1).then(completeConfig => resolve(completeConfig));
+    } else {
+      resolve(configToAdd);
+    }
+  });
+});
+
+export const readAllConfigurationsFiles = (): Promise<any> => new Promise<any>(resolve => {
+  readFile(pathConfigFile, (err, data) => { 
+    if (err) throw err;
+    const config = JSON.parse(<string> <any> data);
+    keysConfigFile = Object.keys(config);
+    readAdditionalConfigFile(listNamesAdditionalConfigFiles, config).then(completeConfig => resolve(completeConfig))
+  });
+});
 
 export class ConfigurationService {
     static Instance: ConfigurationService;
@@ -44,38 +82,42 @@ export class ConfigurationService {
     showNitterRSSInAll: boolean;
     numberOfWorkers: number;
     apiPort: number;
+
+    private configTypes;
     
     constructor(configurationData: any) {
-        this.nitterInstancesList = configurationData.nitterInstancesList;
-        this.nitterRssUsersList = configurationData.nitterRssUsersList;
-        this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
-        this.blogRssList = configurationData.blogRssList;
-        this.youtubeRssList = configurationData.youtubeRssList;
-        this.listBotCommands = configurationData.listBotCommands;
-        this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
-        this.numberOfWorkers = configurationData.numberOfWorkers;
-        this.backupUrls = configurationData.backupUrls;
-        this.cloudRootPath = configurationData.cloudRootPath;
-        this.apiPort = configurationData.apiPort;
-        this.quoteList = configurationData.quoteList;
+      this.configTypes = ['configuration', ...listNamesAdditionalConfigFiles];
+      this.nitterInstancesList = configurationData.nitterInstancesList;
+      this.nitterRssUsersList = configurationData.nitterRssUsersList;
+      this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
+      this.blogRssList = configurationData.blogRssList;
+      this.youtubeRssList = configurationData.youtubeRssList;
+      this.listBotCommands = configurationData.listBotCommands;
+      this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
+      this.numberOfWorkers = configurationData.numberOfWorkers;
+      this.backupUrls = configurationData.backupUrls;
+      this.cloudRootPath = configurationData.cloudRootPath;
+      this.apiPort = configurationData.apiPort;
+      this.quoteList = configurationData.quoteList;
 
-        ConfigurationService.Instance = this;
+      ConfigurationService.Instance = this;
     }
 
-    getConfigurationJson = () => ({
-        nitterInstancesList: this.nitterInstancesList,
-        nitterRssUsersList: this.nitterRssUsersList,
-        mastodonRssUsersList: this.mastodonRssUsersList,
-        blogRssList: this.blogRssList,
-        youtubeRssList: this.youtubeRssList,
-        listBotCommands: this.listBotCommands,
-        quoteList: this.quoteList,
-        backupUrls: this.backupUrls,
-        cloudRootPath: this.cloudRootPath,
-        showNitterRSSInAll: this.showNitterRSSInAll,
-        numberOfWorkers: this.numberOfWorkers,
-        apiPort: this.apiPort,
-    })
+    getConfigTypes = (): string[] => this.configTypes;
+
+    getConfigurationByType = (typeConfig: string) => {
+      if (typeConfig === 'configuration') {
+        return {
+          listBotCommands: this.listBotCommands,
+          backupUrls: this.backupUrls,
+          cloudRootPath: this.cloudRootPath,
+          showNitterRSSInAll: this.showNitterRSSInAll,
+          numberOfWorkers: this.numberOfWorkers,
+          apiPort: this.apiPort,
+        }
+      }
+      return (<any> this)[typeConfig];
+    }
 
     updateConfiguration = (channelMediaCollection: ChannelMediaRSSCollection, body: any): Promise<void> => new Promise<void>(resolve => {
         if (body.nitterInstancesList) this.nitterInstancesList = body.nitterInstancesList;
@@ -103,7 +145,7 @@ export class ConfigurationService {
     });
 
     private saveConfiguration = () => {
-        saveInAFile(JSON.stringify(this.getConfigurationJson(), null, 2), pathConfigFile);
+      saveInAFile(JSON.stringify(this.getConfigurationJson(), null, 2), pathConfigFile);
     }
 
     launchCommandLine = (cmd: string): Promise<ExecException | { stdout: string, stderr: string }>=> {
