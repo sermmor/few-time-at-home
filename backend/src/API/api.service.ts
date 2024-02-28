@@ -159,12 +159,12 @@ export class APIService {
   private pomodoroService() {
     const pomodoro = new PomodoroService();
     pomodoro.refleshTimerModeList()
-    // { data: { name: string; chain: string[]; } }, RETURNS New Pomodoro list.
+    // { data: { name: string; chain: string[]; }[] }, RETURNS New Pomodoro list.
     this.app.post(APIService.pomodoroEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
-          PomodoroService.Instance.addTimerMode(req.body.data).then(data => res.send({data}));
+          PomodoroService.Instance.setTimeModeList(req.body.data).then(data => res.send({data}));
         }
     });
 

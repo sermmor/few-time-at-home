@@ -54,6 +54,13 @@ export class PomodoroService {
     }
   });
 
+  setTimeModeList = (timerMode: TimerMode[]): Promise<TimerMode[]> => new Promise<TimerMode[]>(resolve => {
+    this.timeModeList = timerMode;
+    saveInAFile(JSON.stringify(this.timeModeList, undefined, 2), pathPomodoroFile, () => {
+      resolve(this.timeModeList);
+    });
+  });
+
   addTimerMode = (timerMode: TimerMode): Promise<TimerMode[]> => new Promise<TimerMode[]>(resolve => {
     this.timeModeList.push(timerMode);
     saveInAFile(JSON.stringify(this.timeModeList, undefined, 2), pathPomodoroFile, () => {

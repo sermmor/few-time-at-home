@@ -4,6 +4,7 @@ import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataZipped, getContentConfigurationZippedByType, parseToZippedConfig } from "../../../data-model/configuration";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
+import { PomodoroActions } from "../../../core/actions/pomodoro";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -63,10 +64,10 @@ export const ConfigurationComponent = () => {
   const [config, setConfig] = React.useState<ConfigurationDataZipped>();
   const [lineToSend, setLineToSend] = React.useState<string>('');
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
+  const [pomodoroTimeMode, setPomodoroTimeMode] = React.useState<string>('');
   React.useEffect(() => {
-    ConfigurationActions.getConfigurationType().then(types => {
-      ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data)));
-    });
+    ConfigurationActions.getConfigurationType().then(types => ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data))));
+    PomodoroActions.getTimeModeList().then(({data}: any) => setPomodoroTimeMode(JSON.stringify(data, null, 2)));
   }, []);
 
   const deleteActionList = (keyList: string, equals: (item: any, idToDelete: string) => boolean) => (id: string) => {
@@ -223,43 +224,31 @@ export const ConfigurationComponent = () => {
           />
           <SaveConfigurationComponent config={config} type={'quoteList'}/>
         </>
+        { /* TODO POMODORO */ }
         <Box sx={commandLineStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
-            <TextField
-              label="line to send"
-              variant="standard"
-              value={lineToSend}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
-              onChange={evt => {
-                setLineToSend(evt.target.value);
-              }}
-            />
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Mode:</Typography>
             <Button
               variant='outlined'
               sx={{minWidth: '15.5rem'}}
-              onClick={() => ConfigurationActions.sendCommandLine({commandLine: lineToSend}).then(result => {
-                if (result.stdout) {
-                  setLineToSendResult(result.stdout);
-                } else if (result.stderr) {
-                  setLineToSendResult(result.stderr);
-                } else if (result.stdout === '' && result.stderr === '') {
-                  setLineToSendResult('FINISHED');
-                } else {
-                  console.log(result);
-                }
-              })}
+              onClick={() => {
+                const allTimeMode = JSON.parse(pomodoroTimeMode);
+                PomodoroActions.sendNewTimeMode(allTimeMode);
+              }}
               >
-              Send command line
+              Send new pomodoro configuration
             </Button>
           </Box>
           <TextField
-            id="outlined-multiline-static"
+            id="outlined-multiline"
             label="Resultado"
             multiline
-            rows={5}
+            rows={15}
             sx={{width: '100%'}}
-            value={lineToSendResult}
+            value={pomodoroTimeMode}
+            onChange={evt => {
+              setPomodoroTimeMode(evt.target.value);
+            }}
           />
         </Box>
         <TitleAndList
@@ -372,6 +361,45 @@ export const ConfigurationComponent = () => {
           </Box>
         </Box>
         <SaveConfigurationComponent config={config} type={'configuration'}/>
+        <Box sx={commandLineStyle}>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
+            <TextField
+              label="line to send"
+              variant="standard"
+              value={lineToSend}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
+              onChange={evt => {
+                setLineToSend(evt.target.value);
+              }}
+            />
+            <Button
+              variant='outlined'
+              sx={{minWidth: '15.5rem'}}
+              onClick={() => ConfigurationActions.sendCommandLine({commandLine: lineToSend}).then(result => {
+                if (result.stdout) {
+                  setLineToSendResult(result.stdout);
+                } else if (result.stderr) {
+                  setLineToSendResult(result.stderr);
+                } else if (result.stdout === '' && result.stderr === '') {
+                  setLineToSendResult('FINISHED');
+                } else {
+                  console.log(result);
+                }
+              })}
+              >
+              Send command line
+            </Button>
+          </Box>
+          <TextField
+            id="outlined-multiline-static"
+            label="Resultado"
+            multiline
+            rows={5}
+            sx={{width: '100%'}}
+            value={lineToSendResult}
+          />
+        </Box>
       </Box>
     }
   </>;

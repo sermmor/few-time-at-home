@@ -6,7 +6,7 @@ import { pomodoroEndpoint } from "../urls-and-end-points";
 const getTimeModeList = (): Promise<{data: TimerMode[]}> => 
   fetchJsonReceive<{data: TimerMode[]}>(pomodoroEndpoint(), pomodoroDataModelMock());
 
-const sendNewTimeMode = (data: TimerMode) =>
-  fetchJsonSendAndReceive<{data: TimerMode[]}>(pomodoroEndpoint(), data, pomodoroDataModelMock());
+const sendNewTimeMode = (data: TimerMode[]) =>
+  fetchJsonSendAndReceive<{data: TimerMode[]}>(pomodoroEndpoint(), {data}, pomodoroDataModelMock());
 
 export const PomodoroActions = { getTimeModeList, sendNewTimeMode };
