@@ -113,98 +113,116 @@ export const ConfigurationComponent = () => {
 
   return <>
     {config && <Box sx={formStyle}>
-        <TitleAndList
-          title='Nitter Instances'
-          deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
-          addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`) }
-          list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-            editActionList('nitterInstancesList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-          }/>}))}
-        />
-        <TitleAndList
-          title='Twitter Users'
-          deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
-          addAction={() => addActionList('nitterRssUsersList', `new User ${indexNewItemAdded}`) }
-          list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-            editActionList('nitterRssUsersList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-          }/>}))}
-        />
-        <TitleAndList
-          title='Mastodon Users'
-          deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) => `@${user}@${instance}` === idToDelete)}
-          addAction={() => addActionList('mastodonRssUsersList', {user: `new User ${indexNewItemAdded}`, instance: `new Instance ${indexNewItemAdded}`}) }
-          list={config.mastodonRssUsersList.map(({instance, user}) => ({
-            id: `@${user}@${instance}`,
-            item: <>@<LabelAndTextField
-              text={user}
-              onChange={
-                editActionList(
-                  'mastodonRssUsersList',
-                  `@${user}@${instance}`,
-                  ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], user: newText,})
-                )
-              }
-              />@<LabelAndTextField
-              text={instance}
-              onChange={
-                editActionList(
-                  'mastodonRssUsersList',
-                  `@${user}@${instance}`,
-                  ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], instance: newText,})
-                )
-              }
-              />
-            </>
-          }))}
-        />
-        <TitleAndList
-          title='Blog RSS'
-          deleteAction={deleteActionList('blogRssList', (item: any, idToDelete: string) => item === idToDelete)}
-          addAction={() => addActionList('blogRssList', `new Blog ${indexNewItemAdded}`) }
-          list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-            editActionList('blogRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-          }/>}))}
-        />
-        <TitleAndList
-          title='Youtube RSS'
-          deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item === idToDelete)}
-          addAction={() => addActionList('youtubeRssList', `new channel ${indexNewItemAdded}`) }
-          list={config.youtubeRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-            editActionList('youtubeRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-          }/>}))}
-        />
-        <TitleAndList
-          title='Citas'
-          deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
-          addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
-          list={config.quoteList.map(({author, quote}) => ({
-            id: `@${author}@${quote}`,
-            item: <><LabelAndTextField
-              text={author}
-              onChange={
-                editActionList(
-                  'quoteList',
-                  `@${author}@${quote}`,
-                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], author: newText,})
-                )
-              }
-              /><LabelAndTextField
-              text={quote}
-              onChange={
-                editActionList(
-                  'quoteList',
-                  `@${author}@${quote}`,
-                  ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], quote: newText,})
-                )
-              }
-              />
-            </>
-          }))}
-        />
+        <>
+          <TitleAndList
+            title='Nitter Instances'
+            deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
+            addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`) }
+            list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+              editActionList('nitterInstancesList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+            }/>}))}
+          />
+          <SaveConfigurationComponent config={config} type={'nitterInstancesList'}/>
+        </>
+        <>
+          <TitleAndList
+            title='Twitter Users'
+            deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
+            addAction={() => addActionList('nitterRssUsersList', `new User ${indexNewItemAdded}`) }
+            list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+              editActionList('nitterRssUsersList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+            }/>}))}
+          />
+          <SaveConfigurationComponent config={config} type={'nitterRssUsersList'}/>
+        </>
+        <>
+          <TitleAndList
+            title='Mastodon Users'
+            deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) => `@${user}@${instance}` === idToDelete)}
+            addAction={() => addActionList('mastodonRssUsersList', {user: `new User ${indexNewItemAdded}`, instance: `new Instance ${indexNewItemAdded}`}) }
+            list={config.mastodonRssUsersList.map(({instance, user}) => ({
+              id: `@${user}@${instance}`,
+              item: <>@<LabelAndTextField
+                text={user}
+                onChange={
+                  editActionList(
+                    'mastodonRssUsersList',
+                    `@${user}@${instance}`,
+                    ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
+                    (newConfig, index, newText) => ({...newConfig[index], user: newText,})
+                  )
+                }
+                />@<LabelAndTextField
+                text={instance}
+                onChange={
+                  editActionList(
+                    'mastodonRssUsersList',
+                    `@${user}@${instance}`,
+                    ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
+                    (newConfig, index, newText) => ({...newConfig[index], instance: newText,})
+                  )
+                }
+                />
+              </>
+            }))}
+          />
+          <SaveConfigurationComponent config={config} type={'mastodonRssUsersList'}/>
+        </>
+        <>
+          <TitleAndList
+            title='Blog RSS'
+            deleteAction={deleteActionList('blogRssList', (item: any, idToDelete: string) => item === idToDelete)}
+            addAction={() => addActionList('blogRssList', `new Blog ${indexNewItemAdded}`) }
+            list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+              editActionList('blogRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+            }/>}))}
+          />
+          <SaveConfigurationComponent config={config} type={'blogRssList'}/>
+        </>
+        <>
+          <TitleAndList
+            title='Youtube RSS'
+            deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item === idToDelete)}
+            addAction={() => addActionList('youtubeRssList', `new channel ${indexNewItemAdded}`) }
+            list={config.youtubeRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+              editActionList('youtubeRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+            }/>}))}
+          />
+          <SaveConfigurationComponent config={config} type={'youtubeRssList'}/>
+        </>
+        <>
+          <TitleAndList
+            title='Citas'
+            deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
+            addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
+            list={config.quoteList.map(({author, quote}) => ({
+              id: `@${author}@${quote}`,
+              item: <><LabelAndTextField
+                text={author}
+                onChange={
+                  editActionList(
+                    'quoteList',
+                    `@${author}@${quote}`,
+                    ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
+                    (newConfig, index, newText) => ({...newConfig[index], author: newText,})
+                  )
+                }
+                /><LabelAndTextField
+                text={quote}
+                onChange={
+                  editActionList(
+                    'quoteList',
+                    `@${author}@${quote}`,
+                    ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
+                    (newConfig, index, newText) => ({...newConfig[index], quote: newText,})
+                  )
+                }
+                />
+              </>
+            }))}
+          />
+          <SaveConfigurationComponent config={config} type={'quoteList'}/>
+        </>
         <Box sx={commandLineStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
