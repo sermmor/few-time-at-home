@@ -5,7 +5,6 @@ import { saveInAFile } from "../utils";
 import { ChannelMediaRSSCollection } from "./messagesRSS.service";
 
 const pathConfigFile = 'configuration.json';
-let keysConfigFile: string[] = [];
 const pathAdditionalConfigFiles: {[key: string]: string} = {
   blogRssList: 'data/config/blogRssList.json',
   mastodonRssUsersList: 'data/config/mastodonRssUsersList.json',
@@ -38,7 +37,6 @@ export const readAllConfigurationsFiles = (): Promise<any> => new Promise<any>(r
   readFile(pathConfigFile, (err, data) => { 
     if (err) throw err;
     const config = JSON.parse(<string> <any> data);
-    keysConfigFile = Object.keys(config);
     readAdditionalConfigFile(listNamesAdditionalConfigFiles, config).then(completeConfig => resolve(completeConfig))
   });
 });
@@ -119,34 +117,63 @@ export class ConfigurationService {
       return (<any> this)[typeConfig];
     }
 
-    updateConfiguration = (channelMediaCollection: ChannelMediaRSSCollection, body: any): Promise<void> => new Promise<void>(resolve => {
-        if (body.nitterInstancesList) this.nitterInstancesList = body.nitterInstancesList;
-        if (body.nitterRssUsersList) this.nitterRssUsersList = body.nitterRssUsersList;
-        if (body.mastodonRssUsersList) this.mastodonRssUsersList = body.mastodonRssUsersList;
-        if (body.blogRssList) this.blogRssList = body.blogRssList;
-        if (body.youtubeRssList) this.youtubeRssList = body.youtubeRssList;
-        if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
-        if (body.quoteList) this.quoteList = body.quoteList;
-        if (body.backupUrls) this.backupUrls = body.backupUrls;
-        if (body.cloudRootPath !== undefined) this.cloudRootPath = body.cloudRootPath;
-        if (body.showNitterRSSInAll !== undefined) this.showNitterRSSInAll = body.showNitterRSSInAll;
-        if (body.numberOfWorkers) this.numberOfWorkers = body.numberOfWorkers;
-        if (body.apiPort) this.apiPort = body.apiPort;
 
-        this.saveConfiguration();
 
-        channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
-        channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
-        channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
+    updateConfigurationByType = (channelMediaCollection: ChannelMediaRSSCollection, typeConfig: string, content: any): Promise<void> => new Promise<void>(resolve => {
+      if (typeConfig === 'configuration') {
+        Object.keys(content).forEach(keyConfig => (<any> this)[keyConfig] = content[keyConfig]);
+      } else {
+        (<any> this)[typeConfig] = content;
+      }
+
+      this.saveConfigurationByType(typeConfig);
+
+      channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
+      channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
+      channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
+      if (typeConfig === 'youtubeRssList') {
         channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
           console.log("> Configuration changed!");
           resolve();
         });
+      } else {
+        resolve();
+      }
     });
 
-    private saveConfiguration = () => {
-      saveInAFile(JSON.stringify(this.getConfigurationJson(), null, 2), pathConfigFile);
+    private saveConfigurationByType = (typeConfig: string) => {
+      const path = typeConfig === 'configuration' ? pathConfigFile : pathAdditionalConfigFiles[typeConfig];
+      saveInAFile(JSON.stringify(this.getConfigurationByType(typeConfig), null, 2), path);
     }
+
+    // updateConfiguration = (channelMediaCollection: ChannelMediaRSSCollection, body: any): Promise<void> => new Promise<void>(resolve => {
+    //     if (body.nitterInstancesList) this.nitterInstancesList = body.nitterInstancesList;
+    //     if (body.nitterRssUsersList) this.nitterRssUsersList = body.nitterRssUsersList;
+    //     if (body.mastodonRssUsersList) this.mastodonRssUsersList = body.mastodonRssUsersList;
+    //     if (body.blogRssList) this.blogRssList = body.blogRssList;
+    //     if (body.youtubeRssList) this.youtubeRssList = body.youtubeRssList;
+    //     if (body.listBotCommands) this.listBotCommands = body.listBotCommands;
+    //     if (body.quoteList) this.quoteList = body.quoteList;
+    //     if (body.backupUrls) this.backupUrls = body.backupUrls;
+    //     if (body.cloudRootPath !== undefined) this.cloudRootPath = body.cloudRootPath;
+    //     if (body.showNitterRSSInAll !== undefined) this.showNitterRSSInAll = body.showNitterRSSInAll;
+    //     if (body.numberOfWorkers) this.numberOfWorkers = body.numberOfWorkers;
+    //     if (body.apiPort) this.apiPort = body.apiPort;
+
+    //     this.saveConfiguration();
+
+    //     channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
+    //     channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
+    //     channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
+    //     channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
+    //       console.log("> Configuration changed!");
+    //       resolve();
+    //     });
+    // });
+
+    // private saveConfiguration = () => {
+    //   saveInAFile(JSON.stringify(this.getConfigurationJson(), null, 2), pathConfigFile);
+    // }
 
     launchCommandLine = (cmd: string): Promise<ExecException | { stdout: string, stderr: string }>=> {
       return new Promise((resolve, reject) => {

@@ -6,26 +6,25 @@ import { configurationEndpoint, configurationListByTypeEndpoint, configurationSe
 const getConfigurationType = (): Promise<ConfigurationTypeDataModel> => 
   fetchJsonReceive<ConfigurationTypeDataModel>(configurationTypesEndpoint(), configurationTypeDataModelMock());
 
-const getConfiguration = (types: string[], indexType = 0, config: any = {}): Promise<ConfigurationDataModel> => new Promise<ConfigurationDataModel>(resolve => {
-  fetchJsonSendAndReceive<any>(configurationListByTypeEndpoint(), {type: types[indexType]}, {}).then((parcialConfig: any) => {
-    let nextConfig: any;
-    if (types[indexType] === 'configuration') { 
-      nextConfig = parcialConfig.data;
-    } else {
-      nextConfig = config;
-      nextConfig[types[indexType]] = parcialConfig.data;
-    }
+const getConfiguration = (types: string[], indexType = 0, config: ConfigurationDataModel[] = []): Promise<ConfigurationDataModel[]> => new Promise<ConfigurationDataModel[]>(resolve => {
+  const type = types[indexType];
+  const configurationList: ConfigurationDataModel[] = config;
+  fetchJsonSendAndReceive<any>(configurationListByTypeEndpoint(), {type}, configurationDataModelMock(type)).then((parcialConfig: any) => {
+    configurationList.push({
+      type,
+      content: parcialConfig.data,
+    });
 
     if (indexType + 1 < types.length) {
-      getConfiguration(types, indexType + 1, nextConfig).then(finalConfig => resolve(finalConfig));
+      getConfiguration(types, indexType + 1, configurationList).then(finalConfig => resolve(finalConfig));
     } else {
-      resolve(nextConfig);
+      resolve(configurationList);
     }
   });
 })
 
 const sendConfiguration = (data: ConfigurationDataModel) => 
-  fetchJsonSendAndReceive<ConfigurationDataModel>(configurationEndpoint(), data, configurationDataModelMock());
+  fetchJsonSendAndReceive<ConfigurationDataModel>(configurationEndpoint(), data, configurationDataModelMock(data.type));
 
 const sendCommandLine = (data: ComandLineRequest) => 
   fetchJsonSendAndReceive<ComandLineResponse>(configurationSendCommandEndpoint(), data, comandLineResponseMock());

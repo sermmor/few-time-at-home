@@ -106,12 +106,13 @@ export class APIService {
   }
 
   private configurationService() {
+    // { type: string, content: JSON }
     this.app.post(APIService.configurationEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body JSON");
             res.send({response: 'OK'});
         } else {
-            ConfigurationService.Instance.updateConfiguration(this.channelMediaCollection, req.body).then(() => {
+            ConfigurationService.Instance.updateConfigurationByType(this.channelMediaCollection, req.body.type, req.body.content).then(() => {
               res.send({response: 'OK'});
             });
         }

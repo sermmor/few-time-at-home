@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Button, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { ConfigurationActions } from "../../../core/actions/configuration";
-import { ConfigurationDataModel } from "../../../data-model/configuration";
+import { ConfigurationDataZipped, getContentConfigurationZippedByType, parseToZippedConfig } from "../../../data-model/configuration";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 
@@ -36,10 +36,10 @@ const footerStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
-const SaveConfigurationComponent = ({config}: {config: ConfigurationDataModel}) => {
+const SaveConfigurationComponent = ({config: allConfig, type}: {config: ConfigurationDataZipped, type: string}) => {
   const [isSave, setSave] = React.useState<boolean>(false);
   const setConfiguration = () => {
-    ConfigurationActions.sendConfiguration(config);
+    ConfigurationActions.sendConfiguration({ type, content: getContentConfigurationZippedByType(allConfig, type) });
     setSave(true);
     setTimeout(() => setSave(false), 500);
   }
@@ -60,14 +60,12 @@ const SaveConfigurationComponent = ({config}: {config: ConfigurationDataModel}) 
 let indexNewItemAdded = 0;
 
 export const ConfigurationComponent = () => {
-  const [configTypes, setConfigTypes] = React.useState<string[]>();
-  const [config, setConfig] = React.useState<ConfigurationDataModel>();
+  const [config, setConfig] = React.useState<ConfigurationDataZipped>();
   const [lineToSend, setLineToSend] = React.useState<string>('');
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   React.useEffect(() => {
     ConfigurationActions.getConfigurationType().then(types => {
-      setConfigTypes(types.data);
-      ConfigurationActions.getConfiguration(types.data).then(data => setConfig(data));
+      ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data)));
     });
   }, []);
 
@@ -178,29 +176,6 @@ export const ConfigurationComponent = () => {
           }/>}))}
         />
         <TitleAndList
-          title='Telegram commands'
-          list={Object.keys(config.listBotCommands).map((commandName, index) => ({
-              id:`${index}`,
-              item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
-                <Box>{commandName}</Box>
-                <Box sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
-                  <LabelAndTextField
-                    text={config.listBotCommands[commandName]}
-                    onChange={(newText: string) => {
-                      const cloneList = {...config.listBotCommands};
-                      (cloneList as any)[commandName] = newText;
-                      setConfig({
-                        ...config,
-                        listBotCommands: cloneList,
-                      });
-                    }          
-                    }
-                  />
-                </Box>
-              </Box>
-          })
-        )} />
-        <TitleAndList
           title='Citas'
           deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
           addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
@@ -269,6 +244,29 @@ export const ConfigurationComponent = () => {
             value={lineToSendResult}
           />
         </Box>
+        <TitleAndList
+          title='Telegram commands'
+          list={Object.keys(config.listBotCommands).map((commandName, index) => ({
+              id:`${index}`,
+              item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
+                <Box>{commandName}</Box>
+                <Box sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
+                  <LabelAndTextField
+                    text={config.listBotCommands[commandName]}
+                    onChange={(newText: string) => {
+                      const cloneList = {...config.listBotCommands};
+                      (cloneList as any)[commandName] = newText;
+                      setConfig({
+                        ...config,
+                        listBotCommands: cloneList,
+                      });
+                    }          
+                    }
+                  />
+                </Box>
+              </Box>
+          })
+        )} />
         <Box sx={footerStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Checkbox
@@ -355,7 +353,7 @@ export const ConfigurationComponent = () => {
             />
           </Box>
         </Box>
-        <SaveConfigurationComponent config={config}/>
+        <SaveConfigurationComponent config={config} type={'configuration'}/>
       </Box>
     }
   </>;
