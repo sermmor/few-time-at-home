@@ -122,8 +122,14 @@ const pathToCopyList = [
   'data/pomodoro.json',
   'data/youtube_rss_urls.json',
   'allRss.json',
-  'configuration.json',
   'keys.json',
+  'configuration.json',
+  'data/config/blogRssList.json',
+  'data/config/mastodonRssUsersList.json',
+  'data/config/nitterInstancesList.json',
+  'data/config/nitterRssUsersList.json',
+  'data/config/quoteList.json',
+  'data/config/youtubeRssList.json',
 ];
 
 const pathToPasteList = [
@@ -133,8 +139,14 @@ const pathToPasteList = [
   'pomodoro.json',
   'youtube_rss_urls.json',
   'allRss.json',
-  'configuration.json',
   'keys.json',
+  'configuration.json',
+  'blogRssList.json',
+  'mastodonRssUsersList.json',
+  'nitterInstancesList.json',
+  'nitterRssUsersList.json',
+  'quoteList.json',
+  'youtubeRssList.json',
 ]
 
 const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promise<void> => {
