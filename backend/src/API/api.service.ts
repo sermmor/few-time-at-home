@@ -12,6 +12,7 @@ import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
 import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
+import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
 // const multer = require("multer");
@@ -91,6 +92,7 @@ export class APIService {
   getRSS = (endpoint: string, rssCommand: () => Promise<string[]>) => {
     this.app.get(endpoint, (req, res) => {
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
+        NitterRSSMessageList.numberOfMessages = webNumberOfMessagesWithLinks;
         rssCommand().then(messagesToSend => {
             if (endpoint === APIService.getRssYoutubeEndpoint) {
               // Remove shorts videos.

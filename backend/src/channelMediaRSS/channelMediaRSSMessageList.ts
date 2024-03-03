@@ -35,7 +35,7 @@ export abstract class ChannelMediaRSSMessageList {
     }
 
     formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
-        `${message.author} - ${message.date.toDateString()}
+        `${message.author} - ${message.date.toDateString ? message.date.toDateString() : message.date}
         ${message.content}
         ${message.originalLink}`
     );
@@ -48,7 +48,7 @@ export abstract class ChannelMediaRSSMessageList {
 
         return allMessages.map(message =>
             
-            `${(message.title ? message.title + '\n' : '')}${message.author} - ${message.date.toDateString()}
+            `${(message.title ? message.title + '\n' : '')}${message.author} - ${message.date.toDateString ? message.date.toDateString() : message.date}
 ${message.content}
 ${message.originalLink}`
         );

@@ -3,8 +3,11 @@ import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 
+const fetch = require("node-fetch");
+
 export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
     private nitterInstancesList: string[];
+    public static numberOfMessages = 5;
 
     constructor(
         private rssOptions: ReaderOptions = {
@@ -33,4 +36,39 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
             },
         }
     }
+
+    updateRSSList(): Promise<ChannelMediaRSSMessageList> {
+      const { urlTwitterAPI, user_list_id, user_name, password, email, userExceptionsList } = ConfigurationService.Instance.twitterData;
+      const data = {
+          "data": {
+              user_list_id,
+              user_name,
+              password,
+              email,
+              userExceptionsList,
+              "numberOfTuits": `${NitterRSSMessageList.numberOfMessages}`,
+          }
+      };
+      return new Promise<ChannelMediaRSSMessageList>(resolve => {
+        fetch(urlTwitterAPI, {
+          method: 'POST',
+          headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data, null, 2)
+        }).then((res: any) => res.json())
+          .then((json: any) => {
+            const allMessages = {...json}
+            this.allMessages = allMessages.data.reverse();
+            resolve(this);
+          });
+      });
+  }
+
+  formatMessagesToTelegramTemplate = (): string[] => this.allMessages.map(message =>
+    `${message.author} - ${message.date}
+    ${message.content}
+    ${message.originalLink}`
+);
 }

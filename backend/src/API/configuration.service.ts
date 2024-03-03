@@ -74,6 +74,14 @@ export class ConfigurationService {
         bot_cloud_get_current_path: string;
         bot_cloud_download_folder: string;
     };
+    twitterData: {
+      urlTwitterAPI: string;
+      user_list_id: string;
+      user_name: string;
+      password: string;
+      email: string;
+      userExceptionsList: string[];
+    };
     quoteList: Quote[];
     backupUrls: string;
     cloudRootPath: string;
@@ -97,6 +105,7 @@ export class ConfigurationService {
       this.cloudRootPath = configurationData.cloudRootPath;
       this.apiPort = configurationData.apiPort;
       this.quoteList = configurationData.quoteList;
+      this.twitterData = configurationData.twitterData;
 
       ConfigurationService.Instance = this;
     }
