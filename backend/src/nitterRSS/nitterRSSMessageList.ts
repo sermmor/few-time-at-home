@@ -37,6 +37,7 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
         }
     }
 
+    // ---------------------------------------------------------- REPLACE NITTER BY TWITTER.
     updateRSSList(): Promise<ChannelMediaRSSMessageList> {
       const { urlTwitterAPI, user_list_id, user_name, password, email, userExceptionsList } = ConfigurationService.Instance.twitterData;
       const data = {
