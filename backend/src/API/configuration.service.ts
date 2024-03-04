@@ -80,6 +80,7 @@ export class ConfigurationService {
       user_name: string;
       password: string;
       email: string;
+      numberOfMessages: number;
       userExceptionsList: string[];
     };
     quoteList: Quote[];

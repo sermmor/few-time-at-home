@@ -7,7 +7,6 @@ const fetch = require("node-fetch");
 
 export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
     private nitterInstancesList: string[];
-    public static numberOfMessages = 5;
 
     constructor(
         private rssOptions: ReaderOptions = {
@@ -39,7 +38,7 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
 
     // ---------------------------------------------------------- REPLACE NITTER BY TWITTER.
     updateRSSList(): Promise<ChannelMediaRSSMessageList> {
-      const { urlTwitterAPI, user_list_id, user_name, password, email, userExceptionsList } = ConfigurationService.Instance.twitterData;
+      const { urlTwitterAPI, user_list_id, user_name, password, email, userExceptionsList, numberOfMessages } = ConfigurationService.Instance.twitterData;
       const data = {
           "data": {
               user_list_id,
@@ -47,7 +46,7 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
               password,
               email,
               userExceptionsList,
-              "numberOfTuits": `${NitterRSSMessageList.numberOfMessages}`,
+              "numberOfTuits": `${numberOfMessages}`,
           }
       };
       return new Promise<ChannelMediaRSSMessageList>(resolve => {
