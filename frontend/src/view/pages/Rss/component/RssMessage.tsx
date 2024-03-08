@@ -44,7 +44,7 @@ const DivWithLinkFixed = styled.div`
   
   a {
     text-decoration: none;
-    color: #19C0d2;
+    color: #A7D2FE;
   }
 `;
 
