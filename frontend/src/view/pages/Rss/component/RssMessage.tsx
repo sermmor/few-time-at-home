@@ -1,6 +1,7 @@
+import React from 'react';
+import styled from "styled-components";
 import { Box, Card, CardContent, Link, useMediaQuery, useTheme } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import React from 'react';
 import { UnfurlActions } from '../../../../core/actions/unfurl';
 import { UnfurlDataModel } from '../../../../data-model/unfurl';
 
@@ -34,6 +35,19 @@ const getFirstUrl = (text: string): string => {
   return '';
 }
 
+const DivWithLinkFixed = styled.div`
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.01071em;
+  
+  a {
+    text-decoration: none;
+    color: #19C0d2;
+  }
+`;
+
 export const RssMessage = ({message}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -53,7 +67,7 @@ export const RssMessage = ({message}: Props) => {
       <Typography variant='h5'>
         {header}
       </Typography>
-      <Typography variant='body2' dangerouslySetInnerHTML={{__html: msg}} />
+      <DivWithLinkFixed dangerouslySetInnerHTML={{__html: msg}}></DivWithLinkFixed>
       <Link href={foot} target='_blank' rel='noreferrer'>
         {foot}
       </Link>
