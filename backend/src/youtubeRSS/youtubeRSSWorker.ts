@@ -2,7 +2,7 @@ import { extract, FeedData, ReaderOptions } from "@extractus/feed-extractor";
 import { ChannelMediaRSSMessage, ChannelMediaRSSWorkerData, cleanLinksInMessage, filterRSSMessages, updateRSSListOneByOne } from "../channelMediaRSS";
 import { parseFromBlogDateStringToDateObject, parseFromNitterDateStringToDateObject } from "../utils";
 import { WorkerChild } from "../workerModule/workersManager";
-import { YoutubeInfoByLinks, YoutubeRSSWorkerData } from "./youtubeRSSWorkerData";
+import { YoutubeInfoByLinks, YoutubeMediaRSSMessage, YoutubeRSSWorkerData } from "./youtubeRSSWorkerData";
 
 const updateRSS = (
     data: ChannelMediaRSSWorkerData,
@@ -29,9 +29,9 @@ const updateRSS = (
               let currentMessages: ChannelMediaRSSMessage[];
               if (feedData) {
                 const viewersList: number[] = (<any> dataItem).entry.map((rssMessage: any) => +rssMessage['media:group']['media:community']['media:statistics']['@_views']);
-                currentMessages = filterMessages(mapRSSBlogPostsToMessages(feedData), youtubeInfo, viewersList);
+                currentMessages = filterMessages(mapRSSBlogPostsToMessages(feedData, youtubeInfo), youtubeInfo, viewersList);
               } else {
-                currentMessages = filterMessages(mapRSSBlogPostsToMessages(dataItem), youtubeInfo);
+                currentMessages = filterMessages(mapRSSBlogPostsToMessages(dataItem, youtubeInfo), youtubeInfo);
               }
               console.log(`${endpoint}  ${currentMessages.length}`);
               resolve(currentMessages);
@@ -47,12 +47,13 @@ const updateRSS = (
     }));
 }
 
-const mapRSSBlogPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.entries.map((rssMessage: any) => ({
+const mapRSSBlogPostsToMessages = (data: any, youtubeInfo: YoutubeInfoByLinks): YoutubeMediaRSSMessage[] => data.entries.map((rssMessage: any) => ({
     title: rssMessage.title,
     author: data.title,
     date: parseFromBlogDateStringToDateObject(rssMessage.published),
     content: rssMessage.description,
     originalLink: rssMessage.link,
+    youtubeInfo,
 }));
 
 const filterMessages = (data: ChannelMediaRSSMessage[], youtubeInfo: YoutubeInfoByLinks, viewersList?: number[]): ChannelMediaRSSMessage[] => {

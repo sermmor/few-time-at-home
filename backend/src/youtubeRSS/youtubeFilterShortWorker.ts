@@ -1,5 +1,6 @@
 import { ChannelMediaRSSMessage } from "../channelMediaRSS";
 import { WorkerChild } from "../workerModule/workersManager";
+import { YoutubeMediaRSSMessage } from "./youtubeRSSWorkerData";
 
 const fetch = require("node-fetch");
 
@@ -21,14 +22,21 @@ const isAYouTubeShortLink = (link: string, currentTry = 4): Promise<boolean> => 
     });
   });
 
-const processRemoveYoutubeShorts = (allLastMessages: ChannelMediaRSSMessage[], accumulator: ChannelMediaRSSMessage[] = []): Promise<ChannelMediaRSSMessage[]> => new Promise<ChannelMediaRSSMessage[]>(resolve=> {
+const processRemoveYoutubeShorts = (allLastMessages: YoutubeMediaRSSMessage[], accumulator: ChannelMediaRSSMessage[] = []): Promise<ChannelMediaRSSMessage[]> => new Promise<ChannelMediaRSSMessage[]>(resolve=> {
     if (allLastMessages.length === 0) {
       console.log('Filtered ends');
       resolve(accumulator);
+    } else if (allLastMessages[0].youtubeInfo.not_filter_shorts) {
+      console.log(`Not filtered shorts for ${allLastMessages[0].author}.`);
+      accumulator.push(allLastMessages[0]);
+      setTimeout(
+        () => processRemoveYoutubeShorts(allLastMessages.slice(1), accumulator).then((accumulatorResult) => resolve(accumulatorResult)),
+        youtubeAddDelay
+      );
     } else {
       isAYouTubeShortLink(allLastMessages[0].originalLink).then(isAShort => {
         if (!isAShort) {
-          console.log(`Added ${allLastMessages[0].originalLink}`);
+          // console.log(`Added ${allLastMessages[0].originalLink}`);
           // console.log(`Added ${allLastMessages[0].title}`);
           accumulator.push(allLastMessages[0]);
         // } else {
