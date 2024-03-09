@@ -65,7 +65,6 @@ const filterMessages = (data: ChannelMediaRSSMessage[], youtubeInfo: YoutubeInfo
 
   // Filter mandatory words.
   if (youtubeInfo.mandatory_words !== '') {
-    console.log('mandatory_words', youtubeInfo.mandatory_words)
     newData = newData.filter((message) => message.title.toLowerCase().indexOf(youtubeInfo.mandatory_words) > -1);
   }
 
