@@ -186,7 +186,7 @@ export const ConfigurationComponent = () => {
             deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item.url === idToDelete)}
             addAction={() => addActionList('youtubeRssList', {
               url: `new channel ${indexNewItemAdded}`,
-              show_not_publised_videos: false,
+              show_not_publised_videos: true,
               not_filter_shorts: false,
               words_to_filter: 'defaultToIgnore',
             })}

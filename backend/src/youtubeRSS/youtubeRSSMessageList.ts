@@ -5,6 +5,7 @@ import { checkUntilConditionIsTrue, ExtractorUtilities, readJSONFile, saveInAFil
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 import { YoutubeRSSUtils } from "./youtubeRSSUtils";
 import { YoutubeData } from "../API/configuration.service";
+import { YoutubeInfoByLinks } from "./youtubeRSSWorkerData";
 
 const fetch = require("node-fetch");
 
@@ -110,6 +111,16 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
       this.waitUntilIsChargedYoutubeList().then(() => super.updateRSSList().then(messageList => resolve(messageList)))
     );
   }
+
+  private getDataByUrls = (urlLists: string[]): YoutubeInfoByLinks[] => {
+    const originalChannelUrlList = this.youtubeLinkAndRssList.filter(channelAndRssData => urlLists.includes(channelAndRssData.rssUrl)).map(channelAndRssData => channelAndRssData.channelUrl);
+
+    return ConfigurationService.Instance.youtubeRssList.filter(youtubeData => originalChannelUrlList.includes(youtubeData.url)).map(youtubeData => ({
+      ...youtubeData,
+      url: this.youtubeLinkAndRssList.filter(channelAndRssData => channelAndRssData.channelUrl === youtubeData.url).map(channelAndRssData => channelAndRssData.rssUrl)[0],
+      words_to_filter: (youtubeData.words_to_filter === 'defaultToIgnore') ? [] : (youtubeData.words_to_filter.toLowerCase() || '').split(' '),
+    }));
+  }
   
   createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData {
     return {
@@ -118,6 +129,7 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
       workerDataObject: {
         urlProfiles: urlsProfilesToSend[indexWorker],
         rssOptions: this.rssOptions,
+        youtubeInfoByLinks: this.getDataByUrls(urlsProfilesToSend[indexWorker]),
       },
     }
   }
