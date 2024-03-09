@@ -63,7 +63,13 @@ const filterMessages = (data: ChannelMediaRSSMessage[], youtubeInfo: YoutubeInfo
     newData = newData.filter((message, i) => viewersList[i] > 0);
   }
 
-  // Filter words
+  // Filter mandatory words.
+  if (youtubeInfo.mandatory_words !== '') {
+    console.log('mandatory_words', youtubeInfo.mandatory_words)
+    newData = newData.filter((message) => message.title.toLowerCase().indexOf(youtubeInfo.mandatory_words) > -1);
+  }
+
+  // Filter words to filter
   if (!youtubeInfo.words_to_filter || youtubeInfo.words_to_filter.length === 0) {
     return newData;
   }

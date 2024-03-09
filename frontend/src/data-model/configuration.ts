@@ -1,9 +1,10 @@
 type ConfigurationList = string[];
 type YoutubeConfigurationList = {
   url: string;
-  show_not_publised_videos?: boolean;
-  not_filter_shorts?: boolean;
-  words_to_filter?: string;
+  show_not_publised_videos: boolean;
+  not_filter_shorts: boolean;
+  words_to_filter: string;
+  mandatory_words: string;
 }[];
 type MastodonConfigurationList = { instance: string; user: string; }[];
 type QuoteList = {quote: string; author: string}[];

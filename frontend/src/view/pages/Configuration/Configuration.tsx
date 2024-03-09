@@ -183,36 +183,50 @@ export const ConfigurationComponent = () => {
         <>
           <TitleAndList
             title='Youtube RSS'
+            showRowLine={true}
             deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item.url === idToDelete)}
             addAction={() => addActionList('youtubeRssList', {
               url: `new channel ${indexNewItemAdded}`,
               show_not_publised_videos: true,
               not_filter_shorts: false,
               words_to_filter: 'defaultToIgnore',
+              mandatory_words: 'null',
             })}
             list={config.youtubeRssList.map((item) =>  ({id:`${item.url}`, item: <>
                 <Box sx={{ display: 'flex' }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ marginBottom: '.25rem', width: '30rem' }}>
-                      <LabelAndTextField text={item.url} onChange={
-                        editActionList(
-                          'youtubeRssList',
-                          `${item.url}`,
-                          (item: any, idToEdit: string) => item.url === idToEdit,
-                          (newConfig, index, newText) => ({...newConfig[index], url: newText,})
-                        )
-                      }/>
-                    </Box>
-                    <Box sx={{ marginBottom: '1rem' }}>
-                      <LabelAndTextField text={item.words_to_filter || ''} onChange={
-                        editActionList(
-                          'youtubeRssList',
-                          `${item.url}`,
-                          (item: any, idToEdit: string) => item.url === idToEdit,
-                          (newConfig, index, newText) => ({...newConfig[index], words_to_filter: newText,})
-                        )
-                      }/>
-                    </Box>
+                    <ul>
+                      <li style={{ width: '30rem' }}>
+                        Url: <LabelAndTextField text={item.url} onChange={
+                          editActionList(
+                            'youtubeRssList',
+                            `${item.url}`,
+                            (item: any, idToEdit: string) => item.url === idToEdit,
+                            (newConfig, index, newText) => ({...newConfig[index], url: newText,})
+                          )
+                        }/>
+                      </li>
+                      <li>
+                        Words to filter:<LabelAndTextField text={item.words_to_filter || ''} onChange={
+                          editActionList(
+                            'youtubeRssList',
+                            `${item.url}`,
+                            (item: any, idToEdit: string) => item.url === idToEdit,
+                            (newConfig, index, newText) => ({...newConfig[index], words_to_filter: newText,})
+                          )
+                        }/>
+                      </li>
+                      <li>
+                        Mandatory words: <LabelAndTextField text={item.mandatory_words || ''} onChange={
+                          editActionList(
+                            'youtubeRssList',
+                            `${item.url}`,
+                            (item: any, idToEdit: string) => item.url === idToEdit,
+                            (newConfig, index, newText) => ({...newConfig[index], mandatory_words: newText,})
+                          )
+                        }/>
+                      </li>
+                    </ul>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '1rem' }}>
                     <Checkbox

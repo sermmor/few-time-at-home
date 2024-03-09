@@ -70,18 +70,21 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
             show_not_publised_videos: false,
             not_filter_shorts: false,
             words_to_filter: 'word1 word2 word3',
+            mandatory_words: 'null',
           },
           {
             url: "https://youtube2/feed/",
             show_not_publised_videos: false,
             not_filter_shorts: false,
             words_to_filter: 'word1 word2 word3',
+            mandatory_words: 'mandatory1',
           },
           {
             url: "https://youtube3/feed/",
             show_not_publised_videos: false,
             not_filter_shorts: false,
             words_to_filter: 'word1 word2 word3',
+            mandatory_words: 'mandatory2',
           },
         ],
       };

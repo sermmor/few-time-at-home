@@ -118,7 +118,8 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
     return ConfigurationService.Instance.youtubeRssList.filter(youtubeData => originalChannelUrlList.includes(youtubeData.url)).map(youtubeData => ({
       ...youtubeData,
       url: this.youtubeLinkAndRssList.filter(channelAndRssData => channelAndRssData.channelUrl === youtubeData.url).map(channelAndRssData => channelAndRssData.rssUrl)[0],
-      words_to_filter: (youtubeData.words_to_filter === 'defaultToIgnore') ? [] : (youtubeData.words_to_filter.toLowerCase() || '').split(' '),
+      words_to_filter: (youtubeData.words_to_filter === 'defaultToIgnore') ? [] : (youtubeData.words_to_filter || '').toLowerCase().split(' '),
+      mandatory_words: (youtubeData.mandatory_words === 'null') ? '' : (youtubeData.mandatory_words || '').toLowerCase(),
     }));
   }
   

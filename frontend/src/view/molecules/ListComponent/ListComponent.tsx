@@ -24,19 +24,23 @@ interface Props {
   list: { id: string, item: string | JSX.Element }[];
   deleteAction?: (id: string) => void;
   addAction?: () => void;
+  showRowLine?: boolean;
 }
 
-export const ListComponent = ({list, deleteAction, addAction}: Props) => <Card sx={listComponentStyle}>
+export const ListComponent = ({list, deleteAction, addAction, showRowLine}: Props) => <Card sx={listComponentStyle}>
     <CardContent>
       {
         list.map(element =>
-          <Box key={element.id} sx={itemListStyle}>
-            { deleteAction && <IconButton aria-label="delete" onClick={() => deleteAction(element.id)}>
-                <DeleteIcon />
-              </IconButton>
-            }
-            {element.item}
-          </Box>
+          <>
+            <Box key={element.id} sx={itemListStyle}>
+              { deleteAction && <IconButton aria-label="delete" onClick={() => deleteAction(element.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              }
+              {element.item}
+            </Box>
+            {showRowLine && <hr />}
+          </>
         )
       }
     { addAction && <IconButton aria-label="addItem" onClick={() => addAction()}>

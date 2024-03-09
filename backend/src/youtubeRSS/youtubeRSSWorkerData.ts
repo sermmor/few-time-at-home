@@ -6,6 +6,7 @@ export interface YoutubeInfoByLinks {
   show_not_publised_videos: boolean;
   not_filter_shorts: boolean;
   words_to_filter: string[];
+  mandatory_words: string,
 }
 
 export interface YoutubeMediaRSSMessage extends ChannelMediaRSSMessage {
