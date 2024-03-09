@@ -44,9 +44,8 @@ export const readAllConfigurationsFiles = (): Promise<any> => new Promise<any>(r
 export interface YoutubeData {
   url: string;
   show_not_publised_videos?: boolean;
-  not_filter_show?: boolean;
-  words_to_filter?: string[];
-  min_minutes?: number;
+  not_filter_shorts?: boolean;
+  words_to_filter?: string;
 }
 
 export class ConfigurationService {
@@ -111,9 +110,8 @@ export class ConfigurationService {
         this.youtubeRssList = configurationData.youtubeRssList.map((url: string) => ({
           url,
           show_not_publised_videos: false,
-          not_filter_show: false,
-          words_to_filter: [],
-          min_minutes: undefined,
+          not_filter_shorts: false,
+          words_to_filter: 'defaultToIgnore',
         }));
       } else {
         this.youtubeRssList = configurationData.youtubeRssList;

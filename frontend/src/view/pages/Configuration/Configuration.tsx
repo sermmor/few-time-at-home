@@ -96,8 +96,8 @@ export const ConfigurationComponent = () => {
       keyList: string,
       id: string,
       equals: (item: any, idToEdit: string) => boolean,
-      editConfig?: (newConfig: any[], index: number, newData: string) => any[]
-    ) => (newText: string) => {
+      editConfig?: (newConfig: any[], index: number, newData: string | boolean) => any[]
+    ) => (newText: string | boolean) => {
     if (!config) return;
     let cloneList = [...(config as any)[keyList]];
     const index = cloneList.findIndex(item => equals(item, id));
@@ -187,18 +187,67 @@ export const ConfigurationComponent = () => {
             addAction={() => addActionList('youtubeRssList', {
               url: `new channel ${indexNewItemAdded}`,
               show_not_publised_videos: false,
-              not_filter_show: false,
-              words_to_filter: [],
-              min_minutes: undefined, // TODO: Provisional
+              not_filter_shorts: false,
+              words_to_filter: 'defaultToIgnore',
             })}
-            list={config.youtubeRssList.map((item) =>  ({id:`${item.url}`, item: <LabelAndTextField text={item.url} onChange={
-                editActionList(
-                  'youtubeRssList',
-                  `${item.url}`,
-                  (item: any, idToEdit: string) => item.url === idToEdit,
-                  (newConfig, index, newText) => ({...newConfig[index], url: newText,})
-                )
-              }/>})
+            list={config.youtubeRssList.map((item) =>  ({id:`${item.url}`, item: <>
+                <Box sx={{ display: 'flex' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ marginBottom: '.25rem', width: '30rem' }}>
+                      <LabelAndTextField text={item.url} onChange={
+                        editActionList(
+                          'youtubeRssList',
+                          `${item.url}`,
+                          (item: any, idToEdit: string) => item.url === idToEdit,
+                          (newConfig, index, newText) => ({...newConfig[index], url: newText,})
+                        )
+                      }/>
+                    </Box>
+                    <Box sx={{ marginBottom: '1rem' }}>
+                      <LabelAndTextField text={item.words_to_filter || ''} onChange={
+                        editActionList(
+                          'youtubeRssList',
+                          `${item.url}`,
+                          (item: any, idToEdit: string) => item.url === idToEdit,
+                          (newConfig, index, newText) => ({...newConfig[index], words_to_filter: newText,})
+                        )
+                      }/>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '1rem' }}>
+                    <Checkbox
+                      checked={item.not_filter_shorts}
+                      onChange={evt => {
+                        editActionList(
+                          'youtubeRssList',
+                          `${item.url}`,
+                          (item: any, idToEdit: string) => item.url === idToEdit,
+                          (newConfig, index, newText) => ({...newConfig[index], not_filter_shorts: newText,})
+                        )(evt.target.checked)
+                      }}
+                    />
+                    <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
+                      Not filter youtube shorts
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Checkbox
+                      checked={item.show_not_publised_videos}
+                      onChange={evt => {
+                        editActionList(
+                          'youtubeRssList',
+                          `${item.url}`,
+                          (item: any, idToEdit: string) => item.url === idToEdit,
+                          (newConfig, index, newText) => ({...newConfig[index], show_not_publised_videos: newText,})
+                        )(evt.target.checked)
+                      }}
+                    />
+                    <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
+                      Show "Proximamente" videos
+                    </Typography>
+                  </Box>
+                </Box>
+              </>})
             )} // TODO: SÓLO LABEL AND TEXT FIELD DE URL, FALTAN DEL RESTO DE ELEMENTOS.
           />
           <SaveConfigurationComponent config={config} type={'youtubeRssList'}/>
