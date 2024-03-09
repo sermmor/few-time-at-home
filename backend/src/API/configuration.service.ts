@@ -41,6 +41,14 @@ export const readAllConfigurationsFiles = (): Promise<any> => new Promise<any>(r
   });
 });
 
+export interface YoutubeData {
+  url: string;
+  show_not_publised_videos?: boolean;
+  not_filter_show?: boolean;
+  words_to_filter?: string[];
+  min_minutes?: number;
+}
+
 export class ConfigurationService {
     static Instance: ConfigurationService;
 
@@ -52,7 +60,7 @@ export class ConfigurationService {
         user: string;
         }[];
     blogRssList: string[];
-    youtubeRssList: string[];
+    youtubeRssList: YoutubeData[];
     listBotCommands: {
         bot_login: string;
         bot_all_command: string;
@@ -98,7 +106,18 @@ export class ConfigurationService {
       this.nitterRssUsersList = configurationData.nitterRssUsersList;
       this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
       this.blogRssList = configurationData.blogRssList;
-      this.youtubeRssList = configurationData.youtubeRssList;
+      if (configurationData.youtubeRssList && configurationData.youtubeRssList.length > 0 && configurationData.youtubeRssList[0].length) {
+        // ! Parse old youtube list, DELETE THIS IF WHEN IT PARSE IN SERVER.
+        this.youtubeRssList = configurationData.youtubeRssList.map((url: string) => ({
+          url,
+          show_not_publised_videos: false,
+          not_filter_show: false,
+          words_to_filter: [],
+          min_minutes: undefined,
+        }));
+      } else {
+        this.youtubeRssList = configurationData.youtubeRssList;
+      }
       this.listBotCommands = configurationData.listBotCommands;
       this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
       this.numberOfWorkers = configurationData.numberOfWorkers;

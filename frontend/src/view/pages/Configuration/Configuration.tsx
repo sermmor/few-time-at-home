@@ -183,11 +183,23 @@ export const ConfigurationComponent = () => {
         <>
           <TitleAndList
             title='Youtube RSS'
-            deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item === idToDelete)}
-            addAction={() => addActionList('youtubeRssList', `new channel ${indexNewItemAdded}`) }
-            list={config.youtubeRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-              editActionList('youtubeRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-            }/>}))}
+            deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item.url === idToDelete)}
+            addAction={() => addActionList('youtubeRssList', {
+              url: `new channel ${indexNewItemAdded}`,
+              show_not_publised_videos: false,
+              not_filter_show: false,
+              words_to_filter: [],
+              min_minutes: undefined, // TODO: Provisional
+            })}
+            list={config.youtubeRssList.map((item) =>  ({id:`${item.url}`, item: <LabelAndTextField text={item.url} onChange={
+                editActionList(
+                  'youtubeRssList',
+                  `${item.url}`,
+                  (item: any, idToEdit: string) => item.url === idToEdit,
+                  (newConfig, index, newText) => ({...newConfig[index], url: newText,})
+                )
+              }/>})
+            )} // TODO: SÓLO LABEL AND TEXT FIELD DE URL, FALTAN DEL RESTO DE ELEMENTOS.
           />
           <SaveConfigurationComponent config={config} type={'youtubeRssList'}/>
         </>

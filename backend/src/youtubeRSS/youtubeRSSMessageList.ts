@@ -4,6 +4,7 @@ import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { checkUntilConditionIsTrue, ExtractorUtilities, readJSONFile, saveInAFile } from "../utils";
 import { WorkerChildParentHandleData } from "../workerModule/workersManager";
 import { YoutubeRSSUtils } from "./youtubeRSSUtils";
+import { YoutubeData } from "../API/configuration.service";
 
 const fetch = require("node-fetch");
 
@@ -75,15 +76,15 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
     this.urlProfiles = [];
     let numberOfElements = ConfigurationService.Instance.youtubeRssList.length;
     let rssUrlCandidateIndex = -1;
-    ConfigurationService.Instance.youtubeRssList.forEach((channelUrl) => {
-      rssUrlCandidateIndex = this.youtubeLinkAndRssList.findIndex(candidate => candidate.channelUrl === channelUrl);
+    ConfigurationService.Instance.youtubeRssList.forEach((channelUrl: YoutubeData) => {
+      rssUrlCandidateIndex = this.youtubeLinkAndRssList.findIndex(candidate => candidate.channelUrl === channelUrl.url);
       if (rssUrlCandidateIndex >= 0) {
         this.urlProfiles.push(this.youtubeLinkAndRssList[rssUrlCandidateIndex].rssUrl);
         numberOfElements--;
       } else {
-        YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl, this.youtubeLinkAndRssList).then(rssUrl => {
-          if (this.youtubeLinkAndRssList.findIndex((rssAndChannelUrl) => rssAndChannelUrl.channelUrl === channelUrl) === -1) {
-            this.youtubeLinkAndRssList.push({channelUrl, rssUrl});
+        YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl.url, this.youtubeLinkAndRssList).then(rssUrl => {
+          if (this.youtubeLinkAndRssList.findIndex((rssAndChannelUrl) => rssAndChannelUrl.channelUrl === channelUrl.url) === -1) {
+            this.youtubeLinkAndRssList.push({channelUrl: channelUrl.url, rssUrl});
           }
           this.urlProfiles.push(rssUrl);
           numberOfElements--;

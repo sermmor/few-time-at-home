@@ -21,7 +21,7 @@ const updateRSS = (
             if (currentTry > 0) {
                 setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
             } else {
-                console.error(`Nitter profile ${endpoint} is broken or deleted!`);
+                console.error(`Youtube profile ${endpoint} is broken or deleted!`);
                 resolve([]);
             }
     }));

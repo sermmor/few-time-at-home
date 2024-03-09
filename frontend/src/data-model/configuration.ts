@@ -1,4 +1,11 @@
 type ConfigurationList = string[];
+type YoutubeConfigurationList = {
+  url: string;
+  show_not_publised_videos?: boolean;
+  not_filter_show?: boolean;
+  words_to_filter?: string[];
+  min_minutes?: number;
+}[];
 type MastodonConfigurationList = { instance: string; user: string; }[];
 type QuoteList = {quote: string; author: string}[];
 interface ConfigurationGeneral {
@@ -12,16 +19,16 @@ interface ConfigurationGeneral {
 
 export interface ConfigurationDataModel {
   type: string;
-  content: ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral;
+  content: ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList;
 }
 
 export interface ConfigurationDataZipped {
   nitterInstancesList: string[],
   nitterRssUsersList: string[],
-  mastodonRssUsersList: { instance: string; user: string; }[],
+  mastodonRssUsersList: MastodonConfigurationList,
   blogRssList: string[],
-  youtubeRssList: string[],
-  quoteList: {quote: string; author: string}[],
+  youtubeRssList: YoutubeConfigurationList,
+  quoteList: QuoteList,
   listBotCommands: {[key: string]: string},
   backupUrls: string,
   cloudRootPath: string;
@@ -37,7 +44,7 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     nitterRssUsersList: getContentConfigurationByType(configList, 'nitterRssUsersList') as string[],
     mastodonRssUsersList: getContentConfigurationByType(configList, 'mastodonRssUsersList') as { instance: string; user: string; }[],
     blogRssList: getContentConfigurationByType(configList, 'blogRssList') as string[],
-    youtubeRssList: getContentConfigurationByType(configList, 'youtubeRssList') as string[],
+    youtubeRssList: getContentConfigurationByType(configList, 'youtubeRssList') as YoutubeConfigurationList,
     quoteList: getContentConfigurationByType(configList, 'quoteList') as {quote: string; author: string}[],
     listBotCommands,
     backupUrls,
@@ -65,12 +72,12 @@ export const parseToConfigDataModel = (configZipped: ConfigurationDataZipped): C
   return configList;
 }
 
-export const getContentConfigurationByType = (configList: ConfigurationDataModel[], type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral => {
+export const getContentConfigurationByType = (configList: ConfigurationDataModel[], type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   const index = configList.findIndex(config => config.type === type);
   return configList[index].content;
 }
 
-export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral => {
+export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   if (type === 'configuration') {
     const {listBotCommands, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort} = configZipped;
     return {listBotCommands, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort};

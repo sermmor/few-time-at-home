@@ -65,9 +65,27 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
       return {
         type,
         content: [
-          "https://youtube1/feed/",
-          "https://youtube2/feed/",
-          "https://youtube3/feed/",
+          {
+            url: "https://youtube1/feed/",
+            show_not_publised_videos: false,
+            not_filter_show: false,
+            words_to_filter: [],
+            min_minutes: undefined,
+          },
+          {
+            url: "https://youtube2/feed/",
+            show_not_publised_videos: false,
+            not_filter_show: false,
+            words_to_filter: [],
+            min_minutes: undefined,
+          },
+          {
+            url: "https://youtube3/feed/",
+            show_not_publised_videos: false,
+            not_filter_show: false,
+            words_to_filter: [],
+            min_minutes: undefined,
+          },
         ],
       };
     case 'quoteList':

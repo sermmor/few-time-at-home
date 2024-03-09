@@ -2,47 +2,8 @@ import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessage } from "../channelMediaRSS";
 import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 
-// const fetch = require("node-fetch");
-
-// const youtubeAddDelay = 10;
-
 export class YoutubeRSSUtils {
   static allLastMessages: ChannelMediaRSSMessage[] = [];
-  // static isAYouTubeShortText = (text: string): boolean => text.indexOf('youtube.com/shorts/') !== -1;
-
-  // static isAYouTubeShortLink = (link: string, currentTry = 4): Promise<boolean> => new Promise<boolean>(resolve=> {
-  //   const key = link.split('https://www.youtube.com/watch?v=')[1];
-  //   fetch(`https://www.youtube.com/shorts/${key}`).then((res: any) => res.text()).then((text: string) => {
-  //     resolve(YoutubeRSSUtils.isAYouTubeShortText(text));
-  //   }).catch(() => {
-  //     if (currentTry > 0) {
-  //         setTimeout(() => YoutubeRSSUtils.isAYouTubeShortLink(link, currentTry - 1).then(data => resolve(data)), 100);
-  //     } else {
-  //         console.error(`Youtube link ${link} can be broken or deleted!`);
-  //         resolve(false);
-  //     }
-  //   });
-  // });
-
-  // static processRemoveYoutubeShorts = (allLastMessages: ChannelMediaRSSMessage[], accumulator: ChannelMediaRSSMessage[] = []): Promise<ChannelMediaRSSMessage[]> => new Promise<ChannelMediaRSSMessage[]>(resolve=> {
-  //   if (allLastMessages.length === 0) {
-  //     console.log('Filtered ends');
-  //     resolve(accumulator);
-  //   } else {
-  //     YoutubeRSSUtils.isAYouTubeShortLink(allLastMessages[0].originalLink).then(isAShort => {
-  //       if (!isAShort) {
-  //         console.log(`Added ${allLastMessages[0].title}`);
-  //         accumulator.push(allLastMessages[0]);
-  //       } else {
-  //         console.log(`Removed ${allLastMessages[0].title} (it's a short!)`);
-  //       }
-  //       setTimeout(
-  //         () => YoutubeRSSUtils.processRemoveYoutubeShorts(allLastMessages.slice(1), accumulator).then((accumulatorResult) => resolve(accumulatorResult)),
-  //         youtubeAddDelay
-  //       );
-  //     });
-  //   }
-  // });
 
   static createWorkerData(messagesToSend: ChannelMediaRSSMessage[][], indexWorker: number): WorkerChildParentHandleData {
     return {
