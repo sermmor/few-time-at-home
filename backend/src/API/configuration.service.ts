@@ -105,17 +105,7 @@ export class ConfigurationService {
       this.nitterRssUsersList = configurationData.nitterRssUsersList;
       this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
       this.blogRssList = configurationData.blogRssList;
-      if (configurationData.youtubeRssList && configurationData.youtubeRssList.length > 0 && configurationData.youtubeRssList[0].length) {
-        // ! Parse old youtube list, DELETE THIS IF WHEN IT PARSE IN SERVER.
-        this.youtubeRssList = configurationData.youtubeRssList.map((url: string) => ({
-          url,
-          show_not_publised_videos: true,
-          not_filter_shorts: false,
-          words_to_filter: 'defaultToIgnore',
-        }));
-      } else {
-        this.youtubeRssList = configurationData.youtubeRssList;
-      }
+      this.youtubeRssList = configurationData.youtubeRssList;
       this.listBotCommands = configurationData.listBotCommands;
       this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
       this.numberOfWorkers = configurationData.numberOfWorkers;
