@@ -2,6 +2,7 @@ import { Bookmarks } from "./pages/Bookmarks/Bookmarks";
 import { Cloud } from "./pages/Cloud/Cloud";
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
+import { Mp3Converter } from "./pages/Mp3Converter/Mp3Converter";
 import { Notepad } from "./pages/Notepad/Notepad";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
@@ -56,6 +57,11 @@ export const routesFTAH: RouteFTAHElement[] = [
     name: 'Text Editor',
     path: '/text-editor',
     element: <TextEditor/>,
+  },
+  {
+    name: 'MP3 Converter',
+    path: '/mp3-converter',
+    element: <Mp3Converter/>,
   },
   {
     name: 'Configuration',
