@@ -48,6 +48,7 @@ export class APIService {
   static sendToTelegramEndpoint = "/send-to-telegram";
   static videoToMp3ConverterEndpoint = "/video-to-mp3-converter";
   static audioToMp3ConverterEndpoint = "/audio-to-mp3-converter";
+  static stillConverterEndpoint = "/still-converter";
   static cloudEndpointList = {
     getDrivesList: '/cloud/drives',
     getFolderContent: '/cloud/get-folder-content',
@@ -181,16 +182,37 @@ export class APIService {
 
   private converterToMp3Service() {
     const converter = new ConvertToMP3();
+    let messageQueue: string[] = [];
+    let isFinishedConverter = true;
 
-    // TODO: Estaria bien que todo esto del callbackProcess y el callbackFinished poderlo pasar al front.
-    // TODO: Lo suyo es usar res.write() y al finalizar del todo res.end()
-    // TODO: Ver: https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
+    const waitUntilQueueFill = (): Promise<string> => new Promise<string>(resolve => {
+      if (messageQueue.length === 0) {
+        setTimeout(() => waitUntilQueueFill().then(msg => resolve(msg)), 0);
+      } else if (messageQueue.length === 1) {
+        resolve(messageQueue.pop()!);
+      } else {
+        const allMessages = messageQueue.reduce((previous, current) => `${previous}\n${current}`, '');
+        messageQueue = [];
+        resolve(allMessages);
+      }
+    });
+
+    // Returns
+    this.app.post(APIService.stillConverterEndpoint, (req, res) => {
+      if (isFinishedConverter) {
+        res.send({ message: "FINISHED!", isFinished: isFinishedConverter});
+      } else {
+        waitUntilQueueFill().then((message) => res.send({message, isFinished: isFinishedConverter}));
+      }
+    });
     
     // { data: { folderFrom: string; folderTo: string; bitrate: BitrateWithK; } }, RETURNS message process.
     this.app.post(APIService.videoToMp3ConverterEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
+          isFinishedConverter = false;
+          messageQueue = [];
           const data = {
             ...req.body.data,
             folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
@@ -198,9 +220,15 @@ export class APIService {
           }
           ConvertToMP3.Instance.convertAllVideosToMP3(
             data,
-            msg => {res.write(msg)}, // ! res.writeContinue()
-            msg => res.end(msg),
+            msg => {
+              messageQueue.push(msg);
+            },
+            msg => {
+              isFinishedConverter = true;
+              messageQueue.push("FINISHED!");
+            },
           );
+          res.send({ message: "Ready!", isFinished: isFinishedConverter});
         }
     });
 
@@ -209,6 +237,8 @@ export class APIService {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
+          isFinishedConverter = false;
+          messageQueue = [];
           const data = {
             ...req.body.data,
             folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
@@ -216,9 +246,15 @@ export class APIService {
           }
           ConvertToMP3.Instance.convertAllAudiosToMP3(
             data,
-            msg => res.write(msg), // ! res.writeContinue()
-            msg => res.end(msg),
+            msg => {
+              messageQueue.push(msg);
+            },
+            msg => {
+              isFinishedConverter = true;
+              messageQueue.push("FINISHED!");
+            },
           );
+          res.send({ message: "Ready!", isFinished: isFinishedConverter});
         }
     });
 
