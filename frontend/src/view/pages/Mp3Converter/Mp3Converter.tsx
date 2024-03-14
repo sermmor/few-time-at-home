@@ -1,6 +1,6 @@
 import { Box, Button, Checkbox, MenuItem, Select, SxProps, TextField, Theme, Typography } from "@mui/material";
 import React from "react";
-import { Bitrate, BitrateWithK, bitrateList, bitrateWithKList } from "../../../data-model/mp3Converter";
+import { Bitrate, BitrateWithK, ConverterDataModel, bitrateList, bitrateWithKList } from "../../../data-model/mp3Converter";
 import { Mp3ConverterActions } from "../../../core/actions/mp3Converter";
 
 const formStyle: SxProps<Theme> = {
@@ -11,6 +11,13 @@ const formStyle: SxProps<Theme> = {
   justifyContent: 'center',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
+
+const stillConvertingProcess = (data: ConverterDataModel) => {
+  console.log(data.message); // TODO: Replace by a text AREA box o símilar
+  if (!data.isFinished) {
+    setTimeout(() => Mp3ConverterActions.stillConverting().then(newData => stillConvertingProcess(newData)));
+  }
+}
 
 export const Mp3Converter = () => {
   const [folderFrom, setFolderFrom] = React.useState<string>('');
@@ -70,13 +77,9 @@ export const Mp3Converter = () => {
           // TODO: Comprobar que tanto folderFrom como folderTo existen en cloud.
           if (!!folderFrom && !!folderTo) {
             if (isVideo) {
-              Mp3ConverterActions.sendVideoToMp3({ folderFrom, folderTo, bitrate: bitrateK }).then(msg =>
-                console.log(`${msg}\n`) // TODO: Replace by a text AREA box o símilar
-              );
+              Mp3ConverterActions.sendVideoToMp3({ folderFrom, folderTo, bitrate: bitrateK }).then(data => stillConvertingProcess(data));
             } else {
-              Mp3ConverterActions.sendAudioToMp3({ folderFrom, folderTo, bitrateToConvertAudio: bitrate}).then(msg =>
-                console.log(`${msg}\n`) // TODO: Replace by a text AREA box o símilar
-              );
+              Mp3ConverterActions.sendAudioToMp3({ folderFrom, folderTo, bitrateToConvertAudio: bitrate}).then(data => stillConvertingProcess(data));
             }
           } else {
             console.log("Fill folder from and folder to in converter!");

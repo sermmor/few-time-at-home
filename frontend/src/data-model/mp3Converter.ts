@@ -15,3 +15,8 @@ export interface AudioConverterDataModel {
   folderTo: string;
   bitrateToConvertAudio: Bitrate;
 }
+
+export interface ConverterDataModel {
+  message: string;
+  isFinished: boolean;
+}

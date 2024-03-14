@@ -197,7 +197,7 @@ export class APIService {
       }
     });
 
-    // Returns
+    // Returns {message: string, isFinished: boolean}
     this.app.post(APIService.stillConverterEndpoint, (req, res) => {
       if (isFinishedConverter) {
         res.send({ message: "FINISHED!", isFinished: isFinishedConverter});

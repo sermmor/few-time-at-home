@@ -1,4 +1,4 @@
-import { AudioConverterDataModel, VideoConverterDataModel } from '../mp3Converter';
+import { AudioConverterDataModel, ConverterDataModel, VideoConverterDataModel } from '../mp3Converter';
 
 export const videoConverterDataModelMock = (): {data: VideoConverterDataModel} => ({ data: {
   folderFrom: '/DESDE',
@@ -11,3 +11,8 @@ export const audioConverterDataModelMock = (): {data: AudioConverterDataModel} =
   folderTo: '/HASTA',
   bitrateToConvertAudio: 192,
 }});
+
+export const converterDataModelMock = (): ConverterDataModel => ({
+  message: "Ready",
+  isFinished: false,
+});
