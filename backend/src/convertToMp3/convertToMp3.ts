@@ -1,7 +1,9 @@
 import ffmpeg from 'fluent-ffmpeg';
 import { Lame } from 'node-lame';
-import { ConfigurationService } from '../API';
+// import { ConfigurationService } from '../API';
 import { mkdir, readdir, stat } from 'fs';
+
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 
 type Bitrate =  96 | 112 | 128 | 144 | 160 | 192 | 224 | 256 | 320;
 type BitrateWithK = "96k" | "112k" | "128k" | "144k" | "160k" | "192k" | "224k" | "256k" | "320k";
@@ -195,7 +197,7 @@ export class ConvertToMP3 {
     callbackProcess: (msg: string) => void,
     callbackFinished: (msg: string) => void,
   ) => {
-    const ffmpegPath = process.env.FFMPEG_PATH || ConfigurationService.Instance.windowsFFMPEGPath;
+    // const ffmpegPath = process.env.FFMPEG_PATH || ConfigurationService.Instance.windowsFFMPEGPath;
     ffmpeg.setFfmpegPath(ffmpegPath);
     this.queueFolderToBuild = [userData.folderFrom];
   

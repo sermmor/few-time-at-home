@@ -1,6 +1,6 @@
-import { audioConverterDataModelMock, converterDataModelMock, videoConverterDataModelMock } from "../../data-model/mock/mp3ConverterMock";
+import { converterDataModelMock } from "../../data-model/mock/mp3ConverterMock";
 import { AudioConverterDataModel, ConverterDataModel, VideoConverterDataModel } from "../../data-model/mp3Converter";
-import { fetchJsonSendAndReceive, fetchJsonSendAndTextReceive } from "../fetch-utils";
+import { fetchJsonSendAndReceive } from "../fetch-utils";
 import { audioToMp3ConverterEndpoint, stillConverterEndpoint, videoToMp3ConverterEndpoint } from "../urls-and-end-points";
 
 const sendVideoToMp3 = (data: VideoConverterDataModel) => 
