@@ -9,6 +9,8 @@ export const configurationEndpoint = (): string => `${getUrlApi()}/configuration
 export const configurationSendCommandEndpoint = (): string => `${getUrlApi()}/configuration/launch-command`;
 export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
 export const pomodoroEndpoint = (): string => `${getUrlApi()}/pomodoro`;
+export const videoToMp3ConverterEndpoint = (): string => `${getUrlApi()}/video-to-mp3-converter`;
+export const audioToMp3ConverterEndpoint = (): string => `${getUrlApi()}/audio-to-mp3-converter`;
 export const sendToTelegramEndpoint = (): string => `${getUrlApi()}/send-to-telegram`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
 export const areNotificationsEnabledEndpoint = (): string => `${getUrlApi()}/alerts-is-ready`;
