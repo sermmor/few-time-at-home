@@ -12,6 +12,7 @@ import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
 import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
+import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -45,6 +46,8 @@ export class APIService {
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
   static sendToTelegramEndpoint = "/send-to-telegram";
+  static videoToMp3ConverterEndpoint = "/video-to-mp3-converter";
+  static audioToMp3ConverterEndpoint = "/audio-to-mp3-converter";
   static cloudEndpointList = {
     getDrivesList: '/cloud/drives',
     getFolderContent: '/cloud/get-folder-content',
@@ -82,6 +85,7 @@ export class APIService {
     this.alertsService();
     this.bookmarksService();
     this.notepadService();
+    this.converterToMp3Service();
     this.cloudService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
@@ -173,6 +177,41 @@ export class APIService {
     this.app.get(APIService.pomodoroEndpoint, (req, res) => {
       res.send({data: PomodoroService.Instance.timeModeList});
     });
+  }
+
+  private converterToMp3Service() {
+    const converter = new ConvertToMP3();
+    
+    // TODO: Estaria bien que todo esto del callbackProcess y el callbackFinished poderlo pasar al front.
+    // TODO: Lo suyo es usar res.write() y al finalizar del todo res.end()
+    // TODO: Ver: https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
+    
+    // { data: { folderFrom: string; folderTo: string; bitrate: BitrateWithK; } }, RETURNS message process.
+    this.app.post(APIService.videoToMp3ConverterEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body text");
+        } else {
+          ConvertToMP3.Instance.convertAllAudiosToMP3(
+            req.body.data,
+            msg => res.write(msg), // ? res.writeContinue()
+            msg => res.end(msg),
+          );
+        }
+    });
+
+    // { data: { folderFrom: string; folderTo: string; bitrateToConvertAudio: Bitrate; } }, RETURNS message process.
+    this.app.post(APIService.audioToMp3ConverterEndpoint, (req, res) => {
+        if (!req.body) {
+            console.error("Received NO body text");
+        } else {
+          ConvertToMP3.Instance.convertAllAudiosToMP3(
+            req.body.data,
+            msg => res.write(msg), // ? res.writeContinue()
+            msg => res.end(msg),
+          );
+        }
+    });
+
   }
 
   private alertsService() {

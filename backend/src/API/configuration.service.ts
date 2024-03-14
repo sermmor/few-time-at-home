@@ -92,6 +92,7 @@ export class ConfigurationService {
       userExceptionsList: string[];
     };
     quoteList: Quote[];
+    windowsFFMPEGPath:string;
     backupUrls: string;
     cloudRootPath: string;
     showNitterRSSInAll: boolean;
@@ -115,6 +116,7 @@ export class ConfigurationService {
       this.apiPort = configurationData.apiPort;
       this.quoteList = configurationData.quoteList;
       this.twitterData = configurationData.twitterData;
+      this.windowsFFMPEGPath = configurationData.windowsFFMPEGPath;
 
       ConfigurationService.Instance = this;
     }
@@ -125,6 +127,7 @@ export class ConfigurationService {
       if (typeConfig === 'configuration') {
         return {
           listBotCommands: this.listBotCommands,
+          windowsFFMPEGPath: this.windowsFFMPEGPath,
           backupUrls: this.backupUrls,
           cloudRootPath: this.cloudRootPath,
           showNitterRSSInAll: this.showNitterRSSInAll,
