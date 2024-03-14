@@ -31,8 +31,8 @@ export class CloudService {
     this.cloudOrigins.push(defaultTempUpload);
   }
 
-  private fromRelativePathToAbsolute = (path: string) => `${ConfigurationService.Instance.cloudRootPath}/${path}`;
-  private fromAbsolutePathToRelative = (path: string) => path.split(ConfigurationService.Instance.cloudRootPath).join('').substring(1);
+  public fromRelativePathToAbsolute = (path: string) => `${ConfigurationService.Instance.cloudRootPath}/${path}`;
+  public fromAbsolutePathToRelative = (path: string) => path.split(ConfigurationService.Instance.cloudRootPath).join('').substring(1);
 
   giveMeRealPathFile = (path: string): string => this.fromRelativePathToAbsolute(path);
   

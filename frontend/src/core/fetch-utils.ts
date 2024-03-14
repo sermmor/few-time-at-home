@@ -48,6 +48,22 @@ export const fetchReceiveText = (url: string): Promise<string> => new Promise<st
     .then(text => resolve(text));
 });
 
+export const fetchJsonSendAndTextReceive = <T>(url: string, data: any, mock: T): Promise<string> => new Promise<string>(resolve => {
+  if (ConfigurationService.Instance.isUsingMocks) {
+    resolve(JSON.stringify(mock, undefined, 2));
+  } else {
+    fetch(url, {
+      method: 'POST',
+      headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data, null, 2)
+    }).then(res => res.text())
+      .then(text => resolve(text));
+  }
+});
+
 export const fetchSendFileAndReceiveConfirmation = <T>(url: string, data: UploadFiles, mock: T): Promise<T> => new Promise<T>(resolve => {
   if (ConfigurationService.Instance.isUsingMocks) {
     resolve(mock);

@@ -191,9 +191,14 @@ export class APIService {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
-          ConvertToMP3.Instance.convertAllAudiosToMP3(
-            req.body.data,
-            msg => res.write(msg), // ! res.writeContinue()
+          const data = {
+            ...req.body.data,
+            folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
+            folderTo: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderTo),
+          }
+          ConvertToMP3.Instance.convertAllVideosToMP3(
+            data,
+            msg => {res.write(msg)}, // ! res.writeContinue()
             msg => res.end(msg),
           );
         }
@@ -204,8 +209,13 @@ export class APIService {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
+          const data = {
+            ...req.body.data,
+            folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
+            folderTo: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderTo),
+          }
           ConvertToMP3.Instance.convertAllAudiosToMP3(
-            req.body.data,
+            data,
             msg => res.write(msg), // ! res.writeContinue()
             msg => res.end(msg),
           );

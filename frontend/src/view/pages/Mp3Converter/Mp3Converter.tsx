@@ -1,5 +1,7 @@
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, Checkbox, MenuItem, Select, SxProps, TextField, Theme, Typography } from "@mui/material";
 import React from "react";
+import { Bitrate, BitrateWithK, bitrateList, bitrateWithKList } from "../../../data-model/mp3Converter";
+import { Mp3ConverterActions } from "../../../core/actions/mp3Converter";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -13,6 +15,9 @@ const formStyle: SxProps<Theme> = {
 export const Mp3Converter = () => {
   const [folderFrom, setFolderFrom] = React.useState<string>('');
   const [folderTo, setFolderTo] = React.useState<string>('');
+  const [isVideo, setIsVideo] = React.useState<boolean>(true);
+  const [bitrate, setBitrate] = React.useState<Bitrate>(192);
+  const [bitrateK, setBitrateK] = React.useState<BitrateWithK>('192k');
 
   return <Box sx={formStyle}>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
@@ -33,6 +38,53 @@ export const Mp3Converter = () => {
         sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
         onChange={evt => setFolderTo(evt.target.value)}
       />
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center', }}>
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Bitrate: </Typography>
+        <Select
+          value={bitrateK}
+          onChange={evt => {
+            const newBitrate = evt.target.value as BitrateWithK;
+            setBitrateK(newBitrate);
+            setBitrate(bitrateList[bitrateWithKList.indexOf(newBitrate)]);
+          }}
+          sx={{minWidth: '15.5rem'}}
+        >
+          {
+            bitrateWithKList.map(br => <MenuItem value={br} key={br}>{br}</MenuItem>)
+          }
+        </Select>
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center', }}>
+        <Checkbox
+          checked={isVideo}
+          onChange={evt => setIsVideo(evt.target.checked)}
+        />
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+          Convert video to MP3
+        </Typography>
+      </Box>
+      <Button
+        variant='outlined'
+        sx={{minWidth: '7rem'}}
+        onClick={() => {
+          // TODO: Comprobar que tanto folderFrom como folderTo existen en cloud.
+          if (!!folderFrom && !!folderTo) {
+            if (isVideo) {
+              Mp3ConverterActions.sendVideoToMp3({ folderFrom, folderTo, bitrate: bitrateK }).then(msg =>
+                console.log(`${msg}\n`) // TODO: Replace by a text AREA box o símilar
+              );
+            } else {
+              Mp3ConverterActions.sendAudioToMp3({ folderFrom, folderTo, bitrateToConvertAudio: bitrate}).then(msg =>
+                console.log(`${msg}\n`) // TODO: Replace by a text AREA box o símilar
+              );
+            }
+          } else {
+            console.log("Fill folder from and folder to in converter!");
+          }
+        }}
+        >
+        Convert
+      </Button>
     </Box>
   </Box>;
 }
