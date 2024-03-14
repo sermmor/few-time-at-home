@@ -181,7 +181,7 @@ export class APIService {
 
   private converterToMp3Service() {
     const converter = new ConvertToMP3();
-    
+
     // TODO: Estaria bien que todo esto del callbackProcess y el callbackFinished poderlo pasar al front.
     // TODO: Lo suyo es usar res.write() y al finalizar del todo res.end()
     // TODO: Ver: https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
@@ -193,7 +193,7 @@ export class APIService {
         } else {
           ConvertToMP3.Instance.convertAllAudiosToMP3(
             req.body.data,
-            msg => res.write(msg), // ? res.writeContinue()
+            msg => res.write(msg), // ! res.writeContinue()
             msg => res.end(msg),
           );
         }
@@ -206,7 +206,7 @@ export class APIService {
         } else {
           ConvertToMP3.Instance.convertAllAudiosToMP3(
             req.body.data,
-            msg => res.write(msg), // ? res.writeContinue()
+            msg => res.write(msg), // ! res.writeContinue()
             msg => res.end(msg),
           );
         }

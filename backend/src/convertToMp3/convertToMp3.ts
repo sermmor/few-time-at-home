@@ -195,7 +195,7 @@ export class ConvertToMP3 {
     callbackProcess: (msg: string) => void,
     callbackFinished: (msg: string) => void,
   ) => {
-    const ffmpegPath = process.env.FFMPEG_PATH || ConfigurationService.Instance.windowsFFMPEGPath; // TODO: windowsFFMPEGPath has to be in FRONT configuration
+    const ffmpegPath = process.env.FFMPEG_PATH || ConfigurationService.Instance.windowsFFMPEGPath;
     ffmpeg.setFfmpegPath(ffmpegPath);
     this.queueFolderToBuild = [userData.folderFrom];
   

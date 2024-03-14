@@ -262,7 +262,7 @@ export const ConfigurationComponent = () => {
                   </Box>
                 </Box>
               </>})
-            )} // TODO: SÓLO LABEL AND TEXT FIELD DE URL, FALTAN DEL RESTO DE ELEMENTOS.
+            )}
           />
           <SaveConfigurationComponent config={config} type={'youtubeRssList'}/>
         </>
@@ -363,6 +363,23 @@ export const ConfigurationComponent = () => {
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
               Show Twitter in 'all' rss option?
             </Typography>
+          </Box>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+              Windows FFMPEG library path: 
+            </Typography>
+            <TextField
+              label="Backup path"
+              variant="standard"
+              value={config.windowsFFMPEGPath}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
+              onChange={evt => {
+                setConfig({
+                  ...config,
+                  windowsFFMPEGPath: evt.target.value,
+                });
+              }}
+            />
           </Box>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Typography variant='h6' sx={{textTransform: 'uppercase'}}>

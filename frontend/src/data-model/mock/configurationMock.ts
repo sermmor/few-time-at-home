@@ -116,6 +116,7 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
         bot_nitter_command: 'nitterThings',
         bot_blog_command: 'blogThings',
       },
+      windowsFFMPEGPath: "C:\\Workspace\\few-time-at-home\\backups\\ffmpeg\\bin\\ffmpeg.exe",
       backupUrls: "C:\\Workspace\\few-time-at-home\\backups",
       cloudRootPath: "C:\\Workspace\\few-time-at-home\\rootCloud",
       showNitterRSSInAll: true,
