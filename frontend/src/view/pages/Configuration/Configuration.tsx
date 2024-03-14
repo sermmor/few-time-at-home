@@ -369,7 +369,7 @@ export const ConfigurationComponent = () => {
               Windows FFMPEG library path: 
             </Typography>
             <TextField
-              label="Backup path"
+              label="Windows FFMPEG library path"
               variant="standard"
               value={config.windowsFFMPEGPath}
               sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
