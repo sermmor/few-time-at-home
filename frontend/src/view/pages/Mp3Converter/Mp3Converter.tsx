@@ -12,19 +12,27 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
-const stillConvertingProcess = (data: ConverterDataModel) => {
-  console.log(data.message); // TODO: Replace by a text AREA box o símilar
+let resultInfo = '';
+
+const stillConvertingProcess = (data: ConverterDataModel, addResultLine: (line: string) => void) => {
+  addResultLine(data.message);
   if (!data.isFinished) {
-    setTimeout(() => Mp3ConverterActions.stillConverting().then(newData => stillConvertingProcess(newData)));
+    setTimeout(() => Mp3ConverterActions.stillConverting().then(newData => stillConvertingProcess(newData, addResultLine)));
   }
 }
 
 export const Mp3Converter = () => {
+  const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   const [folderFrom, setFolderFrom] = React.useState<string>('');
   const [folderTo, setFolderTo] = React.useState<string>('');
   const [isVideo, setIsVideo] = React.useState<boolean>(true);
   const [bitrate, setBitrate] = React.useState<Bitrate>(192);
   const [bitrateK, setBitrateK] = React.useState<BitrateWithK>('192k');
+
+  const addResultLine = (line: string) => {
+    resultInfo = `${resultInfo}${resultInfo ? '\n' : ''}${line}`;
+    setLineToSendResult(resultInfo);
+  };
 
   return <Box sx={formStyle}>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
@@ -76,10 +84,11 @@ export const Mp3Converter = () => {
         onClick={() => {
           // TODO: Comprobar que tanto folderFrom como folderTo existen en cloud.
           if (!!folderFrom && !!folderTo) {
+            resultInfo = '';
             if (isVideo) {
-              Mp3ConverterActions.sendVideoToMp3({ folderFrom, folderTo, bitrate: bitrateK }).then(data => stillConvertingProcess(data));
+              Mp3ConverterActions.sendVideoToMp3({ folderFrom, folderTo, bitrate: bitrateK }).then(data => stillConvertingProcess(data, addResultLine));
             } else {
-              Mp3ConverterActions.sendAudioToMp3({ folderFrom, folderTo, bitrateToConvertAudio: bitrate}).then(data => stillConvertingProcess(data));
+              Mp3ConverterActions.sendAudioToMp3({ folderFrom, folderTo, bitrateToConvertAudio: bitrate}).then(data => stillConvertingProcess(data, addResultLine));
             }
           } else {
             console.log("Fill folder from and folder to in converter!");
@@ -88,6 +97,15 @@ export const Mp3Converter = () => {
         >
         Convert
       </Button>
+      <TextField
+            id="outlined-multiline-static"
+            label="Result"
+            multiline
+            rows={6}
+            sx={{width: '40rem'}}
+            value={lineToSendResult}
+          />
     </Box>
-  </Box>;
-}
+  </Box>
+};
+
