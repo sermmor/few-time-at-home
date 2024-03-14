@@ -211,24 +211,30 @@ export class APIService {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
-          isFinishedConverter = false;
-          messageQueue = [];
           const data = {
             ...req.body.data,
             folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
             folderTo: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderTo),
           }
-          ConvertToMP3.Instance.convertAllVideosToMP3(
-            data,
-            msg => {
-              messageQueue.push(msg);
-            },
-            msg => {
-              isFinishedConverter = true;
-              messageQueue.push("FINISHED!");
-            },
-          );
-          res.send({ message: "Ready!", isFinished: isFinishedConverter});
+          CloudService.Instance.isExistsAllPaths([data.folderFrom, data.folderTo]).then(isExistsPath => {
+            if (isExistsPath) {
+              isFinishedConverter = false;
+              messageQueue = [];
+              ConvertToMP3.Instance.convertAllVideosToMP3(
+                data,
+                msg => {
+                  messageQueue.push(msg);
+                },
+                msg => {
+                  isFinishedConverter = true;
+                  messageQueue.push("FINISHED!");
+                },
+              );
+              res.send({ message: "Ready!", isFinished: isFinishedConverter});
+            } else {
+              res.send({ message: "Some routes doesn't exists!", isFinished: isFinishedConverter});
+            }
+          });
         }
     });
 
@@ -237,24 +243,30 @@ export class APIService {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
-          isFinishedConverter = false;
-          messageQueue = [];
           const data = {
             ...req.body.data,
             folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
             folderTo: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderTo),
           }
-          ConvertToMP3.Instance.convertAllAudiosToMP3(
-            data,
-            msg => {
-              messageQueue.push(msg);
-            },
-            msg => {
-              isFinishedConverter = true;
-              messageQueue.push("FINISHED!");
-            },
-          );
-          res.send({ message: "Ready!", isFinished: isFinishedConverter});
+          CloudService.Instance.isExistsAllPaths([data.folderFrom, data.folderTo]).then(isExistsPath => {
+            if (isExistsPath) {
+              isFinishedConverter = false;
+              messageQueue = [];
+              ConvertToMP3.Instance.convertAllAudiosToMP3(
+                data,
+                msg => {
+                  messageQueue.push(msg);
+                },
+                msg => {
+                  isFinishedConverter = true;
+                  messageQueue.push("FINISHED!");
+                },
+              );
+              res.send({ message: "Ready!", isFinished: isFinishedConverter});
+            } else {
+              res.send({ message: "Some routes doesn't exists!", isFinished: isFinishedConverter});
+            }
+          });
         }
     });
 

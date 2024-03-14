@@ -82,7 +82,6 @@ export const Mp3Converter = () => {
         variant='outlined'
         sx={{minWidth: '7rem'}}
         onClick={() => {
-          // TODO: Comprobar que tanto folderFrom como folderTo existen en cloud.
           if (!!folderFrom && !!folderTo) {
             resultInfo = '';
             if (isVideo) {

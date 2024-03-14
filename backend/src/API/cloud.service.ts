@@ -35,7 +35,23 @@ export class CloudService {
   public fromAbsolutePathToRelative = (path: string) => path.split(ConfigurationService.Instance.cloudRootPath).join('').substring(1);
 
   giveMeRealPathFile = (path: string): string => this.fromRelativePathToAbsolute(path);
+
+  isExistsPath = (absolutePath: string): Promise<boolean> => new Promise<boolean>(resolve => stat(absolutePath, (err, stat) => resolve(err === null)));
   
+  isExistsAllPaths = (absolutePathList: string[]): Promise<boolean> => new Promise<boolean>(resolve => {
+    if (absolutePathList.length === 0) {
+      resolve(true);
+    } else {
+      this.isExistsPath(absolutePathList[0]).then(isExistsFirstPath => {
+        if (isExistsFirstPath) {
+          this.isExistsAllPaths(absolutePathList.slice(1)).then(isExistsOthersPaths => resolve(isExistsOthersPaths));
+        } else {
+          resolve(false);
+        }
+      });
+    }
+  });
+
   getFolderContent = (driveName: string, relativefolderPath: string): Promise<CloudItem[]> => new Promise<CloudItem[]>(resolve => {
     const folderPath = this.fromRelativePathToAbsolute(relativefolderPath);
     if (folderPath === '/') return cloudDefaultPath;
