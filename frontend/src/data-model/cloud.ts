@@ -58,6 +58,11 @@ export interface GenericCloudRequest {
   path: string;
 }
 
+export interface ZipCloudRequest {
+  relativePathToZip: string,
+  compression: 0 | 5 | 9;
+}
+
 export interface GetFolderCloudRequest {
   drive: string;
   folderPath: string;

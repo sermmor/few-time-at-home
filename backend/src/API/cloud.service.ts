@@ -280,6 +280,6 @@ export class CloudService {
 
   zipFolder = (relativePathToZip: string, compression: COMPRESSION_LEVEL): Promise<string> => new Promise<string>(resolve => {
     const pathToZip = this.fromRelativePathToAbsolute(relativePathToZip);
-    zip( pathToZip, `${pathToZip}.zip`, { compression } ).then(() => resolve(`Zip file created in ${pathToZip}.zip`));
+    zip( pathToZip, `${pathToZip}.zip`, { compression } ).then(() => resolve(`Zip file created in ${relativePathToZip}.zip`));
   });
 }

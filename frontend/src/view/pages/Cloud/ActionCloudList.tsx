@@ -365,3 +365,20 @@ export const moveItemListToFolder = (actions: ActionsProps) => {
     })
   }
 }
+
+export const zipFolder = (actions: ActionsProps, nameFolder: string) => {
+  const {currentPathFolder, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  const relativePathToZip = `${currentPathFolder}/${nameFolder}`;
+
+  CloudActions.zipFolder({
+    relativePathToZip,
+    compression: 0
+  }).then(({message}) => {
+    console.log(message);
+    setSnackBarMessage(message);
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
+
+    synchronizeWithCloud(actions);
+  });
+};

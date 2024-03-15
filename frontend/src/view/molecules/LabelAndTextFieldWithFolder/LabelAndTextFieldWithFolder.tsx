@@ -1,14 +1,16 @@
 import React from "react";
 import { Box, SxProps, TextField, Theme } from "@mui/material";
 import FolderIcon from '@mui/icons-material/Folder';
+import FolderZipIcon from '@mui/icons-material/FolderZip';
 
-export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, backgroundColor, onChange, setOpenFolder}: {
+export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, backgroundColor, onChange, setOpenFolder, zipInFolder}: {
   text: string,
   nameFolder: string,
   path: string,
   backgroundColor?: string,
   onChange: (newText: string) => void,
-  setOpenFolder: (label: string) => void
+  setOpenFolder: (label: string) => void,
+  zipInFolder?: (label: string) => void,
 }) => {
   const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
@@ -40,8 +42,14 @@ export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, backgroundC
         <Box sx={{ cursor: 'pointer', color: '#1976d2' }} onClick={() => setEditMode(true)}>
           {text}
         </Box>
-        <Box sx={{ cursor: 'pointer', marginLeft: {xs: 'none', sm:'auto'}}} onClick={() => setOpenFolder(text)}>
-          <FolderIcon />
+        <Box sx={{ cursor: 'pointer', marginLeft: {xs: 'none', sm:'auto'}, display: 'flex', flexDirection: 'row', gap: '.5rem'}}>
+          {zipInFolder && <Box sx={{ cursor: 'pointer',}} onClick={() => zipInFolder(text)}>
+            <FolderZipIcon />
+          </Box>
+          }
+          <Box sx={{ cursor: 'pointer',}} onClick={() => setOpenFolder(text)}>
+            <FolderIcon />
+          </Box>
         </Box>
       </Box>
   }</>;
