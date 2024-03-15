@@ -1,6 +1,8 @@
 import { stat, mkdir, readdir, rename, rm } from "fs";
+import { zip, COMPRESSION_LEVEL } from 'zip-a-folder';
 import { getCurrentStringDateAndHour, saveInAFile } from "../utils";
 import { ConfigurationService } from "./configuration.service";
+
 
 export const cloudDefaultPath = 'cloud';
 export const trashDefaultPath = 'trash';
@@ -276,10 +278,8 @@ export class CloudService {
     });
   });
 
-  zipFolder = (nameDrive: string, relativePathToZip: string, parentRelativePath: string): Promise<string> => new Promise<string>(resolve => {
+  zipFolder = (relativePathToZip: string, compression: COMPRESSION_LEVEL): Promise<string> => new Promise<string>(resolve => {
     const pathToZip = this.fromRelativePathToAbsolute(relativePathToZip);
-    const parentPath = this.fromRelativePathToAbsolute(relativePathToZip);
-    // TODO: create a zip in the path
-    
+    zip( pathToZip, `${pathToZip}.zip`, { compression } ).then(() => resolve(`Zip file created in ${pathToZip}.zip`));
   });
 }

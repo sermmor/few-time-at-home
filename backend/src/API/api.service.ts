@@ -61,6 +61,7 @@ export class APIService {
     downloadFile: '/cloud/download-file',
     searchInFolder: '/cloud/search-in-folder',
     deleteFileOrFolder: '/cloud/delete',
+    zipFolder: '/cloud/zip-folder',
   };
 
   app: Express;
@@ -490,6 +491,15 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         cloudService.deleteFileOrFolder(req.body.drive, req.body.path).then((message) => res.send({message}));
+      }
+    });
+
+    // body: {relativePathToZip: string, compression: 0 | 5 | 9}
+    this.app.post(APIService.cloudEndpointList.zipFolder, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        cloudService.zipFolder(req.body.relativePathToZip, req.body.compression).then((message) => res.send({message}));
       }
     });
 
