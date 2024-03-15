@@ -370,6 +370,10 @@ export const zipFolder = (actions: ActionsProps, nameFolder: string) => {
   const {currentPathFolder, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
   const relativePathToZip = `${currentPathFolder}/${nameFolder}`;
 
+  setSnackBarMessage('Creating zip file...');
+  setErrorSnackbar(false);
+  setOpenSnackbar(true);
+
   CloudActions.zipFolder({
     relativePathToZip,
     compression: 0
