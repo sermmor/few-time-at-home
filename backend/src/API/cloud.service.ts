@@ -275,4 +275,11 @@ export class CloudService {
       }
     });
   });
+
+  zipFolder = (nameDrive: string, relativePathToZip: string, parentRelativePath: string): Promise<string> => new Promise<string>(resolve => {
+    const pathToZip = this.fromRelativePathToAbsolute(relativePathToZip);
+    const parentPath = this.fromRelativePathToAbsolute(relativePathToZip);
+    // TODO: create a zip in the path
+    
+  });
 }
