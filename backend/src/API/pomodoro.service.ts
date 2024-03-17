@@ -68,7 +68,7 @@ export class PomodoroService {
     });
   });
 
-  fileContent = (): string => JSON.stringify(this.timeModeList, undefined, 2);
+  fileContent = (): any => this.timeModeList;
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
     this.timeModeList = data;

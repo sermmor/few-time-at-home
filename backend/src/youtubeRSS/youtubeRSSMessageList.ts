@@ -144,7 +144,7 @@ ${message.originalLink}`
     );
   }
 
-  static fileContent = (): string => JSON.stringify(YoutubeRSSMessageList.youtubeLinkAndRssList, null, 2);
+  static fileContent = (): any => YoutubeRSSMessageList.youtubeLinkAndRssList;
 
   static setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
     YoutubeRSSMessageList.youtubeLinkAndRssList = data;

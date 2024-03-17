@@ -115,7 +115,7 @@ export class BookmarkService {
     console.log("> Bookmark saved!");
   });
 
-  fileContent = (): string => JSON.stringify(this.bookmarks, null, 2);
+  fileContent = (): any => this.bookmarks;
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
     this.bookmarks = data;

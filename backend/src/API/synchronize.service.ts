@@ -1,11 +1,16 @@
 import { readFile, writeFile } from "fs/promises";
+import { createReadStream } from "fs";
+import path from "path";
 import { YoutubeRSSMessageList } from "../youtubeRSS";
 import { AlertListService } from "./alertNotification.service";
 import { BookmarkService } from "./bookmark.service";
 import { ConfigurationService } from "./configuration.service";
 import { NotesService } from "./notes.service"
 import { PomodoroService } from "./pomodoro.service";
-import path from "path";
+import FormData from 'form-data';
+import { readJSONFile } from "../utils";
+
+const fetch = require("node-fetch");
 
 const pathJsonSyncronize = 'data/synchronize.json';
 
@@ -21,8 +26,8 @@ export class SynchronizeService {
     configuration: ConfigurationService.Instance.fileContent(),
   });
 
-  private setDataToApplication = async (dataText: string): Promise<void> => {
-    const data = JSON.parse(<string> dataText);
+  private setDataToApplication = async (dataText: any, parseJSON = true): Promise<void> => {
+    const data = parseJSON ? JSON.parse(<string> dataText) : dataText;
     await NotesService.Instance.setFileContent(data.notes);
     await AlertListService.Instance.setFileContent(data.alerts);
     await BookmarkService.Instance.setFileContent(data.bookmark);
@@ -34,13 +39,15 @@ export class SynchronizeService {
   // Como cliente, creo el fichero de sincronización y lo mando al servidor.
   clientUploadDataToUrl = async (url: string): Promise<void> => {
     const data = JSON.stringify(this.collectAllData(), null, 2);
-    const file = new File([data], 'synchronize.json');
+    await writeFile(pathJsonSyncronize, data);
+    
     const formData = new FormData();
-    formData.append('file', file);
+    const stream = createReadStream(pathJsonSyncronize);
+    formData.append('file', stream);
 
     await fetch(url, {
       method: 'POST',
-      body: formData,
+      body: formData as unknown as BodyInit | null | undefined,
     });
   }
 
@@ -60,10 +67,8 @@ export class SynchronizeService {
   // Como servidor, recibo un fichero de sincronización del cliente.
   serverDownloadDataFromUrl = async (pathData: string): Promise<void> => {
     console.log(`[SynchronizeService] SynchronizeService downloaded updated file in: ${pathData}`);
-    const data = await readFile(pathData);
-    const dataJson = JSON.parse(<string> <any> data);
-    await this.setDataToApplication(dataJson);
-    
+    const dataJson = await readJSONFile(pathData, "{}");
+    await this.setDataToApplication(dataJson, false);
   }
 
   private sendFileResponse = (webResponse: any, fileRelativePath: string, options: any): Promise<void> => new Promise<void>(resolve => {

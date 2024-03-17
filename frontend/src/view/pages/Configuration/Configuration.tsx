@@ -120,12 +120,12 @@ export const ConfigurationComponent = () => {
           <Button
               variant='outlined'
               sx={{minWidth: '15.5rem'}}
-              onClick={() => synchronizeActions.uploadData(`http://${'192.168.0.176'}:${'3002'}`)}
+              onClick={() => synchronizeActions.uploadData(`http://${'localhost'}:${'3002'}`)}
               >Upload</Button>
           <Button
               variant='contained'
               sx={{minWidth: '15.5rem'}}
-              onClick={() => synchronizeActions.downloadData(`http://${'192.168.0.176'}:${'3002'}`)}
+              onClick={() => synchronizeActions.downloadData(`http://${'localhost'}:${'3002'}`)}
               >Download</Button>
         </Box>
         <>

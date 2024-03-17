@@ -549,7 +549,8 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        synchronizeService.clientDownloadDataFromUrl(`${req.url}/${APIService.synchronize.serverUploadAppFile}`).then(() => {
+        
+        synchronizeService.clientDownloadDataFromUrl(`${req.body.url}${APIService.synchronize.serverUploadAppFile}`).then(() => {
           console.log("Configuración del cliente sincronizada.");
           res.send({message: "Configuración del cliente sincronizada."});
         });
@@ -562,7 +563,8 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        synchronizeService.clientUploadDataToUrl(`${req.url}/${APIService.synchronize.serverDownloadAppFile}`).then(() => {
+        // console.log(`${req.body.url}${APIService.synchronize.serverDownloadAppFile}`)
+        synchronizeService.clientUploadDataToUrl(`${req.body.url}${APIService.synchronize.serverDownloadAppFile}`).then(() => {
           console.log("Configuración sincronizada del cliente subida.");
           res.send({message: "Configuración sincronizada del cliente subida."});
         });

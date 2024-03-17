@@ -182,7 +182,7 @@ export class ConfigurationService {
     });
   }
 
-  fileContent = (): string => JSON.stringify({
+  fileContent = (): any => ({
     nitterInstancesList: this.nitterInstancesList,
     nitterRssUsersList: this.nitterRssUsersList,
     mastodonRssUsersList: this.mastodonRssUsersList,
@@ -197,7 +197,7 @@ export class ConfigurationService {
     quoteList: this.quoteList,
     twitterData: this.twitterData,
     windowsFFMPEGPath: this.windowsFFMPEGPath,
-  }, undefined, 2);
+  });
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
     this.nitterInstancesList = data.nitterInstancesList;
