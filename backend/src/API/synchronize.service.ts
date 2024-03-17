@@ -10,9 +10,7 @@ import path from "path";
 const pathJsonSyncronize = 'data/synchronize.json';
 
 export class SynchronizeService {
-  constructor() {
-
-  }
+  constructor() {}
 
   private collectAllData = () => ({
     notes: NotesService.Instance.fileContent(),
@@ -87,10 +85,5 @@ export class SynchronizeService {
       root: path.join(__dirname),
     };
     await this.sendFileResponse(webResponse, pathJsonSyncronize, options);
-  }
-
-
-  saveDataFromClient = async (data: string): Promise<void> => {
-    return await this.setDataToApplication(data);
   }
 }

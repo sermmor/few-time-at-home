@@ -13,6 +13,7 @@ import path from 'path';
 import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
+import { SynchronizeService } from './synchronize.service';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -64,8 +65,10 @@ export class APIService {
     zipFolder: '/cloud/zip-folder',
   };
   static synchronize = {
-    downloadAppFile: '/synchronize/download',
-    uploadAppFile: '/synchronize/upload',
+    clientDownloadAppFile: '/synchronize/download',
+    clientUploadAppFile: '/synchronize/upload',
+    serverDownloadAppFile: '/synchronize/server/download',
+    serverUploadAppFile: '/synchronize/server/upload',
   }
 
   app: Express;
@@ -93,6 +96,7 @@ export class APIService {
     this.notepadService();
     this.converterToMp3Service();
     this.cloudService();
+    this.synchronizeService();
     
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -406,7 +410,7 @@ export class APIService {
   }
 
   private cloudService() {
-    const cloudService = new CloudService(); // TODO: Here can add more drives (FROM A FILE OR SOMETHING LIKE THAT)!!!
+    const cloudService = new CloudService();
 
     this.app.get(APIService.cloudEndpointList.getDrivesList, (req, res) => {
       res.send({driveList: cloudService.getDrivesList()});
@@ -532,6 +536,51 @@ export class APIService {
             console.log(`Sent: ${fileRelativePath}`);
           }
         });
+      }
+    });
+  }
+
+  private synchronizeService = () => {
+    const synchronizeService = new SynchronizeService();
+    
+    // ESTOY COMO CLIENTE, quiero descargar fichero del servidor.
+    // body: req.url
+    this.app.post(APIService.synchronize.clientDownloadAppFile, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        synchronizeService.clientDownloadDataFromUrl(`${req.url}/${APIService.synchronize.serverUploadAppFile}`).then(() => console.log("Configuración del cliente sincronizada."));
+      }
+    });
+
+    // ESTOY COMO CLIENTE, quiero subir fichero al servidor.
+    // body: req.url
+    this.app.post(APIService.synchronize.clientUploadAppFile, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        synchronizeService.clientUploadDataToUrl(`${req.url}/${APIService.synchronize.serverDownloadAppFile}`).then(() => console.log("Configuración sincronizada del cliente subida."));
+      }
+    });
+
+    // ESTOY COMO SERVIDOR, quiero descargar fichero del cliente.
+    // body: req.file
+    this.app.post(APIService.synchronize.serverDownloadAppFile, upload.single('file'), (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
+        synchronizeService.serverDownloadDataFromUrl(allFiles.path).then(() => console.log("Configuración del servidor sincronizada."));
+      }
+    });
+
+    // ESTOY COMO SERVIDOR, quiero subir fichero al cliente.
+    // body: req.file
+    this.app.post(APIService.synchronize.serverUploadAppFile, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+        synchronizeService.serverUploadDataToUrl(res).then(() => console.log("Configuración sincronizada del servidor subida al cliente."));
       }
     });
   }
