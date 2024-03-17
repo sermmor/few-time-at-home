@@ -116,4 +116,11 @@ export class AlertListService {
     resolve(this.alertList);
     console.log("> Alerts saved!");
   });
+
+  fileContent = (): string => JSON.stringify(this.parseAlertListToStringList(this.alertList), null, 2);
+
+  setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
+    this.alertList = data;
+    this.saveAlerts().then(() => resolve());
+  });
 }

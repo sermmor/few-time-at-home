@@ -53,4 +53,11 @@ export class NotesService {
     resolve(this.notes);
     console.log("> Notes saved!");
   });
+
+  fileContent = (): string => this.notes.join(notesSeparator);
+
+  setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
+    this.notes = data.split(notesSeparator);
+    this.saveNotes().then(() => resolve());
+  });
 }

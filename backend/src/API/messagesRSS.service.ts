@@ -5,6 +5,13 @@ import { NitterRSSMessageList } from "../nitterRSS";
 import { YoutubeRSSMessageList } from "../youtubeRSS";
 import { ConfigurationService } from "./configuration.service";
 
+export class ChannelMediaRSSCollectionExport {
+  static Instance: ChannelMediaRSSCollectionExport;
+  constructor(public channelMediaCollection: ChannelMediaRSSCollection) {
+    ChannelMediaRSSCollectionExport.Instance = this;
+  }
+}
+
 export interface ChannelMediaRSSCollection {
     nitterRSS: NitterRSSMessageList,
     mastodonRSS: MastodonRSSMessageList,

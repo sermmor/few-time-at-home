@@ -7,6 +7,7 @@ import { TelegramBot } from './telegramBot/telegramBot';
 import { YoutubeRSSMessageList } from './youtubeRSS';
 import { startBackupEveryWeek } from './utils';
 import { readAllConfigurationsFiles } from './API/configuration.service';
+import { ChannelMediaRSSCollectionExport } from './API/messagesRSS.service';
 
 const keysPath = 'keys.json';
 
@@ -30,6 +31,8 @@ readFile(keysPath, (err, data) => {
             blogRSS: new BlogRSSMessageList(),
             youtubeRSS: new YoutubeRSSMessageList()
         };
+
+        const channelMediaRSSCollectionExport = new ChannelMediaRSSCollectionExport(channelMediaCollection);
 
         const bot = new TelegramBot(keyData);
         const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);

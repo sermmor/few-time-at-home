@@ -67,4 +67,11 @@ export class PomodoroService {
       resolve(this.timeModeList);
     });
   });
+
+  fileContent = (): string => JSON.stringify(this.timeModeList, undefined, 2);
+
+  setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
+    this.timeModeList = data;
+    this.setTimeModeList(this.timeModeList).then(() => resolve());
+  });
 };

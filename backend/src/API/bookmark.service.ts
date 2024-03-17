@@ -114,4 +114,11 @@ export class BookmarkService {
     resolve(this.bookmarks);
     console.log("> Bookmark saved!");
   });
+
+  fileContent = (): string => JSON.stringify(this.bookmarks, null, 2);
+
+  setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
+    this.bookmarks = data;
+    this.saveBookmarks().then(() => resolve());
+  });
 }
