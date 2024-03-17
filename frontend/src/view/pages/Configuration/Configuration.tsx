@@ -64,6 +64,7 @@ let indexNewItemAdded = 0;
 export const ConfigurationComponent = () => {
   const [config, setConfig] = React.useState<ConfigurationDataZipped>();
   const [lineToSend, setLineToSend] = React.useState<string>('');
+  const [synchronizeUrl, setSynchronizeUrl] = React.useState<string>(`http://[host_IP]:3001`);
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   const [pomodoroTimeMode, setPomodoroTimeMode] = React.useState<string>('');
   React.useEffect(() => {
@@ -117,15 +118,24 @@ export const ConfigurationComponent = () => {
     {config && <Box sx={formStyle}>
         <Box sx={commandLineStyle}>
           <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Synchronize all data:</Typography>
+          <TextField
+              label="Url backend to Synchronize:"
+              variant="standard"
+              value={synchronizeUrl}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
+              onChange={evt => {
+                setSynchronizeUrl(evt.target.value);
+              }}
+            />
           <Button
               variant='outlined'
               sx={{minWidth: '15.5rem'}}
-              onClick={() => synchronizeActions.uploadData(`http://${'localhost'}:${'3002'}`)}
+              onClick={() => synchronizeActions.uploadData(synchronizeUrl)}
               >Upload</Button>
           <Button
               variant='contained'
               sx={{minWidth: '15.5rem'}}
-              onClick={() => synchronizeActions.downloadData(`http://${'localhost'}:${'3002'}`)}
+              onClick={() => synchronizeActions.downloadData(synchronizeUrl)}
               >Download</Button>
         </Box>
         <>
