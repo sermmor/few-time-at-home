@@ -21,6 +21,9 @@ export const searchBookmarksEndpoint = (): string => `${getUrlApi()}/search-book
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;
 
+export const synchronizeDownloadEndpoint = (): string => `${getUrlApi()}/synchronize/download`;
+export const synchronizeUploadEndpoint = (): string => `${getUrlApi()}/synchronize/upload`;
+
 export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'searchInFolder' | 'deleteFileOrFolder' | 'zipFolder';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',

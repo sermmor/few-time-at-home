@@ -5,6 +5,7 @@ import { ConfigurationDataZipped, getContentConfigurationZippedByType, parseToZi
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
+import { synchronizeActions } from "../../../core/actions/synchronize";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -114,6 +115,19 @@ export const ConfigurationComponent = () => {
 
   return <>
     {config && <Box sx={formStyle}>
+        <Box sx={commandLineStyle}>
+          <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Synchronize all data:</Typography>
+          <Button
+              variant='outlined'
+              sx={{minWidth: '15.5rem'}}
+              onClick={() => synchronizeActions.uploadData(`http://${'192.168.0.176'}:${'3002'}`)}
+              >Upload</Button>
+          <Button
+              variant='contained'
+              sx={{minWidth: '15.5rem'}}
+              onClick={() => synchronizeActions.downloadData(`http://${'192.168.0.176'}:${'3002'}`)}
+              >Download</Button>
+        </Box>
         <>
           <TitleAndList
             title='Nitter Instances'

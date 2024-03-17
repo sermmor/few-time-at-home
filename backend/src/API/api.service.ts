@@ -542,14 +542,17 @@ export class APIService {
 
   private synchronizeService = () => {
     const synchronizeService = new SynchronizeService();
-    
+
     // ESTOY COMO CLIENTE, quiero descargar fichero del servidor.
     // body: req.url
     this.app.post(APIService.synchronize.clientDownloadAppFile, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        synchronizeService.clientDownloadDataFromUrl(`${req.url}/${APIService.synchronize.serverUploadAppFile}`).then(() => console.log("Configuración del cliente sincronizada."));
+        synchronizeService.clientDownloadDataFromUrl(`${req.url}/${APIService.synchronize.serverUploadAppFile}`).then(() => {
+          console.log("Configuración del cliente sincronizada.");
+          res.send({message: "Configuración del cliente sincronizada."});
+        });
       }
     });
 
@@ -559,7 +562,10 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        synchronizeService.clientUploadDataToUrl(`${req.url}/${APIService.synchronize.serverDownloadAppFile}`).then(() => console.log("Configuración sincronizada del cliente subida."));
+        synchronizeService.clientUploadDataToUrl(`${req.url}/${APIService.synchronize.serverDownloadAppFile}`).then(() => {
+          console.log("Configuración sincronizada del cliente subida.");
+          res.send({message: "Configuración sincronizada del cliente subida."});
+        });
       }
     });
 
@@ -570,17 +576,22 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        synchronizeService.serverDownloadDataFromUrl(allFiles.path).then(() => console.log("Configuración del servidor sincronizada."));
+        synchronizeService.serverDownloadDataFromUrl(allFiles.path).then(() => {
+          console.log("Configuración del servidor sincronizada.");
+          res.send({message: "Configuración del servidor sincronizada."});
+        });
       }
     });
 
     // ESTOY COMO SERVIDOR, quiero subir fichero al cliente.
-    // body: req.file
     this.app.post(APIService.synchronize.serverUploadAppFile, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-        synchronizeService.serverUploadDataToUrl(res).then(() => console.log("Configuración sincronizada del servidor subida al cliente."));
+        synchronizeService.serverUploadDataToUrl(res).then(() => {
+          console.log("Configuración sincronizada del servidor subida al cliente.");
+          res.send({message: "Configuración sincronizada del servidor subida al cliente."});
+        });
       }
     });
   }
