@@ -133,6 +133,7 @@ export class ConfigurationService {
         showNitterRSSInAll: this.showNitterRSSInAll,
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
+        twitterData: this.twitterData,
       }
     }
     return (<any> this)[typeConfig];

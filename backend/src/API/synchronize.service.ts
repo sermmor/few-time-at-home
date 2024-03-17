@@ -61,7 +61,7 @@ export class SynchronizeService {
       },
     });
     const dataJson = await res.json();
-    await this.setDataToApplication(dataJson);
+    await this.setDataToApplication(dataJson, false);
   }
 
   // Como servidor, recibo un fichero de sincronización del cliente.
@@ -87,8 +87,21 @@ export class SynchronizeService {
     const data = JSON.stringify(this.collectAllData(), null, 2);
     await writeFile(pathJsonSyncronize, data);
     const options: {root: undefined | string} = {
-      root: path.join(__dirname),
+      root: this.getAbsoluteRoot(),
     };
     await this.sendFileResponse(webResponse, pathJsonSyncronize, options);
+  }
+
+  private getAbsoluteRoot = (): string => {
+    let absoluteRoot = path.join(__dirname);
+    let isPathWindowsStyle = false;
+    let absoluteRootSplitted = absoluteRoot.split('/');
+    if (absoluteRootSplitted.length <= 1) {
+      isPathWindowsStyle = true;
+      absoluteRootSplitted = absoluteRoot.split('\\');
+    }
+    absoluteRootSplitted.pop();
+    absoluteRootSplitted.pop();
+    return absoluteRootSplitted.join(isPathWindowsStyle ? '\\' : '/');
   }
 }
