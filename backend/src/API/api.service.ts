@@ -63,6 +63,10 @@ export class APIService {
     deleteFileOrFolder: '/cloud/delete',
     zipFolder: '/cloud/zip-folder',
   };
+  static synchronize = {
+    downloadAppFile: '/synchronize/download',
+    uploadAppFile: '/synchronize/upload',
+  }
 
   app: Express;
 
