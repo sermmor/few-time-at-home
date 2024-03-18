@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "fs/promises";
 import { createReadStream } from "fs";
 import path from "path";
-import { YoutubeRSSMessageList } from "../youtubeRSS";
+// import { YoutubeRSSMessageList } from "../youtubeRSS";
 import { AlertListService } from "./alertNotification.service";
 import { BookmarkService } from "./bookmark.service";
 import { ConfigurationService } from "./configuration.service";
@@ -9,6 +9,7 @@ import { NotesService } from "./notes.service"
 import { PomodoroService } from "./pomodoro.service";
 import FormData from 'form-data';
 import { readJSONFile } from "../utils";
+import { ChannelMediaRSSCollectionExport } from "./messagesRSS.service";
 
 const fetch = require("node-fetch");
 
@@ -22,7 +23,7 @@ export class SynchronizeService {
     alerts: AlertListService.Instance.fileContent(),
     bookmark: BookmarkService.Instance.fileContent(),
     pomodoro: PomodoroService.Instance.fileContent(),
-    youtube: YoutubeRSSMessageList.fileContent(),
+    youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(), // YoutubeRSSMessageList.fileContent(),
     configuration: ConfigurationService.Instance.fileContent(),
   });
 
@@ -32,7 +33,7 @@ export class SynchronizeService {
     await AlertListService.Instance.setFileContent(data.alerts);
     await BookmarkService.Instance.setFileContent(data.bookmark);
     await PomodoroService.Instance.setFileContent(data.pomodoro);
-    await YoutubeRSSMessageList.setFileContent(data.youtube);
+    await ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.setFileContent(data.youtube); // YoutubeRSSMessageList.setFileContent(data.youtube);
     await ConfigurationService.Instance.setFileContent(data.configuration);
   }
 

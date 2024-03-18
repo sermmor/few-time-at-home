@@ -20,7 +20,7 @@ interface YouTubeRSSUrl {
 
 export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
   public isYoutubeListLoaded = false;
-  public static youtubeLinkAndRssList: YouTubeRSSUrl[] = [];
+  public youtubeLinkAndRssList: YouTubeRSSUrl[] = [];
 
   constructor(
       private rssOptions: ReaderOptions = {
@@ -35,17 +35,17 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
 
   private loadChannelsRssFile = (): Promise<YouTubeRSSUrl[]> => new Promise<YouTubeRSSUrl[]>(resolve => {
     readJSONFile(pathYoutubeRssUrlFile, '[]').then(dataJson => {
-      YoutubeRSSMessageList.youtubeLinkAndRssList = dataJson;
+      this.youtubeLinkAndRssList = dataJson;
       if (Object.values(dataJson).length === 0) {
-        YoutubeRSSMessageList.youtubeLinkAndRssList = [];
+        this.youtubeLinkAndRssList = [];
       }
-      resolve(YoutubeRSSMessageList.youtubeLinkAndRssList);
+      resolve(this.youtubeLinkAndRssList);
     });
   });
 
   private saveChannelsRssFile = (): Promise<YouTubeRSSUrl[]> => new Promise<YouTubeRSSUrl[]>(resolve => {
-    saveInAFile(JSON.stringify(YoutubeRSSMessageList.youtubeLinkAndRssList, null, 2), pathYoutubeRssUrlFile);
-    resolve(YoutubeRSSMessageList.youtubeLinkAndRssList);
+    saveInAFile(JSON.stringify(this.youtubeLinkAndRssList, null, 2), pathYoutubeRssUrlFile);
+    resolve(this.youtubeLinkAndRssList);
     console.log("> Youtube RSS channels saved!");
   });
 
@@ -64,7 +64,7 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
         resolve(`https://www.youtube.com/feeds/videos.xml?channel_id=${code}`);
       }).catch(() => {
         if (currentTry > 0) {
-          setTimeout(() => YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl, youtubeRssUrlFileLoaded, currentTry - 1).then(data => resolve(data)), 100);
+          setTimeout(() => this.getYoutubeRSSUrl(channelUrl, youtubeRssUrlFileLoaded, currentTry - 1).then(data => resolve(data)), 100);
       } else {
           console.error(`> getYoutubeRSSUrl profile ${channelUrl} is broken or deleted!`);
           resolve('');
@@ -78,14 +78,14 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
     let numberOfElements = ConfigurationService.Instance.youtubeRssList.length;
     let rssUrlCandidateIndex = -1;
     ConfigurationService.Instance.youtubeRssList.forEach((channelUrl: YoutubeData) => {
-      rssUrlCandidateIndex = YoutubeRSSMessageList.youtubeLinkAndRssList.findIndex(candidate => candidate.channelUrl === channelUrl.url);
+      rssUrlCandidateIndex = this.youtubeLinkAndRssList.findIndex(candidate => candidate.channelUrl === channelUrl.url);
       if (rssUrlCandidateIndex >= 0) {
-        this.urlProfiles.push(YoutubeRSSMessageList.youtubeLinkAndRssList[rssUrlCandidateIndex].rssUrl);
+        this.urlProfiles.push(this.youtubeLinkAndRssList[rssUrlCandidateIndex].rssUrl);
         numberOfElements--;
       } else {
-        YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl.url, YoutubeRSSMessageList.youtubeLinkAndRssList).then(rssUrl => {
-          if (YoutubeRSSMessageList.youtubeLinkAndRssList.findIndex((rssAndChannelUrl) => rssAndChannelUrl.channelUrl === channelUrl.url) === -1) {
-            YoutubeRSSMessageList.youtubeLinkAndRssList.push({channelUrl: channelUrl.url, rssUrl});
+        YoutubeRSSMessageList.getYoutubeRSSUrl(channelUrl.url, this.youtubeLinkAndRssList).then(rssUrl => {
+          if (this.youtubeLinkAndRssList.findIndex((rssAndChannelUrl) => rssAndChannelUrl.channelUrl === channelUrl.url) === -1) {
+            this.youtubeLinkAndRssList.push({channelUrl: channelUrl.url, rssUrl});
           }
           this.urlProfiles.push(rssUrl);
           numberOfElements--;
@@ -113,11 +113,11 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
   }
 
   private getDataByUrls = (urlLists: string[]): YoutubeInfoByLinks[] => {
-    const originalChannelUrlList = YoutubeRSSMessageList.youtubeLinkAndRssList.filter(channelAndRssData => urlLists.includes(channelAndRssData.rssUrl)).map(channelAndRssData => channelAndRssData.channelUrl);
+    const originalChannelUrlList = this.youtubeLinkAndRssList.filter(channelAndRssData => urlLists.includes(channelAndRssData.rssUrl)).map(channelAndRssData => channelAndRssData.channelUrl);
 
     return ConfigurationService.Instance.youtubeRssList.filter(youtubeData => originalChannelUrlList.includes(youtubeData.url)).map(youtubeData => ({
       ...youtubeData,
-      url: YoutubeRSSMessageList.youtubeLinkAndRssList.filter(channelAndRssData => channelAndRssData.channelUrl === youtubeData.url).map(channelAndRssData => channelAndRssData.rssUrl)[0],
+      url: this.youtubeLinkAndRssList.filter(channelAndRssData => channelAndRssData.channelUrl === youtubeData.url).map(channelAndRssData => channelAndRssData.rssUrl)[0],
       words_to_filter: (youtubeData.words_to_filter === 'defaultToIgnore') ? [] : (youtubeData.words_to_filter || '').toLowerCase().split(' '),
       mandatory_words: (youtubeData.mandatory_words === 'null') ? '' : (youtubeData.mandatory_words || '').toLowerCase(),
     }));
@@ -144,10 +144,10 @@ ${message.originalLink}`
     );
   }
 
-  static fileContent = (): any => YoutubeRSSMessageList.youtubeLinkAndRssList;
+  fileContent = (): any => this.youtubeLinkAndRssList;
 
-  static setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
-    YoutubeRSSMessageList.youtubeLinkAndRssList = data;
-    saveInAFile(JSON.stringify(YoutubeRSSMessageList.youtubeLinkAndRssList, null, 2), pathYoutubeRssUrlFile, () => resolve());
+  setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
+    this.youtubeLinkAndRssList = data;
+    saveInAFile(JSON.stringify(this.youtubeLinkAndRssList, null, 2), pathYoutubeRssUrlFile, () => resolve());
   });
 }
