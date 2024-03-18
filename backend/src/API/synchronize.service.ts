@@ -23,7 +23,7 @@ export class SynchronizeService {
     alerts: AlertListService.Instance.fileContent(),
     bookmark: BookmarkService.Instance.fileContent(),
     pomodoro: PomodoroService.Instance.fileContent(),
-    youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(), // YoutubeRSSMessageList.fileContent(),
+    youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(),
     configuration: ConfigurationService.Instance.fileContent(),
   });
 
@@ -33,7 +33,7 @@ export class SynchronizeService {
     await AlertListService.Instance.setFileContent(data.alerts);
     await BookmarkService.Instance.setFileContent(data.bookmark);
     await PomodoroService.Instance.setFileContent(data.pomodoro);
-    await ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.setFileContent(data.youtube); // YoutubeRSSMessageList.setFileContent(data.youtube);
+    await ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.setFileContent(data.youtube);
     await ConfigurationService.Instance.setFileContent(data.configuration);
   }
 
