@@ -192,12 +192,9 @@ export class ConfigurationService {
     listBotCommands: this.listBotCommands,
     showNitterRSSInAll: this.showNitterRSSInAll,
     numberOfWorkers: this.numberOfWorkers,
-    backupUrls: this.backupUrls,
-    cloudRootPath: this.cloudRootPath,
     apiPort: this.apiPort,
     quoteList: this.quoteList,
     twitterData: this.twitterData,
-    windowsFFMPEGPath: this.windowsFFMPEGPath,
   });
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
@@ -209,12 +206,9 @@ export class ConfigurationService {
     this.listBotCommands = data.listBotCommands;
     this.showNitterRSSInAll = data.showNitterRSSInAll;
     this.numberOfWorkers = data.numberOfWorkers;
-    this.backupUrls = data.backupUrls;
-    this.cloudRootPath = data.cloudRootPath;
     this.apiPort = data.apiPort;
     this.quoteList = data.quoteList;
     this.twitterData = data.twitterData;
-    this.windowsFFMPEGPath = data.windowsFFMPEGPath;
     
     this.configTypes.forEach(typeConfig => this.saveConfigurationByType(typeConfig));
 
