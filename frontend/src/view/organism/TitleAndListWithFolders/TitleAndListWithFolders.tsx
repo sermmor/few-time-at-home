@@ -13,6 +13,7 @@ import SyncIcon from '@mui/icons-material/Sync';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloudCircleIcon from '@mui/icons-material/CloudCircle';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
@@ -71,6 +72,7 @@ interface Props {
   filterFileInEditor?: (id: string) => boolean;
   openFileInEditor?: (id: string) => void;
   createFile?: () => void;
+  showPhotoLibrary?: () => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -94,6 +96,7 @@ export const TitleAndListWithFolders = ({
   filterFileInEditor,
   openFileInEditor,
   createFile,
+  showPhotoLibrary,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -151,12 +154,16 @@ export const TitleAndListWithFolders = ({
         moveItemProcess(false);
         setMoveItemMode(false);
       }}>{isInSelectListMode ? <CheckBoxOutlineBlankIcon /> : <CheckBoxIcon />}</Button>
+
       {
         isInSelectListMode && !isInMoveItemMode && 
           <Button onClick={moveItemProcess(true)}>{<DriveFileMoveIcon />}</Button>
       }
       {
-        isInMoveItemMode && 
+        !isInSelectListMode && <Button onClick={showPhotoLibrary}>{<PhotoLibraryIcon />}</Button>
+      }
+      {
+        isInMoveItemMode &&
           <Button onClick={moveItemProcess(false)}>{<ContentPasteIcon />}</Button>
       }
       {

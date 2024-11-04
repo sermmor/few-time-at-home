@@ -386,3 +386,12 @@ export const zipFolder = (actions: ActionsProps, nameFolder: string) => {
     synchronizeWithCloud(actions);
   });
 };
+
+const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png'];
+
+export const showPhotoLibrary = (listFiles: CloudItem[]) => {
+  const imageListFiles = listFiles.filter(
+    file => imageFileExtensions.filter(extension => file.name.toLowerCase().indexOf(extension) > -1).length > 0
+  );
+  console.log(imageListFiles)
+};
