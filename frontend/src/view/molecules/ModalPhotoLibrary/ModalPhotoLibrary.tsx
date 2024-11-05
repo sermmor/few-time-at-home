@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, Dialog, DialogContent } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -60,7 +60,10 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
 >
   <DialogContent dividers>
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-      <img alt="content" style={{ height: `${window.innerHeight * .814}px` }} src={currentImage}/>
+      <img alt="content" style={{ height: `${window.innerHeight * .74}px` }} src={currentImage}/>
+    </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      {imageListFiles[indexImageFile].name}
     </Box>
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
       <Button disabled={indexImageFile === 0} onClick={() => setImageByIndex(indexImageFile - 1)}><ArrowBackIcon /></Button>
