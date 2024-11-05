@@ -63,7 +63,7 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
       <img alt="content" style={{ height: `${window.innerHeight * .74}px` }} src={currentImage}/>
     </Box>
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      {imageListFiles[indexImageFile].name}
+      {imageListFiles && imageListFiles[indexImageFile] ? imageListFiles[indexImageFile].name : ''}
     </Box>
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
       <Button disabled={indexImageFile === 0} onClick={() => setImageByIndex(indexImageFile - 1)}><ArrowBackIcon /></Button>
