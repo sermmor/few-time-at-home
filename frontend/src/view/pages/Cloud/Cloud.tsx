@@ -8,9 +8,12 @@ import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
-import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor, downloadFile, goBackToParentFolder, moveItemListToFolder, onSearchFileOrFolder, putInSelectedItemList, renameCloudFolder, renameCloudItem, setOpenFolder, showPhotoLibrary, synchronizeWithCloud, uploadFiles, zipFolder } from "./ActionCloudList";
+import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor,
+  downloadFile, downloadFileAndGetBlob, goBackToParentFolder, moveItemListToFolder, onSearchFileOrFolder, putInSelectedItemList, renameCloudFolder, 
+  renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles, zipFolder } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
+import { ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -46,6 +49,7 @@ let indexNewCloudItemAdded = 0;
 
 export const Cloud = () => {
   const navigate = useNavigate();
+  const [isOpenPhotoLibraryDialog, setOpenPhotoLibraryDialog] = React.useState(false);
   const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [fileList, setFileList] = React.useState<CloudItem[]>([]);
@@ -81,6 +85,13 @@ export const Cloud = () => {
   
     // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
 
+  const handleClickOpenPhotoLibraryDialog = () => {
+    setOpenPhotoLibraryDialog(true);
+  };
+  const handleClosePhotoLibraryDialog = () => {
+    setOpenPhotoLibraryDialog(false);
+  };
+
   // Define the event handlers
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -103,7 +114,10 @@ export const Cloud = () => {
     if (event.target.files && event.target.files.length > 0) {
       uploadFiles(action, undefined, event.target.files[0]);
     }
-  }
+  };
+
+  const getUrlCloudFile = (item: CloudItem) => downloadFileAndGetBlob(action, item);
+  const downloadCloudFile = (item: CloudItem) => downloadFile(action, item);
 
   return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
     {fileList && <div
@@ -140,7 +154,7 @@ export const Cloud = () => {
         seeTrashDrive={ changeDrive(action, trashDriveName) }
         updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action)}
-        showPhotoLibrary={() => showPhotoLibrary(fileList)}
+        showPhotoLibrary={() => handleClickOpenPhotoLibraryDialog()}
         list={
           sortFileList(fileList).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
             item.isFolder ?
@@ -175,6 +189,13 @@ export const Cloud = () => {
         {snackBarMessage}
       </Alert>
     </Snackbar>
+    <ModalPhotoLibrary
+      handleClosePhotoLibraryDialog={handleClosePhotoLibraryDialog}
+      isOpenPhotoLibraryDialog={isOpenPhotoLibraryDialog}
+      fileList={fileList}
+      getUrlCloudFile={getUrlCloudFile}
+      downloadCloudFile={downloadCloudFile}
+    />
   </Box>
   </ModalProgressComponent>;
 };

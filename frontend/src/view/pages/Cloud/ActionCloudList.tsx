@@ -153,6 +153,18 @@ export const downloadFile = (
   });
 };
 
+export const downloadFileAndGetBlob = (
+  { currentDrive }: ActionsProps,
+  item: CloudItem,
+): Promise<string> => new Promise<string>(resolve => {
+  CloudActions.downloadFileAndGetBlob({
+    drive: currentDrive || '/',
+    path: item.path,
+  }).then((blob) => {
+    resolve(blob);
+  });
+});
+
 export const downloadAndOpenFileInEditor = (
   {currentPathFolder, currentDrive, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState}: ActionsProps,
   nameFile: string,
@@ -385,16 +397,4 @@ export const zipFolder = (actions: ActionsProps, nameFolder: string) => {
 
     synchronizeWithCloud(actions);
   });
-};
-
-const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png'];
-
-export const showPhotoLibrary = (listFiles: CloudItem[]) => {
-  const imageListFiles = listFiles.filter(
-    file => imageFileExtensions.filter(extension => file.name.toLowerCase().indexOf(extension) > -1).length > 0
-  );
-
-  // TODO USAR ESTO https://mui.com/material-ui/react-dialog/ Hay que gestionar indices y movidas con imageListFiles, pero para 
-  // TODO empezar mostrar una imagen y que funcione las teclas del teclado de adelante y atrás, al igual que el clic del ratón.
-  console.log(imageListFiles)
 };

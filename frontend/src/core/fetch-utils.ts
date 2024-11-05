@@ -120,6 +120,20 @@ export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void
   });
 });
 
+export const fetchDownloadFileAndGetBlob = (url: string, data: DownloadFile): Promise<string> => new Promise<string>(resolve => {
+  fetch(url, {
+    method: 'POST',
+    headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data, null, 2)
+  }).then(res => res.blob())
+  .then( blob => { 
+    resolve(URL.createObjectURL(blob));
+  });
+});
+
 export const fetchGetTextDownloadFile = (url: string, data: DownloadFile): Promise<string> => new Promise<string>(resolve => {
   fetch(url, {
     method: 'POST',
