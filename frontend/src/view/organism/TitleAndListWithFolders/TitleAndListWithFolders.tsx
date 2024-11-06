@@ -216,6 +216,7 @@ export const TitleAndListWithFolders = ({
                   element,
                   deleteAction,
                   isInSelectListMode,
+                  IconOpenFileInEditor: element.id.indexOf('.txt') > -1 ? undefined : <PhotoLibraryIcon />,
                   isElementSelected: isCheckedList[index],
                   onSelect: onSelectItemGeneral(index),
                   onOpenFileInEditor: filterFileInEditor && openFileInEditor && filterFileInEditor(element.id) ? openFileInEditor : undefined,

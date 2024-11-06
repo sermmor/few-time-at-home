@@ -7,12 +7,13 @@ interface Props {
   isInSelectListMode: boolean;
   isElementSelected: boolean;
   element: { id: string, isFolder: boolean, item: string | JSX.Element };
+  IconOpenFileInEditor?: JSX.Element;
   onSelect?: (id: string, checked: boolean) => void;
   deleteAction?: (id: string) => void;
   onOpenFileInEditor?: (id: string) => void;
 }
 
-export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isElementSelected, deleteAction, onSelect, onOpenFileInEditor}: Props) => {
+export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isElementSelected, IconOpenFileInEditor, deleteAction, onSelect, onOpenFileInEditor}: Props) => {
   const [isChecked, setChecked] = React.useState<boolean>(isElementSelected);
 
   if (isChecked !== isElementSelected) setChecked(isElementSelected);
@@ -36,7 +37,7 @@ export const ItemListWithFoldersComponent = ({element, isInSelectListMode, isEle
         {element.item}
         {
           onOpenFileInEditor  && !isInSelectListMode && <IconButton aria-label="edit" onClick={() => onOpenFileInEditor(element.id)}>
-            <EditIcon />
+            {IconOpenFileInEditor ? IconOpenFileInEditor : <EditIcon />}
           </IconButton>
         }
   </>;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, SxProps, Theme } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { CloudItem } from "../../../data-model/cloud";
 import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
@@ -13,7 +14,7 @@ import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, de
   renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles, zipFolder } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
-import { ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
+import { imageFileExtensions, ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -50,6 +51,7 @@ let indexNewCloudItemAdded = 0;
 export const Cloud = () => {
   const navigate = useNavigate();
   const [isOpenPhotoLibraryDialog, setOpenPhotoLibraryDialog] = React.useState(false);
+  const [indexImageInPhotoLibrary, setIndexImageInPhotoLibrary] = React.useState(0);
   const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [fileList, setFileList] = React.useState<CloudItem[]>([]);
@@ -86,9 +88,11 @@ export const Cloud = () => {
     // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
 
   const handleClickOpenPhotoLibraryDialog = () => {
+    setIndexImageInPhotoLibrary(0);
     setOpenPhotoLibraryDialog(true);
   };
   const handleClosePhotoLibraryDialog = () => {
+    setIndexImageInPhotoLibrary(0);
     setOpenPhotoLibraryDialog(false);
   };
 
@@ -119,6 +123,8 @@ export const Cloud = () => {
   const getUrlCloudFile = (item: CloudItem) => downloadFileAndGetBlob(action, item);
   const downloadCloudFile = (item: CloudItem) => downloadFile(action, item);
 
+  const isAnImageFile = (name: string) => imageFileExtensions.filter(extension => name.toLowerCase().indexOf(extension) > -1).length > 0;
+
   return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
     {fileList && <div
         onDragOver={handleDragOver}
@@ -140,8 +146,18 @@ export const Cloud = () => {
         onSearch={onSearchFileOrFolder(action)}
         createFile={() => {indexNewCloudItemAdded++; createBlankFile(action, `new file ${indexNewCloudItemAdded}.txt`);}}
         // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
-        filterFileInEditor={(id) => id.indexOf('.txt') > -1}
-        openFileInEditor={(id) => downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'))}
+        filterFileInEditor={(id) => id.indexOf('.txt') > -1 || isAnImageFile(id)}
+        openFileInEditor={(id) => {
+          if (id.indexOf('.txt') > -1) {
+            downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'));
+          } else {
+            const index = fileList.findIndex(file => file.name === id);
+            console.log(index)
+            setIndexImageInPhotoLibrary(index);
+            setOpenPhotoLibraryDialog(true);
+          }
+        }}
+        // TODO: Poder cambiar el icono del FileInEditor.
         addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
           driveName: currentDrive || '/',
           isFolder: true,
@@ -192,6 +208,7 @@ export const Cloud = () => {
     <ModalPhotoLibrary
       handleClosePhotoLibraryDialog={handleClosePhotoLibraryDialog}
       isOpenPhotoLibraryDialog={isOpenPhotoLibraryDialog}
+      indexPhoto={indexImageInPhotoLibrary}
       fileList={fileList}
       getUrlCloudFile={getUrlCloudFile}
       downloadCloudFile={downloadCloudFile}

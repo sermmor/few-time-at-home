@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { Box, Button, Dialog, DialogContent } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -8,14 +8,15 @@ import { CloudItem } from "../../../data-model/cloud";
 interface Props {
   fileList: CloudItem[];
   isOpenPhotoLibraryDialog: boolean;
+  indexPhoto: number;
   handleClosePhotoLibraryDialog: () => void;
   getUrlCloudFile: (item: CloudItem) => Promise<string>;
   downloadCloudFile: (item: CloudItem) => void; 
 }
 
-const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png'];
+export const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png'];
 
-export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFile, downloadCloudFile, isOpenPhotoLibraryDialog, fileList }: Props): JSX.Element => {
+export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFile, downloadCloudFile, indexPhoto, isOpenPhotoLibraryDialog, fileList }: Props): JSX.Element => {
   const [imageListFiles, setImageListFiles] = React.useState<CloudItem[]>([]);
   const [indexImageFile, setIndexImageFile] = React.useState<number>(0);
   const [isShowingIndexImage, setShowingIndexImage] = React.useState<boolean>(false);
@@ -29,8 +30,8 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
   }, [fileList]);
 
   if (isOpenPhotoLibraryDialog && !isShowingIndexImage) {
-    setIndexImageFile(0);
-    getUrlCloudFile(imageListFiles[0]).then(blob => setCurrentImage(blob));
+    setIndexImageFile(indexPhoto);
+    getUrlCloudFile(imageListFiles[indexPhoto]).then(blob => setCurrentImage(blob));
     setShowingIndexImage(true);
   } else if (!isOpenPhotoLibraryDialog && isShowingIndexImage) {
     setShowingIndexImage(false);
