@@ -20,6 +20,7 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
   const [indexImageFile, setIndexImageFile] = React.useState<number>(0);
   const [isShowingIndexImage, setShowingIndexImage] = React.useState<boolean>(false);
   const [currentImage, setCurrentImage] = React.useState<string>('');
+  const [currentImageStyle, setCurrentImageStyle] = React.useState<React.CSSProperties | undefined>();
 
   React.useEffect(() => {
     setImageListFiles(fileList.filter(
@@ -42,6 +43,30 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
     }
   };
 
+  const rechargeImageStyle = (width: number, height: number) => {
+    if (height >= width) {
+      setCurrentImageStyle({ height: `${window.innerHeight * .74}px` });
+    } else {
+      const newWidth = window.innerWidth * .74;
+      // Calculamos alto por regla de 3.
+      const newHeight = newWidth * height / width;
+      if (newHeight < window.innerHeight * .74) {
+        setCurrentImageStyle({ width: `${window.innerWidth * .74}px` });
+      } else {
+        // Como al pasar al ancho, la imagen es demasiado alta, elegimos reestructurar por el alto.
+        setCurrentImageStyle({ height: `${window.innerHeight * .74}px` });
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    const img = new Image();
+    img.src = currentImage;
+    img.onload = () => {
+      rechargeImageStyle(img.width, img.height);
+    };
+  }, [currentImage]);
+
   return <Dialog
   onClose={handleClosePhotoLibraryDialog}
   aria-labelledby="customized-dialog-title"
@@ -60,7 +85,7 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
 >
   <DialogContent dividers>
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-      <img alt="content" style={{ height: `${window.innerHeight * .74}px` }} src={currentImage}/>
+      <img alt="content" style={currentImageStyle} src={currentImage}/>
     </Box>
     <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       {imageListFiles && imageListFiles[indexImageFile] ? imageListFiles[indexImageFile].name : ''}
