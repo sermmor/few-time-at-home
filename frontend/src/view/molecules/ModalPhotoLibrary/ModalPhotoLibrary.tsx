@@ -8,7 +8,7 @@ import { CloudItem } from "../../../data-model/cloud";
 interface Props {
   fileList: CloudItem[];
   isOpenPhotoLibraryDialog: boolean;
-  indexPhoto: number;
+  nameFirstPhoto: string | undefined;
   handleClosePhotoLibraryDialog: () => void;
   getUrlCloudFile: (item: CloudItem) => Promise<string>;
   downloadCloudFile: (item: CloudItem) => void; 
@@ -16,7 +16,7 @@ interface Props {
 
 export const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png'];
 
-export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFile, downloadCloudFile, indexPhoto, isOpenPhotoLibraryDialog, fileList }: Props): JSX.Element => {
+export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFile, downloadCloudFile, nameFirstPhoto, isOpenPhotoLibraryDialog, fileList }: Props): JSX.Element => {
   const [imageListFiles, setImageListFiles] = React.useState<CloudItem[]>([]);
   const [indexImageFile, setIndexImageFile] = React.useState<number>(0);
   const [isShowingIndexImage, setShowingIndexImage] = React.useState<boolean>(false);
@@ -30,6 +30,7 @@ export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFi
   }, [fileList]);
 
   if (isOpenPhotoLibraryDialog && !isShowingIndexImage) {
+    const indexPhoto = nameFirstPhoto ? imageListFiles.findIndex(item => item.name === nameFirstPhoto) : 0;
     setIndexImageFile(indexPhoto);
     getUrlCloudFile(imageListFiles[indexPhoto]).then(blob => setCurrentImage(blob));
     setShowingIndexImage(true);

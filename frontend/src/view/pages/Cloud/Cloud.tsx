@@ -51,7 +51,7 @@ let indexNewCloudItemAdded = 0;
 export const Cloud = () => {
   const navigate = useNavigate();
   const [isOpenPhotoLibraryDialog, setOpenPhotoLibraryDialog] = React.useState(false);
-  const [indexImageInPhotoLibrary, setIndexImageInPhotoLibrary] = React.useState(0);
+  const [nameImageInPhotoLibrary, setNameImageInPhotoLibrary] = React.useState<string | undefined>();
   const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [fileList, setFileList] = React.useState<CloudItem[]>([]);
@@ -88,11 +88,11 @@ export const Cloud = () => {
     // TODO: Unidad que se sincroniza con Google Drive por medio de su API.
 
   const handleClickOpenPhotoLibraryDialog = () => {
-    setIndexImageInPhotoLibrary(0);
+    setNameImageInPhotoLibrary(undefined);
     setOpenPhotoLibraryDialog(true);
   };
   const handleClosePhotoLibraryDialog = () => {
-    setIndexImageInPhotoLibrary(0);
+    setNameImageInPhotoLibrary(undefined);
     setOpenPhotoLibraryDialog(false);
   };
 
@@ -151,13 +151,10 @@ export const Cloud = () => {
           if (id.indexOf('.txt') > -1) {
             downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'));
           } else {
-            const index = fileList.findIndex(file => file.name === id);
-            console.log(index)
-            setIndexImageInPhotoLibrary(index);
+            setNameImageInPhotoLibrary(id);
             setOpenPhotoLibraryDialog(true);
           }
         }}
-        // TODO: Poder cambiar el icono del FileInEditor.
         addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
           driveName: currentDrive || '/',
           isFolder: true,
@@ -208,7 +205,7 @@ export const Cloud = () => {
     <ModalPhotoLibrary
       handleClosePhotoLibraryDialog={handleClosePhotoLibraryDialog}
       isOpenPhotoLibraryDialog={isOpenPhotoLibraryDialog}
-      indexPhoto={indexImageInPhotoLibrary}
+      nameFirstPhoto={nameImageInPhotoLibrary}
       fileList={fileList}
       getUrlCloudFile={getUrlCloudFile}
       downloadCloudFile={downloadCloudFile}
