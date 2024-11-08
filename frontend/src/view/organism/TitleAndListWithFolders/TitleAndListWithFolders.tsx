@@ -43,6 +43,7 @@ const buttonListStyle: SxProps<Theme> = {
   justifyContent: 'left',
   backgroundColor: 'whitesmoke',
   width: widthBoxes,
+  borderStyle: 'ridge',
 }
 
 const breadcrumbStyle: SxProps<Theme> = {
@@ -148,7 +149,7 @@ export const TitleAndListWithFolders = ({
       {title}
     </Typography>
     {onSearch && <SearchAndList helperText="Search bookmark" widthBoxes={widthBoxes} onSearch={onSearch} />}
-    <Box sx={buttonListStyle}>
+    <Box sx={{...buttonListStyle, position: 'sticky', top: '4.3rem', zIndex: 3}}>
       <Button onClick={() => {
         checkOnSelectListMode(!isInSelectListMode);
         moveItemProcess(false);
@@ -160,7 +161,7 @@ export const TitleAndListWithFolders = ({
           <Button onClick={moveItemProcess(true)}>{<DriveFileMoveIcon />}</Button>
       }
       {
-        !isInSelectListMode && <Button onClick={showPhotoLibrary}>{<PhotoLibraryIcon />}</Button>
+        !isInSelectListMode && showPhotoLibrary && <Button onClick={showPhotoLibrary}>{<PhotoLibraryIcon />}</Button>
       }
       {
         isInMoveItemMode &&
