@@ -14,6 +14,7 @@ import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
+import { EmailData } from './email-data/email-data.interface';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');

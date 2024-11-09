@@ -1,6 +1,8 @@
 import { writeFile, stat, mkdir, readFile, copyFile } from 'fs';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
+import { COMPRESSION_LEVEL, zip } from 'zip-a-folder';
+import { MailService } from './API/mail.service';
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -154,7 +156,7 @@ const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promi
   }));
 }
 
-const runBackup = (pathRootToPaste: string, indexToCopy = 0, nameFolderDate = '') => {
+const runBackup = (pathRootToPaste: string, onFinished: (pathFileZipped: string) => void, indexToCopy = 0, nameFolderDate = '') => {
   if (indexToCopy < pathToCopyList.length) {
     if (indexToCopy === 0) {
       const currentDate = new Date();
@@ -163,23 +165,28 @@ const runBackup = (pathRootToPaste: string, indexToCopy = 0, nameFolderDate = ''
         copyAFileToBackupFolder(
           pathToCopyList[indexToCopy],
           `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
-        .then(() => runBackup(pathRootToPaste, indexToCopy + 1, nameFolderDate));
+        .then(() => runBackup(pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
       });
     } else {
       copyAFileToBackupFolder(
         pathToCopyList[indexToCopy],
         `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
-      .then(() => runBackup(pathRootToPaste, indexToCopy + 1, nameFolderDate));
+      .then(() => runBackup(pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
     }
   } else {
     console.log('> Backup created!');
+    const pathToZip = `${pathRootToPaste}/${nameFolderDate}`;
+    zip(pathToZip, `${pathToZip}.zip`, { compression: COMPRESSION_LEVEL.uncompressed } ).then(() => {
+      console.log(`backup zip file created in ${pathToZip}.zip`);
+      onFinished(`${pathToZip}.zip`);
+    });
   }
 }
 
 export const startBackupEveryWeek = (pathRootToPaste: string) => {
   scheduleJob('do a backup once a week', { hour: 12, minute: 0, dayOfWeek: 1}, () => {
-    runBackup(pathRootToPaste);
+    runBackup(pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
     TelegramBot.Instance().sendNotepadTextToTelegram('Backup created today!');
   });
-  runBackup(pathRootToPaste);
+  runBackup(pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
 }

@@ -8,6 +8,8 @@ import { YoutubeRSSMessageList } from './youtubeRSS';
 import { startBackupEveryWeek } from './utils';
 import { readAllConfigurationsFiles } from './API/configuration.service';
 import { ChannelMediaRSSCollectionExport } from './API/messagesRSS.service';
+import { extractEmailData } from './API/email-data/email-data.interface';
+import { MailService } from './API/mail.service';
 
 const keysPath = 'keys.json';
 
@@ -23,6 +25,9 @@ readFile(keysPath, (err, data) => {
     readAllConfigurationsFiles().then(data => {
         const configurationService = new ConfigurationService(data);
 
+        const emailData = extractEmailData(keyData);
+        const emailService = new MailService(emailData);
+
         startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
 
         channelMediaCollection = {
@@ -37,7 +42,6 @@ readFile(keysPath, (err, data) => {
         const bot = new TelegramBot(keyData);
         const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
         bot.start(commands);
-
         apiService = new APIService(channelMediaCollection, commands);
         
         console.log("> The bot is ready.");
