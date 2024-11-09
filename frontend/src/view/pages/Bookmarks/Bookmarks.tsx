@@ -7,6 +7,7 @@ import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWi
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { ActionsProps, addActionItemList, addFolderActionItemList, deleteActionList, editActionList, editFolderActionList, goBackToParentFolder, isSelectedItemList, moveItemListToFolder, onSearchItem, setOpenFolder } from "./ActionsBookmarkList";
+import { ModalNewName } from "../../molecules/ModalNewName/ModalNewName";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -59,6 +60,7 @@ const getNameFolder = (completePath: string): string => {
 }
 
 export const Bookmarks = () => {
+  const [isOpenNameFolderDialog, setOpenNameFolderDialog] = React.useState(false);
   const [tree, setTree] = React.useState<GenericTree<BookmarkItem>>();
   const [currentTreeNode, setCurrentTreeNode] = React.useState<GenericTree<BookmarkItem>>(); // Current path === currentTreeNode.label
   const [bookmarks, setBookmarks] = React.useState<{data: BookmarkItem[]}>();
@@ -84,10 +86,7 @@ export const Bookmarks = () => {
           deleteAction={(id) => deleteActionList(action, id)}
           onSearch={onSearchItem}
           addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
-          addFolder={() => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
-            title: cleanLabelFolder(`${currentTreeNode!.label}/new folder ${indexNewBookmarkAdded}`),
-            url: `${urlFolder}_${indexNewBookmarkAdded}`
-          }) }}
+          addFolder={() => setOpenNameFolderDialog(true)}
           goBackToParent={() => goBackToParentFolder(action)}
           list={bookmarks.data.map((item, index) => ({id:`${item.url}`, isFolder: item.url.indexOf(urlFolder) > -1, item: <>{
             (item.url.indexOf(urlFolder) > -1) ?
@@ -107,6 +106,17 @@ export const Bookmarks = () => {
               }
             </>
           }))}
+        />    
+        <ModalNewName
+          handleCloseDialog={() => setOpenNameFolderDialog(false)}
+          isOpenDialog={isOpenNameFolderDialog}
+          title='New Folder'
+          description='Write new folder name'
+          defaultName={`new folder ${indexNewBookmarkAdded}`}
+          onAcceptNewName={(newName) => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
+            title: cleanLabelFolder(`${currentTreeNode!.label}/${newName}`),
+            url: `${urlFolder}_${indexNewBookmarkAdded}`
+          }) }}
         />
         <SaveNotesComponent tree={tree!}/>
       </>
