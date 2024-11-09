@@ -29,6 +29,7 @@ const ToolbarDesktopAndTablet = () => {
       >
         FEW_TIME@HOME
       </Typography>
+      {/* TODO: AGRUPAR BOTONES DE CLOUD EN UN MENÚ {Cloud: Files, Editor, MP3 Converter} */}
       <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
         {pages.map(({name, path}) => (
           <Button
