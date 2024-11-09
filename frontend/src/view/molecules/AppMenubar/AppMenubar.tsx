@@ -29,7 +29,8 @@ const ToolbarDesktopAndTablet = () => {
       >
         FEW_TIME@HOME
       </Typography>
-      {/* TODO: AGRUPAR BOTONES DE CLOUD EN UN MENÚ {Cloud: Files, Editor, MP3 Converter} */}
+      {/* TODO: AGRUPAR BOTONES DE CLOUD EN UN MENÚ {Cloud: Files, Editor, MP3 Converter} 
+      TODO: REVISAR posición de la barra de TitleAndListWithFolders.tsx (VER TODO) cuando se agrupen esos botones. */}
       <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
         {pages.map(({name, path}) => (
           <Button
