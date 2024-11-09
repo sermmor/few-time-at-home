@@ -15,6 +15,7 @@ import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, de
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 import { imageFileExtensions, ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
+import { ModalNewName } from "../../molecules/ModalNewName/ModalNewName";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -51,6 +52,8 @@ let indexNewCloudItemAdded = 0;
 export const Cloud = () => {
   const navigate = useNavigate();
   const [isOpenPhotoLibraryDialog, setOpenPhotoLibraryDialog] = React.useState(false);
+  const [isOpenNameFileDialog, setOpenNameFileDialog] = React.useState(false);
+  const [isOpenNameFolderDialog, setOpenNameFolderDialog] = React.useState(false);
   const [nameImageInPhotoLibrary, setNameImageInPhotoLibrary] = React.useState<string | undefined>();
   const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
@@ -91,6 +94,7 @@ export const Cloud = () => {
     setNameImageInPhotoLibrary(undefined);
     setOpenPhotoLibraryDialog(true);
   };
+  
   const handleClosePhotoLibraryDialog = () => {
     setNameImageInPhotoLibrary(undefined);
     setOpenPhotoLibraryDialog(false);
@@ -144,8 +148,7 @@ export const Cloud = () => {
         onOutSelectionMode={() => setSelectedNodes([])}
         onMoveItem={() => moveItemListToFolder(action)}
         onSearch={onSearchFileOrFolder(action)}
-        createFile={() => {indexNewCloudItemAdded++; createBlankFile(action, `new file ${indexNewCloudItemAdded}.txt`);}}
-        // addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
+        createFile={() => setOpenNameFileDialog(true)}
         filterFileInEditor={(id) => id.indexOf('.txt') > -1 || isAnImageFile(id)}
         openFileInEditor={(id) => {
           if (id.indexOf('.txt') > -1) {
@@ -154,13 +157,8 @@ export const Cloud = () => {
             setNameImageInPhotoLibrary(id);
             setOpenPhotoLibraryDialog(true);
           }
-        }}
-        addFolder={() => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
-          driveName: currentDrive || '/',
-          isFolder: true,
-          name: `new folder ${indexNewCloudItemAdded}`,
-          path: `${currentPathFolder}/new folder ${indexNewCloudItemAdded}`,
-        })}}
+        }} 
+        addFolder={() => setOpenNameFolderDialog(true)}
         // filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
         deleteAction={(id) => deleteItemAction(action, id)}
         seeCloudDrive={ changeDrive(action, cloudDriveName) }
@@ -209,6 +207,27 @@ export const Cloud = () => {
       fileList={fileList}
       getUrlCloudFile={getUrlCloudFile}
       downloadCloudFile={downloadCloudFile}
+    />
+    <ModalNewName
+      handleCloseDialog={() => setOpenNameFileDialog(false)}
+      isOpenDialog={isOpenNameFileDialog}
+      title='New File'
+      description='Write new file name'
+      defaultName={`new file ${indexNewCloudItemAdded}.txt`}
+      onAcceptNewName={(newName) => {indexNewCloudItemAdded++; createBlankFile(action, newName);}}
+    />
+    <ModalNewName
+      handleCloseDialog={() => setOpenNameFolderDialog(false)}
+      isOpenDialog={isOpenNameFolderDialog}
+      title='New Folder'
+      description='Write new folder name'
+      defaultName={`new folder ${indexNewCloudItemAdded}`}
+      onAcceptNewName={(newName) => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
+        driveName: currentDrive || '/',
+        isFolder: true,
+        name: newName,
+        path: `${currentPathFolder}/${newName}`,
+      })}}
     />
   </Box>
   </ModalProgressComponent>;

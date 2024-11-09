@@ -149,7 +149,8 @@ export const TitleAndListWithFolders = ({
       {title}
     </Typography>
     {onSearch && <SearchAndList helperText="Search bookmark" widthBoxes={widthBoxes} onSearch={onSearch} />}
-    <Box sx={{...buttonListStyle, position: 'sticky', top: '4.3rem', zIndex: 3}}>
+    {/* TODO: EN EL SIGUIENTE Box, HACER QUE top CUANDO SE ACHIQUE LA BARRA: md === lg  */}
+    <Box sx={{...buttonListStyle, position: {xs: 'static', sm:'sticky'}, top: {md: '5.78rem', lg: '4.3rem'}, zIndex: {xs: 0, md: 3}}}>
       <Button onClick={() => {
         checkOnSelectListMode(!isInSelectListMode);
         moveItemProcess(false);
