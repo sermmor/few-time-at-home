@@ -24,7 +24,7 @@ export class MailService {
      const mailOptions = {
       from: this.data.email_user,
       to: this.data.email_user,
-      subject: `A new Few_Time@Home backup at ${nameFolderDate}`,
+      subject: `${this.data.email_prelude}A new Few_Time@Home backup at ${nameFolderDate}`,
       text: "Here comes the backup of today. Have a nice day! :D",
       attachments: [
         {
