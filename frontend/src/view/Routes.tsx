@@ -10,9 +10,10 @@ import { Pomodoro } from "./pages/Pomodoro/Pomodoro";
 import { Rss } from "./pages/Rss/Rss";
 import { TextEditor } from "./pages/TextEditor/TextEditor";
 
-interface RouteFTAHElement {
+export interface RouteFTAHElement {
   name: string;
   path: string;
+  group: string;
   element: JSX.Element;
   isHiddenInMenuBar?: boolean;
 }
@@ -21,56 +22,67 @@ export const routesFTAH: RouteFTAHElement[] = [
   {
     name: 'Home',
     path: '/',
+    group: '',
     element: <Home/>,
   },
   {
-    name: 'Cloud',
-    path: '/cloud',
+    name: 'Files',
+    path: '/cloud/files',
+    group: 'Cloud',
     element: <Cloud/>,
   },
   {
     name: 'Bookmarks',
     path: '/bookmarks',
+    group: '',
     element: <Bookmarks/>,
   },
   {
     name: 'Notifications',
     path: '/notifications',
+    group: '',
     element: <Notifications/>,
   },
   {
     name: 'Rss',
     path: '/rss',
+    group: '',
     element: <Rss/>,
   },
   {
     name: 'Pomodoro',
     path: '/Pomodoro',
+    group: '',
     element: <Pomodoro/>,
   },
   {
     name: 'Notepad',
     path: '/notepad',
+    group: '',
     element: <Notepad/>,
   },
   {
     name: 'Text Editor',
-    path: '/text-editor',
+    path: '/cloud/text-editor',
+    group: 'Cloud',
     element: <TextEditor/>,
   },
   {
     name: 'MP3 Converter',
-    path: '/mp3-converter',
+    path: '/cloud/mp3-converter',
+    group: 'Cloud',
     element: <Mp3Converter/>,
   },
   {
     name: 'Configuration',
     path: '/configuration',
+    group: '',
     element: <ConfigurationComponent/>,
   },
   {
     name: 'Error',
     path: "*",
+    group: '',
     element: <NotFound />,
     isHiddenInMenuBar: true,
   },

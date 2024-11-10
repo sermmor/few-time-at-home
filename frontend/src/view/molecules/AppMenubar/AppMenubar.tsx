@@ -1,14 +1,30 @@
 import * as React from 'react';
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Button, MenuItem } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import MenuIcon from '@mui/icons-material/Menu';
 import CottageIcon from '@mui/icons-material/Cottage';
 import { useNavigate } from 'react-router-dom';
-import { routesFTAH } from '../../Routes';
+import { RouteFTAHElement, routesFTAH } from '../../Routes';
 
-const pages = routesFTAH.filter(route => !route.isHiddenInMenuBar);
+const pages = routesFTAH
+  .filter(route => !route.isHiddenInMenuBar);
 
+type PageData = RouteFTAHElement | {name: string, pages: RouteFTAHElement[]};
 const ToolbarDesktopAndTablet = () => {
   const navigate = useNavigate();
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+
+  const groupsNames = pages.map(p => p.group).filter((item, pos, self) => {
+    return self.indexOf(item) === pos;
+  }).filter(item => item !== '');
+  const pagesWithoutGroups = pages.filter(p => p.group === '');
+  const groupsWithPages = groupsNames.map(nameGroup => ({
+    name: nameGroup,
+    pages: pages.filter(p => p.group === nameGroup),
+  }));
+  const allPages: PageData[] = [pagesWithoutGroups[0], ...groupsWithPages, ...pagesWithoutGroups.filter((value, index) => index !== 0)];
+
+  
   return (
     <>
       <CottageIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, ml: 2 }} />
@@ -29,18 +45,61 @@ const ToolbarDesktopAndTablet = () => {
       >
         FEW_TIME@HOME
       </Typography>
-      {/* TODO: AGRUPAR BOTONES DE CLOUD EN UN MENÚ {Cloud: Files, Editor, MP3 Converter} 
-      TODO: REVISAR posición de la barra de TitleAndListWithFolders.tsx (VER TODO) cuando se agrupen esos botones. */}
       <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-        {pages.map(({name, path}) => (
-          <Button
-            key={name}
-            onClick={() => navigate(path)}
-            sx={{ my: 2, color: 'white', display: 'block' }}
+        {allPages.map((p) => {
+          if ('pages' in p) {
+            return <>
+            <Button
+              aria-label={p.name}
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={event => {setAnchorElNav(event.currentTarget); console.log('currentTarget', event.currentTarget)}}
+              sx={{ my: 2, color: 'white', display: 'flex' }}
+              color="inherit"
+            >
+              {p.name} <ArrowDropDownIcon/>
+            </Button>
+            <Menu
+            id="menu-appbar"
+            anchorEl={anchorElNav}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'left',
+            }}
+            open={!!anchorElNav}
+            key={p.name}
+            onClose={() => setAnchorElNav(null)}
           >
-            {name}
-          </Button>
-        ))}
+            {p.pages.map(({name, path}) => (
+              <MenuItem
+                key={name}
+                onClick={() => {
+                  navigate(path);
+                  setAnchorElNav(null);
+                }}
+              >
+                <Typography textAlign="center">{name}</Typography>
+              </MenuItem>
+            ))}
+          </Menu></>;
+          } else {
+            const {name, path} = p;
+            return (
+              <Button
+                key={name}
+                onClick={() => navigate(path)}
+                sx={{ my: 2, color: 'white', display: 'block' }}
+              >
+                {name}
+              </Button>
+            )
+          }
+        })}
       </Box>
     </>
   );
