@@ -2,12 +2,12 @@ import { Box, TextField } from "@mui/material";
 import React from "react";
 
 const parseShortDateToLongDate = (date: string): string => {
-  // TODO: From '2023-03-22T11:02' to '2023-03-22T11:02:02.070Z'
+  // From '2023-03-22T11:02' to '2023-03-22T11:02:02.070Z'
   return `${date}:00.000Z`;
 }
 
 const parseLongDateToShortDate = (date: string): string => {
-  // TODO: From '2023-03-22T11:02:02.070Z' to '2023-03-22T11:02'
+  // From '2023-03-22T11:02:02.070Z' to '2023-03-22T11:02'
   return date.split(':').slice(0, 2).join(':');
 }
 
