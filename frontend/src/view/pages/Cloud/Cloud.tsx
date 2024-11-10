@@ -152,7 +152,7 @@ export const Cloud = () => {
         filterFileInEditor={(id) => id.indexOf('.txt') > -1 || isAnImageFile(id)}
         openFileInEditor={(id) => {
           if (id.indexOf('.txt') > -1) {
-            downloadAndOpenFileInEditor(action, id).then(() => navigate('/text-editor'));
+            downloadAndOpenFileInEditor(action, id).then(() => navigate('/cloud/text-editor'));
           } else {
             setNameImageInPhotoLibrary(id);
             setOpenPhotoLibraryDialog(true);
