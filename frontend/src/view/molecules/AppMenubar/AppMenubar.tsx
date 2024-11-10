@@ -1,18 +1,17 @@
 import * as React from 'react';
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Button, MenuItem } from '@mui/material';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import MenuIcon from '@mui/icons-material/Menu';
 import CottageIcon from '@mui/icons-material/Cottage';
 import { useNavigate } from 'react-router-dom';
 import { RouteFTAHElement, routesFTAH } from '../../Routes';
-
-const pages = routesFTAH
-  .filter(route => !route.isHiddenInMenuBar);
+import { MenuPageItem } from './components/MenuPageItem';
 
 type PageData = RouteFTAHElement | {name: string, pages: RouteFTAHElement[]};
+
+const pages = routesFTAH.filter(route => !route.isHiddenInMenuBar);
+
 const ToolbarDesktopAndTablet = () => {
   const navigate = useNavigate();
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 
   const groupsNames = pages.map(p => p.group).filter((item, pos, self) => {
     return self.indexOf(item) === pos;
@@ -24,7 +23,6 @@ const ToolbarDesktopAndTablet = () => {
   }));
   const allPages: PageData[] = [pagesWithoutGroups[0], ...groupsWithPages, ...pagesWithoutGroups.filter((value, index) => index !== 0)];
 
-  
   return (
     <>
       <CottageIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, ml: 2 }} />
@@ -48,45 +46,7 @@ const ToolbarDesktopAndTablet = () => {
       <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
         {allPages.map((p) => {
           if ('pages' in p) {
-            return <>
-            <Button
-              aria-label={p.name}
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={event => {setAnchorElNav(event.currentTarget); console.log('currentTarget', event.currentTarget)}}
-              sx={{ my: 2, color: 'white', display: 'flex' }}
-              color="inherit"
-            >
-              {p.name} <ArrowDropDownIcon/>
-            </Button>
-            <Menu
-            id="menu-appbar"
-            anchorEl={anchorElNav}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'left',
-            }}
-            open={!!anchorElNav}
-            key={p.name}
-            onClose={() => setAnchorElNav(null)}
-          >
-            {p.pages.map(({name, path}) => (
-              <MenuItem
-                key={name}
-                onClick={() => {
-                  navigate(path);
-                  setAnchorElNav(null);
-                }}
-              >
-                <Typography textAlign="center">{name}</Typography>
-              </MenuItem>
-            ))}
-          </Menu></>;
+            return <MenuPageItem page={p} />;
           } else {
             const {name, path} = p;
             return (

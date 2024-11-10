@@ -34,7 +34,7 @@ export const routesFTAH: RouteFTAHElement[] = [
   {
     name: 'Bookmarks',
     path: '/bookmarks',
-    group: '',
+    group: 'Internet',
     element: <Bookmarks/>,
   },
   {
@@ -46,7 +46,7 @@ export const routesFTAH: RouteFTAHElement[] = [
   {
     name: 'Rss',
     path: '/rss',
-    group: '',
+    group: 'Internet',
     element: <Rss/>,
   },
   {
