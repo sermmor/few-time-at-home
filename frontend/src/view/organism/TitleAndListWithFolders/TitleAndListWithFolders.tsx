@@ -44,7 +44,9 @@ const buttonListStyle: SxProps<Theme> = {
   justifyContent: 'left',
   backgroundColor: 'whitesmoke',
   width: widthBoxes,
-  borderStyle: 'ridge',
+  borderStyle: 'solid',
+  borderWidth: '.05rem',
+  borderColor: '#9f9f9f',
 }
 
 const breadcrumbStyle: SxProps<Theme> = {
