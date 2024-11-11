@@ -26,7 +26,7 @@ export interface ActionsProps {
   driveList: string[] | undefined;
 }
 
-export const goBackToParentFolder = ({currentPathFolder, setCurrentPathFolder, setFileList, currentDrive}: ActionsProps) => {
+export const goBackToParentFolder = ({currentPathFolder, setCurrentPathFolder, setFileList, currentDrive}: ActionsProps) => new Promise<string>(resolve =>{
   const parentPathFolder = getPathFolderContainer(currentPathFolder);
   if (parentPathFolder !== '') {
     CloudActions.getAllFolderItems({
@@ -35,11 +35,12 @@ export const goBackToParentFolder = ({currentPathFolder, setCurrentPathFolder, s
     }).then(res => {
       setCurrentPathFolder(parentPathFolder);
       setFileList(res.data);
+      resolve(parentPathFolder.substring(5));
     });
   }
-}
+});
 
-export const setOpenFolder = ({currentPathFolder, currentDrive, setCurrentPathFolder, setFileList}: ActionsProps, labelFolder: string) => {
+export const setOpenFolder = ({currentPathFolder, currentDrive, setCurrentPathFolder, setFileList}: ActionsProps, labelFolder: string) => new Promise<string>(resolve =>{
   const newPath = `${currentPathFolder}/${labelFolder}`;
   CloudActions.getAllFolderItems({
     drive: currentDrive,
@@ -47,8 +48,9 @@ export const setOpenFolder = ({currentPathFolder, currentDrive, setCurrentPathFo
   }).then(res => {
     setCurrentPathFolder(newPath);
     setFileList(res.data);
+    resolve(newPath.substring(5));
   });
-}
+});
 
 export const synchronizeWithCloud = ({currentDrive, currentPathFolder, setCurrentPathFolder, setFileList}: ActionsProps) => {
   CloudActions.getAllFolderItems({
@@ -312,14 +314,16 @@ const downloadFileOnlyWithPath = (
   });
 };
 
-export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive}: ActionsProps, driveNameToChange: string) => () => {
+export const changeDrive = ({currentDrive, driveList, indexCurrentDrive, setIndexCurrentDrive, setCurrentPathFolder}: ActionsProps, driveNameToChange: string) => new Promise<string>(resolve =>{
   if (currentDrive !== driveNameToChange && driveList) {
     const driveIndex = driveList.indexOf(driveNameToChange);
     if (driveIndex > -1 && indexCurrentDrive !== driveIndex) {
       setIndexCurrentDrive(driveIndex);
+      setCurrentPathFolder(currentDrive);
+      resolve('');
     }
   }
-}
+});
 
 export const deleteItemAction = (actions: ActionsProps, nameFile: string) => {
   const {currentPathFolder, currentDrive, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar, fileList, setFileList} = actions;

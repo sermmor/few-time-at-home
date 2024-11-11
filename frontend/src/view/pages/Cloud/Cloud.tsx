@@ -1,9 +1,8 @@
 import React from "react";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, SxProps, Theme } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { CloudItem } from "../../../data-model/cloud";
 import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
@@ -16,6 +15,7 @@ import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/M
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 import { imageFileExtensions, ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
 import { ModalNewName } from "../../molecules/ModalNewName/ModalNewName";
+import { cloudFilesName, routesFTAH } from "../../Routes";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -51,6 +51,11 @@ let indexNewCloudItemAdded = 0;
 
 export const Cloud = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const decodedPathname = decodeURIComponent(pathname);
+  const cloudRootPath = routesFTAH.find(({name}) => name === cloudFilesName)?.path || '';
+  const [, setCurrentCloudPath] = React.useState<string>(`cloud${decodedPathname.split(cloudRootPath)[1]}`);
+
   const [isOpenPhotoLibraryDialog, setOpenPhotoLibraryDialog] = React.useState(false);
   const [isOpenNameFileDialog, setOpenNameFileDialog] = React.useState(false);
   const [isOpenNameFolderDialog, setOpenNameFolderDialog] = React.useState(false);
@@ -77,12 +82,14 @@ export const Cloud = () => {
     setIndexCurrentDrive(indexCloudDrive);
     const defaultDrive = driveList[indexCloudDrive];
     setCurrentDrive(defaultDrive);
-    setCurrentPathFolder(defaultDrive);
-    CloudActions.getAllFolderItems({ drive: defaultDrive, folderPath: defaultDrive }).then(data => {
-      // console.log(data)
+    
+    const nextCloudPathUpdated = `${defaultDrive}${decodedPathname.split(cloudRootPath)[1]}`;
+    setCurrentCloudPath(nextCloudPathUpdated)
+    setCurrentPathFolder(nextCloudPathUpdated);
+    CloudActions.getAllFolderItems({ drive: defaultDrive, folderPath: nextCloudPathUpdated }).then(data => {
       setFileList(data.data);
     });
-  })}, [indexCurrentDrive]);
+  })}, [indexCurrentDrive, setCurrentCloudPath, decodedPathname, cloudRootPath]);
 
   const action: ActionsProps = { cloudState, setCloudState, currentPathFolder, setCurrentPathFolder, fileList, setFileList, currentDrive, selectedNodes,
     setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar, isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn,
@@ -161,10 +168,10 @@ export const Cloud = () => {
         addFolder={() => setOpenNameFolderDialog(true)}
         // filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
         deleteAction={(id) => deleteItemAction(action, id)}
-        seeCloudDrive={ changeDrive(action, cloudDriveName) }
-        seeTrashDrive={ changeDrive(action, trashDriveName) }
+        seeCloudDrive={ () => changeDrive(action, cloudDriveName).then(res => navigate('')) }
+        seeTrashDrive={ () => changeDrive(action, trashDriveName).then(res => navigate('')) }
         updateContent={() => synchronizeWithCloud(action)}
-        goBackToParent={() => goBackToParentFolder(action)}
+        goBackToParent={() => goBackToParentFolder(action).then(res => navigate(`${cloudRootPath}${res}`))}
         showPhotoLibrary={() => handleClickOpenPhotoLibraryDialog()}
         list={
           sortFileList(fileList).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
@@ -176,7 +183,7 @@ export const Cloud = () => {
                 nameFolder={item.name}
                 zipInFolder={(label) => zipFolder(action, label)}
                 onChange={renameCloudFolder(action, `${item.path}`)}
-                setOpenFolder={(label) => setOpenFolder(action, label)}
+                setOpenFolder={(label) => setOpenFolder(action, label).then(res => navigate(`${cloudRootPath}${res}`))}
                 />
             :
               <LabelAndUrlField

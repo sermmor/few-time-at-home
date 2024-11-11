@@ -12,7 +12,7 @@ const AllRoutes = () => {
   return <BrowserRouter>
     <Routes>
       {
-        routesFTAH.map(({name: nameRoute, path, element}) =>
+        routesFTAH.map(({name: nameRoute, path, element, includeSubroutes}) =>
           <Route
             key={nameRoute}
             path={path}
@@ -27,7 +27,9 @@ const AllRoutes = () => {
                 </Box>
               </>
             }
-          />
+          >
+            {includeSubroutes && <Route path="*" />}
+          </Route>
         )
       }
     </Routes>

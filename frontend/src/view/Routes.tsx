@@ -16,7 +16,10 @@ export interface RouteFTAHElement {
   group: string;
   element: JSX.Element;
   isHiddenInMenuBar?: boolean;
+  includeSubroutes?: boolean;
 }
+
+export const cloudFilesName = 'Cloud files';
 
 export const routesFTAH: RouteFTAHElement[] = [
   {
@@ -26,16 +29,18 @@ export const routesFTAH: RouteFTAHElement[] = [
     element: <Home/>,
   },
   {
-    name: 'Files',
+    name: cloudFilesName,
     path: '/cloud/files',
     group: 'Cloud',
     element: <Cloud/>,
+    includeSubroutes: true,
   },
   {
     name: 'Bookmarks',
     path: '/bookmarks',
     group: 'Internet',
     element: <Bookmarks/>,
+    includeSubroutes: true,
   },
   {
     name: 'Notifications',
