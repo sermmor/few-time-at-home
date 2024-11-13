@@ -1,13 +1,9 @@
 import { readJSONFile, saveInAFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
+import { stat } from "fs/promises";
+import { Bookmark, parseFromOldBookmarks } from "./bookmarks/bookmarks-utils";
 
 const pathBookmarkFile = 'data/bookmark.json';
-
-export interface Bookmark {
-  url: string;
-  title: string;
-  path: string;
-}
 
 export class BookmarkService {
   static Instance: BookmarkService;
@@ -17,6 +13,8 @@ export class BookmarkService {
     this.bookmarks = [];
     BookmarkService.Instance = this;
   }
+
+  static parseFromOldBookmarks = async(): Promise<void> => parseFromOldBookmarks();
 
   getBookmarks = (): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
     if (this.bookmarks.length > 0) {

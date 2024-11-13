@@ -85,6 +85,9 @@ export const saveInAFile = (str: string, savePath: string = 'data/result.html', 
     });
 }
 
+export const saveInAFilePromise = (str: string, savePath: string = 'data/result.html'): Promise<string> => new Promise<string>(
+  resolve => saveInAFile(str, savePath, (str) => resolve(str)))
+
 export const readJSONFile = (pathFile: string, contentByDefault: string): Promise<any> => new Promise<any>(resolve => {
   readFile(pathFile, (err: any, data: any) => {
     if (err) {
@@ -120,7 +123,7 @@ export class ExtractorUtilities {
 const pathToCopyList = [
   'data/notes.txt',
   'data/alerts.json',
-  'data/bookmark.json',
+  'data/bookmark.json', // TODO: Sustituir por toda la carpeta de bookmarks.
   'data/pomodoro.json',
   'data/youtube_rss_urls.json',
   'keys.json',
@@ -136,7 +139,7 @@ const pathToCopyList = [
 const pathToPasteList = [
   'notes.txt',
   'alerts.json',
-  'bookmark.json',
+  'bookmark.json', // TODO: Sustituir por toda la carpeta de bookmarks.
   'pomodoro.json',
   'youtube_rss_urls.json',
   'keys.json',
