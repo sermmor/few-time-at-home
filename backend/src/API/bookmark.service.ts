@@ -1,6 +1,5 @@
 import { readJSONFile, saveInAFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
-import { stat } from "fs/promises";
 import { Bookmark, parseFromOldBookmarks } from "./bookmarks/bookmarks-utils";
 
 const pathBookmarkFile = 'data/bookmark.json';
@@ -116,6 +115,7 @@ export class BookmarkService {
   fileContent = (): any => this.bookmarks;
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
+    // TODO: Sincronizar marcadores, esto hay que hacerlo fichero por fichero. Lo suyo es eliminar todos los ficheros (haz un backup antes).
     this.bookmarks = data;
     this.saveBookmarks().then(() => resolve());
   });
