@@ -1,8 +1,14 @@
 import { readJSONFile, saveInAFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
-import { Bookmark, parseFromOldBookmarks } from "./bookmarks/bookmarks-utils";
+import { parseFromOldBookmarks } from "./bookmarks/bookmarks-utils";
 
 const pathBookmarkFile = 'data/bookmark.json';
+
+export interface Bookmark {
+  url: string;
+  title: string;
+  path: string; // TODO: Param deprecated => REMOVE
+}
 
 export class BookmarkService {
   static Instance: BookmarkService;
