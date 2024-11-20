@@ -172,13 +172,33 @@ export const editFolder = async(indexList: BookmarkIndexEntry[], oldPathFolderIn
 };
 
 export const editBookmark = async(nameFileBookmarkPath: string, oldBookmark: Bookmark, newBookmark: Bookmark) => {
-   // Cambiar nombre o url del marcador
   const dataJson: Bookmark[] = await readJSONFile(nameFileBookmarkPath, '[]');
   const dataJsonWithoutBookmark = dataJson.filter(b => b.url !== oldBookmark.url);
 
   // We save in bookmark file, the content without the entry selected to delete.
   await saveInAFilePromise(JSON.stringify([...dataJsonWithoutBookmark, newBookmark], null, 2), nameFileBookmarkPath);
+};
+
+export const createBookmark = async(indexList: BookmarkIndexEntry[], pathFolderInBookmark: string, bookmark: Bookmark) => {
+  const entry = indexList.filter(b => b.pathInBookmark === pathFolderInBookmark)[0];
+  const dataJson: Bookmark[] = await readJSONFile(entry.nameFile, '[]');
+  dataJson.push(bookmark);
+  await saveInAFilePromise(JSON.stringify(dataJson, null, 2), entry.nameFile);
+};
+
+export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBookmark: string) => {
+  const indexNewBookmark = indexList.length;
+  const newFolder: BookmarkIndexEntry = {
+    nameFile: `${bookmarkFolderPath}/b${indexNewBookmark}.json`,
+    pathInBookmark: newPathInBookmark,
+  }
+  indexList.push(newFolder);
+  await saveInAFilePromise(JSON.stringify(indexList, null, 2), bookmarkIndexFilePath);
 }
+// TODO: export const removeBookmarkFromTrash // Borramos definitivamente un marcador de la trash.json (en la trash NO hay carpetas).
+// TODO: export const getTrash = (numberPage: number): Bookmarks[] // La papelera viene paginada (50 marcadores por página máximo).
+// TODO: export const searchBookmarkOrFolder // Busca una palabra clave entre el índice de carpetas y todos los marcadores, ordenamos el resultado tal y como en searchInBookmark (MÁXIMO 100 resultados).
+// TODO: export const searchInTrashBookmarkOrFolder // Lo mismo que el de arriba pero buscando en la trash.json.
 
 export const moveBookmarksAndFolders = async (
   indexList: BookmarkIndexEntry[],
@@ -186,17 +206,10 @@ export const moveBookmarksAndFolders = async (
   oldPath: string,
   newPath: string
 ) => {
-
+  // ! HACER.
   /* TODO Mueve un listado de carpetas y marcadores de ubicación (los marcadores se mueven de fichero,
     las carpetas se modifica su path en el índice). */
-}
-// TODO: export const createBookmark // Crea un nuevo marcador en la carpeta correspondiente (su b.json)
-// TODO: export const createFolder // Crea una nueva carpeta en el índice.
-// TODO: export const removeBookmarkFromTrash // Borramos definitivamente un marcador de la trash.json (en la trash NO hay carpetas).
-// TODO: export const getTrash = (numberPage: number): Bookmarks[] // La papelera viene paginada (50 marcadores por página máximo).
-// TODO: export const searchBookmarkOrFolder // Busca una palabra clave entre el índice de carpetas y todos los marcadores, ordenamos el resultado tal y como en searchInBookmark (MÁXIMO 100 resultados).
-// TODO: export const searchInTrashBookmarkOrFolder // Lo mismo que el de arriba pero buscando en la trash.json.
-
+};
 
 // TODO: NO OLVIDAR QUE LA CARPETA DE BOOKMARK ENTERA (todos los ficheros) DEBE ENTRAR EN EL BACKUP.
 // TODO: NO OLVIDAR DESCOMENTAR EL BACKUP DE INDEX.TS Y BORRAR LA LÍNEA 32 EN INDEX.TS, COLOCANDO LA LLAMADA EN bookmark.service.ts
