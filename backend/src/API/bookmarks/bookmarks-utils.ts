@@ -1,5 +1,6 @@
 import { mkdir, rename, rm, stat } from "fs/promises";
 import { readJSONFile, saveInAFilePromise } from "../../utils";
+import { trashDefaultPath } from "../cloud.service";
 
 export interface Bookmark {
   url: string;
@@ -194,9 +195,41 @@ export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBook
   }
   indexList.push(newFolder);
   await saveInAFilePromise(JSON.stringify(indexList, null, 2), bookmarkIndexFilePath);
-}
-// TODO: export const removeBookmarkFromTrash // Borramos definitivamente un marcador de la trash.json (en la trash NO hay carpetas).
-// TODO: export const getTrash = (numberPage: number): Bookmarks[] // La papelera viene paginada (50 marcadores por página máximo).
+};
+
+export const removeBookmarkFromTrash = async(urlBookmark: string): Promise<Bookmark[]> => {
+  // Remove forever a bookmark from trash.json (in trash NO FOLDER, NEVER).
+  const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
+  const newData = dataJson.filter(b => urlBookmark !== b.url);
+  await saveInAFilePromise(JSON.stringify(newData, null, 2), trashDefaultPath);
+  
+  return newData;
+};
+
+export const getTrash = async(bookmarksByPage: number, currentPage: number): Promise<Bookmark[]> => {
+  // The trash is paginated (50 bookmarks by page is a good number).
+  const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
+  // Get index init and index end, and check edge cases.
+  let initBookmarkToReturn = bookmarksByPage * currentPage;
+  
+  if (initBookmarkToReturn >= dataJson.length) {
+    initBookmarkToReturn = dataJson.length - bookmarksByPage;
+    initBookmarkToReturn = initBookmarkToReturn < 0 ? 0 : initBookmarkToReturn;
+  }
+
+  let endBookmarkToReturn = (bookmarksByPage * (currentPage + 1)) - 1;
+
+  if (endBookmarkToReturn > dataJson.length) {
+    endBookmarkToReturn = dataJson.length - 1;
+  }
+
+  if (endBookmarkToReturn < 0) {
+    endBookmarkToReturn = dataJson.length - 1;
+  }
+
+  return dataJson.slice(initBookmarkToReturn, endBookmarkToReturn + 1);
+};
+
 // TODO: export const searchBookmarkOrFolder // Busca una palabra clave entre el índice de carpetas y todos los marcadores, ordenamos el resultado tal y como en searchInBookmark (MÁXIMO 100 resultados).
 // TODO: export const searchInTrashBookmarkOrFolder // Lo mismo que el de arriba pero buscando en la trash.json.
 
