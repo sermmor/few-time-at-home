@@ -230,8 +230,60 @@ export const getTrash = async(bookmarksByPage: number, currentPage: number): Pro
   return dataJson.slice(initBookmarkToReturn, endBookmarkToReturn + 1);
 };
 
-// TODO: export const searchBookmarkOrFolder // Busca una palabra clave entre el índice de carpetas y todos los marcadores, ordenamos el resultado tal y como en searchInBookmark (MÁXIMO 100 resultados).
-// TODO: export const searchInTrashBookmarkOrFolder // Lo mismo que el de arriba pero buscando en la trash.json.
+const searchPredicate = (bm: Bookmark, path: string) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
+|| bm.url.toLowerCase().indexOf(w) >= 0
+|| path.toLowerCase().indexOf(w) >= 0;
+
+const searchInBookmark = (wordlist: string, bookmarkList: Bookmark[]): Bookmark[] => {
+  // The bookmarks had 1 or more words.
+  const words = wordlist.toLowerCase().split(' ').filter(value => value !== '');
+  const maxResults = 100;
+  const resultOr = bookmarkList.filter(bm => words.filter(
+    searchPredicate(bm, bm.path || '')
+  ).length > 0);
+
+  const resultAnd = bookmarkList.filter(bm => {
+    let w: string;
+    const searchCondition = searchPredicate(bm, bm.path || '');
+    for (let i = 0; i < words.length; i++) {
+      w = words[i];
+      if (!searchCondition(w)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Create results, the first ones has to be the results with all results. Then the or results. The and results are in the or results, so...
+  const resultsOrWithoutAnd = resultOr.filter(bmOr => resultAnd.findIndex(bmAnd => bmAnd.url === bmOr.url) === -1);
+  const result = resultAnd.concat(resultsOrWithoutAnd);
+
+  return (result.length > maxResults) ? result.slice(0, maxResults) : result;
+};
+
+export const searchInAllBookmarks = async(indexList: BookmarkIndexEntry[], wordlist: string): Promise<Bookmark[]> => {
+  // Get all the bookmarks and then search in the collection.
+  const searchResults: Bookmark[] = [];
+  let allBookmarks: Bookmark[] = [];
+  let currentPath: string;
+  let currentBookmarks: Bookmark[];
+  for (let i = 0; i < indexList.length; i++) {
+    currentPath = indexList[i].nameFile;
+    currentBookmarks = await readJSONFile(currentPath, '[]');
+    currentBookmarks = currentBookmarks.map(b => ({
+      ...b,
+      path: currentPath,
+    }));
+    allBookmarks = [...allBookmarks, ...currentBookmarks];
+  }
+  return searchInBookmark(wordlist, allBookmarks);
+};
+
+export const searchAllBookmarksInTrash = async(indexList: BookmarkIndexEntry[], wordlist: string): Promise<Bookmark[]> => {
+  const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
+  return searchInBookmark(wordlist, dataJson);
+};
+
 
 export const moveBookmarksAndFolders = async (
   indexList: BookmarkIndexEntry[],
@@ -242,6 +294,15 @@ export const moveBookmarksAndFolders = async (
   // ! HACER.
   /* TODO Mueve un listado de carpetas y marcadores de ubicación (los marcadores se mueven de fichero,
     las carpetas se modifica su path en el índice). */
+
+  const entryFolder = indexList.filter(b => b.pathInBookmark === oldPath)[0];
+  const allSubFoldersOld: BookmarkIndexEntry[] = getAllFolderListInPath(indexList, oldPath);
+  // 1 - Primero movemos los marcadores del oldPath.
+  const bookmarksInOldFolder = await readJSONFile(entryFolder.nameFile, '[]');
+
+  // 2 - Luego movemos los marcadores que hay en los subpaths del oldPath.
+
+  // 3 - Movemos todas las subcarpetas y la carpeta (se mueven sólo dentro del fichero de índices y de forma virtual).
 };
 
 // TODO: NO OLVIDAR QUE LA CARPETA DE BOOKMARK ENTERA (todos los ficheros) DEBE ENTRAR EN EL BACKUP.
