@@ -89,8 +89,7 @@ const getAllFolderListInPath = (indexList: BookmarkIndexEntry[], currentPath: st
     return indexList.filter(entry => entry.pathInBookmark !== '/' && entry.pathInBookmark.split('/').length === 2);
   } else {
     return indexList.filter(entry => 
-      entry.pathInBookmark.includes(currentPath) 
-      && entry.pathInBookmark.substring(0, currentPath.length) === currentPath
+      entry.pathInBookmark.substring(0, currentPath.length) === currentPath
     );
   }
 };
@@ -285,24 +284,58 @@ export const searchAllBookmarksInTrash = async(indexList: BookmarkIndexEntry[], 
 };
 
 
+const moveBookmarks = async (
+  indexList: BookmarkIndexEntry[],
+  toMove: (BookmarkIndexEntry | Bookmark)[],
+  oldPath: string,
+  newPath: string,
+) => {
+  const entryNewFolder = indexList.filter(b => b.pathInBookmark === newPath)[0];
+  const entryOldFolder = indexList.filter(b => b.pathInBookmark === oldPath)[0];
+
+  const bookmarksToMove: Bookmark[] = toMove.filter(item => 'url' in item);
+  const bookmarksInNewFolder: Bookmark[] = await readJSONFile(entryNewFolder.nameFile, '[]');
+  const bookmarksInOldFolder: Bookmark[] = await readJSONFile(entryOldFolder.nameFile, '[]');
+  const bookmarksNoMove = bookmarksInOldFolder.filter(b => !bookmarksToMove.find(b2 => b.url === b2.url));
+
+  await saveInAFilePromise(JSON.stringify(bookmarksNoMove, null, 2), oldPath);
+  await saveInAFilePromise(JSON.stringify([...bookmarksInNewFolder, ...bookmarksToMove], null, 2), newPath);
+};
+
+const moveFolders = async (
+  indexList: BookmarkIndexEntry[],
+  toMove: (BookmarkIndexEntry | Bookmark)[],
+  oldPath: string,
+  newPath: string,
+) => {
+  const foldersToMove: BookmarkIndexEntry[] = toMove.filter(item => 'nameFile' in item);
+  let realAllFoldersToMove: BookmarkIndexEntry[] = [];
+
+  // Extract all subfolders to move and mix with foldersToMove.
+  foldersToMove.forEach(currentFolder => {
+    realAllFoldersToMove = [...realAllFoldersToMove, currentFolder, ...getAllFolderListInPath(indexList, currentFolder.pathInBookmark)];
+  });
+
+  // Extract all folders to NO move.
+  const foldersNoMoved = indexList.filter(folder => !foldersToMove.find(f => f.nameFile === folder.nameFile));
+
+  // Apply the new path to all folders to move and save index.
+  const allFoldersMoved = realAllFoldersToMove.map(folder => ({
+    ...folder,
+    pathInBookmark: `${newPath}/${folder.pathInBookmark.substring(oldPath.length)}`
+  }));
+
+  await saveInAFilePromise(JSON.stringify([...foldersNoMoved, ...allFoldersMoved], null, 2), bookmarkIndexFilePath);
+}
+
 export const moveBookmarksAndFolders = async (
   indexList: BookmarkIndexEntry[],
   toMove: (BookmarkIndexEntry | Bookmark)[],
   oldPath: string,
   newPath: string
 ) => {
-  // ! HACER.
-  /* TODO Mueve un listado de carpetas y marcadores de ubicación (los marcadores se mueven de fichero,
-    las carpetas se modifica su path en el índice). */
-
-  const entryFolder = indexList.filter(b => b.pathInBookmark === oldPath)[0];
-  const allSubFoldersOld: BookmarkIndexEntry[] = getAllFolderListInPath(indexList, oldPath);
-  // 1 - Primero movemos los marcadores del oldPath.
-  const bookmarksInOldFolder = await readJSONFile(entryFolder.nameFile, '[]');
-
-  // 2 - Luego movemos los marcadores que hay en los subpaths del oldPath.
-
-  // 3 - Movemos todas las subcarpetas y la carpeta (se mueven sólo dentro del fichero de índices y de forma virtual).
+  await moveBookmarks(indexList, toMove, oldPath, newPath);
+  await moveFolders(indexList, toMove, oldPath, newPath);
 };
 
 // TODO: NO OLVIDAR QUE LA CARPETA DE BOOKMARK ENTERA (todos los ficheros) DEBE ENTRAR EN EL BACKUP.
