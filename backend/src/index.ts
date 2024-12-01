@@ -10,6 +10,7 @@ import { readAllConfigurationsFiles } from './API/configuration.service';
 import { ChannelMediaRSSCollectionExport } from './API/messagesRSS.service';
 import { extractEmailData } from './API/email-data/email-data.interface';
 import { MailService } from './API/mail.service';
+import { BookmarkService } from './API/bookmark.service';
 
 const keysPath = 'keys.json';
 
@@ -28,23 +29,25 @@ readFile(keysPath, (err, data) => {
         const emailData = extractEmailData(keyData);
         const emailService = new MailService(emailData);
 
-        startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
-
-        channelMediaCollection = {
-            nitterRSS: new NitterRSSMessageList(),
-            mastodonRSS: new MastodonRSSMessageList(),
-            blogRSS: new BlogRSSMessageList(),
-            youtubeRSS: new YoutubeRSSMessageList()
-        };
-
-        const channelMediaRSSCollectionExport = new ChannelMediaRSSCollectionExport(channelMediaCollection);
-
-        const bot = new TelegramBot(keyData);
-        const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
-        bot.start(commands);
-        apiService = new APIService(channelMediaCollection, commands);
-        
-        console.log("> The bot is ready.");
+        BookmarkService.parseFromOldBookmarks().then(() => { // TODO: LÍNEA A ELIMINAR CUANDO YA ESTÉN PARSEADOS EN PROD
+          startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
+  
+          channelMediaCollection = {
+              nitterRSS: new NitterRSSMessageList(),
+              mastodonRSS: new MastodonRSSMessageList(),
+              blogRSS: new BlogRSSMessageList(),
+              youtubeRSS: new YoutubeRSSMessageList()
+          };
+  
+          const channelMediaRSSCollectionExport = new ChannelMediaRSSCollectionExport(channelMediaCollection);
+  
+          const bot = new TelegramBot(keyData);
+          const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
+          bot.start(commands);
+          apiService = new APIService(channelMediaCollection, commands);
+          
+          console.log("> The bot is ready.");
+        });
     });
 });
 

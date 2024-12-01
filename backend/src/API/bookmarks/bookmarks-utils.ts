@@ -5,10 +5,10 @@ import { trashDefaultPath } from "../cloud.service";
 export interface Bookmark {
   url: string;
   title: string;
-  path?: string; // Param deprecated
+  path?: string; // Param deprecated, only used in searchs but not saved in bookmarks files.
 }
 
-interface BookmarkIndexEntry {
+export interface BookmarkIndexEntry {
   nameFile: string;
   pathInBookmark: string;
 }
@@ -19,13 +19,13 @@ const bookmarkIndexFilePath = 'data/bookmarks/index.json';
 const bookmarkTrashFilePath = 'data/bookmarks/trash.json';
 
 const isUsingOldBookmark = async(): Promise<boolean> => {
-  let isUsingOldBookmark = true;
+  let isUsingOld = false;
   try {
-    const stats = await stat(oldBookmarkPathFile);
+    const stats = await stat(bookmarkIndexFilePath);
   } catch (err) {
-    isUsingOldBookmark = false;
+    isUsingOld = true;
   }
-  return isUsingOldBookmark;
+  return isUsingOld;
 }
 
 const createNewBookmark = async() => {
@@ -293,7 +293,7 @@ const moveBookmarks = async (
   const entryNewFolder = indexList.filter(b => b.pathInBookmark === newPath)[0];
   const entryOldFolder = indexList.filter(b => b.pathInBookmark === oldPath)[0];
 
-  const bookmarksToMove: Bookmark[] = toMove.filter(item => 'url' in item);
+  const bookmarksToMove: Bookmark[] = toMove.filter(item => 'url' in item) as Bookmark[];
   const bookmarksInNewFolder: Bookmark[] = await readJSONFile(entryNewFolder.nameFile, '[]');
   const bookmarksInOldFolder: Bookmark[] = await readJSONFile(entryOldFolder.nameFile, '[]');
   const bookmarksNoMove = bookmarksInOldFolder.filter(b => !bookmarksToMove.find(b2 => b.url === b2.url));
@@ -308,7 +308,7 @@ const moveFolders = async (
   oldPath: string,
   newPath: string,
 ) => {
-  const foldersToMove: BookmarkIndexEntry[] = toMove.filter(item => 'nameFile' in item);
+  const foldersToMove: BookmarkIndexEntry[] = toMove.filter(item => 'nameFile' in item) as BookmarkIndexEntry[];
   let realAllFoldersToMove: BookmarkIndexEntry[] = [];
 
   // Extract all subfolders to move and mix with foldersToMove.
@@ -328,7 +328,7 @@ const moveFolders = async (
   await saveInAFilePromise(JSON.stringify([...foldersNoMoved, ...allFoldersMoved], null, 2), bookmarkIndexFilePath);
 }
 
-export const moveBookmarksAndFolders = async (
+export const moveBookmarksAndFolders = async(
   indexList: BookmarkIndexEntry[],
   toMove: (BookmarkIndexEntry | Bookmark)[],
   oldPath: string,
@@ -338,6 +338,17 @@ export const moveBookmarksAndFolders = async (
   await moveFolders(indexList, toMove, oldPath, newPath);
 };
 
-// TODO: NO OLVIDAR QUE LA CARPETA DE BOOKMARK ENTERA (todos los ficheros) DEBE ENTRAR EN EL BACKUP.
-// TODO: NO OLVIDAR DESCOMENTAR EL BACKUP DE INDEX.TS Y BORRAR LA LÍNEA 32 EN INDEX.TS, COLOCANDO LA LLAMADA EN bookmark.service.ts
-// TODO: EN bookmark.service.ts DEBEMOS DE CARGAR EL ÍNDICE Y EL FICHERO '/' Y CONSTRUIR LAS CARPETAS DE ESE NIVEL (así las carpetas se construyen desde el index.json)
+export const getBookmarksFilesPathList = async() => {
+  const pathList = [bookmarkIndexFilePath, bookmarkTrashFilePath];
+  const indexList: BookmarkIndexEntry[] = await readJSONFile(bookmarkIndexFilePath, '[]');
+
+  return [
+    ...pathList,
+    ...indexList.map(b => b.nameFile),
+  ];
+};
+
+export const getBookmarksNameFilesPathList = (bookmarkPathFileList: string[]) => bookmarkPathFileList.map(path => {
+  const split = path.split('/');
+  return `bookmark_${split[split.length - 1]}`;
+});

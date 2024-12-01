@@ -1,6 +1,6 @@
 import { readJSONFile, saveInAFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
-import { parseFromOldBookmarks } from "./bookmarks/bookmarks-utils";
+import { BookmarkIndexEntry, parseFromOldBookmarks } from "./bookmarks/bookmarks-utils";
 
 const pathBookmarkFile = 'data/bookmark.json';
 
@@ -12,23 +12,30 @@ export interface Bookmark {
 
 export class BookmarkService {
   static Instance: BookmarkService;
-  bookmarks: Bookmark[];
+  bookmarks: Bookmark[] = []; // TODO: A ELIMINAR
+  index: BookmarkIndexEntry[];
 
   constructor() {
-    this.bookmarks = [];
+    this.index = [];
     BookmarkService.Instance = this;
+    // TODO: CARGAR EL ÍNDICE EN ALGÚN LADO DE LA API AL INICIO DEL TODO.
+    
   }
+  
+  static parseFromOldBookmarks = async(): Promise<void> => parseFromOldBookmarks();  // TODO: LÍNEA A ELIMINAR CUANDO YA ESTÉN PARSEADOS EN PROD
 
-  static parseFromOldBookmarks = async(): Promise<void> => parseFromOldBookmarks();
+  // TODO getFolderContent
 
   getBookmarks = (): Promise<Bookmark[]> => new Promise<Bookmark[]>(resolve => {
+    // TODO: DEBEMOS DE CARGAR EL ÍNDICE Y EL FICHERO '/' (esto es el b0.json) Y CONSTRUIR LAS CARPETAS DE ESE NIVEL (así las carpetas se construyen desde el index.json)
     if (this.bookmarks.length > 0) {
       resolve(this.bookmarks);
     } else {
-      readJSONFile(pathBookmarkFile, '[]').then(dataJson => {
-        this.bookmarks = dataJson;
-        resolve(this.bookmarks);
-      });
+      // readJSONFile(pathBookmarkFile, '[]').then(dataJson => {
+      //   this.bookmarks = dataJson;
+      //   resolve(this.bookmarks);
+      // });
+      resolve([]);
     }
   });
 

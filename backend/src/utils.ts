@@ -3,6 +3,7 @@ import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { COMPRESSION_LEVEL, zip } from 'zip-a-folder';
 import { MailService } from './API/mail.service';
+import { getBookmarksFilesPathList, getBookmarksNameFilesPathList } from './API/bookmarks/bookmarks-utils';
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -91,13 +92,13 @@ export const saveInAFilePromise = (str: string, savePath: string = 'data/result.
 export const readJSONFile = (pathFile: string, contentByDefault: string): Promise<any> => new Promise<any>(resolve => {
   readFile(pathFile, (err: any, data: any) => {
     if (err) {
-      saveInAFile(contentByDefault, pathFile, () => resolve({}));
+      saveInAFile(contentByDefault, pathFile, () => resolve(contentByDefault));
     } else {
       try {
         const jsonData = JSON.parse(<string> <any> data);
         resolve(jsonData);
       } catch (ex) {
-        saveInAFile(contentByDefault, pathFile, () => resolve({}));
+        saveInAFile(contentByDefault, pathFile, () => resolve(contentByDefault));
       }
     }
   });
@@ -120,37 +121,7 @@ export class ExtractorUtilities {
   public static removeAllEndOfLine = (content: string): string => content.split("\n").join("");
 };
 
-const pathToCopyList = [
-  'data/notes.txt',
-  'data/alerts.json',
-  'data/bookmark.json', // TODO: Sustituir por toda la carpeta de bookmarks.
-  'data/pomodoro.json',
-  'data/youtube_rss_urls.json',
-  'keys.json',
-  'configuration.json',
-  'data/config/blogRssList.json',
-  'data/config/mastodonRssUsersList.json',
-  'data/config/nitterInstancesList.json',
-  'data/config/nitterRssUsersList.json',
-  'data/config/quoteList.json',
-  'data/config/youtubeRssList.json',
-];
-
-const pathToPasteList = [
-  'notes.txt',
-  'alerts.json',
-  'bookmark.json', // TODO: Sustituir por toda la carpeta de bookmarks.
-  'pomodoro.json',
-  'youtube_rss_urls.json',
-  'keys.json',
-  'configuration.json',
-  'blogRssList.json',
-  'mastodonRssUsersList.json',
-  'nitterInstancesList.json',
-  'nitterRssUsersList.json',
-  'quoteList.json',
-  'youtubeRssList.json',
-]
+// BACKUP -----------------------------------------------------------------------------------------
 
 const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promise<void> => {
   return new Promise<void>(resolve => copyFile(sourcePath, destinyPath, (err) => {
@@ -159,7 +130,14 @@ const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promi
   }));
 }
 
-const runBackup = (pathRootToPaste: string, onFinished: (pathFileZipped: string) => void, indexToCopy = 0, nameFolderDate = '') => {
+const runBackup = (
+  pathToCopyList: string[],
+  pathToPasteList: string[],
+  pathRootToPaste: string,
+  onFinished: (pathFileZipped: string) => void,
+  indexToCopy = 0,
+  nameFolderDate = ''
+) => {
   if (indexToCopy < pathToCopyList.length) {
     if (indexToCopy === 0) {
       const currentDate = new Date();
@@ -168,13 +146,13 @@ const runBackup = (pathRootToPaste: string, onFinished: (pathFileZipped: string)
         copyAFileToBackupFolder(
           pathToCopyList[indexToCopy],
           `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
-        .then(() => runBackup(pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
+        .then(() => runBackup(pathToCopyList, pathToPasteList, pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
       });
     } else {
       copyAFileToBackupFolder(
         pathToCopyList[indexToCopy],
         `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
-      .then(() => runBackup(pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
+      .then(() => runBackup(pathToCopyList, pathToPasteList, pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
     }
   } else {
     console.log('> Backup created!');
@@ -184,12 +162,46 @@ const runBackup = (pathRootToPaste: string, onFinished: (pathFileZipped: string)
       onFinished(`${pathToZip}.zip`);
     });
   }
-}
+};
 
-export const startBackupEveryWeek = (pathRootToPaste: string) => {
+export const startBackupEveryWeek = async(pathRootToPaste: string) => {
+  const pathToCopyList = [
+    'data/notes.txt',
+    'data/alerts.json',
+    'data/pomodoro.json',
+    'data/youtube_rss_urls.json',
+    'keys.json',
+    'configuration.json',
+    'data/config/blogRssList.json',
+    'data/config/mastodonRssUsersList.json',
+    'data/config/nitterInstancesList.json',
+    'data/config/nitterRssUsersList.json',
+    'data/config/quoteList.json',
+    'data/config/youtubeRssList.json',
+  ];
+  
+  const pathToPasteList = [
+    'notes.txt',
+    'alerts.json',
+    'pomodoro.json',
+    'youtube_rss_urls.json',
+    'keys.json',
+    'configuration.json',
+    'blogRssList.json',
+    'mastodonRssUsersList.json',
+    'nitterInstancesList.json',
+    'nitterRssUsersList.json',
+    'quoteList.json',
+    'youtubeRssList.json',
+  ];
+
+  const bookmarksPaths = await getBookmarksFilesPathList();
+  const allPathToCopyList = [...pathToCopyList, ...bookmarksPaths];
+  const allPathToPasteList = [...pathToPasteList, ...getBookmarksNameFilesPathList(bookmarksPaths)];
+
   scheduleJob('do a backup once a week', { hour: 12, minute: 0, dayOfWeek: 1}, () => {
-    runBackup(pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
+    runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
     TelegramBot.Instance().sendNotepadTextToTelegram('Backup created today!');
   });
-  runBackup(pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
+  runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
 }
