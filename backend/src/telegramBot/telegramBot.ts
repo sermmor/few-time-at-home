@@ -194,10 +194,11 @@ export class TelegramBot {
     });
   }
 
-  private sendSearchBookmarksToTelegram = (ctx: TelegrafContext, wordToSearch: string) => {
+  private sendSearchBookmarksToTelegram = async(ctx: TelegrafContext, wordToSearch: string) => {
     if (!this.isUserClient(ctx)) return;
     console.log("> The bot is going to send the bookmark searched.");
-    const bookmarksStrings = BookmarkService.Instance.searchInBookmark(wordToSearch).map(bm => `${bm.title}\n${bm.url}`);
+    const searchResult = await BookmarkService.Instance.searchInBookmark(wordToSearch);
+    const bookmarksStrings = searchResult.map(bm => `${bm.title}\n${bm.url}`);
     const bookmarksPerMessage = 10;
     const numberOfMessages = Math.ceil(bookmarksStrings.length / bookmarksPerMessage);
     const messagesToSend = [];
