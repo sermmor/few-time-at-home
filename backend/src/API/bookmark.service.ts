@@ -1,6 +1,6 @@
 import { readJSONFile, saveInAFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
-import { BookmarkIndexEntry, createBookmark, getAllFilesAndDirectoriesOfFolderPath, parseFromOldBookmarks, reloadIndexList, searchInAllBookmarks } from "./bookmarks/bookmarks-utils";
+import { BookmarkIndexEntry, createBookmark, createFolder, getAllFilesAndDirectoriesOfFolderPath, parseFromOldBookmarks, reloadIndexList, removeBookmark, removeFolder, searchInAllBookmarks } from "./bookmarks/bookmarks-utils";
 
 export interface Bookmark {
   url: string;
@@ -47,22 +47,21 @@ export class BookmarkService {
     return newBookmark;
   };
 
-  // TODO: addFolder = async
+  addFolder = async (folderPath: string): Promise<BookmarkIndexEntry> => await createFolder(this.index, folderPath);
   
-  // TODO: OJO, faltan funciones como Borrar marcador o carpeta, editar marcador o carpeta, crear carpeta, borrar de la papelera
-  // TODO: get contenido (paginado) de la papelera, mover marcadores o carpeta. Algunas funciones serán NUEVAS.
-
-  private removeDuplicates = (bookmarks: Bookmark[]): Bookmark[] => {
-    const cloneBookmarks = [...bookmarks];
-    const bookmarksWithoutDuplicates: Bookmark[] = [];
-    cloneBookmarks.forEach(bmToCheck => {
-      const url = bmToCheck.url.split(' ').join('');
-      if (bookmarksWithoutDuplicates.findIndex(bm => bm.url === url) < 0) {
-        bookmarksWithoutDuplicates.push(bmToCheck);
-      }
-    });
-    return bookmarksWithoutDuplicates;
+  removeBookmark = async (folderPath: string, urlBookmark: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
+    await removeBookmark(this.index, folderPath, urlBookmark);
+    return await this.getBookmarks(folderPath);
   };
+
+  removeFolder = async (folderPath: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
+    await removeFolder(this.index, folderPath);
+    const parentPath = folderPath.split('/').slice(0, -1).join('/');
+    return await this.getBookmarks(parentPath);
+  };
+
+  // TODO: OJO, faltan funciones como editar marcador o carpeta, borrar de la papelera
+  // TODO: get contenido (paginado) de la papelera, mover marcadores o carpeta. Algunas funciones serán NUEVAS.
 
 
   fileContent = (): any => this.bookmarks;

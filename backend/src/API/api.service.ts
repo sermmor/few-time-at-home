@@ -304,11 +304,12 @@ export class APIService {
   }
 
   private bookmarksService() {
-    let bookmarkPostExecuting: Bookmark[] = [];
-    let bookmarkGetExecuting: DataToSendInPieces[] = [];
+    let bookmarkPostExecuting: Bookmark[] = []; // TODO: A ELIMINAR
+    let bookmarkGetExecuting: DataToSendInPieces[] = []; // TODO: A ELIMINAR
     const bookmark = new BookmarkService();
     bookmark.getBookmarks();
 
+    // TODO: Hay que añadir casi tantos endpoints como en la cloud.
     this.app.post(APIService.bookmarksEndpoint, (req, res) => {
         if (!req.body) {
           console.error("Received NO body text");

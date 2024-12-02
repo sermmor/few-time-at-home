@@ -105,7 +105,8 @@ export const getAllFilesAndDirectoriesOfFolderPath = async(indexList: BookmarkIn
   return [...allFolders, ...allBookmarks];
 }
 
-export const removeBookmark = async(nameFileBookmarkPath: string, urlBookmarkToDelete: string) => {
+export const removeBookmark = async(indexList: BookmarkIndexEntry[], pathFolderInBookmark: string, urlBookmarkToDelete: string) => {
+  const nameFileBookmarkPath = indexList.filter(b => b.pathInBookmark === pathFolderInBookmark)[0].nameFile;
   const dataJson: Bookmark[] = await readJSONFile(nameFileBookmarkPath, '[]');
   const newDataJson = dataJson.filter(b => b.url !== urlBookmarkToDelete);
   const entryDeleted = dataJson.filter(b => b.url === urlBookmarkToDelete)[0];
@@ -182,18 +183,27 @@ export const editBookmark = async(nameFileBookmarkPath: string, oldBookmark: Boo
 export const createBookmark = async(indexList: BookmarkIndexEntry[], pathFolderInBookmark: string, bookmark: Bookmark) => {
   const entry = indexList.filter(b => b.pathInBookmark === pathFolderInBookmark)[0];
   const dataJson: Bookmark[] = await readJSONFile(entry.nameFile, '[]');
-  dataJson.push(bookmark);
-  await saveInAFilePromise(JSON.stringify(dataJson, null, 2), entry.nameFile);
+  const isAlreadyAdded = !!dataJson.find(b => b.url === bookmark.url);
+  if (!isAlreadyAdded) {
+    dataJson.push(bookmark);
+    await saveInAFilePromise(JSON.stringify(dataJson, null, 2), entry.nameFile);
+  }
 };
 
-export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBookmark: string) => {
-  const indexNewBookmark = indexList.length;
-  const newFolder: BookmarkIndexEntry = {
-    nameFile: `${bookmarkFolderPath}/b${indexNewBookmark}.json`,
-    pathInBookmark: newPathInBookmark,
+export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBookmark: string): Promise<BookmarkIndexEntry> => {
+  const indexAlreadyAdded = indexList.find(i => i.pathInBookmark === newPathInBookmark);
+  if (!indexAlreadyAdded) {
+    const indexNewBookmark = indexList.length;
+    const newFolder: BookmarkIndexEntry = {
+      nameFile: `${bookmarkFolderPath}/b${indexNewBookmark}.json`,
+      pathInBookmark: newPathInBookmark,
+    }
+    indexList.push(newFolder);
+    await saveInAFilePromise(JSON.stringify(indexList, null, 2), bookmarkIndexFilePath);
+    return newFolder;
+  } else {
+    return indexAlreadyAdded;
   }
-  indexList.push(newFolder);
-  await saveInAFilePromise(JSON.stringify(indexList, null, 2), bookmarkIndexFilePath);
 };
 
 export const removeBookmarkFromTrash = async(urlBookmark: string): Promise<Bookmark[]> => {
