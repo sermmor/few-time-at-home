@@ -309,7 +309,7 @@ export class APIService {
     const bookmark = new BookmarkService();
     bookmark.getBookmarks();
 
-    // TODO: Hay que añadir casi tantos endpoints como en la cloud.
+    // TODO: Añadir nuevos endpoints para las nuevas funciones, hay que añadir casi tantos endpoints como en la cloud.
     this.app.post(APIService.bookmarksEndpoint, (req, res) => {
         if (!req.body) {
           console.error("Received NO body text");

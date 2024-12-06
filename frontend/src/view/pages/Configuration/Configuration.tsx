@@ -127,11 +127,11 @@ export const ConfigurationComponent = () => {
                 setSynchronizeUrl(evt.target.value);
               }}
             />
-          <Button
+          {/* <Button
               variant='outlined'
               sx={{minWidth: '15.5rem'}}
               onClick={() => synchronizeActions.uploadData(synchronizeUrl)}
-              >Upload</Button>
+              >Upload</Button> */}
           <Button
               variant='contained'
               sx={{minWidth: '15.5rem'}}

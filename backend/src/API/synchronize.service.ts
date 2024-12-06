@@ -18,14 +18,17 @@ const pathJsonSyncronize = 'data/synchronize.json';
 export class SynchronizeService {
   constructor() {}
 
-  private collectAllData = () => ({
-    notes: NotesService.Instance.fileContent(),
-    alerts: AlertListService.Instance.fileContent(),
-    bookmark: BookmarkService.Instance.fileContent(),
-    pomodoro: PomodoroService.Instance.fileContent(),
-    youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(),
-    configuration: ConfigurationService.Instance.fileContent(),
-  });
+  private collectAllData = async() => {
+    const bookmark = await BookmarkService.Instance.fileContent();
+    return {
+      notes: NotesService.Instance.fileContent(),
+      alerts: AlertListService.Instance.fileContent(),
+      bookmark,
+      pomodoro: PomodoroService.Instance.fileContent(),
+      youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(),
+      configuration: ConfigurationService.Instance.fileContent(),
+    }
+  };
 
   private setDataToApplication = async (dataText: any, parseJSON = true): Promise<void> => {
     const data = parseJSON ? JSON.parse(<string> dataText) : dataText;
@@ -39,7 +42,8 @@ export class SynchronizeService {
 
   // Como cliente, creo el fichero de sincronización y lo mando al servidor.
   clientUploadDataToUrl = async (url: string): Promise<void> => {
-    const data = JSON.stringify(this.collectAllData(), null, 2);
+    const dataCollected = await this.collectAllData();
+    const data = JSON.stringify(dataCollected, null, 2);
     await writeFile(pathJsonSyncronize, data);
     
     const formData = new FormData();
@@ -85,7 +89,8 @@ export class SynchronizeService {
 
   // Como servidor, mando un fichero de sincronización al cliente.
   serverUploadDataToUrl = async (webResponse: any): Promise<void> => {
-    const data = JSON.stringify(this.collectAllData(), null, 2);
+    const dataCollected = await this.collectAllData();
+    const data = JSON.stringify(dataCollected, null, 2);
     await writeFile(pathJsonSyncronize, data);
     const options: {root: undefined | string} = {
       root: this.getAbsoluteRoot(),

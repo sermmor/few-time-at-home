@@ -1,4 +1,4 @@
-import { mkdir, rename, rm, stat } from "fs/promises";
+import { mkdir, readdir, rename, rm, stat } from "fs/promises";
 import { readJSONFile, saveInAFilePromise } from "../../utils";
 import { trashDefaultPath } from "../cloud.service";
 
@@ -240,8 +240,8 @@ export const getTrash = async(bookmarksByPage: number, currentPage: number): Pro
 };
 
 const searchPredicate = (bm: Bookmark, path: string) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
-|| bm.url.toLowerCase().indexOf(w) >= 0
-|| path.toLowerCase().indexOf(w) >= 0;
+  || bm.url.toLowerCase().indexOf(w) >= 0
+  || path.toLowerCase().indexOf(w) >= 0;
 
 const searchInBookmark = (wordlist: string, bookmarkList: Bookmark[]): Bookmark[] => {
   // The bookmarks had 1 or more words.
@@ -272,7 +272,6 @@ const searchInBookmark = (wordlist: string, bookmarkList: Bookmark[]): Bookmark[
 
 export const searchInAllBookmarks = async(indexList: BookmarkIndexEntry[], wordlist: string): Promise<Bookmark[]> => {
   // Get all the bookmarks and then search in the collection.
-  const searchResults: Bookmark[] = [];
   let allBookmarks: Bookmark[] = [];
   let currentPath: string;
   let currentBookmarks: Bookmark[];
@@ -292,7 +291,6 @@ export const searchAllBookmarksInTrash = async(indexList: BookmarkIndexEntry[], 
   const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
   return searchInBookmark(wordlist, dataJson);
 };
-
 
 const moveBookmarks = async (
   indexList: BookmarkIndexEntry[],
@@ -347,6 +345,17 @@ export const moveBookmarksAndFolders = async(
   await moveBookmarks(indexList, toMove, oldPath, newPath);
   await moveFolders(indexList, toMove, oldPath, newPath);
 };
+
+export const replaceAllBookmarkFromDisk = async(data: any) => {
+  // Delete all bookmarks, save bookmark in a old bookmark style path, update old bookmark to new bookmark format.
+  // const fileList = await readdir(bookmarkFolderPath);
+  // for (let i = 0; i < fileList.length; i++) {
+  //   await rm(fileList[i]);
+  // }
+  await rm(bookmarkFolderPath, { recursive: true, force: true });
+  await saveInAFilePromise(JSON.stringify(data, null, 2), oldBookmarkPathFile);
+  await parseFromOldBookmarks();
+}
 
 export const getBookmarksFilesPathList = async() => {
   const pathList = [bookmarkIndexFilePath, bookmarkTrashFilePath];
