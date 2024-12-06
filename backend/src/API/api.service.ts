@@ -42,9 +42,19 @@ export class APIService {
   static pomodoroEndpoint = "/pomodoro";
   static alertsEndpoint = "/alerts";
   static alertIsReadyEndpoint = "/alerts-is-ready";
-  static bookmarksEndpoint = "/bookmarks";
-  static bookmarksPieceEndpoint = "/bookmarks-piece";
-  static searchBookmarksEndpoint = "/search-bookmarks";
+  static bookmarksEndpoint = {
+    getPathList: "/bookmarks/path",
+    getTrashList: "/bookmarks/trash",
+    search: "/bookmarks/search",
+    addBookmark: "/bookmarks/add-bookmark",
+    addFolder: "/bookmarks/add-folder",
+    removeBookmark: "/bookmarks/remove-bookmark",
+    removeFolder: "/bookmarks/remove-folder",
+    removeInTrash: "/bookmarks/remove-in-trash",
+    editBookmark: "/bookmarks/edit-bookmark",
+    editFolder: "/bookmarks/edit-folder",
+    move: "/bookmarks/move",
+  };
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
   static sendToTelegramEndpoint = "/send-to-telegram";
@@ -304,84 +314,116 @@ export class APIService {
   }
 
   private bookmarksService() {
-    let bookmarkPostExecuting: Bookmark[] = []; // TODO: A ELIMINAR
-    let bookmarkGetExecuting: DataToSendInPieces[] = []; // TODO: A ELIMINAR
     const bookmark = new BookmarkService();
     bookmark.getBookmarks();
 
-    // TODO: Añadir nuevos endpoints para las nuevas funciones, hay que añadir casi tantos endpoints como en la cloud.
-    this.app.post(APIService.bookmarksEndpoint, (req, res) => {
-        if (!req.body) {
-          console.error("Received NO body text");
-        } else {
-          bookmarkPostExecuting = bookmarkPostExecuting.concat(req.body.data);
-          if (req.body.isFinished) {
-            BookmarkService.Instance.updateBookmarks(bookmarkPostExecuting).then(data => {
-              bookmarkPostExecuting = [];
-              res.send({response: 'OK'});
-            });
-          } else {
-            res.send({response: 'Waiting'});
-          }
-        }
-    });
-
-    this.app.post(APIService.searchBookmarksEndpoint, (req, res) => {
-        if (!req.body) {
-          console.error("Received NO body text");
-        } else {
-          res.send({data: BookmarkService.Instance.searchInBookmark(req.body.data)});
-        }
-    });
-
-    this.app.get(APIService.bookmarksEndpoint, (req, res) => {
-
-      BookmarkService.Instance.getBookmarks().then(data => {
-        bookmarkGetExecuting = this.prepareInPiecesDataModelToSend(data);
-        
-        const toSend = bookmarkGetExecuting.length > 0 ? bookmarkGetExecuting[0] : undefined;
-
-        if (bookmarkGetExecuting.length > 1) {
-          bookmarkGetExecuting = bookmarkGetExecuting.splice(1);
-        }
-        res.send({ data: toSend });
-      });
-
-    });
-
-    this.app.get(APIService.bookmarksPieceEndpoint, (req, res) => {
-      const toSend = bookmarkGetExecuting[0];
-      bookmarkGetExecuting = bookmarkGetExecuting.splice(1);
-      res.send({ data: toSend });
-    });
-  }
-
-  private prepareInPiecesDataModelToSend = (bookmarks: Bookmark[], numberItemsPerPiece: number = 100): DataToSendInPieces[] => {
-    const numberOfPieces = Math.ceil(bookmarks.length / numberItemsPerPiece);
-    const dataToSend: DataToSendInPieces[] = [];
-    let indexCurrent = 0;
-  
-    for (let i = 0; i < numberOfPieces; i++) {
-      if (indexCurrent + numberItemsPerPiece < bookmarks.length) {
-        dataToSend.push({
-          data: bookmarks.slice(indexCurrent, indexCurrent + numberItemsPerPiece),
-          pieceIndex: i + 1,
-          totalPieces: numberOfPieces,
-          isFinished: false,
-        });
-        indexCurrent = indexCurrent + numberItemsPerPiece;
+    this.app.post(APIService.bookmarksEndpoint.getPathList, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
       } else {
-        dataToSend.push({
-          data: bookmarks.slice(indexCurrent, bookmarks.length),
-          pieceIndex: i + 1,
-          totalPieces: numberOfPieces,
-          isFinished: true,
+        BookmarkService.Instance.getBookmarks(req.body.path).then(data => {
+          res.send({ data });
         });
-        indexCurrent = bookmarks.length;
       }
-    }
-    
-    return dataToSend;
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.getTrashList, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.getBookmarkInTrash(req.body.bookmarksByPage, req.body.currentPage).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.search, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        res.send({data: BookmarkService.Instance.searchInBookmark(req.body.data)});
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.addBookmark, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.addBookmark(req.body.url, req.body.path, req.body.title).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.addFolder, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.addFolder(req.body.path).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.removeBookmark, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.removeBookmark(req.body.path, req.body.url).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.removeFolder, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.removeFolder(req.body.path).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.removeInTrash, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.removeBookmarkInTrash(req.body.url).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.editBookmark, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.editBookmark(req.body.path, req.body.oldBookmark, req.body.newBookmark).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.editFolder, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.editFolder(req.body.oldPath, req.body.newPath).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+
+    this.app.post(APIService.bookmarksEndpoint.move, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.moveBookmarksAndFolders(req.body.toMove, req.body.oldPath, req.body.newPath).then(data => {
+          res.send({ data });
+        });
+      }
+    });
   }
 
   private getRandomQuoteService() {

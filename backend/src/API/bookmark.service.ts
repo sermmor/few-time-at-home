@@ -60,6 +60,8 @@ export class BookmarkService {
     return await this.getBookmarks(parentPath);
   };
 
+  removeBookmarkInTrash = async(urlBookmark: string): Promise<Bookmark[]> => removeBookmarkFromTrash(urlBookmark);
+
   editFolder = async (oldPathFolderInBookmark: string, newPathInBookmark: string): Promise<(BookmarkIndexEntry | Bookmark)[]> =>{
     await editFolder(this.index, oldPathFolderInBookmark, newPathInBookmark);
     return await this.getBookmarks(newPathInBookmark);
@@ -72,8 +74,6 @@ export class BookmarkService {
     }
     return await this.getBookmarks(path);
   };
-
-  removeBookmarkInTrash = async(urlBookmark: string): Promise<Bookmark[]> => removeBookmarkFromTrash(urlBookmark);
 
   moveBookmarksAndFolders = async(toMove: (BookmarkIndexEntry | Bookmark)[], oldPath: string, newPath: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
     await moveBookmarksAndFolders(this.index, toMove, oldPath, newPath);
