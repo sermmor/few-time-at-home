@@ -11,6 +11,7 @@ import { ChannelMediaRSSCollectionExport } from './API/messagesRSS.service';
 import { extractEmailData } from './API/email-data/email-data.interface';
 import { MailService } from './API/mail.service';
 import { BookmarkService } from './API/bookmark.service';
+import { Logger } from './logger';
 
 const keysPath = 'keys.json';
 
@@ -22,6 +23,7 @@ let apiService: APIService;
 readFile(keysPath, (err, data) => {
     if (err) throw err;
     const keyData = JSON.parse(<string> <any> data);
+    const logger = new Logger(!!keyData.is_dev_mode_enabled);
 
     readAllConfigurationsFiles().then(data => {
         const configurationService = new ConfigurationService(data);
@@ -30,7 +32,9 @@ readFile(keysPath, (err, data) => {
         const emailService = new MailService(emailData);
 
         BookmarkService.parseFromOldBookmarks().then(() => { // TODO: LÍNEA A ELIMINAR CUANDO YA ESTÉN PARSEADOS EN PROD
-          startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
+          if (!keyData.is_backup_disabled) {
+            startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
+          }
   
           channelMediaCollection = {
               nitterRSS: new NitterRSSMessageList(),
