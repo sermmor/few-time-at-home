@@ -14,7 +14,6 @@ import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
-import { EmailData } from './email-data/email-data.interface';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -316,7 +315,7 @@ export class APIService {
   private bookmarksService() {
     const bookmark = new BookmarkService();
     bookmark.getBookmarks();
-
+    
     this.app.post(APIService.bookmarksEndpoint.getPathList, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
@@ -341,7 +340,7 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        res.send({data: BookmarkService.Instance.searchInBookmark(req.body.data)});
+        BookmarkService.Instance.searchInBookmark(req.body.data).then(data => res.send({ data }));
       }
     });
 
@@ -395,7 +394,7 @@ export class APIService {
       }
     });
 
-    this.app.post(APIService.bookmarksEndpoint.editBookmark, (req, res) => {
+    this.app.post(APIService.bookmarksEndpoint.editBookmark, (req, res) => { // TODO: Probar endpoints usando Postman
       if (!req.body) {
         console.error("Received NO body text");
       } else {
@@ -405,7 +404,7 @@ export class APIService {
       }
     });
 
-    this.app.post(APIService.bookmarksEndpoint.editFolder, (req, res) => {
+    this.app.post(APIService.bookmarksEndpoint.editFolder, (req, res) => { // TODO: Probar endpoints usando Postman
       if (!req.body) {
         console.error("Received NO body text");
       } else {
@@ -415,7 +414,7 @@ export class APIService {
       }
     });
 
-    this.app.post(APIService.bookmarksEndpoint.move, (req, res) => {
+    this.app.post(APIService.bookmarksEndpoint.move, (req, res) => { // TODO: Probar endpoints usando Postman
       if (!req.body) {
         console.error("Received NO body text");
       } else {

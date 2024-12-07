@@ -1,6 +1,5 @@
 import { mkdir, readdir, rename, rm, stat } from "fs/promises";
 import { readJSONFile, saveInAFilePromise } from "../../utils";
-import { trashDefaultPath } from "../cloud.service";
 
 export interface Bookmark {
   url: string;
@@ -38,13 +37,13 @@ const createNewBookmark = async() => {
   try {
     const stats = await stat(bookmarkIndexFilePath);
   } catch (err) {
-    await saveInAFilePromise('', bookmarkIndexFilePath);
+    await saveInAFilePromise('[]', bookmarkIndexFilePath);
     console.log(`File ${bookmarkIndexFilePath} created correctly.`);
   }
   try {
     const stats = await stat(bookmarkTrashFilePath);
   } catch (err) {
-    await saveInAFilePromise('', bookmarkTrashFilePath);
+    await saveInAFilePromise('[]', bookmarkTrashFilePath);
     console.log(`File ${bookmarkTrashFilePath} created correctly.`);
   }
 }
@@ -144,9 +143,9 @@ export const removeFolder = async(indexList: BookmarkIndexEntry[], pathFolderInB
   for (let i = 0; i < allSubFolders.length; i++) {
     await rm(allSubFolders[i].nameFile);
   }
-  if (entry) {
-    await rm(entry.nameFile);
-  }
+  // if (entry) { // Is already deleted because it's in the allSubFolders list.
+  //   await rm(entry.nameFile);
+  // }
 
   // Save the new index content.
   await saveInAFilePromise(JSON.stringify(indexWithoutDeletedEntry, null, 2), bookmarkIndexFilePath);
@@ -194,11 +193,13 @@ export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBook
   const indexAlreadyAdded = indexList.find(i => i.pathInBookmark === newPathInBookmark);
   if (!indexAlreadyAdded) {
     const indexNewBookmark = indexList.length;
+    const nameFile = `${bookmarkFolderPath}/b${indexNewBookmark}.json`;
     const newFolder: BookmarkIndexEntry = {
-      nameFile: `${bookmarkFolderPath}/b${indexNewBookmark}.json`,
+      nameFile,
       pathInBookmark: newPathInBookmark,
     }
     indexList.push(newFolder);
+    await saveInAFilePromise('[]', nameFile);
     await saveInAFilePromise(JSON.stringify(indexList, null, 2), bookmarkIndexFilePath);
     return newFolder;
   } else {
@@ -208,16 +209,17 @@ export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBook
 
 export const removeBookmarkFromTrash = async(urlBookmark: string): Promise<Bookmark[]> => {
   // Remove forever a bookmark from trash.json (in trash NO FOLDER, NEVER).
-  const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
+  const dataJson: Bookmark[] = await readJSONFile(bookmarkTrashFilePath, '[]');
   const newData = dataJson.filter(b => urlBookmark !== b.url);
-  await saveInAFilePromise(JSON.stringify(newData, null, 2), trashDefaultPath);
+  await saveInAFilePromise(JSON.stringify(newData, null, 2), bookmarkTrashFilePath);
   
   return newData;
 };
 
 export const getTrash = async(bookmarksByPage: number, currentPage: number): Promise<Bookmark[]> => {
   // The trash is paginated (50 bookmarks by page is a good number).
-  const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
+  const dataJson: Bookmark[] = await readJSONFile(bookmarkTrashFilePath, '[]');
+  
   // Get index init and index end, and check edge cases.
   let initBookmarkToReturn = bookmarksByPage * currentPage;
   
@@ -276,8 +278,8 @@ export const searchInAllBookmarks = async(indexList: BookmarkIndexEntry[], wordl
   let currentPath: string;
   let currentBookmarks: Bookmark[];
   for (let i = 0; i < indexList.length; i++) {
-    currentPath = indexList[i].nameFile;
-    currentBookmarks = await readJSONFile(currentPath, '[]');
+    currentPath = indexList[i].pathInBookmark;
+    currentBookmarks = await readJSONFile(indexList[i].nameFile, '[]');
     currentBookmarks = currentBookmarks.map(b => ({
       ...b,
       path: currentPath,
@@ -288,7 +290,7 @@ export const searchInAllBookmarks = async(indexList: BookmarkIndexEntry[], wordl
 };
 
 export const searchAllBookmarksInTrash = async(indexList: BookmarkIndexEntry[], wordlist: string): Promise<Bookmark[]> => {
-  const dataJson: Bookmark[] = await readJSONFile(trashDefaultPath, '[]');
+  const dataJson: Bookmark[] = await readJSONFile(bookmarkTrashFilePath, '[]');
   return searchInBookmark(wordlist, dataJson);
 };
 

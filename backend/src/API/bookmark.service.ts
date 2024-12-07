@@ -1,4 +1,4 @@
-import { readJSONFile, saveInAFile } from "../utils";
+import { readJSONFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
 import { BookmarkIndexEntry, createBookmark, createFolder, editBookmark, editFolder, getAllFilesAndDirectoriesOfFolderPath, getTrash, moveBookmarksAndFolders, parseFromOldBookmarks, reloadIndexList, replaceAllBookmarkFromDisk, removeBookmark, removeBookmarkFromTrash, removeFolder, searchInAllBookmarks } from "./bookmarks/bookmarks-utils";
 
@@ -19,8 +19,8 @@ export class BookmarkService {
   static parseFromOldBookmarks = async(): Promise<void> => parseFromOldBookmarks();  // TODO: LÍNEA A ELIMINAR CUANDO YA ESTÉN PARSEADOS EN PROD
 
   // Get all the content in a folder with path 'path' (is '/' by default).
-  getBookmarks = async(path = '/'): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
-    if (this.index.length === 0) {
+  getBookmarks = async(path = '/', forceReloadIndex = false): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
+    if (this.index.length === 0 || forceReloadIndex) {
       this.index = await reloadIndexList();
     }
     const content = await getAllFilesAndDirectoriesOfFolderPath(this.index, path);
@@ -56,8 +56,9 @@ export class BookmarkService {
 
   removeFolder = async (folderPath: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
     await removeFolder(this.index, folderPath);
-    const parentPath = folderPath.split('/').slice(0, -1).join('/');
-    return await this.getBookmarks(parentPath);
+    let parentPath = folderPath.split('/').slice(0, -1).join('/');
+    parentPath = parentPath === undefined || parentPath === '' ? '/' : parentPath;
+    return await this.getBookmarks(parentPath, true);
   };
 
   removeBookmarkInTrash = async(urlBookmark: string): Promise<Bookmark[]> => removeBookmarkFromTrash(urlBookmark);
