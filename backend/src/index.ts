@@ -34,6 +34,8 @@ readFile(keysPath, (err, data) => {
         BookmarkService.parseFromOldBookmarks().then(() => { // TODO: LÍNEA A ELIMINAR CUANDO YA ESTÉN PARSEADOS EN PROD
           if (!keyData.is_backup_disabled) {
             startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
+          } else {
+            Logger.logInDevMode('BACKUP DISABLED!!');
           }
   
           channelMediaCollection = {
