@@ -166,9 +166,15 @@ export const editFolder = async(indexList: BookmarkIndexEntry[], oldPathFolderIn
     nameFile,
     pathInBookmark: pathInBookmark.split(oldPathFolderInBookmark).join(newPathFolderInBookmark),
   }));
+  const entryDuplicated = allSubFoldersNew.find(b => b.nameFile === entry.nameFile);
+  if (!entryDuplicated) {
+    allSubFoldersNew.push(entry);
+  } else {
+    entryDuplicated.pathInBookmark = newPathFolderInBookmark;
+  }
 
   // Create result with folders edited and not edited and save index.
-  await saveInAFilePromise(JSON.stringify([...newIndexListWithoutFoldersEdited, entry, ...allSubFoldersNew], null, 2), bookmarkIndexFilePath);
+  await saveInAFilePromise(JSON.stringify([...newIndexListWithoutFoldersEdited, ...allSubFoldersNew], null, 2), bookmarkIndexFilePath);
 };
 
 export const editBookmark = async(nameFileBookmarkPath: string, oldBookmark: Bookmark, newBookmark: Bookmark) => {
@@ -289,7 +295,7 @@ export const searchInAllBookmarks = async(indexList: BookmarkIndexEntry[], wordl
   return searchInBookmark(wordlist, allBookmarks);
 };
 
-export const searchAllBookmarksInTrash = async(indexList: BookmarkIndexEntry[], wordlist: string): Promise<Bookmark[]> => {
+export const searchAllBookmarksInTrash = async(wordlist: string): Promise<Bookmark[]> => {
   const dataJson: Bookmark[] = await readJSONFile(bookmarkTrashFilePath, '[]');
   return searchInBookmark(wordlist, dataJson);
 };
@@ -323,7 +329,12 @@ const moveFolders = async (
 
   // Extract all subfolders to move and mix with foldersToMove.
   foldersToMove.forEach(currentFolder => {
-    realAllFoldersToMove = [...realAllFoldersToMove, currentFolder, ...getAllFolderListInPath(indexList, currentFolder.pathInBookmark)];
+    const allSubfolders = getAllFolderListInPath(indexList, currentFolder.pathInBookmark);
+    const entryDuplicated = allSubfolders.find(b => b.nameFile === currentFolder.nameFile);
+    if (!entryDuplicated) {
+      allSubfolders.push(currentFolder);
+    }
+    realAllFoldersToMove = [...realAllFoldersToMove, ...allSubfolders];
   });
 
   // Extract all folders to NO move.

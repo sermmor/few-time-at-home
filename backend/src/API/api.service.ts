@@ -45,6 +45,7 @@ export class APIService {
     getPathList: "/bookmarks/path",
     getTrashList: "/bookmarks/trash",
     search: "/bookmarks/search",
+    searchInTrash: "/bookmarks/search-in-trash",
     addBookmark: "/bookmarks/add-bookmark",
     addFolder: "/bookmarks/add-folder",
     removeBookmark: "/bookmarks/remove-bookmark",
@@ -344,6 +345,14 @@ export class APIService {
       }
     });
 
+    this.app.post(APIService.bookmarksEndpoint.searchInTrash, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        BookmarkService.Instance.searchInTrash(req.body.data).then(data => res.send({ data }));
+      }
+    });
+
     this.app.post(APIService.bookmarksEndpoint.addBookmark, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
@@ -394,7 +403,7 @@ export class APIService {
       }
     });
 
-    this.app.post(APIService.bookmarksEndpoint.editBookmark, (req, res) => { // TODO: Probar endpoints usando Postman
+    this.app.post(APIService.bookmarksEndpoint.editBookmark, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
@@ -404,7 +413,7 @@ export class APIService {
       }
     });
 
-    this.app.post(APIService.bookmarksEndpoint.editFolder, (req, res) => { // TODO: Probar endpoints usando Postman
+    this.app.post(APIService.bookmarksEndpoint.editFolder, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
@@ -414,7 +423,7 @@ export class APIService {
       }
     });
 
-    this.app.post(APIService.bookmarksEndpoint.move, (req, res) => { // TODO: Probar endpoints usando Postman
+    this.app.post(APIService.bookmarksEndpoint.move, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
       } else {

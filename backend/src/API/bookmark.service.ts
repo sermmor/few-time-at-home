@@ -1,6 +1,6 @@
 import { readJSONFile } from "../utils";
 import { getUnfurl } from '../unfurl/unfurl';
-import { BookmarkIndexEntry, createBookmark, createFolder, editBookmark, editFolder, getAllFilesAndDirectoriesOfFolderPath, getTrash, moveBookmarksAndFolders, parseFromOldBookmarks, reloadIndexList, replaceAllBookmarkFromDisk, removeBookmark, removeBookmarkFromTrash, removeFolder, searchInAllBookmarks } from "./bookmarks/bookmarks-utils";
+import { BookmarkIndexEntry, createBookmark, createFolder, editBookmark, editFolder, getAllFilesAndDirectoriesOfFolderPath, getTrash, moveBookmarksAndFolders, parseFromOldBookmarks, reloadIndexList, replaceAllBookmarkFromDisk, removeBookmark, removeBookmarkFromTrash, removeFolder, searchInAllBookmarks, searchAllBookmarksInTrash } from "./bookmarks/bookmarks-utils";
 
 export interface Bookmark {
   url: string;
@@ -31,6 +31,8 @@ export class BookmarkService {
 
   // TODO: Comprobar que sigue funcionando en Telegram
   searchInBookmark = async (wordlist: string): Promise<Bookmark[]> => await searchInAllBookmarks(this.index, wordlist);
+
+  searchInTrash = async (wordlist: string): Promise<Bookmark[]> => await searchAllBookmarksInTrash(wordlist);
   
   // TODO: Comprobar que sigue funcionando en Telegram
   addBookmark = async (urlBookmark: string, path: string = '/', title = ''): Promise<Bookmark> => {
@@ -63,17 +65,19 @@ export class BookmarkService {
 
   removeBookmarkInTrash = async(urlBookmark: string): Promise<Bookmark[]> => removeBookmarkFromTrash(urlBookmark);
 
-  editFolder = async (oldPathFolderInBookmark: string, newPathInBookmark: string): Promise<(BookmarkIndexEntry | Bookmark)[]> =>{
-    await editFolder(this.index, oldPathFolderInBookmark, newPathInBookmark);
-    return await this.getBookmarks(newPathInBookmark);
-  };
-
   editBookmark = async (path: string, oldBookmark: Bookmark, newBookmark: Bookmark): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
     const filePath = this.index.find(f => f.pathInBookmark === path)?.nameFile;
     if (filePath) {
       await editBookmark(filePath, oldBookmark, newBookmark);
     }
     return await this.getBookmarks(path);
+  };
+
+  editFolder = async (oldPathFolderInBookmark: string, newPathInBookmark: string): Promise<(BookmarkIndexEntry | Bookmark)[]> =>{
+    await editFolder(this.index, oldPathFolderInBookmark, newPathInBookmark);
+    let parentPath = newPathInBookmark.split('/').slice(0, -1).join('/');
+    parentPath = parentPath === undefined || parentPath === '' ? '/' : parentPath;
+    return await this.getBookmarks(parentPath);
   };
 
   moveBookmarksAndFolders = async(toMove: (BookmarkIndexEntry | Bookmark)[], oldPath: string, newPath: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
@@ -108,4 +112,4 @@ export class BookmarkService {
   }
 
   setFileContent = async (data: any): Promise<void> => await replaceAllBookmarkFromDisk(data);
-}
+};
