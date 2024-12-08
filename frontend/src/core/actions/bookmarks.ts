@@ -1,86 +1,76 @@
+import {
+  GetAddBookmarkRequest,
+  GetAddBookmarkResponse,
+  GetAddFolderResponse,
+  GetEditBookmarkRequest,
+  GetEditFolderRequest,
+  GetMoveRequest,
+  GetPathRequest,
+  GetPathResponse,
+  GetRemoveBookmarkRequest,
+  GetRemoveFolderRequest,
+  GetRemoveInTrashRequest,
+  GetSearchListRequest,
+  GetSearchListResponse,
+  GetTrashListRequest,
+  GetTrashListResponse
+} from "../../data-model/bookmarks";
+import {
+  getBookmarkAndFolderListModelMock,
+  getBookmarkListModelMock,
+  getOnlyABookmarkDataModelMock,
+  getOnlyAFolderDataModelMock
+} from "../../data-model/mock/bookmarksMock";
+import { fetchJsonSendAndReceive } from "../fetch-utils";
+import { bookmarksEndpoint } from "../urls-and-end-points";
 
-import { BookmarkItemFromFetch, BookmarksDataModel, BookmarksDataModelFromFetch, DataToSendInPieces, parseFromDataModelToFetchToSend, parseFromFetchToDataModel, prepareInPiecesDataModelToSend } from "../../data-model/bookmarks";
-import { bookmarksDataModelMock, dataToGetInPiecesMock } from "../../data-model/mock/bookmarksMock";
-import { fetchJsonReceive, fetchJsonSendAndReceive } from "../fetch-utils";
-import { bookmarksEndpoint, bookmarksPieceEndpoint, searchBookmarksEndpoint } from "../urls-and-end-points";
+const getPathList = (request: GetPathRequest = { path: '/' }): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('getPathList'), request, getBookmarkAndFolderListModelMock());
 
-export interface DataToGetInPieces {
-  data: BookmarkItemFromFetch[];
-  pieceIndex: number;
-  totalPieces: number;
-  isFinished: boolean;
-}
+const getTrashList = (request: GetTrashListRequest): Promise<GetTrashListResponse> => 
+  fetchJsonSendAndReceive<GetTrashListResponse>(bookmarksEndpoint('getTrashList'), request, getBookmarkListModelMock());
 
-let isInGetBookmarkProcess = false;
+const getSearch = (request: GetSearchListRequest): Promise<GetSearchListResponse> => 
+  fetchJsonSendAndReceive<GetSearchListResponse>(bookmarksEndpoint('search'), request, getBookmarkListModelMock());
 
-const getBookmarks = (): Promise<BookmarksDataModel> => new Promise<BookmarksDataModel>(resolve => {
-  if (!isInGetBookmarkProcess) {
-    isInGetBookmarkProcess = true;
-    fetchJsonReceive<{data: DataToGetInPieces}>(bookmarksEndpoint(), dataToGetInPiecesMock())
-      .then(fetchPieceData => {
-        if (fetchPieceData.data.isFinished) {
-          resolve(parseFromFetchToDataModel({data: fetchPieceData.data.data}));
-        } else {
-          getBookmarksRecursive(fetchPieceData.data.data).then(finalData => {
-            isInGetBookmarkProcess = false;
-            resolve(parseFromFetchToDataModel({data: finalData}));
-          });
-        }
-      });
-  } else {
-    setTimeout(() => {
-      if (isInGetBookmarkProcess) {
-        isInGetBookmarkProcess = false;
-        getBookmarks().then(data => resolve(data));
-        console.log('> Call getBookmark again.')
-      } else {
-        console.log('> Not need to call getBookmark again.')
-      }
-    }, 30000);
-  }
-});
+const getSearchTrash = (request: GetSearchListRequest): Promise<GetSearchListResponse> => 
+  fetchJsonSendAndReceive<GetSearchListResponse>(bookmarksEndpoint('searchInTrash'), request, getBookmarkListModelMock());
 
-const getBookmarksRecursive = (allData : BookmarkItemFromFetch[]) => new Promise<BookmarkItemFromFetch[]>(resolve => {
-  fetchJsonReceive<{data: DataToGetInPieces}>(bookmarksPieceEndpoint(), dataToGetInPiecesMock()).then(fetchPieceData => {
-    if (!fetchPieceData.data || fetchPieceData.data.isFinished) {
-      const dataCompleted = fetchPieceData.data ? allData.concat(fetchPieceData.data.data) : allData;
-      resolve(dataCompleted);
-    } else {
-      setTimeout(() => {
-        const dataCompleted = allData.concat(fetchPieceData.data.data);
-        getBookmarksRecursive(dataCompleted).then(finalData => resolve(finalData));
-      }, 0.5);
-    }
-  });
-});
+const getAddBookmark = (request: GetAddBookmarkRequest): Promise<GetAddBookmarkResponse> => 
+  fetchJsonSendAndReceive<GetAddBookmarkResponse>(bookmarksEndpoint('addBookmark'), request, getOnlyABookmarkDataModelMock());
 
-const sendBookmarks = (data: BookmarksDataModel) => new Promise<void>(resolve => {
-  const dataToFetch = parseFromDataModelToFetchToSend(data);
-  const dataToFetchInPieces = prepareInPiecesDataModelToSend(dataToFetch);
+const getAddFolder = (request: GetAddBookmarkRequest): Promise<GetAddFolderResponse> => 
+  fetchJsonSendAndReceive<GetAddFolderResponse>(bookmarksEndpoint('addBookmark'), request, getOnlyAFolderDataModelMock());
 
-  sendBookmarksRecursive(dataToFetchInPieces).then(data => resolve(data));
-  
-  // fetchJsonSendAndReceive<BookmarksDataModelFromFetch>(bookmarksEndpoint(), dataToFetch, bookmarksDataModelMock())
-  //   .then(fetchData => {
-  //     resolve({data: new GenericTree<BookmarkItem>('', undefined)});
-  //   });
-});
+const getRemoveBookmark = (request: GetRemoveBookmarkRequest): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('removeBookmark'), request, getBookmarkAndFolderListModelMock());
 
-const sendBookmarksRecursive = (dataToFetchInPieces: DataToSendInPieces[]) => new Promise<void>(resolve => {
-  if (dataToFetchInPieces.length === 0) {
-    resolve();
-  } else {
-    const dataToFetch = dataToFetchInPieces[0];
-    const restOfPieces = dataToFetchInPieces.slice(1);
-    
-    fetchJsonSendAndReceive<DataToSendInPieces>(bookmarksEndpoint(), dataToFetch, {data: bookmarksDataModelMock().data, isFinished: false })
-      .then(() => {
-        setTimeout(() => sendBookmarksRecursive(restOfPieces).then(data => resolve(data)), 0);
-      });
-  }
-});
+const getRemoveFolder = (request: GetRemoveFolderRequest): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('removeFolder'), request, getBookmarkAndFolderListModelMock());
 
-const searchBookmarks = (textToSearch: string) => 
-  fetchJsonSendAndReceive<BookmarksDataModelFromFetch>(searchBookmarksEndpoint(), {data: textToSearch}, bookmarksDataModelMock());
+const getRemoveInTrash = (request: GetRemoveInTrashRequest): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('removeInTrash'), request, getBookmarkAndFolderListModelMock());
 
-export const BookmarksActions = { getBookmarks, sendBookmarks, searchBookmarks };
+const getEditBookmark = (request: GetEditBookmarkRequest): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('editBookmark'), request, getBookmarkAndFolderListModelMock());
+
+const getEditFolder = (request: GetEditFolderRequest): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('editFolder'), request, getBookmarkAndFolderListModelMock());
+
+const getMove = (request: GetMoveRequest): Promise<GetPathResponse> => 
+  fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('move'), request, getBookmarkAndFolderListModelMock());
+
+export const BookmarksActions = {
+  getPathList,
+  getTrashList,
+  getSearch,
+  getSearchTrash,
+  getAddBookmark,
+  getAddFolder,
+  getRemoveBookmark,
+  getRemoveFolder,
+  getRemoveInTrash,
+  getEditBookmark,
+  getEditFolder,
+  getMove,
+};

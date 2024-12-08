@@ -1,36 +1,61 @@
-import { DataToGetInPieces } from "../../core/actions/bookmarks";
-import { BookmarksDataModelFromFetch } from "../bookmarks";
+import { GetAddBookmarkResponse, GetAddFolderResponse, GetPathResponse, GetTrashListResponse } from "../bookmarks";
 
-export const bookmarksDataModelMock = (): BookmarksDataModelFromFetch => ({
+export const getBookmarkAndFolderListModelMock = (): GetPathResponse => ({
   data: [
     {
+      nameFile: "blablabla/file.json",
+      pathInBookmark: "Imagenes",
+    },
+    {
       url: "https://duckduckgo.com/",
-      title: "Duck Duck Go",
-      path: "/"
+      title: "Duck Duck Go"
     },
     {
       url: "https://nitter.net",
-      title: "Nitter",
-      path: "/"
+      title: "Nitter"
     },
     {
       url: "https://nitter.net/el_pais",
-      title: "Nitter - el pais",
-      path: "/periodicos"
+      title: "Nitter - el pais"
     },
     {
       url: "https://nitter.net/CNNEE",
-      title: "Nitter - CNN",
-      path: "/periodicos"
+      title: "Nitter - CNN"
     }
   ]
 });
 
-export const dataToGetInPiecesMock = (): {data: DataToGetInPieces} => ({
+export const getBookmarkListModelMock = (): GetTrashListResponse => ({
+  data: [
+    {
+      url: "https://duckduckgo.com/",
+      title: "Duck Duck Go"
+    },
+    {
+      url: "https://nitter.net",
+      title: "Nitter"
+    },
+    {
+      url: "https://nitter.net/el_pais",
+      title: "Nitter - el pais"
+    },
+    {
+      url: "https://nitter.net/CNNEE",
+      title: "Nitter - CNN"
+    }
+  ]
+});
+
+export const getOnlyABookmarkDataModelMock = (): GetAddBookmarkResponse => ({
   data: {
-    data: bookmarksDataModelMock().data,
-    pieceIndex: 1,
-    totalPieces: 1,
-    isFinished: true,
-  }
+    url: "https://duckduckgo.com/",
+    title: "Duck Duck Go"
+  },
+});
+
+export const getOnlyAFolderDataModelMock = (): GetAddFolderResponse => ({
+  data: {
+    nameFile: "blablabla/file.json",
+    pathInBookmark: "Imagenes",
+  },
 });

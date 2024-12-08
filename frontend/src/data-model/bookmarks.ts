@@ -1,78 +1,84 @@
-import { GenericTree } from "../service/trees/genericTree";
+export const isFolder = (element: IndexEntry | Bookmark): boolean => !!('nameFile' in element);
 
-export const urlFolder = 'urlfolder:///';
+export interface Bookmark {
+  url: string;
+  title: string;
+}
 
-export const isFolder = (element: BookmarkItem) => element.url.indexOf(urlFolder) > -1;
+export interface IndexEntry {
+  nameFile: string;
+  pathInBookmark: string;
+}
 
-export interface BookmarkItemFromFetch {
+export interface GetPathRequest {
+  path: string;
+}
+
+export interface GetPathResponse {
+  data: (IndexEntry | Bookmark)[];
+}
+
+export interface GetTrashListRequest {
+  bookmarksByPage: number;
+  currentPage: number;
+}
+
+export interface GetTrashListResponse {
+  data: Bookmark[];
+}
+
+export interface GetSearchListRequest {
+  data: string;
+}
+
+export interface GetSearchListResponse {
+  data: Bookmark[];
+}
+
+export interface GetAddBookmarkRequest {
   url: string;
   title: string;
   path: string;
 }
 
-export interface BookmarksDataModelFromFetch {
-  data: BookmarkItemFromFetch[];
+export interface GetAddBookmarkResponse {
+  data: Bookmark;
 }
 
-export interface BookmarkItem {
+export interface GetAddFolderRequest {
+  path: string;
+}
+
+export interface GetAddFolderResponse {
+  data: IndexEntry;
+}
+
+export interface GetRemoveBookmarkRequest {
   url: string;
-  title: string;
+  path: string;
 }
 
-export interface BookmarksDataModel {
-  data: GenericTree<BookmarkItem>;
+export interface GetRemoveFolderRequest {
+  path: string;
 }
 
-export const parseFromFetchToDataModel = (bookmarkFetchStyle: BookmarksDataModelFromFetch): BookmarksDataModel => {
-  const dataForTree: {path: string, data: BookmarkItem}[] = bookmarkFetchStyle.data.map(item => ({
-    path: item.path ? item.path : '/',
-    data: {
-      title: item.title,
-      url: item.url,
-    }
-  }));
-  return {
-    data: GenericTree.parseFromListWithPaths(dataForTree)!,
-  };
+export interface GetRemoveInTrashRequest {
+  url: string;
 }
 
-export const parseFromDataModelToFetchToSend = (bookmarks: BookmarksDataModel): BookmarksDataModelFromFetch => {
-  const dataFromTree: {path: string, data: BookmarkItem}[] = GenericTree.parseTreeToList(bookmarks.data);
-  return {
-    data: dataFromTree.map(item => ({
-      url: item.data.url,
-      title: item.data.title,
-      path: item.path,
-    }))
-  };
+export interface GetEditBookmarkRequest {
+  path: string;
+  oldBookmark: Bookmark;
+  newBookmark: Bookmark;
 }
 
-export interface DataToSendInPieces {
-  data: BookmarkItemFromFetch[];
-  isFinished: boolean;
+export interface GetEditFolderRequest {
+  oldPath: string;
+  newPath: string;
 }
 
-export const prepareInPiecesDataModelToSend = (bookmarks: BookmarksDataModelFromFetch, numberItemsPerPiece: number = 100): DataToSendInPieces[] => {
-  const numberOfPieces = Math.ceil(bookmarks.data.length / numberItemsPerPiece);
-  const dataToSend: DataToSendInPieces[] = [];
-  let indexCurrent = 0;
-
-  for (let i = 0; i < numberOfPieces; i++) {
-    if (indexCurrent + numberItemsPerPiece < bookmarks.data.length) {
-      dataToSend.push({
-        data: bookmarks.data.slice(indexCurrent, indexCurrent + numberItemsPerPiece),
-        isFinished: false,
-      });
-      indexCurrent = indexCurrent + numberItemsPerPiece;
-    } else {
-      dataToSend.push({
-        data: bookmarks.data.slice(indexCurrent, bookmarks.data.length),
-        isFinished: true,
-      });
-      indexCurrent = bookmarks.data.length;
-    }
-  }
-  
-  return dataToSend;
+export interface GetMoveRequest {
+  toMove: (IndexEntry | Bookmark)[];
+  oldPath: string;
+  newPath: string;
 }
-

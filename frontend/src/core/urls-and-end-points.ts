@@ -15,9 +15,6 @@ export const stillConverterEndpoint = (): string => `${getUrlApi()}/still-conver
 export const sendToTelegramEndpoint = (): string => `${getUrlApi()}/send-to-telegram`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
 export const areNotificationsEnabledEndpoint = (): string => `${getUrlApi()}/alerts-is-ready`;
-export const bookmarksEndpoint = (): string => `${getUrlApi()}/bookmarks`;
-export const bookmarksPieceEndpoint = (): string => `${getUrlApi()}/bookmarks-piece`;
-export const searchBookmarksEndpoint = (): string => `${getUrlApi()}/search-bookmarks`;
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;
 
@@ -41,3 +38,21 @@ const cloudEndpointList = {
 };
 
 export const getCloudEndpoint = (typeEndpoint: CloudEndpointType) => `${getUrlApi()}${cloudEndpointList[typeEndpoint]}`;
+
+export type BookmarkEndpointList = 'getPathList' | 'getTrashList' | 'search' | 'searchInTrash' | 'addBookmark' | 'addFolder' | 'removeBookmark' | 'removeFolder' | 'removeInTrash' | 'editBookmark' | 'editFolder' | 'move';
+const bookmarkEndpointList = {
+  'getPathList': '/bookmarks/path',
+  'getTrashList': '/bookmarks/trash',
+  'search': '/bookmarks/search',
+  'searchInTrash': '/bookmarks/search-in-trash',
+  'addBookmark': '/bookmarks/add-bookmark',
+  'addFolder': '/bookmarks/add-folder',
+  'removeBookmark': '/bookmarks/remove-bookmark',
+  'removeFolder': '/bookmarks/remove-folder',
+  'removeInTrash': '/bookmarks/remove-in-trash',
+  'editBookmark': '/bookmarks/edit-bookmark',
+  'editFolder': '/bookmarks/edit-folder',
+  'move': '/bookmarks/move',
+};
+
+export const bookmarksEndpoint = (typeEndpoint: BookmarkEndpointList): string => `${getUrlApi()}/${bookmarkEndpointList[typeEndpoint]}`;
