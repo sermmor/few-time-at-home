@@ -1,18 +1,16 @@
 import { Link } from "@mui/material";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
-import { BookmarkItem, isFolder, urlFolder } from "../../../data-model/bookmarks";
-import { GenericTree } from "../../../service/trees/genericTree";
+import { Bookmark, BookmarkItem, IndexEntry, isFolder } from "../../../data-model/bookmarks";
 
 export interface ActionsProps {
-  tree: GenericTree<BookmarkItem>;
-  bookmarks: {data: BookmarkItem[]};
-  setBookmarks: React.Dispatch<React.SetStateAction<{ data: BookmarkItem[]; } | undefined>>;
-  currentTreeNode: GenericTree<BookmarkItem>;
-  setCurrentTreeNode: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem> | undefined>>;
-  breadcrumb: GenericTree<BookmarkItem>[];
-  setBreadcrumb: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem>[]>>;
-  selectedNodes: GenericTree<BookmarkItem>[];
-  setSelectedNodes: React.Dispatch<React.SetStateAction<GenericTree<BookmarkItem>[]>>;
+  currentPath: string;
+  setCurrentPath: React.Dispatch<React.SetStateAction<string>>;
+  bookmarks: BookmarkItem[];
+  setBookmarks: React.Dispatch<React.SetStateAction<BookmarkItem[]>>;
+  breadcrumb: string[];
+  setBreadcrumb: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedNodes: BookmarkItem[];
+  setSelectedNodes: React.Dispatch<React.SetStateAction<BookmarkItem[]>>;
 }
 
 export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, id: string) => {
@@ -37,7 +35,7 @@ export const deleteActionList = ({bookmarks, setBookmarks, currentTreeNode, setC
   }
 };
 
-export const addActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: BookmarkItem) => {
+export const addActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: Bookmark) => {
   const cloneList = [...bookmarks.data];
   cloneList.push(itemToAdd);
   setBookmarks({data: [...cloneList]});
@@ -82,7 +80,7 @@ export const editFolderActionList = ({bookmarks, setBookmarks, currentTreeNode, 
   }
 };
 
-export const addFolderActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: BookmarkItem) => {
+export const addFolderActionItemList = ({bookmarks, setBookmarks, currentTreeNode, setCurrentTreeNode}: ActionsProps, itemToAdd: IndexEntry) => {
   const cloneList = [...bookmarks.data];
   cloneList.push(itemToAdd);
   setBookmarks({data: [...cloneList]});

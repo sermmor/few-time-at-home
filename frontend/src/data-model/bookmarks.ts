@@ -1,5 +1,3 @@
-export const isFolder = (element: IndexEntry | Bookmark): boolean => !!('nameFile' in element);
-
 export interface Bookmark {
   url: string;
   title: string;
@@ -10,12 +8,18 @@ export interface IndexEntry {
   pathInBookmark: string;
 }
 
+export type BookmarkItem = IndexEntry & Bookmark;
+
+export const isFolder = (element: BookmarkItem): boolean => !!element.nameFile;
+
+export const getIdBookmarkItem = (item: BookmarkItem): string => item.nameFile ? item.nameFile : item.url;
+
 export interface GetPathRequest {
   path: string;
 }
 
 export interface GetPathResponse {
-  data: (IndexEntry | Bookmark)[];
+  data: BookmarkItem[];
 }
 
 export interface GetTrashListRequest {
@@ -78,7 +82,7 @@ export interface GetEditFolderRequest {
 }
 
 export interface GetMoveRequest {
-  toMove: (IndexEntry | Bookmark)[];
+  toMove: BookmarkItem[];
   oldPath: string;
   newPath: string;
 }
