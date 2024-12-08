@@ -20,6 +20,7 @@ export interface RouteFTAHElement {
 }
 
 export const cloudFilesName = 'Cloud files';
+export const bookmarkRouteName = 'Bookmarks';
 
 export const routesFTAH: RouteFTAHElement[] = [
   {
@@ -36,7 +37,7 @@ export const routesFTAH: RouteFTAHElement[] = [
     includeSubroutes: true,
   },
   {
-    name: 'Bookmarks',
+    name: bookmarkRouteName,
     path: '/bookmarks',
     group: 'Internet',
     element: <Bookmarks/>,

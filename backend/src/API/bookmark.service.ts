@@ -24,7 +24,7 @@ export class BookmarkService {
       this.index = await reloadIndexList();
     }
     const content = await getAllFilesAndDirectoriesOfFolderPath(this.index, path);
-    return content;
+    return (path === '/') ? content : content.slice(1);
   };
 
   getBookmarkInTrash = async(bookmarksByPage: number, currentPage: number): Promise<Bookmark[]> => getTrash(bookmarksByPage, currentPage);

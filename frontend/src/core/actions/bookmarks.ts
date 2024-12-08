@@ -1,6 +1,7 @@
 import {
   GetAddBookmarkRequest,
   GetAddBookmarkResponse,
+  GetAddFolderRequest,
   GetAddFolderResponse,
   GetEditBookmarkRequest,
   GetEditFolderRequest,
@@ -39,8 +40,8 @@ const getSearchTrash = (request: GetSearchListRequest): Promise<GetSearchListRes
 const getAddBookmark = (request: GetAddBookmarkRequest): Promise<GetAddBookmarkResponse> => 
   fetchJsonSendAndReceive<GetAddBookmarkResponse>(bookmarksEndpoint('addBookmark'), request, getOnlyABookmarkDataModelMock());
 
-const getAddFolder = (request: GetAddBookmarkRequest): Promise<GetAddFolderResponse> => 
-  fetchJsonSendAndReceive<GetAddFolderResponse>(bookmarksEndpoint('addBookmark'), request, getOnlyAFolderDataModelMock());
+const getAddFolder = (request: GetAddFolderRequest): Promise<GetAddFolderResponse> => 
+  fetchJsonSendAndReceive<GetAddFolderResponse>(bookmarksEndpoint('addFolder'), request, getOnlyAFolderDataModelMock());
 
 const getRemoveBookmark = (request: GetRemoveBookmarkRequest): Promise<GetPathResponse> => 
   fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('removeBookmark'), request, getBookmarkAndFolderListModelMock());

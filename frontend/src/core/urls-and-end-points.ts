@@ -55,4 +55,4 @@ const bookmarkEndpointList = {
   'move': '/bookmarks/move',
 };
 
-export const bookmarksEndpoint = (typeEndpoint: BookmarkEndpointList): string => `${getUrlApi()}/${bookmarkEndpointList[typeEndpoint]}`;
+export const bookmarksEndpoint = (typeEndpoint: BookmarkEndpointList): string => `${getUrlApi()}${bookmarkEndpointList[typeEndpoint]}`;

@@ -6,6 +6,16 @@ import { ConfigurationService } from '../service/configuration/configuration.ser
 
 const ConfigData = require('../configuration.json');
 
+const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
+<Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
+  <AppMenubar />
+</Box>
+<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>{
+  element
+  }
+</Box>
+</>;
+
 const AllRoutes = () => {
   const config = new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.isUsingMocks);
 
@@ -16,19 +26,9 @@ const AllRoutes = () => {
           <Route
             key={nameRoute}
             path={path}
-            element={
-              <>
-                <Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
-                  <AppMenubar />
-                </Box>
-                <Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>{
-                  element
-                  }
-                </Box>
-              </>
-            }
+            element={<EnvelopComponent element={element} />}
           >
-            {includeSubroutes && <Route path="*" />}
+            {includeSubroutes && <Route path="*" element={<EnvelopComponent element={element} />}/>}
           </Route>
         )
       }

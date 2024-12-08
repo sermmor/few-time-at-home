@@ -1,4 +1,4 @@
-import { GetAddBookmarkResponse, GetAddFolderResponse, GetPathResponse, GetTrashListResponse } from "../bookmarks";
+import { BookmarkItem, GetAddBookmarkResponse, GetAddFolderResponse, GetPathResponse, GetTrashListResponse } from "../bookmarks";
 
 export const getBookmarkAndFolderListModelMock = (): GetPathResponse => ({
   data: [
@@ -22,7 +22,7 @@ export const getBookmarkAndFolderListModelMock = (): GetPathResponse => ({
       url: "https://nitter.net/CNNEE",
       title: "Nitter - CNN"
     }
-  ]
+  ] as unknown as BookmarkItem[]
 });
 
 export const getBookmarkListModelMock = (): GetTrashListResponse => ({
