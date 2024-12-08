@@ -46,7 +46,7 @@ const ToolbarDesktopAndTablet = () => {
       <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
         {allPages.map((p) => {
           if ('pages' in p) {
-            return <MenuPageItem page={p} />;
+            return <MenuPageItem key={p.name} page={p} />;
           } else {
             const {name, path} = p;
             return (

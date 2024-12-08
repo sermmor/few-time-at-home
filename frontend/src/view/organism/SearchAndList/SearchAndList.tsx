@@ -54,7 +54,7 @@ export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
           if (typeof(item) === 'string') {
             return <p key={`p_search_${index}`}>{item}</p>;
           } else {
-            return item;
+            return <span key={`p_search_${index}`}>{item}</span>;
           }
         })}
       </CardContent>
