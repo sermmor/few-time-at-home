@@ -216,7 +216,8 @@ export const editBookmark = async(nameFileBookmarkPath: string, oldBookmark: Boo
 };
 
 export const createBookmark = async(indexList: BookmarkIndexEntry[], pathFolderInBookmark: string, bookmark: Bookmark) => {
-  const entry = indexList.filter(b => b.pathInBookmark === pathFolderInBookmark)[0];
+  const entry = indexList.find(b => b.pathInBookmark === pathFolderInBookmark);
+  if (!entry) return;
   const dataJson: Bookmark[] = await readJSONFile(entry.nameFile, '[]');
   const isAlreadyAdded = !!dataJson.find(b => b.url === bookmark.url);
   if (!isAlreadyAdded) {
