@@ -269,26 +269,34 @@ export const removeBookmarkFromTrash = async(urlBookmark: string): Promise<Bookm
 export const getTrash = async(bookmarksByPage: number, currentPage: number): Promise<Bookmark[]> => {
   // The trash is paginated (50 bookmarks by page is a good number).
   const dataJson: Bookmark[] = await readJSONFile(bookmarkTrashFilePath, '[]');
+
+  // Remove repeated elements.
+  const allItems: Bookmark[] = [];
+  dataJson.forEach(b => {
+    if (!allItems.find(i => i.url === b.url)) {
+      allItems.push(b);
+    }
+  });
   
   // Get index init and index end, and check edge cases.
   let initBookmarkToReturn = bookmarksByPage * currentPage;
   
-  if (initBookmarkToReturn >= dataJson.length) {
-    initBookmarkToReturn = dataJson.length - bookmarksByPage;
+  if (initBookmarkToReturn >= allItems.length) {
+    initBookmarkToReturn = allItems.length - bookmarksByPage;
     initBookmarkToReturn = initBookmarkToReturn < 0 ? 0 : initBookmarkToReturn;
   }
 
   let endBookmarkToReturn = (bookmarksByPage * (currentPage + 1)) - 1;
 
-  if (endBookmarkToReturn > dataJson.length) {
-    endBookmarkToReturn = dataJson.length - 1;
+  if (endBookmarkToReturn > allItems.length) {
+    endBookmarkToReturn = allItems.length - 1;
   }
 
   if (endBookmarkToReturn < 0) {
-    endBookmarkToReturn = dataJson.length - 1;
+    endBookmarkToReturn = allItems.length - 1;
   }
 
-  return dataJson.slice(initBookmarkToReturn, endBookmarkToReturn + 1);
+  return allItems.slice(initBookmarkToReturn, endBookmarkToReturn + 1);
 };
 
 const searchPredicate = (bm: Bookmark, path: string) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
