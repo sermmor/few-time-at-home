@@ -93,15 +93,45 @@ const getAllFolderListInPath = (indexList: BookmarkIndexEntry[], currentPath: st
   }
 };
 
+const pathLength = (path: string): number => '/' === path ? 1 : path.split('/').length;
+
 // For openFolder action (like an "ls" command)
 export const getAllFilesAndDirectoriesOfFolderPath = async(indexList: BookmarkIndexEntry[], folderPathInBookmark: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
   // We extract first the subfolders in the indexList.
-  const allFolders: BookmarkIndexEntry[] = getAllFolderListInPath(indexList, folderPathInBookmark);
+  let allFolders: BookmarkIndexEntry[] = getAllFolderListInPath(indexList, folderPathInBookmark);
+
+  // Check shadow folders (folders without bookmarks and without files)
+  const shadowFoldersList: BookmarkIndexEntry[] = [];
+  let spliterShadowFolder: string[];
+  let currentShadowFolder: string;
+  allFolders.forEach((f, i) => {
+    if (pathLength(f.pathInBookmark) > pathLength(folderPathInBookmark) + 1) {
+      spliterShadowFolder = f.pathInBookmark.split('/').slice(0, pathLength(folderPathInBookmark) + 1);
+      currentShadowFolder = spliterShadowFolder.join('/');
+      if (!shadowFoldersList.find(f => f.pathInBookmark === currentShadowFolder) && !allFolders.find(f => f.pathInBookmark === currentShadowFolder)) {
+        shadowFoldersList.push({
+          nameFile: `shadow_${i}`,
+          pathInBookmark: currentShadowFolder,
+        })
+      }
+    }
+  });
+  allFolders = [...allFolders, ...shadowFoldersList];
+
+  // We filter the folder itself and the "grandchildren" folders.
+  allFolders = allFolders.filter(f =>
+    f.pathInBookmark !== folderPathInBookmark
+    && pathLength(f.pathInBookmark) === pathLength(folderPathInBookmark) + 1
+  );
+
   // We get the file bookmark entry content.
   const entry = indexList.find(({ pathInBookmark }) => pathInBookmark === folderPathInBookmark);
   const allBookmarks: Bookmark[] = entry ? await readJSONFile(entry.nameFile, '[]') : [];
 
-  return [...allFolders, ...allBookmarks];
+  return [
+    ...allFolders.sort((a, b) => a.pathInBookmark.localeCompare(b.pathInBookmark)),
+    ...allBookmarks.sort((a, b) => a.title.localeCompare(b.title)),
+  ];
 }
 
 export const removeBookmark = async(indexList: BookmarkIndexEntry[], pathFolderInBookmark: string, urlBookmarkToDelete: string) => {
