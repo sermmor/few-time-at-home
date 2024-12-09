@@ -195,10 +195,24 @@ export const createBookmark = async(indexList: BookmarkIndexEntry[], pathFolderI
   }
 };
 
+const searchNextIndexFree = (indexList: BookmarkIndexEntry[]): number => {
+  const allIndex: number[] = indexList.map(i => +i.nameFile.split("data/bookmarks/b")[1].split(".json")[0]);
+  const allIndexSorted = allIndex.sort((a, b) => a - b);
+  let newIndex = 0;
+  for (let i = 0; i < allIndexSorted.length; i++) {
+    if (allIndexSorted[i] === newIndex) {
+      newIndex++;
+    } else {
+      return newIndex;
+    }
+  }
+  return newIndex;
+}
+
 export const createFolder = async(indexList: BookmarkIndexEntry[], newPathInBookmark: string): Promise<BookmarkIndexEntry> => {
   const indexAlreadyAdded = indexList.find(i => i.pathInBookmark === newPathInBookmark);
   if (!indexAlreadyAdded) {
-    const indexNewBookmark = indexList.length;
+    const indexNewBookmark = searchNextIndexFree(indexList);
     const nameFile = `${bookmarkFolderPath}/b${indexNewBookmark}.json`;
     const newFolder: BookmarkIndexEntry = {
       nameFile,

@@ -41,6 +41,7 @@ export const Bookmarks = () => {
   const theRealPath = decodedPathname.split(bookmarkRootPath)[1];
 
   const [isOpenNameFolderDialog, setOpenNameFolderDialog] = React.useState(false);
+  const [isOpenNameBookmarkDialog, setOpenNameBookmarkDialog] = React.useState(false);
   const [currentPath, setShadowPath] = React.useState<string>(!!theRealPath ? theRealPath : '/');
   const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([]);
   const [selectedNodes, setSelectedNodes] = React.useState<BookmarkItem[]>([]);
@@ -59,8 +60,10 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { currentPath, setCurrentPath, bookmarks, setBookmarks, selectedNodes, setSelectedNodes, pathFromCopy, setPathFromCopy };
 
-  // TODO: REVISAR crear marcador/carpeta, borrar marcador/carpeta, editar marcador/carpeta, mover marcadores y carpetas
+  // TODO: REVISAR mover marcadores y carpetas <= NO FUNCIONA EL MOVER MARCADORES Y CARPETAS (OJO, parece que las carpetas principales puede funcionar, pero los marcadores NO)
+
   // TODO: HAY BUG con el action de mover marcadores. CUANDO se selecciona se DEBE BLOQUEAR el cambiar de carpeta, CUANDO se le da a copiar DESBLOQUEAMOS cambiar de carpeta, EN PEGAR VOLVEMOS A LA NORMALIDAD.
+  
   // TODO: Implementar PAPELERA de bookmarks
 
   return <Box sx={formStyle}> 
@@ -74,8 +77,7 @@ export const Bookmarks = () => {
           onMoveItem={(idList) => moveItemListToFolder(action, idList)}
           deleteAction={(id) => deleteActionList(action, id)}
           onSearch={onSearchItem}
-          // TODO: SUSTITUIR LO DEL addAction de ABAJO POR LANZAR EL ModalNewName QUE YA LANZARÁ EL addActionItemList CON LOS DATOS REALES
-          //addAction={() => { indexNewBookmarkAdded++; addActionItemList(action, { url: `new url ${indexNewBookmarkAdded}`, title: `new title ${indexNewBookmarkAdded}`}) } }
+          addAction={() => setOpenNameBookmarkDialog(true)}
           addFolder={() => setOpenNameFolderDialog(true)}
           goBackToParent={() => goBackToParentFolder(action)}
           list={bookmarks.map((item, index) => ({id: getIdBookmarkItem(item), isFolder: isFolder(item), item: <>{
@@ -106,6 +108,17 @@ export const Bookmarks = () => {
           onAcceptNewName={(newName) => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
             pathInBookmark: cleanLabelFolder(`${currentPath}/${newName}`),
             nameFile: ''
+          }) }}
+        />
+        <ModalNewName
+          handleCloseDialog={() => setOpenNameBookmarkDialog(false)}
+          isOpenDialog={isOpenNameBookmarkDialog}
+          title='New Bookmark'
+          description='Write new url bookmark'
+          defaultName={`http://www...${indexNewBookmarkAdded}`}
+          onAcceptNewName={(newName) => { indexNewBookmarkAdded++; addActionItemList(action, {
+            title: '',
+            url: newName,
           }) }}
         />
       </>

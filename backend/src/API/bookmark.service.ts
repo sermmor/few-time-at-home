@@ -77,7 +77,7 @@ export class BookmarkService {
     await editFolder(this.index, oldPathFolderInBookmark, newPathInBookmark);
     let parentPath = newPathInBookmark.split('/').slice(0, -1).join('/');
     parentPath = parentPath === undefined || parentPath === '' ? '/' : parentPath;
-    return await this.getBookmarks(parentPath);
+    return await this.getBookmarks(parentPath, true);
   };
 
   moveBookmarksAndFolders = async(toMove: (BookmarkIndexEntry | Bookmark)[], oldPath: string, newPath: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
