@@ -96,7 +96,9 @@ export const onSelectedItemList = ({ currentPath, bookmarks, selectedNodes, setS
   const cloneSelectedNodes = [...selectedNodes];
   if (isSelected) {
     setPathFromCopy(currentPath);
-    cloneSelectedNodes.push(itemToSelectOrUnselect);
+    cloneSelectedNodes.push({
+      ...itemToSelectOrUnselect,
+    });
   } else {
     const unselectedItemIndex = selectedNodes.findIndex(bm => isEqualIdBookmarkItem(bm, id));
     cloneSelectedNodes.splice(unselectedItemIndex, 1);

@@ -60,8 +60,6 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { currentPath, setCurrentPath, bookmarks, setBookmarks, selectedNodes, setSelectedNodes, pathFromCopy, setPathFromCopy };
 
-  // TODO: REVISAR mover marcadores y carpetas <= NO FUNCIONA EL MOVER MARCADORES Y CARPETAS (OJO, parece que las carpetas principales puede funcionar, pero los marcadores NO)
-
   // TODO: HAY BUG con el action de mover marcadores. CUANDO se selecciona se DEBE BLOQUEAR el cambiar de carpeta, CUANDO se le da a copiar DESBLOQUEAMOS cambiar de carpeta, EN PEGAR VOLVEMOS A LA NORMALIDAD.
   
   // TODO: Implementar PAPELERA de bookmarks

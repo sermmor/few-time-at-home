@@ -367,8 +367,8 @@ const moveBookmarks = async (
   const bookmarksInOldFolder: Bookmark[] = await readJSONFile(entryOldFolder.nameFile, '[]');
   const bookmarksNoMove = bookmarksInOldFolder.filter(b => !bookmarksToMove.find(b2 => b.url === b2.url));
 
-  await saveInAFilePromise(JSON.stringify(bookmarksNoMove, null, 2), oldPath);
-  await saveInAFilePromise(JSON.stringify([...bookmarksInNewFolder, ...bookmarksToMove], null, 2), newPath);
+  await saveInAFilePromise(JSON.stringify(bookmarksNoMove, null, 2), entryOldFolder.nameFile);
+  await saveInAFilePromise(JSON.stringify([...bookmarksInNewFolder, ...bookmarksToMove], null, 2), entryNewFolder.nameFile);
 };
 
 const moveFolders = async (
@@ -391,12 +391,12 @@ const moveFolders = async (
   });
 
   // Extract all folders to NO move.
-  const foldersNoMoved = indexList.filter(folder => !foldersToMove.find(f => f.nameFile === folder.nameFile));
+  const foldersNoMoved = indexList.filter(folder => !realAllFoldersToMove.find(f => f.nameFile === folder.nameFile));
 
   // Apply the new path to all folders to move and save index.
   const allFoldersMoved = realAllFoldersToMove.map(folder => ({
     ...folder,
-    pathInBookmark: `${newPath}/${folder.pathInBookmark.substring(oldPath.length)}`
+    pathInBookmark: `${newPath}${folder.pathInBookmark.substring(oldPath.length)}`.replace('//', '/'),
   }));
 
   await saveInAFilePromise(JSON.stringify([...foldersNoMoved, ...allFoldersMoved], null, 2), bookmarkIndexFilePath);

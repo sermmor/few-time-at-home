@@ -82,7 +82,7 @@ export class BookmarkService {
 
   moveBookmarksAndFolders = async(toMove: (BookmarkIndexEntry | Bookmark)[], oldPath: string, newPath: string): Promise<(BookmarkIndexEntry | Bookmark)[]> => {
     await moveBookmarksAndFolders(this.index, toMove, oldPath, newPath);
-    return await this.getBookmarks(newPath);
+    return await this.getBookmarks(newPath, true);
   };
 
   fileContent = async(): Promise<any> => {
