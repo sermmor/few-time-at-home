@@ -9,6 +9,7 @@ import { Notifications } from "./pages/Notifications/Notifications";
 import { Pomodoro } from "./pages/Pomodoro/Pomodoro";
 import { Rss } from "./pages/Rss/Rss";
 import { TextEditor } from "./pages/TextEditor/TextEditor";
+import { TrashBookmarks } from "./pages/TrashBookmarks/TrashBookmarks";
 
 export interface RouteFTAHElement {
   name: string;
@@ -42,6 +43,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     group: 'Internet',
     element: <Bookmarks/>,
     includeSubroutes: true,
+  },
+  {
+    name: 'Trash Bookmarks',
+    path: '/trash-bookmarks',
+    group: 'Internet',
+    element: <TrashBookmarks/>,
   },
   {
     name: 'Notifications',

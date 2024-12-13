@@ -148,6 +148,7 @@ export const Cloud = () => {
       <TitleAndListWithFolders
         title='Cloud'
         id='cloud_0'
+        helpSearchLabel='Search cloud'
         path={currentPathFolder}
         onUploadItem={handleUploadButton}
         // duplicateItem={() => undefined}

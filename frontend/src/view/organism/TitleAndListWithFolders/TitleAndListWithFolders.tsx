@@ -57,7 +57,9 @@ const breadcrumbStyle: SxProps<Theme> = {
 interface Props {
   title: string;
   id: string;
-  path: string;
+  path?: string;
+  helpSearchLabel: string;
+  noActionsMode?: boolean;
   list: { id: string, isFolder: boolean, item: string | JSX.Element }[];
   deleteAction?: (id: string) => void;
   addAction?: () => void;
@@ -83,6 +85,8 @@ interface Props {
 export const TitleAndListWithFolders = ({
   title,
   path,
+  helpSearchLabel,
+  noActionsMode,
   list,
   deleteAction,
   addAction,
@@ -159,8 +163,8 @@ export const TitleAndListWithFolders = ({
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
       {title}
     </Typography>
-    {onSearch && <SearchAndList helperText="Search bookmark" widthBoxes={widthBoxes} onSearch={onSearch} />}
-    <Box sx={{...buttonListStyle, position: 'sticky', top: '4.3rem', zIndex: 3}}>
+    {onSearch && <SearchAndList helperText={helpSearchLabel} widthBoxes={widthBoxes} onSearch={onSearch} />}
+    {!noActionsMode && <Box sx={{...buttonListStyle, position: 'sticky', top: '4.3rem', zIndex: 3}}>
       <Button onClick={() => {
         checkOnSelectListMode(!isInSelectListMode);
         moveItemProcess(false);
@@ -213,10 +217,10 @@ export const TitleAndListWithFolders = ({
         (!isInSelectListMode || isInMoveItemMode) && 
         <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
       }
-    </Box>
-    <Box sx={{...buttonListStyle, ...breadcrumbStyle}}>
+    </Box>}
+    {path && <Box sx={{...buttonListStyle, ...breadcrumbStyle}}>
       { path }
-    </Box>
+    </Box>}
     <Card sx={listComponentStyle}>
       <CardContent>
         {

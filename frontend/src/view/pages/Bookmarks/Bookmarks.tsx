@@ -1,4 +1,4 @@
-import { Box, Button, SxProps, Theme } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
@@ -61,13 +61,12 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { currentPath, setCurrentPath, bookmarks, setBookmarks, selectedNodes, setSelectedNodes, pathFromCopy, setPathFromCopy };
   
-  // TODO: Implementar PAPELERA de bookmarks
-
   return <Box sx={formStyle}> 
     {bookmarks && <>
         <TitleAndListWithFolders
           title='Bookmarks'
           id='Bookmarks_0'
+          helpSearchLabel='Search bookmark'
           path={`${currentPath}`}
           onSelectItem={(id, checked) => onSelectedItemList(action, id, checked)}
           onInSelectionMode={(isInSelected) => setSelectionModeFlag(isInSelected)}
