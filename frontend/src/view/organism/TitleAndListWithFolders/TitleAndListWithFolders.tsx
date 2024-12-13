@@ -63,6 +63,7 @@ interface Props {
   addAction?: () => void;
   addFolder?: () => void;
   duplicateItem?: () => void;
+  onInSelectionMode?: (isInSelected: boolean) => void;
   onOutSelectionMode?: () => void;
   onSelectItem?: (id: string, isSelected: boolean) => void;
   onMoveItem?: (listIdItemSelect: string[]) => void;
@@ -90,6 +91,7 @@ export const TitleAndListWithFolders = ({
   goBackToParent,
   onMoveItem,
   onSelectItem,
+  onInSelectionMode,
   onOutSelectionMode,
   onSearch,
   onUploadItem,
@@ -133,6 +135,8 @@ export const TitleAndListWithFolders = ({
   }
 
   const moveItemProcess = (isMoveBegins: boolean) => () => {
+    if (onInSelectionMode) onInSelectionMode(false);
+
     if (isInMoveItemMode) {
       onMoveItem!(checkedIdList);
     }
@@ -144,7 +148,11 @@ export const TitleAndListWithFolders = ({
 
   const checkOnSelectListMode = (newIsInSelectListMode: boolean) => {
     onSelectListMode(newIsInSelectListMode);
-    if (onOutSelectionMode && !newIsInSelectListMode) onOutSelectionMode();
+    if (onOutSelectionMode && !newIsInSelectListMode) {
+      if (onInSelectionMode) onInSelectionMode(false);
+      onOutSelectionMode();
+    }
+    if (onInSelectionMode && newIsInSelectListMode) onInSelectionMode(true);
   }
   
   return <>

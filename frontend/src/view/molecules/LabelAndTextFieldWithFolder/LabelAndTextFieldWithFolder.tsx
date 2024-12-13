@@ -3,10 +3,11 @@ import { Box, SxProps, TextField, Theme } from "@mui/material";
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderZipIcon from '@mui/icons-material/FolderZip';
 
-export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, backgroundColor, onChange, setOpenFolder, zipInFolder}: {
+export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, isSelectionModeFlag, backgroundColor, onChange, setOpenFolder, zipInFolder}: {
   text: string,
   nameFolder: string,
   path: string,
+  isSelectionModeFlag?: boolean,
   backgroundColor?: string,
   onChange: (newText: string) => void,
   setOpenFolder: (label: string) => void,
@@ -47,9 +48,9 @@ export const LabelAndTextFieldWithFolder = ({text, nameFolder, path, backgroundC
             <FolderZipIcon />
           </Box>
           }
-          <Box sx={{ cursor: 'pointer',}} onClick={() => setOpenFolder(text)}>
+          {!isSelectionModeFlag && <Box sx={{ cursor: 'pointer',}} onClick={() => setOpenFolder(text)}>
             <FolderIcon />
-          </Box>
+          </Box>}
         </Box>
       </Box>
   }</>;

@@ -40,6 +40,7 @@ export const Bookmarks = () => {
   const bookmarkRootPath = routesFTAH.find(({name}) => name === bookmarkRouteName)?.path || '';
   const theRealPath = decodedPathname.split(bookmarkRootPath)[1];
 
+  const [isSelectionModeFlag, setSelectionModeFlag] = React.useState(false);
   const [isOpenNameFolderDialog, setOpenNameFolderDialog] = React.useState(false);
   const [isOpenNameBookmarkDialog, setOpenNameBookmarkDialog] = React.useState(false);
   const [currentPath, setShadowPath] = React.useState<string>(!!theRealPath ? theRealPath : '/');
@@ -59,8 +60,6 @@ export const Bookmarks = () => {
   };
 
   const action: ActionsProps = { currentPath, setCurrentPath, bookmarks, setBookmarks, selectedNodes, setSelectedNodes, pathFromCopy, setPathFromCopy };
-
-  // TODO: HAY BUG con el action de mover marcadores. CUANDO se selecciona se DEBE BLOQUEAR el cambiar de carpeta, CUANDO se le da a copiar DESBLOQUEAMOS cambiar de carpeta, EN PEGAR VOLVEMOS A LA NORMALIDAD.
   
   // TODO: Implementar PAPELERA de bookmarks
 
@@ -71,6 +70,7 @@ export const Bookmarks = () => {
           id='Bookmarks_0'
           path={`${currentPath}`}
           onSelectItem={(id, checked) => onSelectedItemList(action, id, checked)}
+          onInSelectionMode={(isInSelected) => setSelectionModeFlag(isInSelected)}
           onOutSelectionMode={() => setSelectedNodes([])}
           onMoveItem={(idList) => moveItemListToFolder(action, idList)}
           deleteAction={(id) => deleteActionList(action, id)}
@@ -85,6 +85,7 @@ export const Bookmarks = () => {
                 text={item.pathInBookmark}
                 path={getPathParentFolder(item.pathInBookmark)}
                 nameFolder={getNameFolder(item.pathInBookmark)}
+                isSelectionModeFlag={isSelectionModeFlag}
                 onChange={(newText: string) => editFolderActionList(action, `${getIdBookmarkItem(item)}`, newText)}
                 setOpenFolder={(label) => setOpenFolder(action, label)}/>
             :
