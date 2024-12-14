@@ -332,7 +332,7 @@ export class APIService {
         console.error("Received NO body text");
       } else {
         BookmarkService.Instance.getBookmarkInTrash(req.body.bookmarksByPage, req.body.currentPage).then(data => {
-          res.send({ data });
+          res.send({ ...data });
         });
       }
     });

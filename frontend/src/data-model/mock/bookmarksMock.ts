@@ -1,4 +1,4 @@
-import { BookmarkItem, GetAddBookmarkResponse, GetAddFolderResponse, GetPathResponse, GetTrashListResponse } from "../bookmarks";
+import { BookmarkItem, GetAddBookmarkResponse, GetAddFolderResponse, GetOnlyBookmarkListResponse, GetPathResponse, GetTrashListResponse } from "../bookmarks";
 
 export const getBookmarkAndFolderListModelMock = (): GetPathResponse => ({
   data: [
@@ -25,7 +25,7 @@ export const getBookmarkAndFolderListModelMock = (): GetPathResponse => ({
   ] as unknown as BookmarkItem[]
 });
 
-export const getBookmarkListModelMock = (): GetTrashListResponse => ({
+export const getBookmarkListModelMock = (): GetOnlyBookmarkListResponse => ({
   data: [
     {
       url: "https://duckduckgo.com/",
@@ -44,6 +44,29 @@ export const getBookmarkListModelMock = (): GetTrashListResponse => ({
       title: "Nitter - CNN"
     }
   ]
+});
+
+export const getBookmarkTrashListModelMock = (): GetTrashListResponse => ({
+  bookmarks: [
+    {
+      url: "https://duckduckgo.com/",
+      title: "Duck Duck Go"
+    },
+    {
+      url: "https://nitter.net",
+      title: "Nitter"
+    },
+    {
+      url: "https://nitter.net/el_pais",
+      title: "Nitter - el pais"
+    },
+    {
+      url: "https://nitter.net/CNNEE",
+      title: "Nitter - CNN"
+    }
+  ],
+  numberOfPages: 10,
+  totalOfBookmarks: 38,
 });
 
 export const getOnlyABookmarkDataModelMock = (): GetAddBookmarkResponse => ({

@@ -27,14 +27,16 @@ export class BookmarkService {
     return content;
   };
 
-  getBookmarkInTrash = async(bookmarksByPage: number, currentPage: number): Promise<Bookmark[]> => getTrash(bookmarksByPage, currentPage);
+  getBookmarkInTrash = async(bookmarksByPage: number, currentPage: number): Promise<{
+    bookmarks: Bookmark[],
+    totalOfBookmarks: number,
+    numberOfPages: number,
+  }> => getTrash(bookmarksByPage, currentPage);
 
-  // TODO: Comprobar que sigue funcionando en Telegram
   searchInBookmark = async (wordlist: string): Promise<Bookmark[]> => await searchInAllBookmarks(this.index, wordlist);
 
   searchInTrash = async (wordlist: string): Promise<Bookmark[]> => await searchAllBookmarksInTrash(wordlist);
   
-  // TODO: Comprobar que sigue funcionando en Telegram
   addBookmark = async (urlBookmark: string, path: string = '/', title = ''): Promise<Bookmark> => {
     const url = urlBookmark.split(' ').join('');
     

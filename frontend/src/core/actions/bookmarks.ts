@@ -19,6 +19,7 @@ import {
 import {
   getBookmarkAndFolderListModelMock,
   getBookmarkListModelMock,
+  getBookmarkTrashListModelMock,
   getOnlyABookmarkDataModelMock,
   getOnlyAFolderDataModelMock
 } from "../../data-model/mock/bookmarksMock";
@@ -29,7 +30,7 @@ const getPathList = (request: GetPathRequest = { path: '/' }): Promise<GetPathRe
   fetchJsonSendAndReceive<GetPathResponse>(bookmarksEndpoint('getPathList'), request, getBookmarkAndFolderListModelMock());
 
 const getTrashList = (request: GetTrashListRequest): Promise<GetTrashListResponse> => 
-  fetchJsonSendAndReceive<GetTrashListResponse>(bookmarksEndpoint('getTrashList'), request, getBookmarkListModelMock());
+  fetchJsonSendAndReceive<GetTrashListResponse>(bookmarksEndpoint('getTrashList'), request, getBookmarkTrashListModelMock());
 
 const getSearch = (request: GetSearchListRequest): Promise<GetSearchListResponse> => 
   fetchJsonSendAndReceive<GetSearchListResponse>(bookmarksEndpoint('search'), request, getBookmarkListModelMock());

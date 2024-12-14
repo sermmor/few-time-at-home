@@ -67,8 +67,14 @@ export interface GetTrashListRequest {
   currentPage: number;
 }
 
+export interface GetOnlyBookmarkListResponse {
+  data: Bookmark[],
+}
+
 export interface GetTrashListResponse {
-  data: Bookmark[];
+  bookmarks: Bookmark[],
+  totalOfBookmarks: number,
+  numberOfPages: number,
 }
 
 export interface GetSearchListRequest {

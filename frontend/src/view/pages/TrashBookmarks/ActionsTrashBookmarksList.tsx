@@ -9,6 +9,10 @@ export interface ActionsProps {
   setBookmarksByPage: React.Dispatch<React.SetStateAction<number>>;
   currentPage: number;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  numberOfPages: number;
+  setNumberOfPages: React.Dispatch<React.SetStateAction<number>>;
+  totalOfBookmarks: number;
+  setTotalOfBookmarks: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const removeDuplicatedBookmarks = (bookmarks: Bookmark[]): Bookmark[] => {
@@ -21,10 +25,22 @@ const removeDuplicatedBookmarks = (bookmarks: Bookmark[]): Bookmark[] => {
   return allItems;
 }
 
-export const deleteActionList = async({ setBookmarks, bookmarksByPage, currentPage }: ActionsProps, id: string) => {
+export const deleteActionList = async({
+  setBookmarks,
+  bookmarksByPage,
+  currentPage,
+  setCurrentPage,
+  setNumberOfPages,
+  setTotalOfBookmarks,
+}: ActionsProps, id: string) => {
   await BookmarksActions.getRemoveInTrash({url: id});
-  const { data } = await BookmarksActions.getTrashList({ bookmarksByPage, currentPage});
-  setBookmarks(data);
+  const { bookmarks, numberOfPages, totalOfBookmarks } = await BookmarksActions.getTrashList({ bookmarksByPage, currentPage});
+  if (currentPage < numberOfPages) {
+    setCurrentPage(numberOfPages - 1);
+  }
+  setBookmarks(bookmarks);
+  setNumberOfPages(numberOfPages);
+  setTotalOfBookmarks(totalOfBookmarks);
 };
 
 export const onSearchItem = (textToSearch: string) => new Promise<(string | JSX.Element)[]>(resolve => {
@@ -36,3 +52,8 @@ export const onSearchItem = (textToSearch: string) => new Promise<(string | JSX.
     ));
   });
 });
+
+export const goToPage = async({setCurrentPage,numberOfPages}: ActionsProps, newCurrentPage: number) => {
+  if (newCurrentPage >= numberOfPages || newCurrentPage < 0) return;
+  setCurrentPage(newCurrentPage); // When changes currentPage, the useEffects works.
+}

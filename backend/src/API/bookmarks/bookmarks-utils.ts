@@ -267,7 +267,11 @@ export const removeBookmarkFromTrash = async(urlBookmark: string): Promise<Bookm
   return newData;
 };
 
-export const getTrash = async(bookmarksByPage: number, currentPage: number): Promise<Bookmark[]> => {
+export const getTrash = async(bookmarksByPage: number, currentPage: number): Promise<{
+  bookmarks: Bookmark[],
+  totalOfBookmarks: number,
+  numberOfPages: number,
+}> => {
   // The trash is paginated (50 bookmarks by page is a good number).
   const dataJson: Bookmark[] = await readJSONFile(bookmarkTrashFilePath, '[]');
 
@@ -297,7 +301,11 @@ export const getTrash = async(bookmarksByPage: number, currentPage: number): Pro
     endBookmarkToReturn = allItems.length - 1;
   }
 
-  return allItems.slice(initBookmarkToReturn, endBookmarkToReturn + 1);
+  return {
+    bookmarks: allItems.slice(initBookmarkToReturn, endBookmarkToReturn + 1),
+    numberOfPages: Math.ceil(allItems.length / bookmarksByPage),
+    totalOfBookmarks: allItems.length,
+  };
 };
 
 const searchPredicate = (bm: Bookmark, path: string) => (w: string): boolean => bm.title.toLowerCase().indexOf(w) >= 0
