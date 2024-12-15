@@ -14,6 +14,7 @@ import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
+import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -33,6 +34,11 @@ export class APIService {
   static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssYoutubeEndpoint  = "/rss/youtube";
+  static readLaterRSSEndpoint = {
+    getMessages: "/readLaterRSS/get-messages",
+    addMessages: "/readLaterRSS/add-messages",
+    removeMessages: "/readLaterRSS/remove-messages",
+  }
   static configurationEndpoint = "/configuration";
   static configurationTypeEndpoint = "/configuration/type";
   static configurationListByTypeEndpoint = "/configuration/type/list";
@@ -97,6 +103,7 @@ export class APIService {
     this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
     this.getRSS(APIService.getRssYoutubeEndpoint, this.commands.onCommandYoutube);
+    this.getReadLaterRSSService();
     this.unfurlService();
     this.configurationService();
     this.getRandomQuoteService();
@@ -129,6 +136,36 @@ export class APIService {
               res.send({ messages });
             }
         });
+    });
+  }
+
+  private getReadLaterRSSService() {
+    this.app.post(APIService.readLaterRSSEndpoint.getMessages, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        ReadLaterMessagesRSS.getMessagesRSSSaved(req.body.amount).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+    this.app.post(APIService.readLaterRSSEndpoint.addMessages, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        ReadLaterMessagesRSS.addMessageRSSToSavedList(req.body.message).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+    this.app.post(APIService.readLaterRSSEndpoint.removeMessages, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        ReadLaterMessagesRSS.removeMessageRSSFromSavedList(req.body.id).then(data => {
+          res.send({ data });
+        });
+      }
     });
   }
 
