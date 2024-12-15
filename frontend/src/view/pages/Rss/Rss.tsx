@@ -91,6 +91,7 @@ export const Rss = () => {
           <RssMessage key={index} message={msg} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
+              console.log("Bookmark saved!");
               setSnackBarMessage("Bookmark saved!");
               setErrorSnackbar(false);
               setOpenSnackbar(true);
@@ -101,6 +102,7 @@ export const Rss = () => {
           <RssMessage key={index} message={msg.message} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
+              console.log("Bookmark removed!");
               setSnackBarMessage("Bookmark removed!");
               setErrorSnackbar(false);
               setOpenSnackbar(true);
