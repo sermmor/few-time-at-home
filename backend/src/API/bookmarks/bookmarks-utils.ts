@@ -129,8 +129,10 @@ export const getAllFilesAndDirectoriesOfFolderPath = async(indexList: BookmarkIn
   const allBookmarks: Bookmark[] = entry ? await readJSONFile(entry.nameFile, '[]') : [];
 
   return [
-    ...allFolders.sort((a, b) => a.pathInBookmark.localeCompare(b.pathInBookmark)),
-    ...allBookmarks.sort((a, b) => a.title.localeCompare(b.title)),
+    ...allBookmarks,
+    ...allFolders,
+    // ...allFolders.sort((a, b) => a.pathInBookmark.localeCompare(b.pathInBookmark)),
+    // ...allBookmarks.sort((a, b) => a.title.localeCompare(b.title)),
   ];
 }
 
