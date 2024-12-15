@@ -10,6 +10,7 @@ import { PomodoroService } from "./pomodoro.service";
 import FormData from 'form-data';
 import { readJSONFile } from "../utils";
 import { ChannelMediaRSSCollectionExport } from "./messagesRSS.service";
+import { ReadLaterMessagesRSS } from "./readLaterMessagesRSS.service";
 
 const fetch = require("node-fetch");
 
@@ -20,6 +21,7 @@ export class SynchronizeService {
 
   private collectAllData = async() => {
     const bookmark = await BookmarkService.Instance.fileContent();
+    const readLaterRss = await ReadLaterMessagesRSS.fileContent();
     return {
       notes: NotesService.Instance.fileContent(),
       alerts: AlertListService.Instance.fileContent(),
@@ -27,6 +29,7 @@ export class SynchronizeService {
       pomodoro: PomodoroService.Instance.fileContent(),
       youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(),
       configuration: ConfigurationService.Instance.fileContent(),
+      readLaterRss,
     }
   };
 
@@ -38,6 +41,7 @@ export class SynchronizeService {
     await PomodoroService.Instance.setFileContent(data.pomodoro);
     await ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.setFileContent(data.youtube);
     await ConfigurationService.Instance.setFileContent(data.configuration);
+    await ReadLaterMessagesRSS.setFileContent(data.readLaterRss);
   }
 
   // Como cliente, creo el fichero de sincronización y lo mando al servidor.

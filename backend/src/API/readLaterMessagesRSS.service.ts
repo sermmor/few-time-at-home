@@ -51,4 +51,10 @@ export class ReadLaterMessagesRSS {
     const newMessages = messages.filter(b => idMessageToRemove !== b.id);
     await saveInAFilePromise(JSON.stringify(newMessages, null, 2), ReadLaterMessagesRSS.readLaterMessagesRSSPath);
   };
+
+  static fileContent = async(): Promise<any> => await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+
+  static setFileContent = async(data: any): Promise<void> => {
+    await saveInAFilePromise(JSON.stringify(data, null, 2), ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+  };
 }

@@ -178,6 +178,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
     'data/config/nitterRssUsersList.json',
     'data/config/quoteList.json',
     'data/config/youtubeRssList.json',
+    'data/readLaterMessagesRSS.json',
   ];
   
   const pathToPasteList = [
@@ -193,6 +194,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
     'nitterRssUsersList.json',
     'quoteList.json',
     'youtubeRssList.json',
+    'readLaterMessagesRSS.json',
   ];
 
   const bookmarksPaths = await getBookmarksFilesPathList();
