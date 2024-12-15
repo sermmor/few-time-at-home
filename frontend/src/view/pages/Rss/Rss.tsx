@@ -87,7 +87,7 @@ export const Rss = () => {
     { listState === StateItemList.LOADING && <LoadingComponent /> }
     {
       rssType !== 'saved' ?
-      listState !== StateItemList.LOADING && rssData && rssData.messages.map((msg: string, index: number) => <Box>
+      listState !== StateItemList.LOADING && rssData && rssData.messages.map((msg: string, index: number) => <Box key={`card_${index}`}>
           <RssMessage key={index} message={msg} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
@@ -98,7 +98,7 @@ export const Rss = () => {
             })}><BookmarkIcon /></Button>
           </Box>
         </Box>) 
-      : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box>
+      : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={`card_${index}`}>
           <RssMessage key={index} message={msg.message} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
