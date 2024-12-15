@@ -39,8 +39,6 @@ export const TrashBookmarks = () => {
   const action: ActionsProps = { bookmarks, bookmarksByPage, currentPage, numberOfPages, totalOfBookmarks,
     setBookmarks, setBookmarksByPage, setCurrentPage, setNumberOfPages, setTotalOfBookmarks };
 
-  // TODO: Estaría bien tener una carpeta o algún sitio dónde guardar directamente en marcadores URLs de los RSS como YouTube.
-
   return <Box sx={formStyle}> 
     {bookmarks && <>
         <TitleAndListWithFolders

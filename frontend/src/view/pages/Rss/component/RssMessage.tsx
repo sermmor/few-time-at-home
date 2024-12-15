@@ -51,7 +51,6 @@ const DivWithLinkFixed = styled.div`
 export const RssMessage = ({message}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  console.log(isMobile)
 
   const [header, ...rest] = message.split('\n');
   const foot = rest[rest.length - 1];
@@ -60,7 +59,7 @@ export const RssMessage = ({message}: Props) => {
   link = link ? link : foot;
 
   const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel>();
-  React.useEffect(() => { UnfurlActions.getUnfurl({url: link}).then(data => setUnfurlData(data)) }, []);
+  React.useEffect(() => { UnfurlActions.getUnfurl({url: link}).then(data => setUnfurlData(data)) }, [link]);
 
   return <><Card sx={cardStyle}>
     <CardContent>

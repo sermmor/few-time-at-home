@@ -11,6 +11,7 @@ export class ReadLaterMessagesRSS {
     try {
         const stats = await stat(ReadLaterMessagesRSS.readLaterMessagesRSSPath);
         messages = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+        messages = messages.reverse();
         if (messages.length > amount) {
           messages = messages.slice(0, amount);
         }
@@ -36,7 +37,8 @@ export class ReadLaterMessagesRSS {
   }
   
   static addMessageRSSToSavedList = async(messageToAdd: string): Promise<ReadLaterMessage> => {
-    const messages: ReadLaterMessage[] = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+    let messages: ReadLaterMessage[] = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+    messages = typeof messages === 'string' ? [] : messages;
     const newMessage = {
       id: ReadLaterMessagesRSS.searchNextIndexFree(messages),
       message: messageToAdd,
