@@ -162,8 +162,8 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        ReadLaterMessagesRSS.removeMessageRSSFromSavedList(req.body.id).then(data => {
-          res.send({ data });
+        ReadLaterMessagesRSS.removeMessageRSSFromSavedList(req.body.id).then(() => {
+          res.send({ response: 'OK' });
         });
       }
     });
