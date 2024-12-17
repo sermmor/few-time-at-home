@@ -393,6 +393,14 @@ export class TelegramBot {
     });
   }
 
+  public sendMessageToTelegram = (message: string) => {
+    if (this.context) {
+      this.context!.reply(message);
+      // this.context!.reply(alertList[index].message);
+      AlertListService.Instance.clear();
+    }
+  };
+
   private addAlertFromTelegram = (ctx: TelegrafContext, message: string) => {
     // FORMAT message: DD/MM/YYYY HH:MM MESSAGE
     if (!this.isUserClient(ctx)) return;
@@ -407,7 +415,7 @@ export class TelegramBot {
         if (splitHour.length > 1) {
           const messageToSend = splitDateHourMessage.slice(2).join(' ');
           const timeToLaunch = new Date(+splitDate[2], (+splitDate[1]) - 1, +splitDate[0], +splitHour[0], +splitHour[1]);
-          AlertListService.Instance.addAlerts({ timeToLaunch, message: messageToSend }).then(alertData => {
+          AlertListService.Instance.addAlerts({ timeToLaunch, message: messageToSend }, this.sendMessageToTelegram).then(alertData => {
             this.launchAlertsToTelegram(false);
             ctx.reply(`La notificación se ha añadido correctamente.`);
           });
@@ -428,27 +436,8 @@ export class TelegramBot {
   private launchAlertsToTelegram = (launchTimeout: boolean = true) => {
     if (this.context) {
       // Check alerts and prepared.
-      const alertList: Alert[] = AlertListService.Instance.alertsToLaunchInTelegram();
-      if (alertList && alertList.length > 0) {
-        const today = new Date();
-        const minutesLeftByAlert = alertList.map(alert => (alert.timeToLaunch.getTime() - today.getTime())/(60 * 1000));
-        minutesLeftByAlert.forEach((minutes, index) => {
-          if (minutes > 0) {
-            console.log(`The notification ${alertList[index].message} is going to launch in ${minutes} minutes.`);
-            setTimeout(() => {
-                this.context!.reply(alertList[index].message);
-                AlertListService.Instance.clear();
-              },
-              minutes * 60 * 1000,
-            );
-          }
-        });
-        console.log('All alerts are launched!');
-      }
+      AlertListService.Instance.launchAlerts(this.sendMessageToTelegram);
       TelegramBot.alertEnabled = true;
-      if (launchTimeout) {
-        setTimeout(this.launchAlertsToTelegram, 1 * 60 * 60 * 1000); // Check the next hour.
-      }
     }
   }
 }

@@ -1,18 +1,24 @@
-import { readFile } from "fs";
-import { parseFromAlertDateStringToDateObject, parseFromDateObjectToAlertDateString, saveInAFile } from "../utils";
+import { scheduleJob } from 'node-schedule';
+import { parseFromAlertDateStringToDateObject, parseFromDateObjectToAlertDateString, readJSONFile, saveInAFile } from "../utils";
 
 const pathNotesFile = 'data/alerts.json';
 
 export interface Alert {
   timeToLaunch: Date;
   message: string;
-  isHappensEveryday?: boolean;
+  isHappensEveryweek?: boolean;
+  dayOfWeek?: number;
+  isHappensEverymonth?: boolean;
+  dayOfMonth?: number;
 }
 
 export interface AlertFormated {
   timeToLaunch: string;
   message: string;
-  isHappensEveryday?: boolean;
+  isHappensEveryweek?: boolean;
+  dayOfWeek?: number;
+  isHappensEverymonth?: boolean;
+  dayOfMonth?: number;
 }
 
 export class AlertListService {
@@ -23,49 +29,34 @@ export class AlertListService {
     this.alertList = [];
     AlertListService.Instance = this;
   }
-  
-  updatedAlertIsHappensEveryday = () => {
-    const today = new Date();
-    const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
-    let theNextDay, theNextDayInMilliseconds: number;
-
-    this.alertList.forEach(alert => {
-      while (alert.isHappensEveryday && alert.timeToLaunch < today) {
-        theNextDayInMilliseconds = alert.timeToLaunch.getTime() + oneDayInMilliseconds;
-        theNextDay = new Date(theNextDayInMilliseconds);
-        alert.timeToLaunch = theNextDay;
-      }
-    });
-  }
 
   parseStringsToAlert = (alertString: AlertFormated): Alert => ({
     timeToLaunch: parseFromAlertDateStringToDateObject(alertString.timeToLaunch),
     message: alertString.message,
-    isHappensEveryday: !!alertString.isHappensEveryday,
+    isHappensEveryweek: !!alertString.isHappensEveryweek,
+    dayOfWeek: alertString.dayOfWeek,
+    isHappensEverymonth: !!alertString.isHappensEverymonth,
+    dayOfMonth: alertString.dayOfMonth,
   });
 
   parseAlertToString = (alert: Alert): AlertFormated => ({
     timeToLaunch: parseFromDateObjectToAlertDateString(alert.timeToLaunch),
     message: alert.message,
-    isHappensEveryday: !!alert.isHappensEveryday,
+    isHappensEveryweek: !!alert.isHappensEveryweek,
+    dayOfWeek: alert.dayOfWeek,
+    isHappensEverymonth: !!alert.isHappensEverymonth,
+    dayOfMonth: alert.dayOfMonth,
   });
 
   parseStringsListToAlertList = (alertList: AlertFormated[]): Alert[] => alertList.map(alertString => this.parseStringsToAlert(alertString));
 
   parseAlertListToStringList = (alertList: Alert[]): AlertFormated[] => alertList.map(alert => this.parseAlertToString(alert));
 
-  alertsToLaunchInTelegram = (): Alert[] => {
-    this.updatedAlertIsHappensEveryday();
-    const today = new Date();
-    const todayNextHourTime = today.getTime() + 1 * 60 * 60 * 1000;
-    const todayNextHour = new Date(todayNextHourTime);
-    return this.alertList.filter((alert: Alert) => (alert.timeToLaunch < todayNextHour));
-  };
-
   alertsToStillWaiting = (): Alert[] => {
-    this.updatedAlertIsHappensEveryday();
     const today = new Date();
-    return this.alertList.filter((alert: Alert) => (alert.timeToLaunch > today));
+    return this.alertList.filter((alert: Alert) => (
+      alert.timeToLaunch > today || alert.isHappensEverymonth || alert.isHappensEveryweek
+    ));
   };
 
   clear = () => {
@@ -73,37 +64,70 @@ export class AlertListService {
     this.saveAlerts();
   };
 
-  getAlerts = (): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
-    if (this.alertList.length > 0) {
-      resolve(this.alertList);
-    } else {
-      readFile(pathNotesFile, (err: any, data: any) => {
-        if (err) throw err;
-        const alertStringList = JSON.parse(<string> <any> data);
-        this.alertList = this.parseStringsListToAlertList(alertStringList);
-        resolve(this.alertList);
+  private launchOneAlert = (alert: Alert, sendMessage: (message: string) => void) => {
+    if (!alert.isHappensEveryweek && !alert.isHappensEverymonth) {
+      scheduleJob(alert.message, alert.timeToLaunch, () => {
+        sendMessage(alert.message);
+      });
+    } else if (alert.isHappensEveryweek) {
+      scheduleJob(alert.message, {
+        hour: alert.timeToLaunch.getDay(),
+        minute: alert.timeToLaunch.getMinutes(),
+        dayOfWeek: alert.dayOfWeek === undefined ? 1 : alert.dayOfWeek
+      }, () => {
+        sendMessage(alert.message);
+      });
+    } else if (alert.isHappensEverymonth) {
+      scheduleJob(alert.message, `${
+        alert.timeToLaunch.getMinutes()
+      } ${
+        alert.timeToLaunch.getHours()
+      } ${
+        alert.dayOfMonth === undefined ? 1 : alert.dayOfMonth
+      } * *`, () => {
+        sendMessage(alert.message);
       });
     }
-  });
+  };
 
-  addAlerts = (newAlert: Alert): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
+  launchAlerts = async(sendMessage: (message: string) => void): Promise<Alert[]> => {
+    if (this.alertList.length > 0) return this.alertList;
+
+    const alertStringList: AlertFormated[] = await readJSONFile(pathNotesFile, '[]');
+    this.alertList = this.parseStringsListToAlertList(alertStringList);
+    
+    this.alertList.forEach(alert => {
+      this.launchOneAlert(alert, sendMessage);
+    });
+    return this.alertList;
+  };
+
+  getAlerts = async(sendMessage: (message: string) => void): Promise<Alert[]> => {
+    if (this.alertList.length > 0) {
+      return this.alertList;
+    } else {
+      return await this.launchAlerts(sendMessage);
+    }
+  };
+
+  addAlerts = (newAlert: Alert, sendMessage: (message: string) => void): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
     if (this.alertList.length > 0) {
       this.alertList.push(newAlert);
       this.saveAlerts().then((alertList) => resolve(alertList));
     } else {
-      this.getAlerts().then(() => {
+      this.getAlerts(sendMessage).then(() => {
         this.alertList.push(newAlert);
         this.saveAlerts().then((newAlertList) => resolve(newAlertList));
       });
     }
   });
 
-  updateAlerts = (alerts: Alert[]): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
+  updateAlerts = (alerts: Alert[], sendMessage: (message: string) => void): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
     if (this.alertList.length > 0) {
       this.alertList = alerts;
       this.saveAlerts().then((newNoteList) => resolve(newNoteList));
     } else {
-      this.getAlerts().then(() => {
+      this.getAlerts(sendMessage).then(() => {
         this.alertList = alerts;
         this.saveAlerts().then((newAlertList) => resolve(newAlertList));
       });
@@ -111,7 +135,6 @@ export class AlertListService {
   });
 
   saveAlerts = (): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
-    this.updatedAlertIsHappensEveryday();
     saveInAFile(JSON.stringify(this.parseAlertListToStringList(this.alertList), null, 2), pathNotesFile);
     resolve(this.alertList);
     console.log("> Alerts saved!");

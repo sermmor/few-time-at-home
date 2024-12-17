@@ -44,6 +44,18 @@ export const Notifications = () => {
     NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
   }, []);
 
+  // TODO: PONER TODAS LOS CAMPOS QUE YA ESTÁN EN BACKEND Y QUITAR EL CAMPO isHappensEveryday
+  /**
+   export interface Alert {
+      timeToLaunch: Date;
+      message: string;
+      isHappensEveryweek?: boolean; // ! NUEVO
+      dayOfWeek?: number; // ! NUEVO
+      isHappensEverymonth?: boolean; // ! NUEVO
+      dayOfMonth?: number; // ! NUEVO
+    }
+   */
+
   const deleteActionList = (idTimeToLaunch: string) => {
     if (!notifications) return;
     const cloneList = [...notifications.alerts];

@@ -331,18 +331,22 @@ export class APIService {
 
   private alertsService() {
     const alerts = new AlertListService();
-    alerts.getAlerts();
+    alerts.getAlerts(TelegramBot.Instance().sendMessageToTelegram);
     this.app.post(APIService.alertsEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
-          AlertListService.Instance.updateAlerts(AlertListService.Instance.parseStringsListToAlertList(req.body.alerts))
+          AlertListService.Instance.updateAlerts(
+            AlertListService.Instance.parseStringsListToAlertList(req.body.alerts),
+            TelegramBot.Instance().sendMessageToTelegram
+          )
             .then(data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
         }
     });
 
     this.app.get(APIService.alertsEndpoint, (req, res) => {
-      AlertListService.Instance.getAlerts().then(data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
+      AlertListService.Instance.getAlerts(TelegramBot.Instance().sendMessageToTelegram).then(
+        data => res.send({alerts: AlertListService.Instance.parseAlertListToStringList(data)}));
     });
 
     this.app.get(APIService.alertIsReadyEndpoint, (req, res) => {
