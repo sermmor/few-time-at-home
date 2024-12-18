@@ -1,7 +1,7 @@
 import { Box, Button, Checkbox, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { NotificationsActions } from "../../../core/actions/notifications";
-import { NotificationsDataModel } from "../../../data-model/notifications";
+import { AlertData, NotificationsDataModel } from "../../../data-model/notifications";
 import { LabelAndDateTimeTextField } from "../../molecules/LabelAndDateTimeTextField/LabelAndDateTimeTextField";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
@@ -55,6 +55,7 @@ export const Notifications = () => {
       dayOfMonth?: number; // ! NUEVO
     }
    */
+  // TODO: En backend además de la conexión con Telegram, hacerla también con el email (las alertas así se mandarán también ahí)
 
   const deleteActionList = (idTimeToLaunch: string) => {
     if (!notifications) return;
@@ -73,7 +74,7 @@ export const Notifications = () => {
   
   const editActionList = (
     idTimeToLaunch: string,
-    editConfig: (newConfig: any[], index: number, newData: string | boolean) => ({ timeToLaunch: string; message: string; isHappensEveryday: boolean; })
+    editConfig: (newConfig: any[], index: number, newData: string | boolean) => AlertData
   ) => (newText: string | boolean) => {
     if (!notifications) return;
     const cloneList = [...notifications.alerts];
@@ -106,15 +107,47 @@ export const Notifications = () => {
               )}
             />
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', fontStyle: 'oblique', fontSize: '8pt'}}>
-            <Box>Always?</Box>
-            <Checkbox
-              checked={item.isHappensEveryday}
-              onChange={(evt) => editActionList(
-                `${item.timeToLaunch}`,
-                (newConfig, index, isHappensEveryday) => ({...newConfig[index], isHappensEveryday,})
-              )(evt.target.checked)}
-            />
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', fontStyle: 'oblique', fontSize: '8pt'}}>
+              <Box>isHappensEveryweek?</Box>
+              <Checkbox
+                checked={item.isHappensEveryweek}
+                onChange={(evt) => editActionList(
+                  `${item.timeToLaunch}`,
+                  (newConfig, index, isHappensEveryweek) => ({...newConfig[index], isHappensEveryweek,})
+                )(evt.target.checked)}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+              <Box sx={{fontStyle: 'oblique', fontSize: '8pt'}}>dayOfWeek</Box>
+              <LabelAndTextField
+                text={item.dayOfWeek === undefined ? '1' : `${item.dayOfWeek}`}
+                onChange={editActionList(
+                  `${item.timeToLaunch}`,
+                  (newConfig, index, dayOfWeek) => ({...newConfig[index], dayOfWeek: +dayOfWeek < 8 ? +dayOfWeek : 7, })
+                )}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', fontStyle: 'oblique', fontSize: '8pt'}}>
+              <Box>isHappensEverymonth?</Box>
+              <Checkbox
+                checked={item.isHappensEverymonth}
+                onChange={(evt) => editActionList(
+                  `${item.timeToLaunch}`,
+                  (newConfig, index, isHappensEverymonth) => ({...newConfig[index], isHappensEverymonth,})
+                )(evt.target.checked)}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+            <Box sx={{fontStyle: 'oblique', fontSize: '8pt'}}>dayOfMonth</Box>
+              <LabelAndTextField
+                text={item.dayOfMonth === undefined ? '1' : `${item.dayOfMonth}`}
+                onChange={editActionList(
+                  `${item.timeToLaunch}`,
+                  (newConfig, index, dayOfMonth) => ({...newConfig[index], dayOfMonth: +dayOfMonth < 32 ? +dayOfMonth : 28, })
+                )}
+              />
+            </Box>
           </Box>
         </Box> }))}
       />

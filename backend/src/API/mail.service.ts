@@ -41,4 +41,29 @@ export class MailService {
       }
      });
   };
+
+  sendMessageByEmail = (subject: string, message: string) => {
+    const transporter = createTransport({
+      service: this.data.email_service,
+      auth: {
+        user: this.data.email_user,
+        pass: this.data.email_pass,
+      },
+     });
+
+     const mailOptions = {
+      from: this.data.email_user,
+      to: this.data.email_user,
+      subject: `${subject}`,
+      text: `${message}`,
+     };
+
+     transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(`Error sending email ${subject}: ${error}`);
+      } else {
+        console.log(`Email sent: ${info.response}`);
+      }
+     });
+  };
 }

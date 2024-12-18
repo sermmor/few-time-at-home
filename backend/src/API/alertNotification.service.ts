@@ -1,5 +1,6 @@
 import { scheduleJob } from 'node-schedule';
 import { parseFromAlertDateStringToDateObject, parseFromDateObjectToAlertDateString, readJSONFile, saveInAFile } from "../utils";
+import { MailService } from './mail.service';
 
 const pathNotesFile = 'data/alerts.json';
 
@@ -64,10 +65,13 @@ export class AlertListService {
     this.saveAlerts();
   };
 
+  private sendEmail = (message: string) => MailService.Instance.sendMessageByEmail(message.substring(0, 50), message);
+
   private launchOneAlert = (alert: Alert, sendMessage: (message: string) => void) => {
     if (!alert.isHappensEveryweek && !alert.isHappensEverymonth) {
       scheduleJob(alert.message, alert.timeToLaunch, () => {
         sendMessage(alert.message);
+        this.sendEmail(alert.message);
       });
     } else if (alert.isHappensEveryweek) {
       scheduleJob(alert.message, {
@@ -76,6 +80,7 @@ export class AlertListService {
         dayOfWeek: alert.dayOfWeek === undefined ? 1 : alert.dayOfWeek
       }, () => {
         sendMessage(alert.message);
+        this.sendEmail(alert.message);
       });
     } else if (alert.isHappensEverymonth) {
       scheduleJob(alert.message, `${
@@ -86,6 +91,7 @@ export class AlertListService {
         alert.dayOfMonth === undefined ? 1 : alert.dayOfMonth
       } * *`, () => {
         sendMessage(alert.message);
+        this.sendEmail(alert.message);
       });
     }
   };
