@@ -1,4 +1,4 @@
-import { scheduleJob } from 'node-schedule';
+import { Job, scheduleJob } from 'node-schedule';
 import { parseFromAlertDateStringToDateObject, parseFromDateObjectToAlertDateString, readJSONFile, saveInAFile } from "../utils";
 import { MailService } from './mail.service';
 
@@ -25,9 +25,11 @@ export interface AlertFormated {
 export class AlertListService {
   static Instance: AlertListService;
   alertList: Alert[];
+  scheduleJobs: Job[];
 
   constructor() {
     this.alertList = [];
+    this.scheduleJobs = [];
     AlertListService.Instance = this;
   }
 
@@ -69,21 +71,22 @@ export class AlertListService {
 
   private launchOneAlert = (alert: Alert, sendMessage: (message: string) => void) => {
     if (!alert.isHappensEveryweek && !alert.isHappensEverymonth) {
-      scheduleJob(alert.message, alert.timeToLaunch, () => {
+      // TODO: alert.timeToLaunch === UK HOUR
+      this.scheduleJobs.push(scheduleJob(alert.message, alert.timeToLaunch, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);
-      });
+      }));
     } else if (alert.isHappensEveryweek) {
-      scheduleJob(alert.message, {
+      this.scheduleJobs.push(scheduleJob(alert.message, {
         hour: alert.timeToLaunch.getDay(),
         minute: alert.timeToLaunch.getMinutes(),
         dayOfWeek: alert.dayOfWeek === undefined ? 1 : alert.dayOfWeek
       }, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);
-      });
+      }));
     } else if (alert.isHappensEverymonth) {
-      scheduleJob(alert.message, `${
+      this.scheduleJobs.push(scheduleJob(alert.message, `${
         alert.timeToLaunch.getMinutes()
       } ${
         alert.timeToLaunch.getHours()
@@ -92,15 +95,17 @@ export class AlertListService {
       } * *`, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);
-      });
+      }));
     }
   };
 
-  launchAlerts = async(sendMessage: (message: string) => void): Promise<Alert[]> => {
-    if (this.alertList.length > 0) return this.alertList;
+  launchAlerts = async(sendMessage: (message: string) => void, force = false): Promise<Alert[]> => {
+    if (this.alertList.length > 0 && !force) return this.alertList;
 
-    const alertStringList: AlertFormated[] = await readJSONFile(pathNotesFile, '[]');
-    this.alertList = this.parseStringsListToAlertList(alertStringList);
+    if (!force) {
+      const alertStringList: AlertFormated[] = await readJSONFile(pathNotesFile, '[]');
+      this.alertList = this.parseStringsListToAlertList(alertStringList);
+    }
     
     this.alertList.forEach(alert => {
       this.launchOneAlert(alert, sendMessage);
@@ -119,10 +124,12 @@ export class AlertListService {
   addAlerts = (newAlert: Alert, sendMessage: (message: string) => void): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
     if (this.alertList.length > 0) {
       this.alertList.push(newAlert);
+      this.launchOneAlert(newAlert, sendMessage);
       this.saveAlerts().then((alertList) => resolve(alertList));
     } else {
       this.getAlerts(sendMessage).then(() => {
         this.alertList.push(newAlert);
+        this.launchOneAlert(newAlert, sendMessage);
         this.saveAlerts().then((newAlertList) => resolve(newAlertList));
       });
     }
@@ -131,11 +138,19 @@ export class AlertListService {
   updateAlerts = (alerts: Alert[], sendMessage: (message: string) => void): Promise<Alert[]> => new Promise<Alert[]>(resolve => {
     if (this.alertList.length > 0) {
       this.alertList = alerts;
-      this.saveAlerts().then((newNoteList) => resolve(newNoteList));
+      if (this.scheduleJobs.length > 0) this.scheduleJobs.forEach(job => job ? job.cancel() : undefined);
+      this.scheduleJobs = [];
+      this.launchAlerts(sendMessage, true).then(() => {
+        this.saveAlerts().then((newNoteList) => resolve(newNoteList));
+      });
     } else {
       this.getAlerts(sendMessage).then(() => {
         this.alertList = alerts;
-        this.saveAlerts().then((newAlertList) => resolve(newAlertList));
+        if (this.scheduleJobs.length > 0) this.scheduleJobs.forEach(job => job ? job.cancel() : undefined);
+        this.scheduleJobs = [];
+        this.launchAlerts(sendMessage, true).then(() => {
+          this.saveAlerts().then((newAlertList) => resolve(newAlertList));
+        });
       });
     }
   });
