@@ -83,6 +83,8 @@ export const Notifications = () => {
     setNotifications({alerts: [...cloneList]});
   };
   
+  const getBackgroundColor = (index: number) =>(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF';
+
   return <Box sx={formStyle}>
     {notifications && <>
       <TitleAndList
@@ -90,7 +92,7 @@ export const Notifications = () => {
         subtext={isNotificationsEnabled ? undefined : <p style={{color: 'red'}}>All notifications are disabled</p>}
         deleteAction={deleteActionList}
         addAction={() => {const today = new Date(); addActionList({timeToLaunch: today.toJSON(), message: 'new alert'})} }
-        list={notifications.alerts.map((item) => ({id: `${item.timeToLaunch}`, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
+        list={notifications.alerts.map((item, index) => ({id: `${item.timeToLaunch}`, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%', backgroundColor: getBackgroundColor(index)}}>
           <LabelAndTextField
             text={item.message}
             onChange={editActionList(
