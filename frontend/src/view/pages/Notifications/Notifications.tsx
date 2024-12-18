@@ -98,7 +98,7 @@ export const Notifications = () => {
               (newConfig, index, message) => ({...newConfig[index], message, })
             )}
           />
-          <Box sx={{ width:'18rem' }}>
+          <Box sx={{ width:'25rem' }}>
             <LabelAndDateTimeTextField
               text={item.timeToLaunch}
               onChange={editActionList(
