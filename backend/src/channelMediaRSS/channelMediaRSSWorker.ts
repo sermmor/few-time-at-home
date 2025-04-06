@@ -27,7 +27,7 @@ export const updateRSSListOneByOne = (
             setTimeout(() => updateRSSListOneByOne(data, messagesToConcat, rssUrlWaiting - 1, updateRSS, onFinished), 0);
         });
     } else {
-        const allMessages = messagesToConcat
+        const allMessages = !messagesToConcat || messagesToConcat.length < 2 ? [] : messagesToConcat
             .reduce((previous, current) => previous.concat(current))
             .sort((messageA, messageB) => messageA.date > messageB.date ? 1 : -1);
         onFinished(allMessages);

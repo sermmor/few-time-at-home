@@ -124,12 +124,39 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
     }));
   }
   
+  filterProfilesByTags = (urlProfiles: string[], tag: string): string[] => {
+    const originalChannelUrlListAndUrlProfiles = this.youtubeLinkAndRssList.filter(channelAndRssData => urlProfiles.includes(channelAndRssData.rssUrl)).map(channelAndRssData => channelAndRssData);
+
+    const findMeUrls = (youtubeData: YoutubeData, url: string): YouTubeRSSUrl => {
+      const index = originalChannelUrlListAndUrlProfiles.findIndex((urlChanelPair) => youtubeData.url === urlChanelPair.channelUrl)
+      return originalChannelUrlListAndUrlProfiles[index];
+    }
+    
+    return ConfigurationService.Instance.youtubeRssList.map(youtubeData => ({
+      ...youtubeData,
+      ...findMeUrls(youtubeData, youtubeData.url )
+    }))
+    .filter(
+      youtubeData => originalChannelUrlListAndUrlProfiles.findIndex((urlChanelPair) => youtubeData.url === urlChanelPair.channelUrl) > -1
+    )
+    .filter(
+      youtubeData => (tag === 'null' && (!youtubeData.tag || youtubeData.tag === 'null')) || tag === youtubeData.tag
+    )
+    .map(youtubeData => youtubeData.rssUrl);
+  }
+
   createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData {
+    console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
+    console.log(this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag))
+
+    console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
+    console.log(this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag).length, urlsProfilesToSend[indexWorker].length)
+    console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
     return {
       id: `youtubeRSSMessages ${indexWorker}`,
       workerScriptPath: './build/youtubeRSS/youtubeRSSWorker.js',
       workerDataObject: {
-        urlProfiles: urlsProfilesToSend[indexWorker],
+        urlProfiles: this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag), //urlsProfilesToSend[indexWorker],
         rssOptions: this.rssOptions,
         youtubeInfoByLinks: this.getDataByUrls(urlsProfilesToSend[indexWorker]).filter(data => data.tag === YoutubeRSSUtils.tag),
       },
