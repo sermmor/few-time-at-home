@@ -31,8 +31,8 @@ export const ListComponent = ({list, deleteAction, addAction, showRowLine}: Prop
     <CardContent>
       {
         list.map(element =>
-          <>
-            <Box key={element.id} sx={itemListStyle}>
+          <span key={element.id}>
+            <Box sx={itemListStyle}>
               { deleteAction && <IconButton aria-label="delete" onClick={() => deleteAction(element.id)}>
                   <DeleteIcon />
                 </IconButton>
@@ -40,7 +40,7 @@ export const ListComponent = ({list, deleteAction, addAction, showRowLine}: Prop
               {element.item}
             </Box>
             {showRowLine && <hr />}
-          </>
+          </span>
         )
       }
     { addAction && <IconButton aria-label="addItem" onClick={() => addAction()}>

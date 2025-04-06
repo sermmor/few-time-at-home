@@ -47,6 +47,7 @@ export interface YoutubeData {
   not_filter_shorts: boolean;
   words_to_filter: string;
   mandatory_words: string;
+  tag: string;
 }
 
 export class ConfigurationService {

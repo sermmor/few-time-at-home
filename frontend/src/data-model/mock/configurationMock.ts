@@ -71,6 +71,7 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
             not_filter_shorts: false,
             words_to_filter: 'word1 word2 word3',
             mandatory_words: 'null',
+            tag: 'music',
           },
           {
             url: "https://youtube2/feed/",
@@ -78,6 +79,7 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
             not_filter_shorts: false,
             words_to_filter: 'word1 word2 word3',
             mandatory_words: 'mandatory1',
+            tag: 'politics',
           },
           {
             url: "https://youtube3/feed/",
@@ -85,6 +87,7 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
             not_filter_shorts: false,
             words_to_filter: 'word1 word2 word3',
             mandatory_words: 'mandatory2',
+            tag: 'psicology',
           },
         ],
       };

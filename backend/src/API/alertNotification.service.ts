@@ -71,7 +71,7 @@ export class AlertListService {
 
   private launchOneAlert = (alert: Alert, sendMessage: (message: string) => void) => {
     if (!alert.isHappensEveryweek && !alert.isHappensEverymonth) {
-      // TODO: alert.timeToLaunch === UK HOUR
+      // alert.timeToLaunch === UK HOUR
       this.scheduleJobs.push(scheduleJob(alert.message, alert.timeToLaunch, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);

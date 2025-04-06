@@ -6,6 +6,8 @@ import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTex
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
 import { synchronizeActions } from "../../../core/actions/synchronize";
+import { LabelAndComboField } from "../../molecules/LabelAndComboField/LabelAndComboField";
+import { optionsTagsYoutube } from "../../../data-model/rss";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -249,6 +251,20 @@ export const ConfigurationComponent = () => {
                             (newConfig, index, newText) => ({...newConfig[index], mandatory_words: newText,})
                           )
                         }/>
+                      </li>
+                      <li>
+                        Tags: <LabelAndComboField
+                          text={item.tag || optionsTagsYoutube[0]}
+                          options={optionsTagsYoutube}
+                          onChange={
+                            editActionList(
+                              'youtubeRssList',
+                              `${item.url}`,
+                              (item: any, idToEdit: string) => item.url === idToEdit,
+                              (newConfig, index, newText) => ({...newConfig[index], tag: newText,})
+                            )
+                          }
+                          />
                       </li>
                     </ul>
                   </Box>

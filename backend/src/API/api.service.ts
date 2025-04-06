@@ -125,6 +125,10 @@ export class APIService {
     this.app.get(endpoint, (req, res) => {
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
         ConfigurationService.Instance.twitterData.numberOfMessages = webNumberOfMessagesWithLinks;
+        if (endpoint === APIService.getRssYoutubeEndpoint) {
+          YoutubeRSSUtils.setTag(req.query.tag as string);
+        }
+
         rssCommand().then(messagesToSend => {
             if (endpoint === APIService.getRssYoutubeEndpoint) {
               // Remove shorts videos.

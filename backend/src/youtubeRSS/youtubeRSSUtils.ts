@@ -4,6 +4,9 @@ import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/work
 
 export class YoutubeRSSUtils {
   static allLastMessages: ChannelMediaRSSMessage[] = [];
+  static tag: string = 'null';
+  
+  static setTag = (newTag: string | undefined) => YoutubeRSSUtils.tag = newTag || 'null';
 
   static createWorkerData(messagesToSend: ChannelMediaRSSMessage[][], indexWorker: number): WorkerChildParentHandleData {
     return {

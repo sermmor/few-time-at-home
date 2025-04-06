@@ -5,7 +5,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as React from 'react';
 import { RSSActions } from '../../../core/actions/rss';
-import { RssDataModel } from '../../../data-model/rss';
+import { optionsTagsYoutube, RssDataModel } from '../../../data-model/rss';
 import { RssMessage } from './component/RssMessage';
 import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
@@ -39,6 +39,7 @@ const LoadingComponent = () => <Box sx={{display: 'flex', flexDirection: 'row', 
 
 export const Rss = () => {
   const [rssType, setRssType] = React.useState<RSSType>('all');
+  const [tagType, setTagType] = React.useState<string>('null');
   const [amount, setAmount] = React.useState<number>(20);
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
   const [rssData, setRssData] = React.useState<RssDataModel>();
@@ -60,12 +61,24 @@ export const Rss = () => {
         }
       </Select>
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
+      {
+      rssType === 'youtube' && <Select value={tagType} onChange={evt => setTagType(evt.target.value)}>{
+        optionsTagsYoutube.map(type => <MenuItem value={type.toLowerCase()} key={type}>{type}</MenuItem>)
+      }</Select>
+      }
       <Button
         variant='contained'
         sx={formSizeFields()}
         onClick={() => {
           setListState(StateItemList.LOADING);
-          if (rssType !== 'saved') {
+          if (rssType === 'youtube') {
+            // tagType
+            RSSActions.getRSSYoutube(tagType, amount).then(data => {
+              setListState(StateItemList.CHARGED);
+              setReadLaterData(undefined);
+              setRssData(data);
+            });
+          } else if (rssType !== 'saved') {
             RSSActions.getRSS(rssType, amount).then(data => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(undefined);

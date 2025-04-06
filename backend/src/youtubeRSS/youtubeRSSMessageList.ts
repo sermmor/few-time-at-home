@@ -120,6 +120,7 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
       url: this.youtubeLinkAndRssList.filter(channelAndRssData => channelAndRssData.channelUrl === youtubeData.url).map(channelAndRssData => channelAndRssData.rssUrl)[0],
       words_to_filter: (youtubeData.words_to_filter === 'defaultToIgnore') ? [] : (youtubeData.words_to_filter || '').toLowerCase().split(' '),
       mandatory_words: (youtubeData.mandatory_words === 'null') ? '' : (youtubeData.mandatory_words || '').toLowerCase(),
+      tag: (!youtubeData.tag || youtubeData.tag === 'null') ? 'null' : (youtubeData.tag || 'null'),
     }));
   }
   
@@ -130,7 +131,7 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
       workerDataObject: {
         urlProfiles: urlsProfilesToSend[indexWorker],
         rssOptions: this.rssOptions,
-        youtubeInfoByLinks: this.getDataByUrls(urlsProfilesToSend[indexWorker]),
+        youtubeInfoByLinks: this.getDataByUrls(urlsProfilesToSend[indexWorker]).filter(data => data.tag === YoutubeRSSUtils.tag),
       },
     }
   }
