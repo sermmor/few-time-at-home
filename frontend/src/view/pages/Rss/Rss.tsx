@@ -9,6 +9,7 @@ import { optionsTagsYoutube, RssDataModel } from '../../../data-model/rss';
 import { RssMessage } from './component/RssMessage';
 import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
+import { NewMessage } from './component/NewMessage';
 
 type RSSType = 'all' | 'mastodon' | 'twitter' | 'blog' | 'youtube' | 'saved';
 
@@ -95,6 +96,25 @@ export const Rss = () => {
       >
         GO
       </Button>
+    </Box>
+    <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...formFieldStyle()}}>
+      {
+        rssType === 'saved' && <NewMessage onNewMessage={(title, url, date) => new Promise<void>(resolve => {
+          ReadLaterRSSActions.add({
+            message:`${title}
+Automatico - ${date}
+
+${url}` }).then(({data}) => {
+            console.log("Bookmark saved!");
+            setSnackBarMessage("Bookmark saved!");
+            setErrorSnackbar(false);
+            setOpenSnackbar(true);
+            const newData = [{id: data.id, message: data.message}, ...(readLaterData || [])];
+            setReadLaterData(newData);
+            resolve();
+          })
+        })} />
+      }
     </Box>
     <Box sx={{display: 'flex', flexDirection: 'column'}}>
     { listState === StateItemList.LOADING && <LoadingComponent /> }
