@@ -64,7 +64,7 @@ export const Rss = () => {
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
       {
       rssType === 'youtube' && <Select value={tagType} onChange={evt => setTagType(evt.target.value)}>{
-        optionsTagsYoutube.map(type => <MenuItem value={type.toLowerCase()} key={type}>{type}</MenuItem>)
+        optionsTagsYoutube.map(type => <MenuItem value={type} key={type}>{type}</MenuItem>)
       }</Select>
       }
       <Button

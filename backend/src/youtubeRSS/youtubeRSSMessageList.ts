@@ -136,9 +136,9 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
       ...youtubeData,
       ...findMeUrls(youtubeData, youtubeData.url )
     }))
-    .filter(
-      youtubeData => originalChannelUrlListAndUrlProfiles.findIndex((urlChanelPair) => youtubeData.url === urlChanelPair.channelUrl) > -1
-    )
+    // .filter(
+    //   youtubeData => originalChannelUrlListAndUrlProfiles.findIndex((urlChanelPair) => youtubeData.url === urlChanelPair.channelUrl) > -1
+    // ) // TODO: Creo que este filtro no hace falta
     .filter(
       youtubeData => (tag === 'null' && (!youtubeData.tag || youtubeData.tag === 'null')) || tag === youtubeData.tag
     )
@@ -146,12 +146,13 @@ export class YoutubeRSSMessageList extends ChannelMediaRSSMessageList {
   }
 
   createWorkerData(urlsProfilesToSend: string[][], indexWorker: number): WorkerChildParentHandleData {
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
-    console.log(this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag))
+    // console.log(YoutubeRSSUtils.tag)
+    // console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
+    // console.log(this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag))
 
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
-    console.log(this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag).length, urlsProfilesToSend[indexWorker].length)
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
+    // console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
+    // console.log(this.filterProfilesByTags(urlsProfilesToSend[indexWorker], YoutubeRSSUtils.tag).length, urlsProfilesToSend[indexWorker].length)
+    // console.log("+++++++++++++++++++++++++++++++++++++++++++++++")
     return {
       id: `youtubeRSSMessages ${indexWorker}`,
       workerScriptPath: './build/youtubeRSS/youtubeRSSWorker.js',
