@@ -2,24 +2,25 @@ import { ChannelMediaRSSMessage } from "../channelMediaRSS";
 import { WorkerChild } from "../workerModule/workersManager";
 import { YoutubeMediaRSSMessage } from "./youtubeRSSWorkerData";
 
-const fetch = require("node-fetch");
+// const fetch = require("node-fetch");
 
 const youtubeAddDelay = 10;
 
-const isAYouTubeShortText = (text: string): boolean => text.indexOf('youtube.com/shorts/') !== -1;
+// const isAYouTubeShortText = (text: string): boolean => text.indexOf('youtube.com/shorts/') !== -1;
 
 const isAYouTubeShortLink = (link: string, currentTry = 4): Promise<boolean> => new Promise<boolean>(resolve=> {
-    const key = link.split('https://www.youtube.com/watch?v=')[1];
-    fetch(`https://www.youtube.com/shorts/${key}`).then((res: any) => res.text()).then((text: string) => {
-      resolve(isAYouTubeShortText(text));
-    }).catch(() => {
-      if (currentTry > 0) {
-          setTimeout(() => isAYouTubeShortLink(link, currentTry - 1).then(data => resolve(data)), 100);
-      } else {
-          console.error(`Youtube link ${link} can be broken or deleted!`);
-          resolve(false);
-      }
-    });
+    resolve(link.includes('/shorts/'));
+    // const key = link.split('https://www.youtube.com/watch?v=')[1];
+    // fetch(`https://www.youtube.com/shorts/${key}`).then((res: any) => res.text()).then((text: string) => {
+    //   resolve(isAYouTubeShortText(text));
+    // }).catch(() => {
+    //   if (currentTry > 0) {
+    //       setTimeout(() => isAYouTubeShortLink(link, currentTry - 1).then(data => resolve(data)), 100);
+    //   } else {
+    //       console.error(`Youtube link ${link} can be broken or deleted!`);
+    //       resolve(false);
+    //   }
+    // });
   });
 
 const processRemoveYoutubeShorts = (allLastMessages: YoutubeMediaRSSMessage[], accumulator: ChannelMediaRSSMessage[] = []): Promise<ChannelMediaRSSMessage[]> => new Promise<ChannelMediaRSSMessage[]>(resolve=> {
