@@ -123,6 +123,7 @@ export class APIService {
 
   getRSS = (endpoint: string, rssCommand: () => Promise<string[]>) => {
     this.app.get(endpoint, (req, res) => {
+      // TODO CAMBIAR POR PASAR EL CONTENIDO DEL FICHERO RSS ACTUALIZADO CORRECTO.
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
         ConfigurationService.Instance.twitterData.numberOfMessages = webNumberOfMessagesWithLinks;
         if (endpoint === APIService.getRssYoutubeEndpoint) {

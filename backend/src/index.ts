@@ -12,6 +12,7 @@ import { extractEmailData } from './API/email-data/email-data.interface';
 import { MailService } from './API/mail.service';
 import { BookmarkService } from './API/bookmark.service';
 import { Logger } from './logger';
+import { MediaRSSAutoupdate } from './processAutoupdate/mediaRSSAutoupdate';
 
 const keysPath = 'keys.json';
 
@@ -50,6 +51,7 @@ readFile(keysPath, (err, data) => {
           const bot = new TelegramBot(keyData);
           const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
           bot.start(commands);
+          const mediaAutoUpdate = new MediaRSSAutoupdate(commands);
           apiService = new APIService(channelMediaCollection, commands);
           
           console.log("> The bot is ready.");
