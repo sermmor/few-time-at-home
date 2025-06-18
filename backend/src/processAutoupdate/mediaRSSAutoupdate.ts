@@ -10,7 +10,10 @@ export class MediaRSSAutoupdate {
     // TODO: AUTOUPDATE MEDIA IN TIME autoUpdateTimeInSeconds
     // TODO: FUNCIONES de devolver contenido de un fichero RSS (NOTESÉ DE QUE HAY QUE USAR UNA CLASE INTERMEDIA PARA ESO, 
     //       PORQUE SI NO, DEPENDENCIA CÍRCULAR).
+    // TODO: DISMINUIR EL NÚMERO DE WORKERS A 2, como ya no habrá esperas para el usuario, priorizamos robustez.
+    // TODO: Devolver el contenido de un fichero RSS a una llamada desde el bot de Telegram.
     // TODO: Salvar los UPDATES de RSS PREFERIDOS en un fichero aparte que se devolverá en una llamada aparte de la API.
+    // TODO: LO DEL WEBSOCKET (QUE SE MUESTRE QUE ESTÁ ACTUAIZANDO EL RSS).
   }
 
   updateMedia = (
