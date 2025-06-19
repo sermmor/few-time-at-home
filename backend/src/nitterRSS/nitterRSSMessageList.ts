@@ -50,19 +50,24 @@ export class NitterRSSMessageList extends ChannelMediaRSSMessageList {
           }
       };
       return new Promise<ChannelMediaRSSMessageList>(resolve => {
-        fetch(urlTwitterAPI, {
-          method: 'POST',
-          headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data, null, 2)
-        }).then((res: any) => res.json())
-          .then((json: any) => {
-            const allMessages = {...json}
-            this.allMessages = allMessages.data.reverse();
-            resolve(this);
-          });
+        try {
+          fetch(urlTwitterAPI, {
+            method: 'POST',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data, null, 2)
+          }).then((res: any) => res.json())
+            .then((json: any) => {
+              const allMessages = {...json}
+              this.allMessages = allMessages.data.reverse();
+              resolve(this);
+            });
+        } catch (error) {
+          console.error("Error updating Nitter RSS:", error);
+          resolve(this);
+        }
       });
   }
 
