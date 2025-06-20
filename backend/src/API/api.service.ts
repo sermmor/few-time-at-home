@@ -15,6 +15,7 @@ import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
+import { getMediaFileContent, MediaType } from '../processAutoupdate/mediaRSSAutoupdate.utils';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -98,11 +99,14 @@ export class APIService {
     this.app.use(express.json())
     this.app.use(cors());
 
-    this.getRSS(APIService.getAllRssEndpoint, this.commands.onCommandAll);
-    this.getRSS(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
-    this.getRSS(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
-    this.getRSS(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
-    this.getRSS(APIService.getRssYoutubeEndpoint, this.commands.onCommandYoutube);
+    this.getRSSLive(APIService.getAllRssEndpoint, this.commands.onCommandAll); // TODO: A ELIMINAR
+    // this.getRSSLive(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
+    this.getRSSLive(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
+    // this.getRSSLive(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
+    // this.getRSSLive(APIService.getRssYoutubeEndpoint, this.commands.onCommandYoutube);
+    this.getRSS(APIService.getRssMastoEndpoint, 'mastodon');
+    this.getRSS(APIService.getRssBlogEndpoint, 'blog');
+    this.getRSS(APIService.getRssYoutubeEndpoint, 'youtube');
     this.getReadLaterRSSService();
     this.unfurlService();
     this.configurationService();
@@ -121,26 +125,35 @@ export class APIService {
     });
   }
 
-  getRSS = (endpoint: string, rssCommand: () => Promise<string[]>) => {
+  getRSS = (endpoint: string, type: MediaType) => {
     this.app.get(endpoint, (req, res) => {
-      // TODO CAMBIAR POR PASAR EL CONTENIDO DEL FICHERO RSS ACTUALIZADO CORRECTO.
+      const tag = (endpoint === APIService.getRssYoutubeEndpoint) ? req.query.tag as string : '';
+      getMediaFileContent(type, tag).then(messagesToSend => {
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
-        ConfigurationService.Instance.twitterData.numberOfMessages = webNumberOfMessagesWithLinks;
-        if (endpoint === APIService.getRssYoutubeEndpoint) {
-          YoutubeRSSUtils.setTag(req.query.tag as string);
-        }
+        res.send({ messages: messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks)});
+      });
+    });
+  }
 
-        rssCommand().then(messagesToSend => {
-            if (endpoint === APIService.getRssYoutubeEndpoint) {
-              // Remove shorts videos.
-              YoutubeRSSUtils.filterYoutubeShorts(webNumberOfMessagesWithLinks).then(messages => {
-                res.send({ messages });
-              });
-            } else {
-              const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks);
-              res.send({ messages });
-            }
-        });
+  getRSSLive = (endpoint: string, rssCommand: () => Promise<string[]>) => {
+    this.app.get(endpoint, (req, res) => {
+      const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
+      ConfigurationService.Instance.twitterData.numberOfMessages = webNumberOfMessagesWithLinks;
+      if (endpoint === APIService.getRssYoutubeEndpoint) {
+        YoutubeRSSUtils.setTag(req.query.tag as string);
+      }
+
+      rssCommand().then(messagesToSend => {
+        if (endpoint === APIService.getRssYoutubeEndpoint) {
+          // Remove shorts videos.
+          YoutubeRSSUtils.filterYoutubeShorts(webNumberOfMessagesWithLinks).then(messages => {
+            res.send({ messages });
+          });
+        } else {
+          const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks);
+          res.send({ messages });
+        }
+      });
     });
   }
 
