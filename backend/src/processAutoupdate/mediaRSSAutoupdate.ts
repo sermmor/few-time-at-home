@@ -16,8 +16,7 @@ const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion',
 
 export class MediaRSSAutoupdate {
   constructor(private commands: TelegramBotCommand) {
-    // TODO: DISMINUIR EL NÚMERO DE WORKERS A 2, como ya no habrá esperas para el usuario, priorizamos robustez.
-    // TODO: Devolver el contenido de un fichero RSS a una llamada desde el bot de Telegram.
+    // TODO: Devolver el contenido de un fichero RSS a una llamada desde el bot de Telegram (cuidado que con Nitter no se hace).
     // TODO: Salvar los UPDATES de RSS PREFERIDOS en un fichero aparte que se devolverá en una llamada aparte de la API.
     // TODO: LO DEL WEBSOCKET (QUE SE MUESTRE QUE ESTÁ ACTUALIZANDO EL RSS, O CUÁNTO TIEMPO QUEDA PARA QUE SE ACTUALICE).
     // TODO: BOTÓN DESDE EL FRONT QUE FUERCE A ACTUALIZAR EL FICHERO RSS.
