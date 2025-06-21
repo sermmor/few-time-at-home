@@ -8,8 +8,8 @@ type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], me
 
 const initialWebNumberOfMessagesWithLinks = 80;
 const normalWebNumberOfMessagesWithLinks = 40;
-const autoUpdateTimeInSeconds = 90 * 60; // 1:30 hour
-const numMaxMessagesToSave = 1000;
+const autoUpdateTimeInSeconds = 90 * 60; // 1:30 hour // TODO: Añadir al fichero de configuración.
+const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración.
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
 const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json';
