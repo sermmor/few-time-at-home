@@ -22,7 +22,6 @@ export class MediaRSSAutoupdate {
   private favoritesYoutubeMessages: string[] = [];
 
   constructor(private commands: TelegramBotCommand) {
-    // TODO: LO DEL WEBSOCKET (QUE SE MUESTRE QUE ESTÁ ACTUALIZANDO EL RSS, O CUÁNTO TIEMPO QUEDA PARA QUE SE ACTUALICE).
     // TODO: BOTÓN DESDE EL FRONT QUE FUERCE A ACTUALIZAR EL FICHERO RSS.
     setTimeout(() => {
       console.log("Starting Media RSS Autoupdate...");

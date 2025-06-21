@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box, CssBaseline } from '@mui/material';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
@@ -7,9 +8,28 @@ import { WebSocketClientService } from '../service/webSocketService/webSocketCli
 
 const ConfigData = require('../configuration.json');
 
+const ServerInfoBar = () => {
+  const [message, setMessage] = React.useState<string>('');
+
+  React.useEffect(() => { 
+    WebSocketClientService.Instance.subscribeToUpdates((webSocketData) => {
+      setMessage(webSocketData.rssAutoUpdateMessage);
+    });
+   }, []);
+
+   return <Box
+    sx={{
+      width: '100%',
+      backgroundColor: '#f0f0f0',
+      padding: '0.5rem',
+      textAlign: 'center',
+    }}>{message}</Box>
+}
+
 const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
 <Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
   <AppMenubar />
+  <ServerInfoBar />
 </Box>
 <Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>{
   element
@@ -19,7 +39,7 @@ const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
 
 const AllRoutes = () => {
   const config = new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);
-  const webSocket = new WebSocketClientService(ConfigData.ip, ConfigData.webSocketPort);
+  const webSocket = new WebSocketClientService(`ws://${ConfigData.ip}:${ConfigData.webSocketPort}/ws`, () => undefined);
 
   return <BrowserRouter>
     <Routes>

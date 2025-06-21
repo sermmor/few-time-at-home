@@ -20,7 +20,8 @@ export class WebSocketClientService {
     WebSocketClientService.Instance = this;
     this.onUpdateData = [];
     this.socket = new WebSocket(url);
-
+    
+    console.log("CREADO CLIENT", this.socket)
     this.socket.onopen = () => {
       console.log("Connected to WebSocket");
     };
