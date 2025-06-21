@@ -125,7 +125,11 @@ export class APIService {
       const tag = (endpoint === APIService.getRssYoutubeEndpoint) ? req.query.tag as string : '';
       getMediaFileContent(type, tag).then(messagesToSend => {
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
-        res.send({ messages: messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks)});
+        if (messagesToSend.length <= webNumberOfMessagesWithLinks) {
+          res.send({ messages: messagesToSend });
+        } else {
+          res.send({ messages: messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks)});
+        }
       });
     });
   }

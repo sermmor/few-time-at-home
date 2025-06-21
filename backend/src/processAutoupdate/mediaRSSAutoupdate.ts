@@ -63,6 +63,25 @@ export class MediaRSSAutoupdate {
     const waitMe: boolean = await this.saveMedia(messagesMasto, messagesBlog, messagesYoutube);
   };
 
+  private filterDuplicateTitles = (messages: string[]): string[] => {
+    if (messages.length === 0) {
+      return messages;
+    }
+    
+    const messagesFixed = messages.filter(message => message && message !== '' && message.split('\n').length >= 1);
+
+    const messagesWithoutDuplicates: string[] = [];
+
+    for (const message of messagesFixed) {
+      const title = message.split('\n')[0];
+      if (!messagesWithoutDuplicates.some(existingMessage => existingMessage.split('\n')[0] === title)) {
+        messagesWithoutDuplicates.push(message);
+      }
+    }
+
+    return messagesWithoutDuplicates;
+  }
+
   saveMedia = async (messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]): Promise<boolean> => {
     const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
     const dataOrVoid: FileMediaContentType | string = await readJSONFile(
@@ -79,13 +98,13 @@ export class MediaRSSAutoupdate {
     if (data.messagesMasto.length > numMaxMessagesToSave) {
       data.messagesMasto = data.messagesMasto.slice(data.messagesMasto.length - numMaxMessagesToSave);
     }
-
+    
     data.messagesBlog = data.messagesBlog.concat(messagesBlog);
     data.messagesBlog = data.messagesBlog.filter((item: any, index: number) => data.messagesBlog.indexOf(item) === index);
     if (data.messagesBlog.length > numMaxMessagesToSave) {
       data.messagesBlog = data.messagesBlog.slice(data.messagesBlog.length - numMaxMessagesToSave);
     }
-
+    
     data.messagesYoutube = data.messagesYoutube || [];
     for (const youtube of messagesYoutube) {
       const tag = youtube.tag;
@@ -98,6 +117,7 @@ export class MediaRSSAutoupdate {
         indexTag = data.messagesYoutube.length - 1;
       }
       data.messagesYoutube[indexTag].content = data.messagesYoutube[indexTag].content.concat(youtube.content);
+      data.messagesYoutube[indexTag].content = this.filterDuplicateTitles(data.messagesYoutube[indexTag].content);
       data.messagesYoutube[indexTag].content = data.messagesYoutube[indexTag].content.filter(
         (item: any, index: number) => data.messagesYoutube[indexTag].content.indexOf(item) === index
       );
