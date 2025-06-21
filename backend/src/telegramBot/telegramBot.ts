@@ -10,6 +10,7 @@ import { CloudService, cloudDefaultPath } from "../API/cloud.service";
 import { createWriteStream, existsSync, mkdir } from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
+import { getBlogFileContent, getMastoFileContent, getYoutubeFileContent } from "../processAutoupdate/mediaRSSAutoupdate.utils";
 
 const fetch = require("node-fetch");
 
@@ -72,11 +73,11 @@ export class TelegramBot {
           ctx.reply(`I'm here!! :D \nHere a list of commands:\n> ${commandTextInfo}`);
       });
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
-      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, commandList.onCommandAll);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, () => Promise.resolve(['comando a borrar']));
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
-      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_masto_command, commandList.onCommandMasto);
-      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_youtube_command, commandList.onCommandYoutube);
-      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_blog_command, commandList.onCommandBlog);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_masto_command, getMastoFileContent);
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_youtube_command, getYoutubeFileContent('null'));
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_blog_command,getBlogFileContent);
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);

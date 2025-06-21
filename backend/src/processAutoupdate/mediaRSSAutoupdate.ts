@@ -16,7 +16,6 @@ const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion',
 
 export class MediaRSSAutoupdate {
   constructor(private commands: TelegramBotCommand) {
-    // TODO: Devolver el contenido de un fichero RSS a una llamada desde el bot de Telegram (cuidado que con Nitter no se hace).
     // TODO: Salvar los UPDATES de RSS PREFERIDOS en un fichero aparte que se devolverá en una llamada aparte de la API.
     // TODO: LO DEL WEBSOCKET (QUE SE MUESTRE QUE ESTÁ ACTUALIZANDO EL RSS, O CUÁNTO TIEMPO QUEDA PARA QUE SE ACTUALICE).
     // TODO: BOTÓN DESDE EL FRONT QUE FUERCE A ACTUALIZAR EL FICHERO RSS.
@@ -27,7 +26,7 @@ export class MediaRSSAutoupdate {
       }).catch(err => {
         console.error("Error during Media RSS Autoupdate:", err);
       });
-    }, 0); // 1 minute delay before starting the first update
+    }, 0);
     setInterval(() => {
       this.doAllUpdates().then(() => {
         console.log("Media RSS Autoupdate completed successfully.");

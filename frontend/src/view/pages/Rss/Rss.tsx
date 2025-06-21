@@ -11,7 +11,7 @@ import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
 import { NewMessage } from './component/NewMessage';
 
-type RSSType = 'all' | 'mastodon' | 'twitter' | 'blog' | 'youtube' | 'saved';
+type RSSType = 'mastodon' | 'twitter' | 'blog' | 'youtube' | 'saved';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
@@ -39,7 +39,7 @@ const LoadingComponent = () => <Box sx={{display: 'flex', flexDirection: 'row', 
 </Box>;
 
 export const Rss = () => {
-  const [rssType, setRssType] = React.useState<RSSType>('all');
+  const [rssType, setRssType] = React.useState<RSSType>('saved');
   const [tagType, setTagType] = React.useState<string>('null');
   const [amount, setAmount] = React.useState<number>(20);
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
@@ -58,7 +58,7 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          ['ALL', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'SAVED'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
+          ['MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'SAVED'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
         }
       </Select>
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />

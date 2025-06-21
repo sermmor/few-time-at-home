@@ -30,8 +30,7 @@ export interface DataToSendInPieces {
 }
 
 export class APIService {
-  static getAllRssEndpoint  = "/rss/all"; // query: http://localhost:${port}/rss/all?amount=20
-  static getRssMastoEndpoint  = "/rss/mastodon";
+  static getRssMastoEndpoint  = "/rss/mastodon"; // query: http://localhost:${port}/mastodon/all?amount=20
   static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssYoutubeEndpoint  = "/rss/youtube";
@@ -99,11 +98,7 @@ export class APIService {
     this.app.use(express.json())
     this.app.use(cors());
 
-    this.getRSSLive(APIService.getAllRssEndpoint, this.commands.onCommandAll); // TODO: A ELIMINAR
-    // this.getRSSLive(APIService.getRssMastoEndpoint, this.commands.onCommandMasto);
     this.getRSSLive(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
-    // this.getRSSLive(APIService.getRssBlogEndpoint, this.commands.onCommandBlog);
-    // this.getRSSLive(APIService.getRssYoutubeEndpoint, this.commands.onCommandYoutube);
     this.getRSS(APIService.getRssMastoEndpoint, 'mastodon');
     this.getRSS(APIService.getRssBlogEndpoint, 'blog');
     this.getRSS(APIService.getRssYoutubeEndpoint, 'youtube');
