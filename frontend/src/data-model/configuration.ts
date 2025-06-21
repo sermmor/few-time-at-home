@@ -6,6 +6,7 @@ type YoutubeConfigurationList = {
   words_to_filter: string;
   mandatory_words: string;
   tag: string;
+  favorite?: boolean;
 }[];
 type MastodonConfigurationList = { instance: string; user: string; }[];
 type QuoteList = {quote: string; author: string}[];

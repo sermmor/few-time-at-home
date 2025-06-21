@@ -48,6 +48,7 @@ export interface YoutubeData {
   words_to_filter: string;
   mandatory_words: string;
   tag: string;
+  favorite?: boolean;
 }
 
 export class ConfigurationService {

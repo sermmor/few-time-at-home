@@ -268,37 +268,55 @@ export const ConfigurationComponent = () => {
                       </li>
                     </ul>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', marginRight: '1rem' }}>
-                    <Checkbox
-                      checked={item.not_filter_shorts}
-                      onChange={evt => {
-                        editActionList(
-                          'youtubeRssList',
-                          `${item.url}`,
-                          (item: any, idToEdit: string) => item.url === idToEdit,
-                          (newConfig, index, newText) => ({...newConfig[index], not_filter_shorts: newText,})
-                        )(evt.target.checked)
-                      }}
-                    />
-                    <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                      Not filter youtube shorts
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Checkbox
-                      checked={item.show_not_publised_videos}
-                      onChange={evt => {
-                        editActionList(
-                          'youtubeRssList',
-                          `${item.url}`,
-                          (item: any, idToEdit: string) => item.url === idToEdit,
-                          (newConfig, index, newText) => ({...newConfig[index], show_not_publised_videos: newText,})
-                        )(evt.target.checked)
-                      }}
-                    />
-                    <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                      Show "Proximamente" videos
-                    </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center'}}>
+                      <Checkbox
+                        checked={item.not_filter_shorts}
+                        onChange={evt => {
+                          editActionList(
+                            'youtubeRssList',
+                            `${item.url}`,
+                            (item: any, idToEdit: string) => item.url === idToEdit,
+                            (newConfig, index, newText) => ({...newConfig[index], not_filter_shorts: newText,})
+                          )(evt.target.checked)
+                        }}
+                      />
+                      <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
+                        Not filter youtube shorts
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox
+                        checked={item.show_not_publised_videos}
+                        onChange={evt => {
+                          editActionList(
+                            'youtubeRssList',
+                            `${item.url}`,
+                            (item: any, idToEdit: string) => item.url === idToEdit,
+                            (newConfig, index, newText) => ({...newConfig[index], show_not_publised_videos: newText,})
+                          )(evt.target.checked)
+                        }}
+                      />
+                      <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
+                        Show "Proximamente" videos
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox
+                        checked={item.favorite}
+                        onChange={evt => {
+                          editActionList(
+                            'youtubeRssList',
+                            `${item.url}`,
+                            (item: any, idToEdit: string) => item.url === idToEdit,
+                            (newConfig, index, newText) => ({...newConfig[index], favorite: newText,})
+                          )(evt.target.checked)
+                        }}
+                      />
+                      <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
+                        Is favorite?
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </>})
