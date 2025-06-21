@@ -8,7 +8,7 @@ type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], me
 
 const initialWebNumberOfMessagesWithLinks = 80;
 const normalWebNumberOfMessagesWithLinks = 40;
-const autoUpdateTimeInSeconds = 60 * 60; // 1 hour
+const autoUpdateTimeInSeconds = 90 * 60; // 1:30 hour
 const numMaxMessagesToSave = 1000;
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
@@ -22,43 +22,29 @@ export class MediaRSSAutoupdate {
   private favoritesYoutubeMessages: string[] = [];
 
   constructor(private commands: TelegramBotCommand) {
-    // TODO: BOTÓN DESDE EL FRONT QUE FUERCE A ACTUALIZAR EL FICHERO RSS.
-    setTimeout(() => {
-      console.log("Starting Media RSS Autoupdate...");
-      WebSocketsServerService.Instance.updateData({
-        rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
-      });
-      this.doAllUpdates().then(() => {
-        console.log("Media RSS Autoupdate completed successfully.");
-        WebSocketsServerService.Instance.updateData({
-          rssAutoUpdateMessage: "Media RSS Autoupdate completed successfully.",
-        });
-      }).catch(err => {
-        console.error("Error during Media RSS Autoupdate:", err);
-        WebSocketsServerService.Instance.updateData({
-          rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
-        });
-      });
-    }, 0);
-    setInterval(() => {
-      WebSocketsServerService.Instance.updateData({
-        rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
-      });
-      this.doAllUpdates().then(() => {
-        console.log("Media RSS Autoupdate completed successfully.");
-        WebSocketsServerService.Instance.updateData({
-          rssAutoUpdateMessage: "Media RSS Autoupdate completed successfully.",
-        });
-      }).catch(err => {
-        console.error("Error during Media RSS Autoupdate:", err);
-        WebSocketsServerService.Instance.updateData({
-          rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
-        });
-      });
-    }, autoUpdateTimeInSeconds * 1000);
+    setTimeout(() => this.update(), 0);
+    setInterval(() => this.update(), autoUpdateTimeInSeconds * 1000);
   }
 
-  doAllUpdates = async() => {
+  update = (): Promise<void> => new Promise<void>(resolve => {
+    console.log("Starting Media RSS Autoupdate...");
+    WebSocketsServerService.Instance.updateData({
+      rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
+    });
+    this.doAllUpdates().then(() => {
+      console.log("Media RSS Autoupdate completed successfully.");
+      WebSocketsServerService.Instance.updateData({
+        rssAutoUpdateMessage: "Media RSS Autoupdate completed successfully.",
+      });
+    }).catch(err => {
+      console.error("Error during Media RSS Autoupdate:", err);
+      WebSocketsServerService.Instance.updateData({
+        rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
+      });
+    });
+  })
+
+  private doAllUpdates = async() => {
     this.favoritesYoutubeMessages = [];
     let webNumberOfMessagesWithLinks = initialWebNumberOfMessagesWithLinks;
     try {
@@ -125,7 +111,7 @@ export class MediaRSSAutoupdate {
     return true;
   };
 
-  saveMedia = async (messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]): Promise<boolean> => {
+  private saveMedia = async (messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]): Promise<boolean> => {
     const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
     const dataOrVoid: FileMediaContentType | string = await readJSONFile(
       mediaFilePath,
@@ -175,7 +161,7 @@ export class MediaRSSAutoupdate {
   };
 
 
-  updateMedia = (
+  private updateMedia = (
     rssCommand: () => Promise<string[]>,
     webNumberOfMessagesWithLinks: number,
     youtubeTag = "null",
