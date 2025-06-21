@@ -24,6 +24,7 @@ const ServerInfoBar = () => {
       backgroundColor: '#f0f0f0',
       padding: '0.5rem',
       textAlign: 'center',
+      zIndex: -1,
     }}>{message}</Box>
 }
 
