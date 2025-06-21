@@ -11,10 +11,15 @@ const autoUpdateTimeInSeconds = 60 * 60; // 1 hour
 const numMaxMessagesToSave = 1000;
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
+const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json';
+
 // TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
 const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
 export class MediaRSSAutoupdate {
+
+  private favoritesYoutubeMessages: string[] = [];
+
   constructor(private commands: TelegramBotCommand) {
     // TODO: Salvar los UPDATES de RSS PREFERIDOS en un fichero aparte que se devolverá en una llamada aparte de la API.
     // TODO: LO DEL WEBSOCKET (QUE SE MUESTRE QUE ESTÁ ACTUALIZANDO EL RSS, O CUÁNTO TIEMPO QUEDA PARA QUE SE ACTUALICE).
@@ -37,6 +42,7 @@ export class MediaRSSAutoupdate {
   }
 
   doAllUpdates = async() => {
+    this.favoritesYoutubeMessages = [];
     let webNumberOfMessagesWithLinks = initialWebNumberOfMessagesWithLinks;
     try {
       await fs.access(mediaFilePath);
@@ -47,20 +53,22 @@ export class MediaRSSAutoupdate {
 
     let messages: string[];
     
-    const messagesMasto = await this.updateMedia(this.commands.onCommandMasto, initialWebNumberOfMessagesWithLinks);
+    const messagesMasto = await this.updateMedia(this.commands.onCommandMasto, webNumberOfMessagesWithLinks);
 
-    const messagesBlog = await this.updateMedia(this.commands.onCommandBlog, initialWebNumberOfMessagesWithLinks);
+    const messagesBlog = await this.updateMedia(this.commands.onCommandBlog, webNumberOfMessagesWithLinks);
 
     const messagesYoutube: {tag: string; content: string[]}[] = [];
     for (const tag of optionsTagsYoutube) {
-      messages = await this.updateMedia(this.commands.onCommandYoutube, initialWebNumberOfMessagesWithLinks, tag, true);
+      messages = await this.updateMedia(this.commands.onCommandYoutube, webNumberOfMessagesWithLinks, tag, true);
       messagesYoutube.push({
         tag,
         content: messages,
       });
     }
 
-    const waitMe: boolean = await this.saveMedia(messagesMasto, messagesBlog, messagesYoutube);
+    let waitMe = await this.saveYoutubeFavorites();
+
+    waitMe = await this.saveMedia(messagesMasto, messagesBlog, messagesYoutube);
   };
 
   private filterDuplicateTitles = (messages: string[]): string[] => {
@@ -81,6 +89,20 @@ export class MediaRSSAutoupdate {
 
     return messagesWithoutDuplicates;
   }
+
+  private saveYoutubeFavorites = async (): Promise<boolean> => {
+    const dataOrVoid: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
+    const data: string[] = dataOrVoid === "[]" ? [] : dataOrVoid as string[];
+
+    this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.concat(data);
+    this.favoritesYoutubeMessages = this.filterDuplicateTitles(this.favoritesYoutubeMessages);
+    this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.filter(
+      (item: any, index: number) => this.favoritesYoutubeMessages.indexOf(item) === index
+    );
+
+    await saveInAFilePromise(JSON.stringify(this.favoritesYoutubeMessages, null, 2), favoriteYoutubeFilePath);
+    return true;
+  };
 
   saveMedia = async (messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]): Promise<boolean> => {
     const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
@@ -131,6 +153,7 @@ export class MediaRSSAutoupdate {
     return true;
   };
 
+
   updateMedia = (
     rssCommand: () => Promise<string[]>,
     webNumberOfMessagesWithLinks: number,
@@ -146,6 +169,7 @@ export class MediaRSSAutoupdate {
         if (isYoutubeRSS) {
           // Remove shorts videos.
           YoutubeRSSUtils.filterYoutubeShorts(webNumberOfMessagesWithLinks).then(messages => {
+            this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.concat(YoutubeRSSUtils.favoritesYoutubeMessages); 
             resolve(messages);
           });
         } else {

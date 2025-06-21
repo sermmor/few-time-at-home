@@ -15,7 +15,7 @@ import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
-import { getMediaFileContent, MediaType } from '../processAutoupdate/mediaRSSAutoupdate.utils';
+import { getFavoritesYoutubeFileContent, getMediaFileContent, MediaType } from '../processAutoupdate/mediaRSSAutoupdate.utils';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -34,6 +34,7 @@ export class APIService {
   static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssYoutubeEndpoint  = "/rss/youtube";
+  static getRssFavoritesEndpoint  = "/rss/favorites";
   static readLaterRSSEndpoint = {
     getMessages: "/readLaterRSS/get-messages",
     addMessages: "/readLaterRSS/add-messages",
@@ -103,6 +104,7 @@ export class APIService {
     this.getRSS(APIService.getRssBlogEndpoint, 'blog');
     this.getRSS(APIService.getRssYoutubeEndpoint, 'youtube');
     this.getReadLaterRSSService();
+    this.getFavoritesRSSService();
     this.unfurlService();
     this.configurationService();
     this.getRandomQuoteService();
@@ -181,6 +183,18 @@ export class APIService {
       } else {
         ReadLaterMessagesRSS.removeMessageRSSFromSavedList(req.body.id).then(() => {
           res.send({ response: 'OK' });
+        });
+      }
+    });
+  }
+
+  private getFavoritesRSSService() {
+    this.app.get(APIService.getRssFavoritesEndpoint, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        getFavoritesYoutubeFileContent(req.body.amount).then(data => {
+          res.send({ data });
         });
       }
     });

@@ -8,6 +8,7 @@ export interface YoutubeInfoByLinks {
   words_to_filter: string[];
   mandatory_words: string,
   tag: string;
+  favorite?: boolean;
 }
 
 export interface YoutubeMediaRSSMessage extends ChannelMediaRSSMessage {

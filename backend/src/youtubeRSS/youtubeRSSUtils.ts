@@ -2,6 +2,8 @@ import { ConfigurationService } from "../API";
 import { ChannelMediaRSSMessage } from "../channelMediaRSS";
 import { WorkerChildParentHandleData, WorkerManager } from "../workerModule/workersManager";
 
+const pathYoutubeRssUrlFile = 'data/youtube_rss_urls.json';
+
 export class YoutubeRSSUtils {
   static allLastMessages: ChannelMediaRSSMessage[] = [];
   static tag: string = 'null';
@@ -66,15 +68,26 @@ export class YoutubeRSSUtils {
     }
   });
 
+  static favoritesYoutubeMessages: string[] = [];
+
+  private static saveFavoritesYoutubeMessage = (message: ChannelMediaRSSMessage, formatedMessage: string): void => {
+    if ((message as any).youtubeInfo && (message as any).youtubeInfo.favorite) {
+      YoutubeRSSUtils.favoritesYoutubeMessages.push(formatedMessage);
+    }
+  }
+
   static filterYoutubeShorts = (totalAmount: number): Promise<string[]> => new Promise<string[]>(resolve=> {
     const reverseAllLastMessages = YoutubeRSSUtils.allLastMessages.reverse();
-
+    YoutubeRSSUtils.favoritesYoutubeMessages = [];
     YoutubeRSSUtils.filterYoutubeShortProcess(reverseAllLastMessages, totalAmount).then((allFilteredMessages: ChannelMediaRSSMessage[]) => {
       resolve(allFilteredMessages.slice(0, totalAmount < allFilteredMessages.length ? totalAmount : undefined).reverse().map(
-        message =>`${message.title}
+        message =>{
+          const formatedMessage = `${message.title}
 ${message.author} - ${message.date.toDateString()}
 ${message.content}
-${message.originalLink}`
+${message.originalLink}`;
+          YoutubeRSSUtils.saveFavoritesYoutubeMessage(message, formatedMessage);
+          return formatedMessage}
           ))
     });
   });

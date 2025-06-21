@@ -1,6 +1,7 @@
 import { readJSONFile } from "../utils";
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
+const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json';
 
 export type MediaType = 'youtube' | 'mastodon' | 'blog';
 
@@ -31,4 +32,18 @@ export const getMediaFileContent = async (type: MediaType, tag: string = ''): Pr
     return [];
   }
   return [];
+};
+
+export const getFavoritesYoutubeFileContent = async (amount: number): Promise<string[]> => {
+  try {
+    const dataOrVoid: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
+    let messages = dataOrVoid === "[]" ? [] : (dataOrVoid as string[]);
+    messages = messages.reverse();
+    if (messages.length > amount) {
+      messages = messages.slice(0, amount);
+    }
+    return messages;
+  } catch (error) {
+    return [];
+  }
 };

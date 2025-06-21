@@ -10,7 +10,7 @@ import { CloudService, cloudDefaultPath } from "../API/cloud.service";
 import { createWriteStream, existsSync, mkdir } from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
-import { getBlogFileContent, getMastoFileContent, getYoutubeFileContent } from "../processAutoupdate/mediaRSSAutoupdate.utils";
+import { getBlogFileContent, getFavoritesYoutubeFileContent, getMastoFileContent, getYoutubeFileContent } from "../processAutoupdate/mediaRSSAutoupdate.utils";
 
 const fetch = require("node-fetch");
 
@@ -73,7 +73,7 @@ export class TelegramBot {
           ctx.reply(`I'm here!! :D \nHere a list of commands:\n> ${commandTextInfo}`);
       });
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
-      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, () => Promise.resolve(['comando a borrar']));
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, () => getFavoritesYoutubeFileContent(20));
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_masto_command, getMastoFileContent);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_youtube_command, getYoutubeFileContent('null'));
