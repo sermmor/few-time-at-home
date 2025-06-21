@@ -21,7 +21,6 @@ export class MediaRSSAutoupdate {
   private favoritesYoutubeMessages: string[] = [];
 
   constructor(private commands: TelegramBotCommand) {
-    // TODO: Salvar los UPDATES de RSS PREFERIDOS en un fichero aparte que se devolverá en una llamada aparte de la API.
     // TODO: LO DEL WEBSOCKET (QUE SE MUESTRE QUE ESTÁ ACTUALIZANDO EL RSS, O CUÁNTO TIEMPO QUEDA PARA QUE SE ACTUALICE).
     // TODO: BOTÓN DESDE EL FRONT QUE FUERCE A ACTUALIZAR EL FICHERO RSS.
     setTimeout(() => {
@@ -99,6 +98,10 @@ export class MediaRSSAutoupdate {
     this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.filter(
       (item: any, index: number) => this.favoritesYoutubeMessages.indexOf(item) === index
     );
+
+    if (this.favoritesYoutubeMessages.length > numMaxMessagesToSave) {
+      this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.slice(this.favoritesYoutubeMessages.length - numMaxMessagesToSave);
+    }
 
     await saveInAFilePromise(JSON.stringify(this.favoritesYoutubeMessages, null, 2), favoriteYoutubeFilePath);
     return true;

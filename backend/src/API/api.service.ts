@@ -193,8 +193,8 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        getFavoritesYoutubeFileContent(req.body.amount).then(data => {
-          res.send({ data });
+        getFavoritesYoutubeFileContent(req.query.amount ? +req.query.amount : 0).then(data => {
+          res.send({ messages: data });
         });
       }
     });
