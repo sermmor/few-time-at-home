@@ -13,6 +13,7 @@ import { MailService } from './API/mail.service';
 import { BookmarkService } from './API/bookmark.service';
 import { Logger } from './logger';
 import { MediaRSSAutoupdate } from './processAutoupdate/mediaRSSAutoupdate';
+import { WebSocketsServerService } from './webSockets/webSocketsServer.service';
 
 const keysPath = 'keys.json';
 
@@ -48,6 +49,7 @@ readFile(keysPath, (err, data) => {
   
           const channelMediaRSSCollectionExport = new ChannelMediaRSSCollectionExport(channelMediaCollection);
   
+          const webSocket = new WebSocketsServerService();
           const bot = new TelegramBot(keyData);
           const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
           bot.start(commands);

@@ -509,6 +509,24 @@ export const ConfigurationComponent = () => {
               }}
             />
           </Box>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+              WebSocket Port:
+            </Typography>
+            <TextField
+              label="Port"
+              variant="outlined"
+              type='number'
+              value={config.webSocketPort}
+              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
+              onChange={evt => {
+                setConfig({
+                  ...config,
+                  webSocketPort: +evt.target.value,
+                });
+              }}
+            />
+          </Box>
         </Box>
         <SaveConfigurationComponent config={config} type={'configuration'}/>
         <Box sx={commandLineStyle}>

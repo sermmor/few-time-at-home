@@ -125,6 +125,7 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
       showNitterRSSInAll: true,
       numberOfWorkers: 4,
       apiPort: 8080,
+      webSocketPort: 8081,
     }
   };
 }

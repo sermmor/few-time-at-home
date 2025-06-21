@@ -100,6 +100,7 @@ export class ConfigurationService {
   showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
+  webSocketPort: number;
 
   private configTypes;
   
@@ -116,6 +117,7 @@ export class ConfigurationService {
     this.backupUrls = configurationData.backupUrls;
     this.cloudRootPath = configurationData.cloudRootPath;
     this.apiPort = configurationData.apiPort;
+    this.webSocketPort = configurationData.webSocketPort;
     this.quoteList = configurationData.quoteList;
     this.twitterData = configurationData.twitterData;
     this.windowsFFMPEGPath = configurationData.windowsFFMPEGPath;
@@ -195,6 +197,7 @@ export class ConfigurationService {
     showNitterRSSInAll: this.showNitterRSSInAll,
     numberOfWorkers: this.numberOfWorkers,
     apiPort: this.apiPort,
+    webSocketPort: this.webSocketPort,
     quoteList: this.quoteList,
     twitterData: this.twitterData,
   });
@@ -209,6 +212,7 @@ export class ConfigurationService {
     this.showNitterRSSInAll = data.showNitterRSSInAll;
     this.numberOfWorkers = data.numberOfWorkers;
     this.apiPort = data.apiPort;
+    this.webSocketPort = data.webSocketPort;
     this.quoteList = data.quoteList;
     this.twitterData = data.twitterData;
     

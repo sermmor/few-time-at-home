@@ -18,6 +18,7 @@ interface ConfigurationGeneral {
   showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
+  webSocketPort: number;
 }
 
 export interface ConfigurationDataModel {
@@ -39,10 +40,11 @@ export interface ConfigurationDataZipped {
   showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
+  webSocketPort: number;
 }
 
 export const parseToZippedConfig = (configList: ConfigurationDataModel[]): ConfigurationDataZipped => {
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
   return ({
     nitterInstancesList: getContentConfigurationByType(configList, 'nitterInstancesList') as string[],
     nitterRssUsersList: getContentConfigurationByType(configList, 'nitterRssUsersList') as string[],
@@ -57,15 +59,16 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     showNitterRSSInAll,
     numberOfWorkers,
     apiPort,
+    webSocketPort,
   });
 }
 
 export const parseToConfigDataModel = (configZipped: ConfigurationDataZipped): ConfigurationDataModel[] => {
   const configList: ConfigurationDataModel[] = [];
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort} = configZipped;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort} = configZipped;
   configList.push({
     type: 'configuration',
-    content: { listBotCommands,windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort },
+    content: { listBotCommands,windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort },
   });
 
   ['nitterInstancesList', 'nitterRssUsersList', 'mastodonRssUsersList', 'blogRssList', 'youtubeRssList', 'quoteList'].forEach(type => {
@@ -84,8 +87,8 @@ export const getContentConfigurationByType = (configList: ConfigurationDataModel
 
 export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   if (type === 'configuration') {
-    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort} = configZipped;
-    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort};
+    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort} = configZipped;
+    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort};
   } else { 
     return (configZipped as any)[type];
   }

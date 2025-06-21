@@ -1,5 +1,6 @@
 import { ConfigurationService, TelegramBotCommand } from "../API";
 import { readJSONFile, saveInAFilePromise } from "../utils";
+import { WebSocketsServerService } from "../webSockets/webSocketsServer.service";
 import { YoutubeRSSUtils } from "../youtubeRSS/youtubeRSSUtils";
 import * as fs from "fs/promises";
 
@@ -25,17 +26,35 @@ export class MediaRSSAutoupdate {
     // TODO: BOTÓN DESDE EL FRONT QUE FUERCE A ACTUALIZAR EL FICHERO RSS.
     setTimeout(() => {
       console.log("Starting Media RSS Autoupdate...");
+      WebSocketsServerService.Instance.updateData({
+        rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
+      });
       this.doAllUpdates().then(() => {
         console.log("Media RSS Autoupdate completed successfully.");
+        WebSocketsServerService.Instance.updateData({
+          rssAutoUpdateMessage: "Media RSS Autoupdate completed successfully.",
+        });
       }).catch(err => {
         console.error("Error during Media RSS Autoupdate:", err);
+        WebSocketsServerService.Instance.updateData({
+          rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
+        });
       });
     }, 0);
     setInterval(() => {
+      WebSocketsServerService.Instance.updateData({
+        rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
+      });
       this.doAllUpdates().then(() => {
         console.log("Media RSS Autoupdate completed successfully.");
+        WebSocketsServerService.Instance.updateData({
+          rssAutoUpdateMessage: "Media RSS Autoupdate completed successfully.",
+        });
       }).catch(err => {
         console.error("Error during Media RSS Autoupdate:", err);
+        WebSocketsServerService.Instance.updateData({
+          rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
+        });
       });
     }, autoUpdateTimeInSeconds * 1000);
   }

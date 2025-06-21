@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
 import { ConfigurationService } from '../service/configuration/configuration.service';
+import { WebSocketClientService } from '../service/webSocketService/webSocketClient.service';
 
 const ConfigData = require('../configuration.json');
 
@@ -17,7 +18,8 @@ const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
 </>;
 
 const AllRoutes = () => {
-  const config = new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.isUsingMocks);
+  const config = new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);
+  const webSocket = new WebSocketClientService(ConfigData.ip, ConfigData.webSocketPort);
 
   return <BrowserRouter>
     <Routes>
