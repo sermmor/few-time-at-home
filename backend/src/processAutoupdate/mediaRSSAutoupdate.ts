@@ -12,7 +12,7 @@ const autoUpdateTimeInSeconds = 90 * 60; // 1:30 hour // TODO: Añadir al ficher
 const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración.
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
-const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json';
+const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'; // TODO: LLEGA DESORDENADA POR FECHA, ORDENAR.
 
 // TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
 const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
