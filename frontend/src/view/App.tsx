@@ -17,6 +17,7 @@ const ServerInfoBar = () => {
     });
    }, []);
 
+   // TODO: Mejorar diseño barra. Debe poder moverse como en los telepronters de últimas noticias de la tele.
    return <Box
     sx={{
       width: '100%',
