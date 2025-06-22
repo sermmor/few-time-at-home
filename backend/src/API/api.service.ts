@@ -16,6 +16,7 @@ import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 import { getFavoritesYoutubeFileContent, getMediaFileContent, MediaType } from '../processAutoupdate/mediaRSSAutoupdate.utils';
+import { MediaRSSAutoupdate } from '../processAutoupdate/mediaRSSAutoupdate';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -35,6 +36,7 @@ export class APIService {
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static getRssFavoritesEndpoint  = "/rss/favorites";
+  static getRssForceUpdateEndpoint = "/rss/force-update";
   static readLaterRSSEndpoint = {
     getMessages: "/readLaterRSS/get-messages",
     addMessages: "/readLaterRSS/add-messages",
@@ -105,6 +107,7 @@ export class APIService {
     this.getRSS(APIService.getRssYoutubeEndpoint, 'youtube');
     this.getReadLaterRSSService();
     this.getFavoritesRSSService();
+    this.forceUpdateRSS();
     this.unfurlService();
     this.configurationService();
     this.getRandomQuoteService();
@@ -197,6 +200,17 @@ export class APIService {
           res.send({ messages: data });
         });
       }
+    });
+  }
+
+  private forceUpdateRSS() {
+    this.app.get(APIService.getRssForceUpdateEndpoint, (req, res) => {
+      MediaRSSAutoupdate.instance.update().then(() => {
+        res.send({ response: 'OK' });
+      }).catch(err => {
+        console.error("Error during force update RSS:", err);
+        res.status(500).send({ error: 'Failed to force update RSS' });
+      });
     });
   }
 

@@ -66,3 +66,5 @@ const readLaterRSSEndpointList = {
 };
 
 export const readLaterRSSEndpoint = (typeEndpoint: ReadLaterRSSEndpointList): string => `${getUrlApi()}${readLaterRSSEndpointList[typeEndpoint]}`;
+
+export const rssForceUpdateEndpoint = (): string => `${getUrlApi()}/rss/force-update`;

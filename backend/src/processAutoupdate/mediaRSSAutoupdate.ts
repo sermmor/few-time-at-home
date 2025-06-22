@@ -8,7 +8,7 @@ type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], me
 
 const initialWebNumberOfMessagesWithLinks = 80;
 const normalWebNumberOfMessagesWithLinks = 40;
-const autoUpdateTimeInSeconds = 90 * 60; // 1:30 hour // TODO: Añadir al fichero de configuración.
+const autoUpdateTimeInSeconds = 6 * 60 * 60; // 6 hour // TODO: Añadir al fichero de configuración.
 const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración.
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
@@ -17,11 +17,15 @@ const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'
 // TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
 const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
+// TODO: MOVER mediaRSSAutoupdate.utils A ESTA CLASE.
+
 export class MediaRSSAutoupdate {
+  public static instance: MediaRSSAutoupdate;
 
   private favoritesYoutubeMessages: string[] = [];
 
   constructor(private commands: TelegramBotCommand) {
+    MediaRSSAutoupdate.instance = this;
     setTimeout(() => this.update(), 0);
     setInterval(() => this.update(), autoUpdateTimeInSeconds * 1000);
   }
@@ -32,15 +36,20 @@ export class MediaRSSAutoupdate {
       rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
     });
     this.doAllUpdates().then(() => {
-      console.log("Media RSS Autoupdate completed successfully.");
+      const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
+        new Date(Date.now() + autoUpdateTimeInSeconds * 1000).toLocaleString()
+      }`
+      console.log(nextUpdateMessage);
       WebSocketsServerService.Instance.updateData({
-        rssAutoUpdateMessage: "Media RSS Autoupdate completed successfully.",
+        rssAutoUpdateMessage: nextUpdateMessage,
       });
+      resolve();
     }).catch(err => {
       console.error("Error during Media RSS Autoupdate:", err);
       WebSocketsServerService.Instance.updateData({
         rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
       });
+      resolve();
     });
   })
 

@@ -22,17 +22,19 @@ const ServerInfoBar = () => {
     sx={{
       width: '100%',
       backgroundColor: '#f0f0f0',
-      padding: '0.5rem',
+      padding: '0rem',
       textAlign: 'center',
+      marginTop: '0rem',
     }}>{message}</Box>
 }
 
 const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
 <Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
   <AppMenubar />
+  <ServerInfoBar />
 </Box>
-<ServerInfoBar />
-<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>{
+<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>
+  {
   element
   }
 </Box>
