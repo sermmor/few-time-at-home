@@ -18,6 +18,7 @@ const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'
 const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
 // TODO: MOVER mediaRSSAutoupdate.utils A ESTA CLASE.
+// TODO: MOVER EL BOTÓN DE FORCE TO UPDATE A CONFIGURACIÓN EN EL FRONT (es un poco peligroso tenerlo en la pestaña de RSS).
 
 export class MediaRSSAutoupdate {
   public static instance: MediaRSSAutoupdate;
