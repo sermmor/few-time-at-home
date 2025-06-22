@@ -24,6 +24,7 @@ export class MediaRSSAutoupdate {
   public static instance: MediaRSSAutoupdate;
 
   private favoritesYoutubeMessages: string[] = [];
+  private lastUpdateMilliseconds: number = 0;
 
   constructor(private commands: TelegramBotCommand) {
     MediaRSSAutoupdate.instance = this;
@@ -37,8 +38,9 @@ export class MediaRSSAutoupdate {
       rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
     });
     this.doAllUpdates().then(() => {
+      this.lastUpdateMilliseconds = Date.now();
       const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
-        new Date(Date.now() + autoUpdateTimeInSeconds * 1000).toLocaleString()
+        new Date(this.lastUpdateMilliseconds + autoUpdateTimeInSeconds * 1000).toLocaleString()
       }`
       console.log(nextUpdateMessage);
       WebSocketsServerService.Instance.updateData({
