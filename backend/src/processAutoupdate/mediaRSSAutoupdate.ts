@@ -28,8 +28,12 @@ export class MediaRSSAutoupdate {
 
   constructor(private commands: TelegramBotCommand) {
     MediaRSSAutoupdate.instance = this;
+    this.lastUpdateMilliseconds = Date.now();
     setTimeout(() => this.update(), 0);
-    setInterval(() => this.update(), autoUpdateTimeInSeconds * 1000);
+    setInterval(() => {
+      this.lastUpdateMilliseconds = Date.now();
+      this.update();
+    }, autoUpdateTimeInSeconds * 1000);
   }
 
   update = (): Promise<void> => new Promise<void>(resolve => {
@@ -38,7 +42,6 @@ export class MediaRSSAutoupdate {
       rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
     });
     this.doAllUpdates().then(() => {
-      this.lastUpdateMilliseconds = Date.now();
       const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
         new Date(this.lastUpdateMilliseconds + autoUpdateTimeInSeconds * 1000).toLocaleString()
       }`
