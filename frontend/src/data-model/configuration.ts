@@ -1,4 +1,4 @@
-type ConfigurationList = string[];
+export type ConfigurationList = string[];
 type YoutubeConfigurationList = {
   url: string;
   show_not_publised_videos: boolean;

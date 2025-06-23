@@ -7,7 +7,6 @@ import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
 import { synchronizeActions } from "../../../core/actions/synchronize";
 import { LabelAndComboField } from "../../molecules/LabelAndComboField/LabelAndComboField";
-import { optionsTagsYoutube } from "../../../data-model/rss";
 import { TitleAndSection } from "../../organism/TitleAndSection/TitleAndSection";
 
 const formStyle: SxProps<Theme> = {
@@ -255,8 +254,8 @@ export const ConfigurationComponent = () => {
                       </li>
                       <li>
                         Tags: <LabelAndComboField
-                          text={item.tag || optionsTagsYoutube[0]}
-                          options={optionsTagsYoutube}
+                          text={item.tag || config.rssConfig.optionTagsYoutube[0]}
+                          options={config.rssConfig.optionTagsYoutube}
                           onChange={
                             editActionList(
                               'youtubeRssList',

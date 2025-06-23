@@ -6,12 +6,7 @@ import * as fs from "fs/promises";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
-// const initialWebNumberOfMessagesWithLinks = 80;
-// const normalWebNumberOfMessagesWithLinks = 40;
-// const autoUpdateTimeInSeconds = 6 * 60 * 60; // 6 hour // TODO: Añadir al fichero de configuración.
-// const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración.
 // TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
-// const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
 const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'; // TODO: LLEGA DESORDENADA POR FECHA, ORDENAR.

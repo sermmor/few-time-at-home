@@ -5,11 +5,12 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as React from 'react';
 import { RSSActions } from '../../../core/actions/rss';
-import { optionsTagsYoutube, RssDataModel } from '../../../data-model/rss';
+import { RssDataModel } from '../../../data-model/rss';
 import { RssMessage } from './component/RssMessage';
 import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
 import { NewMessage } from './component/NewMessage';
+import { ConfigurationActions } from '../../../core/actions/configuration';
 
 type RSSType = 'mastodon' | 'twitter' | 'blog' | 'youtube' | 'saved' | 'favorites';
 
@@ -41,6 +42,7 @@ const LoadingComponent = () => <Box sx={{display: 'flex', flexDirection: 'row', 
 export const Rss = () => {
   const [rssType, setRssType] = React.useState<RSSType>('favorites');
   const [tagType, setTagType] = React.useState<string>('null');
+  const [optionsTagsYoutube, setOptionsTagsYoutube] = React.useState<string[]>([]);
   const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
   const [amount, setAmount] = React.useState<number>(20);
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
@@ -50,6 +52,12 @@ export const Rss = () => {
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
+
+  React.useEffect(() => {
+    ConfigurationActions.getConfiguration(['configuration']).then(data => {
+      setOptionsTagsYoutube((data[0].content as any).rssConfig.optionTagsYoutube);
+    });
+  }, []);
 
   return <>
     <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...formFieldStyle()}}>
