@@ -15,8 +15,7 @@ import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
-import { getFavoritesYoutubeFileContent, getMediaFileContent, MediaType } from '../processAutoupdate/mediaRSSAutoupdate.utils';
-import { MediaRSSAutoupdate } from '../processAutoupdate/mediaRSSAutoupdate';
+import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -128,7 +127,7 @@ export class APIService {
   getRSS = (endpoint: string, type: MediaType) => {
     this.app.get(endpoint, (req, res) => {
       const tag = (endpoint === APIService.getRssYoutubeEndpoint) ? req.query.tag as string : '';
-      getMediaFileContent(type, tag).then(messagesToSend => {
+      MediaRSSAutoupdate.getMediaFileContent(type, tag).then(messagesToSend => {
         const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
         if (messagesToSend.length <= webNumberOfMessagesWithLinks) {
           res.send({ messages: messagesToSend });
@@ -196,7 +195,7 @@ export class APIService {
       if (!req.body) {
         console.error("Received NO body text");
       } else {
-        getFavoritesYoutubeFileContent(req.query.amount ? +req.query.amount : 0).then(data => {
+        MediaRSSAutoupdate.getFavoritesYoutubeFileContent(req.query.amount ? +req.query.amount : 0).then(data => {
           res.send({ messages: data });
         });
       }

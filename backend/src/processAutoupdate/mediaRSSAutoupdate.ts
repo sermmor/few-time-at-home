@@ -14,10 +14,11 @@ const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
 const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'; // TODO: LLEGA DESORDENADA POR FECHA, ORDENAR.
 
+export type MediaType = 'youtube' | 'mastodon' | 'blog';
+
 // TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
 const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
-// TODO: MOVER mediaRSSAutoupdate.utils A ESTA CLASE.
 // TODO: MOVER EL BOTÓN DE FORCE TO UPDATE A CONFIGURACIÓN EN EL FRONT (es un poco peligroso tenerlo en la pestaña de RSS).
 
 export class MediaRSSAutoupdate {
@@ -200,4 +201,49 @@ export class MediaRSSAutoupdate {
         }
     });
   });
+
+  
+  static getMediaFileContent = async (type: MediaType, tag: string = ''): Promise<string[]> => {
+    try {
+      const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
+      let data = await readJSONFile(mediaFilePath, fileVoid);
+      data = data === fileVoid ? { messagesMasto: [], messagesBlog: [], messagesYoutube: [] } : data;
+      if (type === 'youtube' && tag) {
+        let indexTag = data.messagesYoutube.findIndex((item: any) => item.tag === tag);
+        if (indexTag === -1) {
+          return [];
+        }
+        return data.messagesYoutube[indexTag].content || [];
+      }
+      if (type === 'mastodon') {
+        return data.messagesMasto || [];
+      }
+      if (type === 'blog') {
+        return data.messagesBlog || [];
+      }
+    } catch (error) {
+      console.error(`Error reading media file ${mediaFilePath}:`, error);
+      return [];
+    }
+    return [];
+  };
+
+  
+  static getMastoFileContent = async (): Promise<string[]> => MediaRSSAutoupdate.getMediaFileContent('mastodon');
+  static getYoutubeFileContent = (tag: string = '') => (): Promise<string[]> => MediaRSSAutoupdate.getMediaFileContent('youtube', tag);
+  static getBlogFileContent = async (): Promise<string[]> => MediaRSSAutoupdate.getMediaFileContent('blog');
+  
+  static getFavoritesYoutubeFileContent = async (amount: number): Promise<string[]> => {
+    try {
+      const dataOrVoid: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
+      let messages = dataOrVoid === "[]" ? [] : (dataOrVoid as string[]);
+      messages = messages.reverse();
+      if (messages.length > amount) {
+        messages = messages.slice(0, amount);
+      }
+      return messages;
+    } catch (error) {
+      return [];
+    }
+  };
 }
