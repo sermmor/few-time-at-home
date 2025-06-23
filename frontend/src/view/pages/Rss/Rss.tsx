@@ -43,7 +43,6 @@ export const Rss = () => {
   const [rssType, setRssType] = React.useState<RSSType>('favorites');
   const [tagType, setTagType] = React.useState<string>('null');
   const [optionsTagsYoutube, setOptionsTagsYoutube] = React.useState<string[]>([]);
-  const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
   const [amount, setAmount] = React.useState<number>(20);
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
   const [rssData, setRssData] = React.useState<RssDataModel>();
@@ -105,18 +104,6 @@ export const Rss = () => {
       >
         GO
       </Button>
-      <Button
-        variant='outlined'
-        sx={formSizeFields()}
-        disabled={isUpdateRss}
-        onClick={() => {
-          setIsUpdateRss(true);
-          RSSActions.postForceUpdate().then(() => {
-            setIsUpdateRss(false);
-          });
-        }}>
-          Force Update
-        </Button>
     </Box>
     <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...formFieldStyle()}}>
       {

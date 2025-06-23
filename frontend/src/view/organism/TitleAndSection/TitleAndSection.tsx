@@ -1,4 +1,4 @@
-import { Card, CardContent, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Card, CardContent, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 
 type BodyData = {[key: string]: number | boolean | string | string[]};
@@ -30,7 +30,6 @@ export const parseBodyData = (
       onChange={evt => onChange(key, +evt.target.value)}
     />;
   } else if (typeof body === 'boolean') {
-    // return <span>{body ? 'Yes' : 'No'}</span>;
     return <Checkbox
       checked={body}
       onChange={evt => onChange(key, evt.target.checked)}
@@ -68,16 +67,18 @@ export const TitleAndSection = ({title, subtext, body, onChange}: {
   <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
     {title}
   </Typography>
-  {subtext}
   <Card sx={cardComponentStyle}>
     <CardContent>
+      <Box style={{ marginBottom: '1rem' }}>
+        {subtext}
+      </Box>
       {Object.entries(body).map(([key, value]) => (
-        <div key={key}>
-          {typeof value === 'number' ? undefined : <div>{key}:</div>}
-          <div>
+        <Box key={key}>
+          {typeof value === 'number' ? undefined : <Box>{key}:</Box>}
+          <Box>
             {parseBodyData(key, value, onChange)}
-          </div>
-        </div>
+          </Box>
+        </Box>
       ))}
     </CardContent>
   </Card>

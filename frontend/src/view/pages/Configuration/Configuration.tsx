@@ -8,6 +8,7 @@ import { PomodoroActions } from "../../../core/actions/pomodoro";
 import { synchronizeActions } from "../../../core/actions/synchronize";
 import { LabelAndComboField } from "../../molecules/LabelAndComboField/LabelAndComboField";
 import { TitleAndSection } from "../../organism/TitleAndSection/TitleAndSection";
+import { RSSActions } from "../../../core/actions/rss";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -69,6 +70,8 @@ export const ConfigurationComponent = () => {
   const [synchronizeUrl, setSynchronizeUrl] = React.useState<string>(`http://[host_IP]:3001`);
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   const [pomodoroTimeMode, setPomodoroTimeMode] = React.useState<string>('');
+  const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
+  
   React.useEffect(() => {
     ConfigurationActions.getConfigurationType().then(types => ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data))));
     PomodoroActions.getTimeModeList().then(({data}: any) => setPomodoroTimeMode(JSON.stringify(data, null, 2)));
@@ -419,6 +422,18 @@ export const ConfigurationComponent = () => {
               rssConfig: cloneList,
             });
           }}
+          subtext={<Button
+          variant='outlined'
+          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'},}}
+          disabled={isUpdateRss}
+          onClick={() => {
+            setIsUpdateRss(true);
+            RSSActions.postForceUpdate().then(() => {
+              setIsUpdateRss(false);
+            });
+          }}>
+            Force Update
+          </Button>}
         />
 
         <Box sx={footerStyle}>

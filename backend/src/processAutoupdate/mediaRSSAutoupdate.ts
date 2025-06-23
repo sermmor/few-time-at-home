@@ -6,14 +6,10 @@ import * as fs from "fs/promises";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
-// TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
-
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
 const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'; // TODO: LLEGA DESORDENADA POR FECHA, ORDENAR.
 
 export type MediaType = 'youtube' | 'mastodon' | 'blog';
-
-// TODO: MOVER EL BOTÓN DE FORCE TO UPDATE A CONFIGURACIÓN EN EL FRONT (es un poco peligroso tenerlo en la pestaña de RSS).
 
 export class MediaRSSAutoupdate {
   public static instance: MediaRSSAutoupdate;
