@@ -10,6 +10,15 @@ type YoutubeConfigurationList = {
 }[];
 type MastodonConfigurationList = { instance: string; user: string; }[];
 type QuoteList = {quote: string; author: string}[];
+
+type RssConfiguration = {
+    updateAtStartApp: boolean;
+    optionTagsYoutube: string[];
+    autoUpdateTimeInSeconds: number;
+    numMaxMessagesToSave: number;
+    initialWebNumberOfMessagesWithLinks: number;
+    normalWebNumberOfMessagesWithLinks: number;
+  };
 interface ConfigurationGeneral {
   listBotCommands: {[key: string]: string};
   windowsFFMPEGPath: string;
@@ -19,6 +28,7 @@ interface ConfigurationGeneral {
   numberOfWorkers: number;
   apiPort: number;
   webSocketPort: number;
+  rssConfig: RssConfiguration;
 }
 
 export interface ConfigurationDataModel {
@@ -41,10 +51,11 @@ export interface ConfigurationDataZipped {
   numberOfWorkers: number;
   apiPort: number;
   webSocketPort: number;
+  rssConfig: RssConfiguration;
 }
 
 export const parseToZippedConfig = (configList: ConfigurationDataModel[]): ConfigurationDataZipped => {
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
   return ({
     nitterInstancesList: getContentConfigurationByType(configList, 'nitterInstancesList') as string[],
     nitterRssUsersList: getContentConfigurationByType(configList, 'nitterRssUsersList') as string[],
@@ -60,15 +71,16 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     numberOfWorkers,
     apiPort,
     webSocketPort,
+    rssConfig,
   });
 }
 
 export const parseToConfigDataModel = (configZipped: ConfigurationDataZipped): ConfigurationDataModel[] => {
   const configList: ConfigurationDataModel[] = [];
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort} = configZipped;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig} = configZipped;
   configList.push({
     type: 'configuration',
-    content: { listBotCommands,windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort },
+    content: { listBotCommands,windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig },
   });
 
   ['nitterInstancesList', 'nitterRssUsersList', 'mastodonRssUsersList', 'blogRssList', 'youtubeRssList', 'quoteList'].forEach(type => {
@@ -87,8 +99,8 @@ export const getContentConfigurationByType = (configList: ConfigurationDataModel
 
 export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   if (type === 'configuration') {
-    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort} = configZipped;
-    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort};
+    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig} = configZipped;
+    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig};
   } else { 
     return (configZipped as any)[type];
   }

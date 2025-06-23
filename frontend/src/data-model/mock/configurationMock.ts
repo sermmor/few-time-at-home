@@ -119,6 +119,22 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
         bot_nitter_command: 'nitterThings',
         bot_blog_command: 'blogThings',
       },
+      rssConfig: {
+        updateAtStartApp: false,
+        optionTagsYoutube: [
+          "null",
+          "sesionesMusica",
+          "politica",
+          "divulgacion",
+          "ingles",
+          "podcasts",
+          "abandonados"
+        ],
+        autoUpdateTimeInSeconds: 21600,
+        numMaxMessagesToSave: 1000,
+        initialWebNumberOfMessagesWithLinks: 80,
+        normalWebNumberOfMessagesWithLinks: 40
+      },
       windowsFFMPEGPath: "C:\\Workspace\\few-time-at-home\\backups\\ffmpeg\\bin\\ffmpeg.exe",
       backupUrls: "C:\\Workspace\\few-time-at-home\\backups",
       cloudRootPath: "C:\\Workspace\\few-time-at-home\\rootCloud",

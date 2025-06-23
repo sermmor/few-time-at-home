@@ -8,6 +8,7 @@ import { PomodoroActions } from "../../../core/actions/pomodoro";
 import { synchronizeActions } from "../../../core/actions/synchronize";
 import { LabelAndComboField } from "../../molecules/LabelAndComboField/LabelAndComboField";
 import { optionsTagsYoutube } from "../../../data-model/rss";
+import { TitleAndSection } from "../../organism/TitleAndSection/TitleAndSection";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -407,6 +408,20 @@ export const ConfigurationComponent = () => {
               </Box>
           })
         )} />
+
+        <TitleAndSection
+          title="RSS Configuration"
+          body={config.rssConfig}
+          onChange={(key: string, newText: number | boolean | string | string[]) => {
+            const cloneList = {...config.rssConfig};
+            (cloneList as any)[key] = newText;
+            setConfig({
+              ...config,
+              rssConfig: cloneList,
+            });
+          }}
+        />
+
         <Box sx={footerStyle}>
           <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
             <Checkbox

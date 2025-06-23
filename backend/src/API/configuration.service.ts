@@ -93,6 +93,14 @@ export class ConfigurationService {
     numberOfMessages: number;
     userExceptionsList: string[];
   };
+  rssConfig: {
+    updateAtStartApp: boolean;
+    optionTagsYoutube: string[];
+    autoUpdateTimeInSeconds: number;
+    numMaxMessagesToSave: number;
+    initialWebNumberOfMessagesWithLinks: number;
+    normalWebNumberOfMessagesWithLinks: number;
+  };
   quoteList: Quote[];
   windowsFFMPEGPath:string;
   backupUrls: string;
@@ -120,6 +128,7 @@ export class ConfigurationService {
     this.webSocketPort = configurationData.webSocketPort;
     this.quoteList = configurationData.quoteList;
     this.twitterData = configurationData.twitterData;
+    this.rssConfig = configurationData.rssConfig;
     this.windowsFFMPEGPath = configurationData.windowsFFMPEGPath;
 
     ConfigurationService.Instance = this;
@@ -137,7 +146,9 @@ export class ConfigurationService {
         showNitterRSSInAll: this.showNitterRSSInAll,
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
+        webSocketPort: this.webSocketPort,
         twitterData: this.twitterData,
+        rssConfig: this.rssConfig,
       }
     }
     return (<any> this)[typeConfig];
@@ -200,6 +211,7 @@ export class ConfigurationService {
     webSocketPort: this.webSocketPort,
     quoteList: this.quoteList,
     twitterData: this.twitterData,
+    rssConfig: this.rssConfig,
   });
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
@@ -215,6 +227,7 @@ export class ConfigurationService {
     this.webSocketPort = data.webSocketPort;
     this.quoteList = data.quoteList;
     this.twitterData = data.twitterData;
+    this.rssConfig = data.rssConfig;
     
     this.configTypes.forEach(typeConfig => this.saveConfigurationByType(typeConfig));
 

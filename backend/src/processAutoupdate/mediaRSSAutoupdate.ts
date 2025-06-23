@@ -6,18 +6,17 @@ import * as fs from "fs/promises";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
-const initialWebNumberOfMessagesWithLinks = 80;
-const normalWebNumberOfMessagesWithLinks = 40;
-const autoUpdateTimeInSeconds = 6 * 60 * 60; // 6 hour // TODO: Añadir al fichero de configuración.
-const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración.
+// const initialWebNumberOfMessagesWithLinks = 80;
+// const normalWebNumberOfMessagesWithLinks = 40;
+// const autoUpdateTimeInSeconds = 6 * 60 * 60; // 6 hour // TODO: Añadir al fichero de configuración.
+// const numMaxMessagesToSave = 1000; // TODO: Añadir al fichero de configuración.
+// TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
+// const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
 const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'; // TODO: LLEGA DESORDENADA POR FECHA, ORDENAR.
 
 export type MediaType = 'youtube' | 'mastodon' | 'blog';
-
-// TODO: GUARDAR ESTE LISTADO DE TAGS EN UN FICHERO JSON DE CONFIGURACIÓN.
-const optionsTagsYoutube = ['null', 'sesionesMusica', 'politica', 'divulgacion', 'ingles', 'podcasts', 'abandonados'];
 
 // TODO: MOVER EL BOTÓN DE FORCE TO UPDATE A CONFIGURACIÓN EN EL FRONT (es un poco peligroso tenerlo en la pestaña de RSS).
 
@@ -30,11 +29,13 @@ export class MediaRSSAutoupdate {
   constructor(private commands: TelegramBotCommand) {
     MediaRSSAutoupdate.instance = this;
     this.lastUpdateMilliseconds = Date.now();
-    setTimeout(() => this.update(), 0);
+    if (ConfigurationService.Instance.rssConfig.updateAtStartApp) {
+      setTimeout(() => this.update(), 0);
+    }
     setInterval(() => {
       this.lastUpdateMilliseconds = Date.now();
       this.update();
-    }, autoUpdateTimeInSeconds * 1000);
+    }, ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000);
   }
 
   update = (): Promise<void> => new Promise<void>(resolve => {
@@ -44,7 +45,7 @@ export class MediaRSSAutoupdate {
     });
     this.doAllUpdates().then(() => {
       const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
-        new Date(this.lastUpdateMilliseconds + autoUpdateTimeInSeconds * 1000).toLocaleString()
+        new Date(this.lastUpdateMilliseconds + ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000).toLocaleString()
       }`
       console.log(nextUpdateMessage);
       WebSocketsServerService.Instance.updateData({
@@ -62,12 +63,12 @@ export class MediaRSSAutoupdate {
 
   private doAllUpdates = async() => {
     this.favoritesYoutubeMessages = [];
-    let webNumberOfMessagesWithLinks = initialWebNumberOfMessagesWithLinks;
+    let webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.initialWebNumberOfMessagesWithLinks;
     try {
       await fs.access(mediaFilePath);
-      webNumberOfMessagesWithLinks = normalWebNumberOfMessagesWithLinks;
+      webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.normalWebNumberOfMessagesWithLinks;
     } catch {
-      webNumberOfMessagesWithLinks = initialWebNumberOfMessagesWithLinks;
+      webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.initialWebNumberOfMessagesWithLinks;
     }
 
     let messages: string[];
@@ -77,7 +78,7 @@ export class MediaRSSAutoupdate {
     const messagesBlog = await this.updateMedia(this.commands.onCommandBlog, webNumberOfMessagesWithLinks);
 
     const messagesYoutube: {tag: string; content: string[]}[] = [];
-    for (const tag of optionsTagsYoutube) {
+    for (const tag of ConfigurationService.Instance.rssConfig.optionTagsYoutube) {
       messages = await this.updateMedia(this.commands.onCommandYoutube, webNumberOfMessagesWithLinks, tag, true);
       messagesYoutube.push({
         tag,
@@ -119,8 +120,10 @@ export class MediaRSSAutoupdate {
       (item: any, index: number) => this.favoritesYoutubeMessages.indexOf(item) === index
     );
 
-    if (this.favoritesYoutubeMessages.length > numMaxMessagesToSave) {
-      this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.slice(this.favoritesYoutubeMessages.length - numMaxMessagesToSave);
+    if (this.favoritesYoutubeMessages.length > ConfigurationService.Instance.rssConfig.numMaxMessagesToSave) {
+      this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.slice(
+        this.favoritesYoutubeMessages.length - ConfigurationService.Instance.rssConfig.numMaxMessagesToSave
+      );
     }
 
     await saveInAFilePromise(JSON.stringify(this.favoritesYoutubeMessages, null, 2), favoriteYoutubeFilePath);
@@ -140,14 +143,14 @@ export class MediaRSSAutoupdate {
     // Remove duplicates from messagesMasto
     data.messagesMasto = data.messagesMasto.filter((item: any, index: number) => data.messagesMasto.indexOf(item) === index);
     // Limit the number of messages to save
-    if (data.messagesMasto.length > numMaxMessagesToSave) {
-      data.messagesMasto = data.messagesMasto.slice(data.messagesMasto.length - numMaxMessagesToSave);
+    if (data.messagesMasto.length > ConfigurationService.Instance.rssConfig.numMaxMessagesToSave) {
+      data.messagesMasto = data.messagesMasto.slice(data.messagesMasto.length - ConfigurationService.Instance.rssConfig.numMaxMessagesToSave);
     }
     
     data.messagesBlog = data.messagesBlog.concat(messagesBlog);
     data.messagesBlog = data.messagesBlog.filter((item: any, index: number) => data.messagesBlog.indexOf(item) === index);
-    if (data.messagesBlog.length > numMaxMessagesToSave) {
-      data.messagesBlog = data.messagesBlog.slice(data.messagesBlog.length - numMaxMessagesToSave);
+    if (data.messagesBlog.length > ConfigurationService.Instance.rssConfig.numMaxMessagesToSave) {
+      data.messagesBlog = data.messagesBlog.slice(data.messagesBlog.length - ConfigurationService.Instance.rssConfig.numMaxMessagesToSave);
     }
     
     data.messagesYoutube = data.messagesYoutube || [];
@@ -166,9 +169,9 @@ export class MediaRSSAutoupdate {
       data.messagesYoutube[indexTag].content = data.messagesYoutube[indexTag].content.filter(
         (item: any, index: number) => data.messagesYoutube[indexTag].content.indexOf(item) === index
       );
-      if (data.messagesYoutube[indexTag].content.length > numMaxMessagesToSave) {
+      if (data.messagesYoutube[indexTag].content.length > ConfigurationService.Instance.rssConfig.numMaxMessagesToSave) {
         data.messagesYoutube[indexTag].content = data.messagesYoutube[indexTag].content.slice(
-          data.messagesYoutube[indexTag].content.length - numMaxMessagesToSave
+          data.messagesYoutube[indexTag].content.length - ConfigurationService.Instance.rssConfig.numMaxMessagesToSave
         );
       }
     }
