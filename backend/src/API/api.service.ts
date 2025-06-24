@@ -204,7 +204,7 @@ export class APIService {
 
   private forceUpdateRSS() {
     this.app.get(APIService.getRssForceUpdateEndpoint, (req, res) => {
-      MediaRSSAutoupdate.instance.update().then(() => {
+      MediaRSSAutoupdate.instance.update(true).then(() => {
         res.send({ response: 'OK' });
       }).catch(err => {
         console.error("Error during force update RSS:", err);

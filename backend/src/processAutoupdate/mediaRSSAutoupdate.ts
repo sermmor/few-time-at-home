@@ -11,37 +11,76 @@ const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'
 
 export type MediaType = 'youtube' | 'mastodon' | 'blog';
 
+const timeInHoursToSaveMediaDataInFiles = 24; // 1 time in a day
+
 export class MediaRSSAutoupdate {
   public static instance: MediaRSSAutoupdate;
 
   private favoritesYoutubeMessages: string[] = [];
   private lastUpdateMilliseconds: number = 0;
 
+  public currentCompleteData: FileMediaContentType = {messagesMasto: [], messagesBlog: [], messagesYoutube: []};
+  public youtubeFavoriteCompleteData: string[] = []
+
   constructor(private commands: TelegramBotCommand) {
     MediaRSSAutoupdate.instance = this;
     this.lastUpdateMilliseconds = Date.now();
     if (ConfigurationService.Instance.rssConfig.updateAtStartApp) {
       setTimeout(() => this.update(), 0);
+    } else {
+      this.loadFileData();
     }
     setInterval(() => {
       this.lastUpdateMilliseconds = Date.now();
       this.update();
     }, ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000);
+    setInterval(() => {
+      this.saveFileData();
+    }, timeInHoursToSaveMediaDataInFiles * 60 * 60 * 1000);
   }
 
-  update = (): Promise<void> => new Promise<void>(resolve => {
-    console.log("Starting Media RSS Autoupdate...");
+  private loadFileData = async() => {
+    const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
+    const dataOrVoid: FileMediaContentType | string = await readJSONFile(
+      mediaFilePath,
+      "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}"
+    );
+    this.currentCompleteData = dataOrVoid === fileVoid ?
+     {messagesMasto: [], messagesBlog: [], messagesYoutube: []} : dataOrVoid as FileMediaContentType;
+
+    const dataOrVoidYoutube: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
+    this.youtubeFavoriteCompleteData = dataOrVoidYoutube === "[]" ? [] : dataOrVoidYoutube as string[];
+  }
+
+  private saveFileData = async() => {
+    await saveInAFilePromise(JSON.stringify(this.currentCompleteData, null, 2), mediaFilePath);
+    await saveInAFilePromise(JSON.stringify(this.youtubeFavoriteCompleteData, null, 2), favoriteYoutubeFilePath);
+    console.log(`Saved RSS file data at ${(new Date(Date.now())).toLocaleString()}`);
     WebSocketsServerService.Instance.updateData({
-      rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
+      rssAutoUpdateMessage: `Saved RSS file data at ${(new Date(Date.now())).toLocaleString()}`,
     });
+  }
+
+  update = (isForce = false): Promise<void> => new Promise<void>(resolve => {
+    if (!this.currentCompleteData) {
+      this.loadFileData();
+    }
+    console.log("Starting Media RSS Autoupdate...");
+    if (!isForce) {
+      WebSocketsServerService.Instance.updateData({
+        rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
+      });
+    }
     this.doAllUpdates().then(() => {
       const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
         new Date(this.lastUpdateMilliseconds + ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000).toLocaleString()
       }`
       console.log(nextUpdateMessage);
-      WebSocketsServerService.Instance.updateData({
-        rssAutoUpdateMessage: nextUpdateMessage,
-      });
+      if (!isForce) {
+        WebSocketsServerService.Instance.updateData({
+          rssAutoUpdateMessage: nextUpdateMessage,
+        });
+      }
       resolve();
     }).catch(err => {
       console.error("Error during Media RSS Autoupdate:", err);
@@ -102,10 +141,7 @@ export class MediaRSSAutoupdate {
   }
 
   private saveYoutubeFavorites = async (): Promise<boolean> => {
-    const dataOrVoid: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
-    const data: string[] = dataOrVoid === "[]" ? [] : dataOrVoid as string[];
-
-    this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.concat(data);
+    this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.concat(this.youtubeFavoriteCompleteData);
     this.favoritesYoutubeMessages = this.filterDuplicateTitles(this.favoritesYoutubeMessages);
     this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.filter(
       (item: any, index: number) => this.favoritesYoutubeMessages.indexOf(item) === index
@@ -117,19 +153,12 @@ export class MediaRSSAutoupdate {
       );
     }
 
-    await saveInAFilePromise(JSON.stringify(this.favoritesYoutubeMessages, null, 2), favoriteYoutubeFilePath);
+    this.youtubeFavoriteCompleteData = this.favoritesYoutubeMessages;
     return true;
   };
 
   private saveMedia = async (messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]): Promise<boolean> => {
-    const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
-    const dataOrVoid: FileMediaContentType | string = await readJSONFile(
-      mediaFilePath,
-      "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}"
-    );
-    const data: FileMediaContentType = dataOrVoid === fileVoid ?
-     {messagesMasto: [], messagesBlog: [], messagesYoutube: []} : dataOrVoid as FileMediaContentType;
-
+    const data = this.currentCompleteData;
     data.messagesMasto = data.messagesMasto.concat(messagesMasto);
     // Remove duplicates from messagesMasto
     data.messagesMasto = data.messagesMasto.filter((item: any, index: number) => data.messagesMasto.indexOf(item) === index);
@@ -166,7 +195,8 @@ export class MediaRSSAutoupdate {
         );
       }
     }
-    await saveInAFilePromise(JSON.stringify(data, null, 2), mediaFilePath);
+
+    this.currentCompleteData = data;
     return true;
   };
 
@@ -199,21 +229,19 @@ export class MediaRSSAutoupdate {
   
   static getMediaFileContent = async (type: MediaType, tag: string = ''): Promise<string[]> => {
     try {
-      const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesYoutube: []}";
-      let data = await readJSONFile(mediaFilePath, fileVoid);
-      data = data === fileVoid ? { messagesMasto: [], messagesBlog: [], messagesYoutube: [] } : data;
+      const data = MediaRSSAutoupdate.instance.currentCompleteData;
       if (type === 'youtube' && tag) {
         let indexTag = data.messagesYoutube.findIndex((item: any) => item.tag === tag);
         if (indexTag === -1) {
           return [];
         }
-        return data.messagesYoutube[indexTag].content || [];
+        return [...(data.messagesYoutube[indexTag].content || [])];
       }
       if (type === 'mastodon') {
-        return data.messagesMasto || [];
+        return [...(data.messagesMasto || [])];
       }
       if (type === 'blog') {
-        return data.messagesBlog || [];
+        return [...(data.messagesBlog || [])];
       }
     } catch (error) {
       console.error(`Error reading media file ${mediaFilePath}:`, error);
@@ -229,8 +257,7 @@ export class MediaRSSAutoupdate {
   
   static getFavoritesYoutubeFileContent = async (amount: number): Promise<string[]> => {
     try {
-      const dataOrVoid: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
-      let messages = dataOrVoid === "[]" ? [] : (dataOrVoid as string[]);
+      let messages = [...MediaRSSAutoupdate.instance.youtubeFavoriteCompleteData];
       messages = messages.reverse();
       if (messages.length > amount) {
         messages = messages.slice(0, amount);
