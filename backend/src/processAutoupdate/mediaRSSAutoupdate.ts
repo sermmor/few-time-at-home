@@ -62,7 +62,7 @@ export class MediaRSSAutoupdate {
   }
 
   update = (isForce = false): Promise<void> => new Promise<void>(resolve => {
-    if (!this.currentCompleteData) {
+    if (!this.currentCompleteData || this.currentCompleteData.messagesBlog.length === 0) {
       this.loadFileData();
     }
     console.log("Starting Media RSS Autoupdate...");
