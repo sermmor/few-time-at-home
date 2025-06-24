@@ -126,7 +126,7 @@ export class MediaRSSAutoupdate {
       return messages;
     }
     
-    const messagesFixed = messages.filter(message => message && message !== '' && message.split('\n').length >= 1);
+    const messagesFixed = messages.filter(message => message && message !== '' && message.split('\n').length >= 1).reverse();
 
     const messagesWithoutDuplicates: string[] = [];
 
@@ -137,7 +137,7 @@ export class MediaRSSAutoupdate {
       }
     }
 
-    return messagesWithoutDuplicates;
+    return messagesWithoutDuplicates.reverse();
   }
 
   private saveYoutubeFavorites = async (): Promise<boolean> => {
