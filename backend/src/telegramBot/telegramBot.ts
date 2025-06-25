@@ -228,7 +228,7 @@ export class TelegramBot {
 
   private addToSaveListFromTelegram = (ctx: TelegrafContext, urlToSaveList: string) => {
     if (!this.isUserClient(ctx)) return;
-    getUnfurl(urlToSaveList).then(title =>{
+    getUnfurl(urlToSaveList).then(({title}) =>{
       const message = `${title}
 Automatico - ${(new Date(Date.now())).toLocaleString()}
 
