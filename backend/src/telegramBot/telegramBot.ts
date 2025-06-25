@@ -11,6 +11,8 @@ import { createWriteStream, existsSync, mkdir } from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { MediaRSSAutoupdate } from "../processAutoupdate/mediaRSSAutoupdate";
+import { ReadLaterMessagesRSS } from "../API/readLaterMessagesRSS.service";
+import { getUnfurl } from "../unfurl/unfurl";
 
 const fetch = require("node-fetch");
 
@@ -81,6 +83,7 @@ export class TelegramBot {
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_to_save_list_command, this.addToSaveListFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_bookmark_command, this.sendSearchBookmarksToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_file, this.searchFilesInCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_give_file_from_search, this.giveMeFileIndexInCloud);
@@ -221,6 +224,19 @@ export class TelegramBot {
       ctx.reply(`El marcador se ha añadido correctamente.`);
     });
   }
+
+  private addToSaveListFromTelegram = (ctx: TelegrafContext, urlToSaveList: string) => {
+    if (!this.isUserClient(ctx)) return;
+    getUnfurl(urlToSaveList).then(title =>{
+      const message = `${title}
+Automatico - ${(new Date(Date.now())).toLocaleString()}
+
+${urlToSaveList}`;
+      ReadLaterMessagesRSS.addMessageRSSToSavedList(message).then(() => {
+        ctx.reply(`El marcador se ha añadido correctamente.`);
+      });
+    });
+  };
 
   cdDirInCloud = (ctx: TelegrafContext, message: string) => {
     if (!this.isUserClient(ctx)) return;
