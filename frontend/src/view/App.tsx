@@ -5,27 +5,61 @@ import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
 import { ConfigurationService } from '../service/configuration/configuration.service';
 import { WebSocketClientService } from '../service/webSocketService/webSocketClient.service';
+import { NotificationsActions } from '../core/actions/notifications';
 
 const ConfigData = require('../configuration.json');
 
 const ServerInfoBar = () => {
-  const [message, setMessage] = React.useState<string>('');
+  const [message, setMessage] = React.useState<JSX.Element | undefined>();
+  const [notificationInfo, setNotificationInfo] = React.useState<JSX.Element | undefined>();
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
+  
+  React.useEffect(() => {
+    NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
+    setNotificationInfo(isNotificationsEnabled ? undefined : <span style={{color: 'red'}}>No context in Telegram</span>);
+  }, [isNotificationsEnabled]);
 
   React.useEffect(() => { 
     WebSocketClientService.Instance.subscribeToUpdates((webSocketData) => {
-      setMessage(webSocketData.rssAutoUpdateMessage);
+      setMessage(<div>{webSocketData.rssAutoUpdateMessage}</div>);
     });
    }, []);
 
-   // TODO: Mejorar diseño barra. Debe poder moverse como en los telepronters de últimas noticias de la tele.
    return <Box
     sx={{
       width: '100%',
-      backgroundColor: '#f0f0f0',
+      backgroundColor: '#c7ddff',
+      color: '#393939',
       padding: '0rem',
-      textAlign: 'center',
+      textAlign: 'left',
       marginTop: '0rem',
-    }}>{message}</Box>
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      position: 'relative',
+    }}>
+      <Box
+        component="span"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '.25rem',
+          whiteSpace: 'nowrap',
+          animation: message
+            ? 'marquee 30s linear infinite'
+            : 'none',
+          '@keyframes marquee': {
+            '0%': {
+              transform: 'translateX(100%)',
+            },
+            '100%': {
+              transform: 'translateX(-50%)',
+            },
+          },
+        }}
+      >
+        {message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}
+      </Box>
+    </Box>
 }
 
 const EnvelopComponent = ({element}: {element: JSX.Element}) => <>

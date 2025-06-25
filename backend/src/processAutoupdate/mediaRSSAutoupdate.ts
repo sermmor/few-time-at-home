@@ -28,6 +28,12 @@ export class MediaRSSAutoupdate {
     if (ConfigurationService.Instance.rssConfig.updateAtStartApp) {
       setTimeout(() => this.update(), 0);
     } else {
+      const nextUpdateMessage = `Media RSS Autoupdate loaded. Next update at ${
+        new Date(this.lastUpdateMilliseconds + ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000).toLocaleString()
+      }`;
+      WebSocketsServerService.Instance.updateData({
+        rssAutoUpdateMessage: nextUpdateMessage,
+      });
       this.loadFileData();
     }
     setInterval(() => {
@@ -74,7 +80,7 @@ export class MediaRSSAutoupdate {
     this.doAllUpdates().then(() => {
       const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
         new Date(this.lastUpdateMilliseconds + ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000).toLocaleString()
-      }`
+      }`;
       console.log(nextUpdateMessage);
       if (!isForce) {
         WebSocketsServerService.Instance.updateData({
