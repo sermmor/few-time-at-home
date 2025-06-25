@@ -118,6 +118,8 @@ export class MediaRSSAutoupdate {
       });
     }
 
+    this.favoritesYoutubeMessages = [...YoutubeRSSUtils.favoritesYoutubeMessages];
+
     let waitMe = await this.saveYoutubeFavorites();
 
     waitMe = await this.saveMedia(messagesMasto, messagesBlog, messagesYoutube);
