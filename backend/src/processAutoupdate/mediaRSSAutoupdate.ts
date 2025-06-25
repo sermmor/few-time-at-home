@@ -2,7 +2,6 @@ import { ConfigurationService, TelegramBotCommand } from "../API";
 import { readJSONFile, saveInAFilePromise } from "../utils";
 import { WebSocketsServerService } from "../webSockets/webSocketsServer.service";
 import { YoutubeRSSUtils } from "../youtubeRSS/youtubeRSSUtils";
-import * as fs from "fs/promises";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
@@ -99,11 +98,8 @@ export class MediaRSSAutoupdate {
 
   private doAllUpdates = async() => {
     this.favoritesYoutubeMessages = [];
-    let webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.initialWebNumberOfMessagesWithLinks;
-    try {
-      await fs.access(mediaFilePath);
-      webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.normalWebNumberOfMessagesWithLinks;
-    } catch {
+    let webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.normalWebNumberOfMessagesWithLinks;
+    if (!this.currentCompleteData || this.currentCompleteData.messagesBlog.length === 0) {
       webNumberOfMessagesWithLinks = ConfigurationService.Instance.rssConfig.initialWebNumberOfMessagesWithLinks;
     }
 
