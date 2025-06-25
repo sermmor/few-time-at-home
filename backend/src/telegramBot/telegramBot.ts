@@ -76,6 +76,7 @@ export class TelegramBot {
       });
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, () => MediaRSSAutoupdate.getFavoritesYoutubeFileContent(20));
+      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_get_save_list_command, this.getSaveListFromTelegram);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_masto_command, MediaRSSAutoupdate.getMastoFileContent);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_youtube_command, MediaRSSAutoupdate.getYoutubeFileContent('null'));
@@ -83,8 +84,8 @@ export class TelegramBot {
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_notes_command, this.sendAllNotesToTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_notes_command, this.addNoteFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_add_bookmark_command, this.addBookmarkFromTelegram);
-      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_to_save_list_command, this.addToSaveListFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_bookmark_command, this.sendSearchBookmarksToTelegram);
+      this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_to_save_list_command, this.addToSaveListFromTelegram);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_search_file, this.searchFilesInCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_give_file_from_search, this.giveMeFileIndexInCloud);
       this.buildBotCommandAndHear(ConfigurationService.Instance.listBotCommands.bot_cloud_cd_path, this.cdDirInCloud);
@@ -112,8 +113,8 @@ export class TelegramBot {
     
     return true;
   }
-
   private buildBotCommand = (
+
       bot: Telegraf<TelegrafContext>,
       nameCommand: string,
       actionToDoWhenCallCommand: () => Promise<string[]>,
@@ -236,6 +237,11 @@ ${urlToSaveList}`;
         ctx.reply(`El marcador se ha añadido correctamente.`);
       });
     });
+  };
+
+  private getSaveListFromTelegram = async (): Promise<string[]> => {
+    const messages = await ReadLaterMessagesRSS.getMessagesRSSSaved(20);
+    return messages.map(value => value.message);
   };
 
   cdDirInCloud = (ctx: TelegrafContext, message: string) => {

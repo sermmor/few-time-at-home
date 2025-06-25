@@ -74,6 +74,7 @@ export class ConfigurationService {
       bot_add_notes_command: string;
       bot_add_bookmark_command: string;
       bot_to_save_list_command: string;
+      bot_get_save_list_command: string;
       bot_search_bookmark_command: string;
       bot_add_alert: string;
       bot_search_file: string;
