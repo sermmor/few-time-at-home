@@ -12,7 +12,7 @@ import { ReadLaterMessage } from '../../../data-model/readLaterRss';
 import { NewMessage } from './component/NewMessage';
 import { ConfigurationActions } from '../../../core/actions/configuration';
 
-type RSSType = 'mastodon' | 'twitter' | 'blog' | 'youtube' | 'saved' | 'favorites';
+type RSSType = 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
@@ -66,7 +66,7 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          ['FAVORITES', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'SAVED'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
+          ['FAVORITES', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'NEWS', 'SAVED'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
         }
       </Select>
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />

@@ -7,6 +7,7 @@ import { ChannelMediaRSSCollection, ChannelMediaRSSCollectionExport } from "./me
 const pathConfigFile = 'configuration.json';
 const pathAdditionalConfigFiles: {[key: string]: string} = {
   blogRssList: 'data/config/blogRssList.json',
+  newsRSSList: 'data/config/newsRSSList.json',
   mastodonRssUsersList: 'data/config/mastodonRssUsersList.json',
   nitterInstancesList: 'data/config/nitterInstancesList.json',
   nitterRssUsersList: 'data/config/nitterRssUsersList.json',
@@ -62,6 +63,7 @@ export class ConfigurationService {
     user: string;
   }[];
   blogRssList: string[];
+  newsRSSList: string[];
   youtubeRssList: YoutubeData[];
   listBotCommands: {
       bot_login: string;
@@ -120,6 +122,7 @@ export class ConfigurationService {
     this.nitterRssUsersList = configurationData.nitterRssUsersList;
     this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
     this.blogRssList = configurationData.blogRssList;
+    this.newsRSSList = configurationData.newsRSSList;
     this.youtubeRssList = configurationData.youtubeRssList;
     this.listBotCommands = configurationData.listBotCommands;
     this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
@@ -168,6 +171,7 @@ export class ConfigurationService {
     channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
+    channelMediaCollection.newsRSS.refleshChannelMediaConfiguration();
     if (typeConfig === 'youtubeRssList') {
       channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
         console.log("> Configuration changed!");
@@ -205,6 +209,7 @@ export class ConfigurationService {
     nitterRssUsersList: this.nitterRssUsersList,
     mastodonRssUsersList: this.mastodonRssUsersList,
     blogRssList: this.blogRssList,
+    newsRSSList: this.newsRSSList,
     youtubeRssList: this.youtubeRssList,
     listBotCommands: this.listBotCommands,
     showNitterRSSInAll: this.showNitterRSSInAll,
@@ -221,6 +226,7 @@ export class ConfigurationService {
     this.nitterRssUsersList = data.nitterRssUsersList;
     this.mastodonRssUsersList = data.mastodonRssUsersList;
     this.blogRssList = data.blogRssList;
+    this.newsRSSList = data.newsRSSList;
     this.youtubeRssList = data.youtubeRssList;
     this.listBotCommands = data.listBotCommands;
     this.showNitterRSSInAll = data.showNitterRSSInAll;

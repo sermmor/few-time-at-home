@@ -211,6 +211,17 @@ export const ConfigurationComponent = () => {
         </>
         <>
           <TitleAndList
+            title='News RSS'
+            deleteAction={deleteActionList('newsRssList', (item: any, idToDelete: string) => item === idToDelete)}
+            addAction={() => addActionList('newsRssList', `new News ${indexNewItemAdded}`) }
+            list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+              editActionList('newsRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
+            }/>}))}
+          />
+          <SaveConfigurationComponent config={config} type={'newsRssList'}/>
+        </>
+        <>
+          <TitleAndList
             title='Youtube RSS'
             showRowLine={true}
             deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item.url === idToDelete)}

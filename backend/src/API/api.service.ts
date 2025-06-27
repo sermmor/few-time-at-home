@@ -33,6 +33,7 @@ export class APIService {
   static getRssMastoEndpoint  = "/rss/mastodon"; // query: http://localhost:${port}/mastodon/all?amount=20
   static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
+  static getRssNewsEndpoint  = "/rss/news";
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static getRssFavoritesEndpoint  = "/rss/favorites";
   static getRssForceUpdateEndpoint = "/rss/force-update";
@@ -103,6 +104,7 @@ export class APIService {
     this.getRSSLive(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssMastoEndpoint, 'mastodon');
     this.getRSS(APIService.getRssBlogEndpoint, 'blog');
+    this.getRSS(APIService.getRssNewsEndpoint, 'news');
     this.getRSS(APIService.getRssYoutubeEndpoint, 'youtube');
     this.getReadLaterRSSService();
     this.getFavoritesRSSService();

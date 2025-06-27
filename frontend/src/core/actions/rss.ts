@@ -13,7 +13,7 @@ const getRSSNitter = (amount = 20): Promise<RssDataModel> => getRSS('twitter', a
 const getRSSYoutube = (tag: string, amount: number): Promise<RssDataModel> => 
   fetchJsonReceive<RssDataModel>(queryRssYoutubeEndpoint(tag, amount), rssDataModelMock());//
 const getRSSBlog = (amount = 20): Promise<RssDataModel> => getRSS('blog', amount);
-const getRSS = (nameEndpoint: 'mastodon' | 'twitter' | 'blog' | 'youtube' | 'favorites', amount: number): Promise<RssDataModel> => 
+const getRSS = (nameEndpoint: 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'favorites', amount: number): Promise<RssDataModel> => 
   fetchJsonReceive<RssDataModel>(queryRssEndpoint(nameEndpoint, amount), rssDataModelMock());
 
 export const RSSActions = { getRSSMasto, getRSSNitter, getRSSBlog, getRSSYoutube, getRSS, getRSSFavorites, postForceUpdate };

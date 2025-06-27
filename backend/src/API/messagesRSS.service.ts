@@ -1,4 +1,5 @@
 import { BlogRSSMessageList } from "../blogRSS";
+import { NewsRSSMessageList } from "../blogRSS/newsRSSMessageList";
 import { ChannelMediaRSSMessageList } from "../channelMediaRSS";
 import { MastodonRSSMessageList } from "../mastodonRSS";
 import { NitterRSSMessageList } from "../nitterRSS";
@@ -16,6 +17,7 @@ export interface ChannelMediaRSSCollection {
     nitterRSS: NitterRSSMessageList,
     mastodonRSS: MastodonRSSMessageList,
     blogRSS: BlogRSSMessageList,
+    newsRSS: NewsRSSMessageList,
     youtubeRSS: YoutubeRSSMessageList,
 }
 
@@ -24,6 +26,7 @@ export interface TelegramBotCommand {
     onCommandNitter: () => Promise<string[]>;
     onCommandMasto: () => Promise<string[]>;
     onCommandBlog: () => Promise<string[]>;
+    onCommandNews: () => Promise<string[]>;
     onCommandYoutube: () => Promise<string[]>;
 }
 
@@ -32,33 +35,40 @@ export const getAllMessageCommands = (channelCollections: ChannelMediaRSSCollect
     onCommandMasto: getAllMessagesChannelMediaRSS(channelCollections.mastodonRSS),
     onCommandNitter: getAllMessagesChannelMediaRSS(channelCollections.nitterRSS),
     onCommandBlog: getAllMessagesChannelMediaRSS(channelCollections.blogRSS),
+    onCommandNews: getAllMessagesChannelMediaRSS(channelCollections.newsRSS),
     onCommandYoutube: getAllMessagesChannelMediaRSS(channelCollections.youtubeRSS),
 
 });
 
-const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
+const getAllMessages = ({blogRSS, mastodonRSS, nitterRSS, youtubeRSS, newsRSS}: ChannelMediaRSSCollection) => (): Promise<string[]> => new Promise<string[]>(
     resolve => ConfigurationService.Instance.showNitterRSSInAll ? nitterRSS.updateRSSList().then(() =>
         mastodonRSS.updateRSSList().then(() => {
           youtubeRSS.updateRSSList().then(() => {
             blogRSS.updateRSSList().then(() => {
-                resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
-                    nitterRSS,
-                    mastodonRSS,
-                    youtubeRSS,
-                    blogRSS
-                ]));
+              newsRSS.updateRSSList().then(() => {
+                  resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
+                      nitterRSS,
+                      mastodonRSS,
+                      youtubeRSS,
+                      blogRSS,
+                      newsRSS,
+                  ]));
+              })
             })
           })
         }))
       : mastodonRSS.updateRSSList().then(() => {
         youtubeRSS.updateRSSList().then(() => {
           blogRSS.updateRSSList().then(() => {
-              resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
-                  nitterRSS,
-                  mastodonRSS,
-                  youtubeRSS,
-                  blogRSS
-              ]));
+            newsRSS.updateRSSList().then(() => {
+                resolve(ChannelMediaRSSMessageList.formatListMessagesToTelegramTemplate([
+                    nitterRSS,
+                    mastodonRSS,
+                    youtubeRSS,
+                    blogRSS,
+                    newsRSS,
+                ]));
+            })
           })
         })
       })

@@ -3,6 +3,7 @@ import { APIService, ChannelMediaRSSCollection, ConfigurationService, getAllMess
 import { BlogRSSMessageList } from './blogRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
 import { NitterRSSMessageList } from './nitterRSS';
+import { NewsRSSMessageList } from './blogRSS/newsRSSMessageList';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { YoutubeRSSMessageList } from './youtubeRSS';
 import { startBackupEveryWeek } from './utils';
@@ -44,6 +45,7 @@ readFile(keysPath, (err, data) => {
               nitterRSS: new NitterRSSMessageList(),
               mastodonRSS: new MastodonRSSMessageList(),
               blogRSS: new BlogRSSMessageList(),
+              newsRSS: new NewsRSSMessageList(),
               youtubeRSS: new YoutubeRSSMessageList()
           };
   
