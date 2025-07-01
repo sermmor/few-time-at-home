@@ -3,6 +3,7 @@ import { ConfigurationService } from '../API';
 
 interface WebSocketData {
   rssAutoUpdateMessage: string;
+  rssSaveMessage: string;
 }
 
 export class WebSocketsServerService {
@@ -14,6 +15,7 @@ export class WebSocketsServerService {
   
   webSocketData: WebSocketData = {
     rssAutoUpdateMessage: '',
+    rssSaveMessage: '',
   };
 
   constructor() {

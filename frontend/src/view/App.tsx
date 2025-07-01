@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, CssBaseline } from '@mui/material';
+import { Box, CssBaseline, SxProps, Theme } from '@mui/material';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
@@ -9,10 +9,39 @@ import { NotificationsActions } from '../core/actions/notifications';
 
 const ConfigData = require('../configuration.json');
 
+const styleDinamicBar = (message: JSX.Element) => ({
+  display: 'flex',
+  flexDirection: 'row',
+  gap: '.25rem',
+  whiteSpace: 'nowrap',
+  animation: message
+    ? 'marquee 30s linear infinite'
+    : 'none',
+  '@keyframes marquee': {
+    '0%': {
+      transform: 'translateX(100%)',
+    },
+    '100%': {
+      transform: 'translateX(-50%)',
+    },
+  },
+});
+
+const styleStaticBar = (): SxProps<Theme> => ({
+  display: 'flex',
+  flexDirection: 'row',
+  gap: '.25rem',
+  paddingLeft: '1rem',
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  scrollbarWidth: 'none',
+});
+
 const ServerInfoBar = () => {
   const [message, setMessage] = React.useState<JSX.Element | undefined>();
   const [notificationInfo, setNotificationInfo] = React.useState<JSX.Element | undefined>();
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
+  const [isShowStaticBar, setIsShowStaticBar] = React.useState<boolean>(false);
   
   React.useEffect(() => {
     NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
@@ -21,7 +50,12 @@ const ServerInfoBar = () => {
 
   React.useEffect(() => { 
     WebSocketClientService.Instance.subscribeToUpdates((webSocketData) => {
-      setMessage(<div>{webSocketData.rssAutoUpdateMessage}</div>);
+      setMessage(
+      <>
+        <div>{webSocketData.rssAutoUpdateMessage}</div>
+        <div>{` | ${webSocketData.rssSaveMessage}`}</div>
+        </>
+      );
     });
    }, []);
 
@@ -37,28 +71,21 @@ const ServerInfoBar = () => {
       whiteSpace: 'nowrap',
       position: 'relative',
     }}>
-      <Box
-        component="span"
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '.25rem',
-          whiteSpace: 'nowrap',
-          animation: message
-            ? 'marquee 30s linear infinite'
-            : 'none',
-          '@keyframes marquee': {
-            '0%': {
-              transform: 'translateX(100%)',
-            },
-            '100%': {
-              transform: 'translateX(-50%)',
-            },
-          },
-        }}
-      >
-        {message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}
-      </Box>
+      {
+        isShowStaticBar ? <Box
+          component="span"
+          sx={styleStaticBar()}
+          onClick={() => setIsShowStaticBar(!isShowStaticBar)}
+        >
+          {message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}
+      </Box> : <Box
+          component="span"
+          sx={styleDinamicBar(<>{message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}</>)}
+          onClick={() => setIsShowStaticBar(!isShowStaticBar)}
+        >
+          {message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}
+        </Box>
+      }
     </Box>
 }
 

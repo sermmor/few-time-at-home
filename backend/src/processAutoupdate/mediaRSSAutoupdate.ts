@@ -31,6 +31,7 @@ export class MediaRSSAutoupdate {
         new Date(this.lastUpdateMilliseconds + ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000).toLocaleString()
       }`;
       WebSocketsServerService.Instance.updateData({
+        ...WebSocketsServerService.Instance.webSocketData,
         rssAutoUpdateMessage: nextUpdateMessage,
       });
       this.loadFileData();
@@ -62,7 +63,8 @@ export class MediaRSSAutoupdate {
     await saveInAFilePromise(JSON.stringify(this.youtubeFavoriteCompleteData, null, 2), favoriteYoutubeFilePath);
     console.log(`Saved RSS file data at ${(new Date(Date.now())).toLocaleString()}`);
     WebSocketsServerService.Instance.updateData({
-      rssAutoUpdateMessage: `Saved RSS file data at ${(new Date(Date.now())).toLocaleString()}`,
+      ...WebSocketsServerService.Instance.webSocketData,
+      rssSaveMessage: `Saved RSS file data at ${(new Date(Date.now())).toLocaleString()}`,
     });
   }
 
@@ -73,6 +75,7 @@ export class MediaRSSAutoupdate {
     console.log("Starting Media RSS Autoupdate...");
     if (!isForce) {
       WebSocketsServerService.Instance.updateData({
+        ...WebSocketsServerService.Instance.webSocketData,
         rssAutoUpdateMessage: "Starting Media RSS Autoupdate...",
       });
     }
@@ -83,6 +86,7 @@ export class MediaRSSAutoupdate {
       console.log(nextUpdateMessage);
       if (!isForce) {
         WebSocketsServerService.Instance.updateData({
+          ...WebSocketsServerService.Instance.webSocketData,
           rssAutoUpdateMessage: nextUpdateMessage,
         });
       }
@@ -90,6 +94,7 @@ export class MediaRSSAutoupdate {
     }).catch(err => {
       console.error("Error during Media RSS Autoupdate:", err);
       WebSocketsServerService.Instance.updateData({
+        ...WebSocketsServerService.Instance.webSocketData,
         rssAutoUpdateMessage: "Error during Media RSS Autoupdate.",
       });
       resolve();

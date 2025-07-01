@@ -1,5 +1,6 @@
 interface WebSocketData {
   rssAutoUpdateMessage: string;
+  rssSaveMessage: string;
 }
 
 export class WebSocketClientService {
@@ -9,6 +10,7 @@ export class WebSocketClientService {
 
   webSocketData: WebSocketData = {
     rssAutoUpdateMessage: '',
+    rssSaveMessage: '',
   };
 
   onUpdateData: ((webSocketData: WebSocketData) => void)[];
