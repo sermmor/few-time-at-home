@@ -79,6 +79,8 @@ export const ConfigurationComponent = () => {
 
   const deleteActionList = (keyList: string, equals: (item: any, idToDelete: string) => boolean) => (id: string) => {
     if (!config) return;
+    console.log(keyList)
+    console.log((config as any))
     const cloneList = [...(config as any)[keyList]];
     const index = cloneList.findIndex(item => equals(item, id));
     cloneList.splice(index, 1);
@@ -214,7 +216,7 @@ export const ConfigurationComponent = () => {
             title='News RSS'
             deleteAction={deleteActionList('newsRSSList', (item: any, idToDelete: string) => item === idToDelete)}
             addAction={() => addActionList('newsRSSList', `new News ${indexNewItemAdded}`) }
-            list={config.newsRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
+            list={config.newsRSSList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
               editActionList('newsRSSList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
             }/>}))}
           />

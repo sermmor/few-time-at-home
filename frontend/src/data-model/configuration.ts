@@ -41,7 +41,7 @@ export interface ConfigurationDataZipped {
   nitterRssUsersList: string[];
   mastodonRssUsersList: MastodonConfigurationList;
   blogRssList: string[];
-  newsRssList: string[];
+  newsRSSList: string[];
   youtubeRssList: YoutubeConfigurationList;
   quoteList: QuoteList;
   listBotCommands: {[key: string]: string};
@@ -62,7 +62,7 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     nitterRssUsersList: getContentConfigurationByType(configList, 'nitterRssUsersList') as string[],
     mastodonRssUsersList: getContentConfigurationByType(configList, 'mastodonRssUsersList') as { instance: string; user: string; }[],
     blogRssList: getContentConfigurationByType(configList, 'blogRssList') as string[],
-    newsRssList: getContentConfigurationByType(configList, 'newsRSSList') as string[],
+    newsRSSList: getContentConfigurationByType(configList, 'newsRSSList') as string[],
     youtubeRssList: getContentConfigurationByType(configList, 'youtubeRssList') as YoutubeConfigurationList,
     quoteList: getContentConfigurationByType(configList, 'quoteList') as {quote: string; author: string}[],
     listBotCommands,
