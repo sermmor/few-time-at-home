@@ -151,19 +151,15 @@ export class MediaRSSAutoupdate {
 
   private sortMessagesByDate = (messages: string[]): string[] => {
     return messages.slice().sort((a, b) => {
-      // Extraer la segunda línea (índice 1) de cada mensaje
       const dateLineA = a.split('\n')[1] || '';
       const dateLineB = b.split('\n')[1] || '';
 
-      // Extraer la fecha después del último ' - '
       const dateStrA = dateLineA.split(' - ').pop() || '';
       const dateStrB = dateLineB.split(' - ').pop() || '';
 
-      // Parsear la fecha usando Date
       const dateA = new Date(dateStrA);
       const dateB = new Date(dateStrB);
 
-      // Orden ascendente: más antiguo primero
       return dateA.getTime() - dateB.getTime();
     });
   }
