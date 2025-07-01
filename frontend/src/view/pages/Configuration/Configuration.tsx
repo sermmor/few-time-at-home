@@ -79,8 +79,6 @@ export const ConfigurationComponent = () => {
 
   const deleteActionList = (keyList: string, equals: (item: any, idToDelete: string) => boolean) => (id: string) => {
     if (!config) return;
-    console.log(keyList)
-    console.log((config as any))
     const cloneList = [...(config as any)[keyList]];
     const index = cloneList.findIndex(item => equals(item, id));
     cloneList.splice(index, 1);
