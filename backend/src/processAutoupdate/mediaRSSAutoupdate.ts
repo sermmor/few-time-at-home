@@ -6,7 +6,7 @@ import { YoutubeRSSUtils } from "../youtubeRSS/youtubeRSSUtils";
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesNewsFeed: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
 const mediaFilePath = 'data/config/media/mediaFilesContent.json';
-const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json'; // TODO: LLEGA DESORDENADA POR FECHA, ORDENAR.
+const favoriteYoutubeFilePath = 'data/config/media/youtubeFavoritesArchive.json';
 
 export type MediaType = 'youtube' | 'mastodon' | 'blog' | 'news';
 
@@ -149,8 +149,27 @@ export class MediaRSSAutoupdate {
     return messagesWithoutDuplicates;
   }
 
+  private sortMessagesByDate = (messages: string[]): string[] => {
+    return messages.slice().sort((a, b) => {
+      // Extraer la segunda línea (índice 1) de cada mensaje
+      const dateLineA = a.split('\n')[1] || '';
+      const dateLineB = b.split('\n')[1] || '';
+
+      // Extraer la fecha después del último ' - '
+      const dateStrA = dateLineA.split(' - ').pop() || '';
+      const dateStrB = dateLineB.split(' - ').pop() || '';
+
+      // Parsear la fecha usando Date
+      const dateA = new Date(dateStrA);
+      const dateB = new Date(dateStrB);
+
+      // Orden ascendente: más antiguo primero
+      return dateA.getTime() - dateB.getTime();
+    });
+  }
+
   private saveYoutubeFavorites = async (): Promise<boolean> => {
-    this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.concat(this.youtubeFavoriteCompleteData);
+    this.favoritesYoutubeMessages = this.youtubeFavoriteCompleteData.concat(this.favoritesYoutubeMessages);
     this.favoritesYoutubeMessages = this.filterDuplicateTitles(this.favoritesYoutubeMessages);
     this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.filter(
       (item: any, index: number) => this.favoritesYoutubeMessages.indexOf(item) === index
@@ -161,6 +180,8 @@ export class MediaRSSAutoupdate {
         this.favoritesYoutubeMessages.length - ConfigurationService.Instance.rssConfig.numMaxMessagesToSave
       );
     }
+
+    this.favoritesYoutubeMessages = this.sortMessagesByDate(this.favoritesYoutubeMessages);
 
     this.youtubeFavoriteCompleteData = this.favoritesYoutubeMessages;
     return true;
