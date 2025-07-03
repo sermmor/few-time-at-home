@@ -130,7 +130,7 @@ export class MediaRSSAutoupdate {
     waitMe = await this.saveMedia(messagesMasto, messagesBlog, messagesNews, messagesYoutube);
   };
 
-  private filterDuplicateTitles = (messages: string[]): string[] => {
+  private filterDuplicateUrls = (messages: string[]): string[] => {
     if (messages.length === 0) {
       return messages;
     }
@@ -140,8 +140,8 @@ export class MediaRSSAutoupdate {
     const messagesWithoutDuplicates: string[] = [];
 
     for (const message of messagesFixed) {
-      const title = message.split('\n')[0];
-      if (!messagesWithoutDuplicates.some(existingMessage => existingMessage.split('\n')[0] === title)) {
+      const title = message.split('\n')[3];
+      if (!messagesWithoutDuplicates.some(existingMessage => existingMessage.split('\n')[3] === title)) {
         messagesWithoutDuplicates.push(message);
       }
     }
@@ -149,24 +149,22 @@ export class MediaRSSAutoupdate {
     return messagesWithoutDuplicates;
   }
 
-  private sortMessagesByDate = (messages: string[]): string[] => {
-    return messages.slice().sort((a, b) => {
-      const dateLineA = a.split('\n')[1] || '';
-      const dateLineB = b.split('\n')[1] || '';
+  private sortMessagesByDate = (messages: string[]): string[] =>  messages.slice().sort((a, b) => {
+    const dateLineA = a.split('\n')[1] || '';
+    const dateLineB = b.split('\n')[1] || '';
 
-      const dateStrA = dateLineA.split(' - ').pop() || '';
-      const dateStrB = dateLineB.split(' - ').pop() || '';
+    const dateStrA = dateLineA.split(' - ').pop() || '';
+    const dateStrB = dateLineB.split(' - ').pop() || '';
 
-      const dateA = new Date(dateStrA);
-      const dateB = new Date(dateStrB);
+    const dateA = new Date(dateStrA);
+    const dateB = new Date(dateStrB);
 
-      return dateA.getTime() - dateB.getTime();
-    });
-  }
+    return dateA.getTime() - dateB.getTime();
+  });
 
   private saveYoutubeFavorites = async (): Promise<boolean> => {
     this.favoritesYoutubeMessages = this.youtubeFavoriteCompleteData.concat(this.favoritesYoutubeMessages);
-    this.favoritesYoutubeMessages = this.filterDuplicateTitles(this.favoritesYoutubeMessages);
+    this.favoritesYoutubeMessages = this.filterDuplicateUrls(this.favoritesYoutubeMessages);
     this.favoritesYoutubeMessages = this.favoritesYoutubeMessages.filter(
       (item: any, index: number) => this.favoritesYoutubeMessages.indexOf(item) === index
     );
@@ -221,7 +219,7 @@ export class MediaRSSAutoupdate {
         indexTag = data.messagesYoutube.length - 1;
       }
       data.messagesYoutube[indexTag].content = data.messagesYoutube[indexTag].content.concat(youtube.content);
-      data.messagesYoutube[indexTag].content = this.filterDuplicateTitles(data.messagesYoutube[indexTag].content);
+      data.messagesYoutube[indexTag].content = this.filterDuplicateUrls(data.messagesYoutube[indexTag].content);
       data.messagesYoutube[indexTag].content = data.messagesYoutube[indexTag].content.filter(
         (item: any, index: number) => data.messagesYoutube[indexTag].content.indexOf(item) === index
       );
