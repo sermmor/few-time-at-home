@@ -10,6 +10,8 @@ const updateRSS = (
     nitterUrlIndex: number = 0,
     currentTry = 4
 ): Promise<ChannelMediaRSSMessage[]> => {
+    console.log(`Extracting: ${endpoint}`);
+
     const { nitterInstancesList, rssOptions } = <NitterRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve =>
         extract(`${nitterInstancesList[nitterUrlIndex]}${endpoint}`, rssOptions).then((data) => {

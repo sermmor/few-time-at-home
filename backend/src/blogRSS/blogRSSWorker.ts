@@ -12,6 +12,7 @@ const updateRSS = (
     rssOptionsAlternative?: ReaderOptions,
     feedData?: FeedData,
 ): Promise<ChannelMediaRSSMessage[]> => {
+    console.log(`Extracting: ${endpoint}`);
     const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <BlogRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve =>
         extract(`${endpoint}`, rssOptions).then((dataItem) => {

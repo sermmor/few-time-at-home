@@ -12,6 +12,7 @@ const updateRSS = (
     rssOptionsAlternative?: ReaderOptions,
     feedData?: FeedData,
 ): Promise<ChannelMediaRSSMessage[]> => {
+  console.log(`Extracting: ${endpoint}`);
   const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <YoutubeRSSWorkerData> data;
   const { youtubeInfoByLinks } = <YoutubeRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve =>

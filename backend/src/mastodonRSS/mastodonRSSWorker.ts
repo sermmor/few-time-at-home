@@ -10,6 +10,7 @@ const updateRSS = (
     nitterUrlIndex: number = 0,
     currentTry = 4
 ): Promise<ChannelMediaRSSMessage[]> => {
+    console.log(`Extracting: ${endpoint}`);
     const { rssOptions, mastoInstanceList } = <MastodonRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve =>
         extract(`${endpoint}`, rssOptions).then((data) => {
