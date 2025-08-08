@@ -14,7 +14,7 @@ const updateRSS = (
 
     const { nitterInstancesList, rssOptions } = <NitterRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve => {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         console.error(`[Watchdog time] Nitter profile ${endpoint} is broken or deleted!`);
         resolve([]);
       }, 1000 * 30);
@@ -25,8 +25,10 @@ const updateRSS = (
                 )
             );
             console.log(`${nitterInstancesList[nitterUrlIndex]}${endpoint}  ${currentMessages.length}`);
+            clearTimeout(timeout);
             resolve(currentMessages);
         }).catch(() => {
+            clearTimeout(timeout);
             if (currentTry > 0) {
                 setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
             } else if (nitterUrlIndex < nitterInstancesList.length) {

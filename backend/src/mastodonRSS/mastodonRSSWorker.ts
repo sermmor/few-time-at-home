@@ -13,7 +13,7 @@ const updateRSS = (
     console.log(`Extracting: ${endpoint}`);
     const { rssOptions, mastoInstanceList } = <MastodonRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve => {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         console.error(`[Watchdog time] Mastodon profile ${endpoint} is broken or deleted!`);
         resolve([]);
       }, 1000 * 30);
@@ -24,8 +24,10 @@ const updateRSS = (
                 )
             );
             console.log(`${endpoint}  ${currentMessages.length}`);
+            clearTimeout(timeout);
             resolve(currentMessages);
         }).catch(() => {
+            clearTimeout(timeout);
             if (currentTry > 0) {
                 setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
             } else {

@@ -16,12 +16,13 @@ const updateRSS = (
   const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <YoutubeRSSWorkerData> data;
   const { youtubeInfoByLinks } = <YoutubeRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve => {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           console.error(`[Watchdog time] Youtube profile ${endpoint} is broken or deleted!`);
           resolve([]);
         }, 1000 * 30);
         extract(`${endpoint}`, rssOptions).then((dataItem) => {
             // console.log(data)
+            clearTimeout(timeout);
             const youtubeInfo = youtubeInfoByLinks.filter(data => data.url === endpoint)[0];
             if (!youtubeInfo.show_not_publised_videos && !rssOptionsAlternative) {
               // When we check if it's published videos ("Proximamente"), then try with NO normalization RSS.
@@ -43,6 +44,7 @@ const updateRSS = (
             }
 
         }).catch(() => {
+            clearTimeout(timeout);
             if (currentTry > 0) {
                 setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
             } else {

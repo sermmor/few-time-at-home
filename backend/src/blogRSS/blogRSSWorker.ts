@@ -15,11 +15,12 @@ const updateRSS = (
     console.log(`Extracting: ${endpoint}`);
     const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <BlogRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve => {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         console.error(`[Watchdog time] Blog profile ${endpoint} is broken or deleted!`);
         resolve([]);
       }, 1000 * 30);
       extract(`${endpoint}`, rssOptions).then((dataItem) => {
+            clearTimeout(timeout);
             // console.log(data)
             if (dataItem && dataItem.entries && dataItem.entries[0] && dataItem.entries[0].link === '') {
               // When RSS hasn't link, then try with NO normalization RSS.
@@ -46,6 +47,7 @@ const updateRSS = (
               resolve(currentMessages);
             }
         }).catch((err) => {
+          clearTimeout(timeout);
           if ((`${err}`).indexOf('error code 504') > -1) {
             console.log('Error: Request failed with error code 504');
             resolve([]);
