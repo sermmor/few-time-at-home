@@ -13,7 +13,11 @@ const updateRSS = (
     console.log(`Extracting: ${endpoint}`);
 
     const { nitterInstancesList, rssOptions } = <NitterRSSWorkerData> data;
-    return new Promise<ChannelMediaRSSMessage[]>(resolve =>
+    return new Promise<ChannelMediaRSSMessage[]>(resolve => {
+      setTimeout(() => {
+        console.error(`[Watchdog time] Nitter profile ${endpoint} is broken or deleted!`);
+        resolve([]);
+      }, 1000 * 30);
         extract(`${nitterInstancesList[nitterUrlIndex]}${endpoint}`, rssOptions).then((data) => {
             const currentMessages: ChannelMediaRSSMessage[] = filterRSSMessages(
                 cleanNitterLinksInMessages(
@@ -31,7 +35,7 @@ const updateRSS = (
                 console.error(`Nitter profile ${endpoint} is broken or deleted!`);
                 resolve([]);
             }
-    }));
+    })});
 }
 
 const mapRSSNitterPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.item.map((rssMessage: any) => ({

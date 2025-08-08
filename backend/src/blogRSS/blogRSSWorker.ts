@@ -14,8 +14,12 @@ const updateRSS = (
 ): Promise<ChannelMediaRSSMessage[]> => {
     console.log(`Extracting: ${endpoint}`);
     const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <BlogRSSWorkerData> data;
-    return new Promise<ChannelMediaRSSMessage[]>(resolve =>
-        extract(`${endpoint}`, rssOptions).then((dataItem) => {
+    return new Promise<ChannelMediaRSSMessage[]>(resolve => {
+      setTimeout(() => {
+        console.error(`[Watchdog time] Blog profile ${endpoint} is broken or deleted!`);
+        resolve([]);
+      }, 1000 * 30);
+      extract(`${endpoint}`, rssOptions).then((dataItem) => {
             // console.log(data)
             if (dataItem && dataItem.entries && dataItem.entries[0] && dataItem.entries[0].link === '') {
               // When RSS hasn't link, then try with NO normalization RSS.
@@ -51,7 +55,7 @@ const updateRSS = (
             console.error(`Blog profile ${endpoint} is broken or deleted!`);
             resolve([]);
           }
-      }));
+      })});
 }
 
 const mapRSSBlogPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.entries.map((rssMessage: any) => ({

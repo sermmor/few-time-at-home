@@ -12,7 +12,11 @@ const updateRSS = (
 ): Promise<ChannelMediaRSSMessage[]> => {
     console.log(`Extracting: ${endpoint}`);
     const { rssOptions, mastoInstanceList } = <MastodonRSSWorkerData> data;
-    return new Promise<ChannelMediaRSSMessage[]>(resolve =>
+    return new Promise<ChannelMediaRSSMessage[]>(resolve => {
+      setTimeout(() => {
+        console.error(`[Watchdog time] Mastodon profile ${endpoint} is broken or deleted!`);
+        resolve([]);
+      }, 1000 * 30);
         extract(`${endpoint}`, rssOptions).then((data) => {
             const currentMessages: ChannelMediaRSSMessage[] = filterRSSMessages(
                 cleanMastoLinksInMessages(
@@ -28,7 +32,7 @@ const updateRSS = (
                 console.error(`Mastodon profile ${endpoint} is broken or deleted!`);
                 resolve([]);
             }
-    }));
+    })});
 }
 
 const mapRSSMastodonPostsToMessages = (data: any): ChannelMediaRSSMessage[] => data.item.map((rssMessage: any) => ({

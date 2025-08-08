@@ -15,7 +15,11 @@ const updateRSS = (
   console.log(`Extracting: ${endpoint}`);
   const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <YoutubeRSSWorkerData> data;
   const { youtubeInfoByLinks } = <YoutubeRSSWorkerData> data;
-    return new Promise<ChannelMediaRSSMessage[]>(resolve =>
+    return new Promise<ChannelMediaRSSMessage[]>(resolve => {
+        setTimeout(() => {
+          console.error(`[Watchdog time] Youtube profile ${endpoint} is broken or deleted!`);
+          resolve([]);
+        }, 1000 * 30);
         extract(`${endpoint}`, rssOptions).then((dataItem) => {
             // console.log(data)
             const youtubeInfo = youtubeInfoByLinks.filter(data => data.url === endpoint)[0];
@@ -45,7 +49,7 @@ const updateRSS = (
                 console.error(`Youtube profile ${endpoint} is broken or deleted!`);
                 resolve([]);
             }
-    }));
+    })});
 }
 
 const mapRSSBlogPostsToMessages = (data: any, youtubeInfo: YoutubeInfoByLinks): YoutubeMediaRSSMessage[] => data.entries.map((rssMessage: any) => ({
