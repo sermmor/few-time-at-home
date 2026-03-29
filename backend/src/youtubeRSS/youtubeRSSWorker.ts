@@ -19,7 +19,7 @@ const updateRSS = (
   const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <YoutubeRSSWorkerData> data;
   const { youtubeInfoByLinks } = <YoutubeRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve => {
-        if (endpoint === undefined) resolve([]);
+        if (endpoint === undefined || endpoint === "undefined" || !endpoint) resolve([]);
         const timeout = setTimeout(() => {
           console.error(`[Watchdog time] Youtube profile ${endpoint} is broken or deleted!`);
           resolve([]);
