@@ -4,6 +4,9 @@ import { parseFromBlogDateStringToDateObject, parseFromNitterDateStringToDateObj
 import { WorkerChild } from "../workerModule/workersManager";
 import { YoutubeInfoByLinks, YoutubeMediaRSSMessage, YoutubeRSSWorkerData } from "./youtubeRSSWorkerData";
 
+const SECONDS_WATCHDOG = 60;
+const TIME_TO_NEXT_TRY = 2000;
+
 const updateRSS = (
     data: ChannelMediaRSSWorkerData,
     endpoint: string,
@@ -16,10 +19,11 @@ const updateRSS = (
   const { rssOptions } = rssOptionsAlternative ? { rssOptions: rssOptionsAlternative, } : <YoutubeRSSWorkerData> data;
   const { youtubeInfoByLinks } = <YoutubeRSSWorkerData> data;
     return new Promise<ChannelMediaRSSMessage[]>(resolve => {
+        if (endpoint === undefined) resolve([]);
         const timeout = setTimeout(() => {
           console.error(`[Watchdog time] Youtube profile ${endpoint} is broken or deleted!`);
           resolve([]);
-        }, 1000 * 30);
+        }, 1000 * SECONDS_WATCHDOG);
         extract(`${endpoint}`, rssOptions).then((dataItem) => {
             // console.log(data)
             clearTimeout(timeout);
@@ -30,7 +34,7 @@ const updateRSS = (
                 ...rssOptions,
                 normalization: false,
               };
-              setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry, newRssOptions, dataItem).then(data => resolve(data)), 100);
+              setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry, newRssOptions, dataItem).then(data => resolve(data)), TIME_TO_NEXT_TRY);
             } else {
               let currentMessages: ChannelMediaRSSMessage[];
               if (feedData) {
@@ -46,7 +50,7 @@ const updateRSS = (
         }).catch(() => {
             clearTimeout(timeout);
             if (currentTry > 0) {
-                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), 100);
+                setTimeout(() => updateRSS(data, endpoint, nitterUrlIndex, currentTry - 1).then(data => resolve(data)), TIME_TO_NEXT_TRY);
             } else {
                 console.error(`Youtube profile ${endpoint} is broken or deleted!`);
                 resolve([]);

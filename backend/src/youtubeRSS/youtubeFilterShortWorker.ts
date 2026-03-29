@@ -4,11 +4,13 @@ import { YoutubeMediaRSSMessage } from "./youtubeRSSWorkerData";
 
 const fetch = require("node-fetch");
 
-const youtubeAddDelay = 10;
+const TIME_TO_NEXT_TRY = 2000;
+const youtubeAddDelay = 1000;
 
 const isAYouTubeShortText = (text: string): boolean => text.indexOf('youtube.com/shorts/') !== -1;
 
 const isAYouTubeShortLink = (link: string, currentTry = 4): Promise<boolean> => new Promise<boolean>(resolve=> {
+    if (link === undefined) resolve(false);
     if (link.includes('/shorts/')) {
       resolve(link.includes('/shorts/'));
     } else {
@@ -17,7 +19,7 @@ const isAYouTubeShortLink = (link: string, currentTry = 4): Promise<boolean> => 
         resolve(isAYouTubeShortText(text));
       }).catch(() => {
         if (currentTry > 0) {
-            setTimeout(() => isAYouTubeShortLink(link, currentTry - 1).then(data => resolve(data)), 100);
+            setTimeout(() => isAYouTubeShortLink(link, currentTry - 1).then(data => resolve(data)), TIME_TO_NEXT_TRY);
         } else {
             console.error(`Youtube link ${link} can be broken or deleted!`);
             resolve(false);

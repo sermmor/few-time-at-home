@@ -7,6 +7,7 @@ import { UnfurlDataModel } from '../../../../data-model/unfurl';
 
 interface Props {
   message: string;
+  loadTime: number;
 }
 
 const cardStyle = {
@@ -48,7 +49,7 @@ const DivWithLinkFixed = styled.div`
   }
 `;
 
-export const RssMessage = ({message}: Props) => {
+export const RssMessage = ({message, loadTime}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -59,7 +60,11 @@ export const RssMessage = ({message}: Props) => {
   link = link ? link : foot;
 
   const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel>();
-  React.useEffect(() => { UnfurlActions.getUnfurl({url: link}).then(data => setUnfurlData(data)) }, [link]);
+  React.useEffect(() => {
+    setTimeout(() => 
+      UnfurlActions.getUnfurl({url: link}).then(data => setUnfurlData(data))
+    , loadTime)
+  }, [link, loadTime]);
 
   return <><Card sx={cardStyle}>
     <CardContent>

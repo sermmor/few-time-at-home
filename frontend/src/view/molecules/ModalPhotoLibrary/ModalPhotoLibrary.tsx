@@ -14,7 +14,7 @@ interface Props {
   downloadCloudFile: (item: CloudItem) => void; 
 }
 
-export const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png'];
+export const imageFileExtensions = ['.jpg', '.jpeg', '.gif', '.png', '.webp'];
 
 export const ModalPhotoLibrary = ({ handleClosePhotoLibraryDialog, getUrlCloudFile, downloadCloudFile, nameFirstPhoto, isOpenPhotoLibraryDialog, fileList }: Props): JSX.Element => {
   const [imageListFiles, setImageListFiles] = React.useState<CloudItem[]>([]);

@@ -12,6 +12,8 @@ import { ReadLaterMessage } from '../../../data-model/readLaterRss';
 import { NewMessage } from './component/NewMessage';
 import { ConfigurationActions } from '../../../core/actions/configuration';
 
+const LOADING_CARD_TIME = 5000;
+
 type RSSType = 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
@@ -129,7 +131,7 @@ ${url}` }).then(({data}) => {
     {
       rssType !== 'saved' ?
       listState !== StateItemList.LOADING && rssData && rssData.messages.map((msg: string, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg} />
+          <RssMessage key={index} message={msg} loadTime={index * LOADING_CARD_TIME} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
@@ -140,7 +142,7 @@ ${url}` }).then(({data}) => {
           </Box>
         </Box>) 
       : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg.message} />
+          <RssMessage key={index} message={msg.message} loadTime={index * LOADING_CARD_TIME} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
               console.log("Bookmark removed!");
