@@ -19,9 +19,11 @@ export const NewMessage = ({onNewMessage}: {onNewMessage: (title: string, url: s
       <Button 
         variant='outlined'
         onClick={() => 
-          UnfurlActions.getUnfurl({url})
-          .then(data => 
+          UnfurlActions.getUnfurl({urlList:[url], loadTime: 5000})
+          .then(allData => {
+            const data = allData && allData.length ? allData[0] : {title: ""};
             onNewMessage(data.title, url, getCurrentDate()).then(() => {setTitle(''); setUrl('');})
+          } 
           )
           }>Add</Button>
     </Box>

@@ -8,6 +8,7 @@ import { UnfurlDataModel } from '../../../../data-model/unfurl';
 interface Props {
   message: string;
   loadTime: number;
+  unfurlData?: UnfurlDataModel;
 }
 
 const cardStyle = {
@@ -34,7 +35,7 @@ const getFirstUrl = (text: string): string => {
     return urlWithParams.split(' ')[0];
   }
   return '';
-}
+};
 
 const DivWithLinkFixed = styled.div`
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -49,9 +50,10 @@ const DivWithLinkFixed = styled.div`
   }
 `;
 
-export const RssMessage = ({message, loadTime}: Props) => {
+export const RssMessage = ({message, unfurlData}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [dataToShowInCard, setDataToShowInCard] = React.useState<UnfurlDataModel>();
 
   const [header, ...rest] = message.split('\n');
   const foot = rest[rest.length - 1];
@@ -59,12 +61,14 @@ export const RssMessage = ({message, loadTime}: Props) => {
   let link = getFirstUrl(msg);
   link = link ? link : foot;
 
-  const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel>();
-  React.useEffect(() => {
-    setTimeout(() => 
-      UnfurlActions.getUnfurl({url: link}).then(data => setUnfurlData(data))
-    , loadTime)
-  }, [link, loadTime]);
+   React.useEffect(() => {
+      setDataToShowInCard(unfurlData);
+  }, [unfurlData]);
+
+  // const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel>();
+  // React.useEffect(() => {
+  //     UnfurlActions.getUnfurl({url: link, loadTime}).then(data => setUnfurlData(data));
+  // }, [link, loadTime]);
 
   return <><Card sx={cardStyle}>
     <CardContent>
@@ -75,11 +79,11 @@ export const RssMessage = ({message, loadTime}: Props) => {
       <Link href={foot} target='_blank' rel='noreferrer'>
         {foot}
       </Link>
-      {unfurlData && unfurlData.title && <Box sx={unfurlStyle}>
+      {dataToShowInCard && dataToShowInCard.title && <Box sx={unfurlStyle}>
         <Link href={link} target='_blank' rel='noreferrer'>
-          <img width={isMobile ? '240rem' : '320rem'} src={unfurlData.urlImage} alt={unfurlData.title} loading="lazy"/>
-          <Typography variant='h6' dangerouslySetInnerHTML={{__html: unfurlData.title}} />
-          <Typography sx={{fontSize: '10pt'}}>{unfurlData.description}</Typography>
+          <img width={isMobile ? '240rem' : '320rem'} src={dataToShowInCard.urlImage} alt={dataToShowInCard.title} loading="lazy"/>
+          <Typography variant='h6' dangerouslySetInnerHTML={{__html: dataToShowInCard.title}} />
+          <Typography sx={{fontSize: '10pt'}}>{dataToShowInCard.description}</Typography>
         </Link>
         </Box>}
     </CardContent>

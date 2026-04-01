@@ -21,7 +21,8 @@ export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor,
 
   const setText = (newTextToShow: string, newUrl: string) => {
     if (!isTextToShowChanged && isUrlChanged) {
-      UnfurlActions.getUnfurl({url: newUrl}).then(data => {
+      UnfurlActions.getUnfurl({urlList: [newUrl], loadTime: 1000}).then(allData => {
+        const data = allData && allData.length ? allData[0] : {title: ""};
         setTextToShowEditing(data.title);
         setEditMode(false);
         onChange!(data.title, newUrl);

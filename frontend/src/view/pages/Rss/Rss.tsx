@@ -11,6 +11,8 @@ import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
 import { NewMessage } from './component/NewMessage';
 import { ConfigurationActions } from '../../../core/actions/configuration';
+import { UnfurlActions } from '../../../core/actions/unfurl';
+import { UnfurlDataModel } from '../../../data-model/unfurl';
 
 const LOADING_CARD_TIME = 5000;
 
@@ -41,12 +43,32 @@ const LoadingComponent = () => <Box sx={{display: 'flex', flexDirection: 'row', 
   <CircularProgress />
 </Box>;
 
+const getFirstUrl = (text: string): string => {
+  const splitText = text.split(`<a href=`);
+  if (splitText && splitText.length > 1) {
+    const urlSplited = splitText[1].split('>');
+    const urlWithParams = urlSplited[0].replace('\'', '').replace('\'', '').replace('\"', '').replace('\"', '');
+    return urlWithParams.split(' ')[0];
+  }
+  return '';
+};
+
+const getUrlMessage = (message: string): string => {
+  const [, ...rest] = message.split('\n');
+  const foot = rest[rest.length - 1];
+  const msg = rest.slice(0, rest.length - 1).join('\n');
+  let link = getFirstUrl(msg);
+  link = link ? link : foot;
+  return link;
+};
+
 export const Rss = () => {
   const [rssType, setRssType] = React.useState<RSSType>('favorites');
   const [tagType, setTagType] = React.useState<string>('null');
   const [optionsTagsYoutube, setOptionsTagsYoutube] = React.useState<string[]>([]);
   const [amount, setAmount] = React.useState<number>(20);
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
+  const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel[]>();
   const [rssData, setRssData] = React.useState<RssDataModel>();
   const [listState, setListState] = React.useState<StateItemList>(StateItemList.EMPTY);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
@@ -88,18 +110,39 @@ export const Rss = () => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(undefined);
               setRssData(data);
+              return data.messages.map(msg => getUrlMessage(msg));
+            }).then(urls => {
+              UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
+                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
+                // TODO PROBAR SI sortedData ha funcionado.
+                setUnfurlData(sortedData);
+              });
             });
           } else if (rssType !== 'saved') {
             RSSActions.getRSS(rssType, amount).then(data => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(undefined);
               setRssData(data);
+              return data.messages.map(msg => getUrlMessage(msg));
+            }).then(urls => {
+              UnfurlActions.getUnfurl({urlList: urls, loadTime: 10}).then(data => {
+                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
+                // TODO PROBAR SI sortedData ha funcionado.
+                setUnfurlData(sortedData);
+              });
             });
           } else {
             ReadLaterRSSActions.getMessage({ amount }).then(({ data }) => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(data);
               setRssData(undefined);
+              return data.map(({ message }) => getUrlMessage(message));
+            }).then(urls => {
+              UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
+                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
+                // TODO PROBAR SI sortedData ha funcionado.
+                setUnfurlData(sortedData);
+              });
             });
           }
         }}
@@ -131,7 +174,7 @@ ${url}` }).then(({data}) => {
     {
       rssType !== 'saved' ?
       listState !== StateItemList.LOADING && rssData && rssData.messages.map((msg: string, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg} loadTime={index * LOADING_CARD_TIME} />
+          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} loadTime={LOADING_CARD_TIME} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
@@ -142,7 +185,7 @@ ${url}` }).then(({data}) => {
           </Box>
         </Box>) 
       : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg.message} loadTime={index * LOADING_CARD_TIME} />
+          <RssMessage key={index} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} loadTime={LOADING_CARD_TIME} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
               console.log("Bookmark removed!");

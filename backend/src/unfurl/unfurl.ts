@@ -1,5 +1,7 @@
 import { unfurl } from 'unfurl.js';
 import { Metadata } from 'unfurl.js/dist/types';
+import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from '../utils';
+import { UnfurlCacheData, UnfurlCacheService } from './unfurlCache.service';
 // import { ExtractorUtilities } from "../utils";
 
 // const fetch = require("node-fetch");
@@ -82,3 +84,46 @@ export const getUnfurl = (url: string): Promise<UnfurlData> => new Promise<Unfur
   //   });
   // });
 });
+
+const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
+
+export const getUnfurlWithCache = async (urlList: string[], loadTime: number): Promise<UnfurlData[]> => {
+  if (urlList.length === 1) {
+    const data = await getUnfurl(urlList[0]);
+    return [data];
+  }
+
+  const urlListNotCached: string[] = [];
+  const allData: UnfurlData[] = [];
+  let dataCache: UnfurlData | undefined;
+  let i = 0;
+  let currentUrl;
+
+  for (i = 0; i < urlList.length; i++) {
+    currentUrl = urlList[i];
+    dataCache = await UnfurlCacheService.getInstance().getDataFromUnfurlCache(currentUrl);
+    if (!!dataCache) {
+      allData.push(dataCache);
+    } else {
+      urlListNotCached.push(currentUrl);
+    }
+  }
+
+  let data: UnfurlData;
+  let dataToSend: UnfurlCacheData;
+  
+  for (i = 0; i < urlListNotCached.length; i++) {
+    currentUrl = urlListNotCached[i];
+    data = await getUnfurl(currentUrl);
+    await awaitMilliseconds(isYoutubeUrl(currentUrl) ? loadTime : 100);
+    dataToSend = {...data, date: new Date(), url: currentUrl};
+    UnfurlCacheService.getInstance().addDataToCache(dataToSend);
+    allData.push(dataToSend);
+  }
+
+  if (urlListNotCached.length > 0) {
+    await UnfurlCacheService.getInstance().saveCache();
+  }
+
+  return allData;
+};

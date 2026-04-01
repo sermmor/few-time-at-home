@@ -1,7 +1,7 @@
 import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { TelegramBot } from '../telegramBot/telegramBot';
-import { getUnfurl } from '../unfurl/unfurl';
+import { getUnfurl, getUnfurlWithCache } from '../unfurl/unfurl';
 import { AlertListService } from './alertNotification.service';
 import { Bookmark, BookmarkService } from './bookmark.service';
 import { ConfigurationService } from './configuration.service';
@@ -532,7 +532,7 @@ export class APIService {
       if (!req.body) {
           console.error("Received NO body text");
       } else {
-          getUnfurl(req.body.url).then(content => res.send(content));    
+          getUnfurlWithCache(req.body.urlList as string[], +req.body.loadTime).then(content => res.send({data: content}));    
       }
     });
   }
