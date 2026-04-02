@@ -124,7 +124,7 @@ export const Rss = () => {
               setRssData(data);
               return data.messages.map(msg => getUrlMessage(msg));
             }).then(urls => {
-              UnfurlActions.getUnfurl({urlList: urls, loadTime: 10}).then(data => {
+              UnfurlActions.getUnfurl({urlList: urls, loadTime: rssType === 'favorites' ? LOADING_CARD_TIME : 10}).then(data => {
                 const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
                 setUnfurlData(sortedData);
               });
@@ -171,7 +171,7 @@ ${url}` }).then(({data}) => {
     {
       rssType !== 'saved' ?
       listState !== StateItemList.LOADING && rssData && rssData.messages.map((msg: string, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} loadTime={LOADING_CARD_TIME} />
+          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
@@ -182,7 +182,7 @@ ${url}` }).then(({data}) => {
           </Box>
         </Box>) 
       : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} loadTime={LOADING_CARD_TIME} />
+          <RssMessage key={index} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
               console.log("Bookmark removed!");

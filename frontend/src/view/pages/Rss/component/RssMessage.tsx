@@ -3,11 +3,11 @@ import styled from "styled-components";
 import { Box, Card, CardContent, Link, useMediaQuery, useTheme } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { UnfurlActions } from '../../../../core/actions/unfurl';
-import { UnfurlDataModel } from '../../../../data-model/unfurl';
+import { UnfurlDataModel, UnfurlYoutubeImageModel } from '../../../../data-model/unfurl';
 
 interface Props {
   message: string;
-  loadTime: number;
+  index: number;
   unfurlData?: UnfurlDataModel;
 }
 
@@ -52,10 +52,11 @@ const DivWithLinkFixed = styled.div`
 
 const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
 
-export const RssMessage = ({message, unfurlData}: Props) => {
+export const RssMessage = ({message, unfurlData, index}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [dataToShowInCard, setDataToShowInCard] = React.useState<UnfurlDataModel>();
+  const [unfurlImageData, setUnfurlImageData] = React.useState<UnfurlYoutubeImageModel>();
 
   const [header, ...rest] = message.split('\n');
   const foot = rest[rest.length - 1];
@@ -63,14 +64,20 @@ export const RssMessage = ({message, unfurlData}: Props) => {
   let link = getFirstUrl(msg);
   link = link ? link : foot;
 
-   React.useEffect(() => {
-      setDataToShowInCard(unfurlData);
+  React.useEffect(() => {
+    setDataToShowInCard(unfurlData);
   }, [unfurlData]);
 
-  // const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel>();
-  // React.useEffect(() => {
-  //     UnfurlActions.getUnfurl({url: link, loadTime}).then(data => setUnfurlData(data));
-  // }, [link, loadTime]);
+  React.useEffect(() => {
+    if (dataToShowInCard && dataToShowInCard.url && isYoutubeUrl(dataToShowInCard.url)) {
+      UnfurlActions.getUnfurlYoutubeImage({ youtubeUrl: dataToShowInCard.url, indexItem: index }).then(data => setUnfurlImageData(data));
+    } else if (dataToShowInCard && dataToShowInCard.url) {
+      setUnfurlImageData({
+        imageUrl: dataToShowInCard.urlImage,
+      });
+    }
+  }, [dataToShowInCard, index]);
+
 
   return <><Card sx={cardStyle}>
     <CardContent>
@@ -84,8 +91,7 @@ export const RssMessage = ({message, unfurlData}: Props) => {
       {dataToShowInCard && dataToShowInCard.title && <Box sx={unfurlStyle}>
         <Link href={link} target='_blank' rel='noreferrer'>
           {
-            dataToShowInCard.url && !isYoutubeUrl(dataToShowInCard.url) &&
-            <img width={isMobile ? '240rem' : '320rem'} src={dataToShowInCard.urlImage} alt={dataToShowInCard.title} loading="lazy"/>
+            <img width={isMobile ? '240rem' : '320rem'} src={unfurlImageData?.imageUrl} alt={dataToShowInCard.title} loading="lazy"/>
           }
           <Typography variant='h6' dangerouslySetInnerHTML={{__html: dataToShowInCard.title}} />
           <Typography sx={{fontSize: '10pt'}}>{dataToShowInCard.description}</Typography>

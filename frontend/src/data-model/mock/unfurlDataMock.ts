@@ -1,4 +1,4 @@
-import { UnfurlDataModel } from '../unfurl';
+import { UnfurlDataModel, UnfurlYoutubeImageModel } from '../unfurl';
 
 export const unfurlDataModelMock = (): {data: UnfurlDataModel[]} => ({
   data: [
@@ -8,4 +8,8 @@ export const unfurlDataModelMock = (): {data: UnfurlDataModel[]} => ({
       description: 'Description unfurl link',
     }
   ]
+});
+
+export const UnfurlYoutubeImageModelMock = (): UnfurlYoutubeImageModel => ({
+  imageUrl: 'https://i.ytimg.com/vi/IBLruNfUqUs/maxresdefault.jpg',
 });

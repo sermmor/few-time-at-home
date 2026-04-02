@@ -4,3 +4,7 @@ export interface UnfurlDataModel {
   url?: string;
   description: string;
 }
+
+export interface UnfurlYoutubeImageModel {
+  imageUrl: string;
+}

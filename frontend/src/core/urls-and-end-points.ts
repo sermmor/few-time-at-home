@@ -18,6 +18,7 @@ export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
 export const areNotificationsEnabledEndpoint = (): string => `${getUrlApi()}/alerts-is-ready`;
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;
 export const unfurlEndpoint = (): string => `${getUrlApi()}/unfurl`;
+export const unfurlYoutubeImageEndpoint = (): string => `${getUrlApi()}/unfurl-youtube-image`;
 
 export const synchronizeDownloadEndpoint = (): string => `${getUrlApi()}/synchronize/download`;
 export const synchronizeUploadEndpoint = (): string => `${getUrlApi()}/synchronize/upload`;

@@ -95,6 +95,11 @@ const isUrlAFile = (url: string) => {
 }
 
 export const getUnfurlWithCache = async (urlList: string[], loadTime: number): Promise<UnfurlData[]> => {
+  if (!urlList) return [{
+    title: '',
+    urlImage: '',
+    description: '',
+  }];
   if (urlList.length === 1) {
     const data = await getUnfurl(urlList[0]);
     return [data];
@@ -148,4 +153,9 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
   }
 
   return allData;
+};
+
+export const getUnfurlYoutubeImage = async (youtubeUrl: string, indexItem: number): Promise<string | undefined> => {
+  const urlImage = await UnfurlCacheService.getInstance().getYoutubeImage(youtubeUrl, indexItem * 1000);
+  return urlImage;
 };

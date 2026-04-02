@@ -1,7 +1,7 @@
 import express, {Express, Request, Response} from 'express';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { TelegramBot } from '../telegramBot/telegramBot';
-import { getUnfurl, getUnfurlWithCache } from '../unfurl/unfurl';
+import { getUnfurl, getUnfurlWithCache, getUnfurlYoutubeImage } from '../unfurl/unfurl';
 import { AlertListService } from './alertNotification.service';
 import { Bookmark, BookmarkService } from './bookmark.service';
 import { ConfigurationService } from './configuration.service';
@@ -66,6 +66,7 @@ export class APIService {
   };
   static quoteEndpoint = "/random-quote";
   static unfurlEndpoint = "/unfurl";
+  static unfurlYoutubeImageEndpoint = "/unfurl-youtube-image";
   static sendToTelegramEndpoint = "/send-to-telegram";
   static videoToMp3ConverterEndpoint = "/video-to-mp3-converter";
   static audioToMp3ConverterEndpoint = "/audio-to-mp3-converter";
@@ -110,6 +111,7 @@ export class APIService {
     this.getFavoritesRSSService();
     this.forceUpdateRSS();
     this.unfurlService();
+    this.unfurlYoutubeImageService();
     this.configurationService();
     this.getRandomQuoteService();
     this.notesService();
@@ -533,6 +535,16 @@ export class APIService {
           console.error("Received NO body text");
       } else {
           getUnfurlWithCache(req.body.urlList as string[], +req.body.loadTime).then(content => res.send({data: content}));    
+      }
+    });
+  }
+
+  private unfurlYoutubeImageService() {
+    this.app.post(APIService.unfurlYoutubeImageEndpoint, (req, res) => {
+      if (!req.body) {
+          console.error("Received NO body text");
+      } else {
+          getUnfurlYoutubeImage(req.body.youtubeUrl as string, req.body.indexItem as number).then(content => res.send({imageUrl: content}));    
       }
     });
   }

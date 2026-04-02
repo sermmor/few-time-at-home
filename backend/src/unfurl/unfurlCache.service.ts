@@ -1,4 +1,4 @@
-import { readJSONFile, saveInAFilePromise } from "../utils";
+import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from "../utils";
 import { UnfurlData } from "./unfurl";
 
 const cachePath = 'data/cache/unfurl/unfurlSavedData.json';
@@ -62,5 +62,14 @@ export class UnfurlCacheService {
       date: item.date.toISOString(),
     }));
     await saveInAFilePromise(JSON.stringify(unfurlCacheToJson, null, 2), cachePath);
+  }
+
+  getYoutubeImage = async (youtubeUrl: string, waitTime: number): Promise<string | undefined> => {
+    let split: string[];
+    const match = youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([\w-]{11})/);
+    const youtubeKey = match ? match[1] : '';
+    // TODO: En el caso de que YouTube bloqueé también esto, deberá de devolver un BLOB de la imagen que la tenemos descargada en la caché.
+    await awaitMilliseconds(waitTime);
+    return this.unfurlCache.find(data => data.url.includes(youtubeKey))?.urlImage;
   }
 }
