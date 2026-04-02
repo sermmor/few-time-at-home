@@ -116,6 +116,7 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
     currentUrl = urlListNotCached[i];
     console.log(`> Url to unfurl ${currentUrl}`);
     data = await getUnfurl(currentUrl);
+    console.log(`> Is youtube link? ${isYoutubeUrl(currentUrl)} (time = ${isYoutubeUrl(currentUrl) ? loadTime : 100})`);
     await awaitMilliseconds(isYoutubeUrl(currentUrl) ? loadTime : 100);
     dataToSend = {...data, date: new Date(), url: currentUrl};
     UnfurlCacheService.getInstance().addDataToCache(dataToSend);
@@ -125,8 +126,12 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
 
   // TODO: SI EL USUARIO SIENTE QUE ESPERA DEMASIADO Y RECARGA LA PÁGINA, LA LECHE ÉSTA FALLA MIENTRAS CACHEA.
 
+  // TODO: TAL VEZ LO SUYO ES QUE EN VEZ DE QUE SE ESPERE LA PETICIÓN, SIEMPRE TIRE DE CACHÉ
+  // TODO: QUE TODO ESTO DEL UNFURL SE HAGA AUTOMÁTICAMENTE CADA VEZ QUE AUTOMÁTICAMENTE SE ACTUALIZAN LAS LISTAS DE MEDIOS.
+
   if (urlListNotCached.length > 0) {
     // TODO: REPENSAR PARA QUE ESTO DE SALVAR LA CACHÉ SE HAGA 1 SOLA VEZ AL DÍA.
+    // TODO: NO SALVAR LOS QUE DEN ERROR DE YOUTUBE (TODO VACÍO SALVO URL Y FECHA).
     await UnfurlCacheService.getInstance().saveCache();
   }
 

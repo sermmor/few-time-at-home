@@ -50,6 +50,8 @@ const DivWithLinkFixed = styled.div`
   }
 `;
 
+const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
+
 export const RssMessage = ({message, unfurlData}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -81,7 +83,10 @@ export const RssMessage = ({message, unfurlData}: Props) => {
       </Link>
       {dataToShowInCard && dataToShowInCard.title && <Box sx={unfurlStyle}>
         <Link href={link} target='_blank' rel='noreferrer'>
-          <img width={isMobile ? '240rem' : '320rem'} src={dataToShowInCard.urlImage} alt={dataToShowInCard.title} loading="lazy"/>
+          {
+            dataToShowInCard.url && !isYoutubeUrl(dataToShowInCard.url) &&
+            <img width={isMobile ? '240rem' : '320rem'} src={dataToShowInCard.urlImage} alt={dataToShowInCard.title} loading="lazy"/>
+          }
           <Typography variant='h6' dangerouslySetInnerHTML={{__html: dataToShowInCard.title}} />
           <Typography sx={{fontSize: '10pt'}}>{dataToShowInCard.description}</Typography>
         </Link>

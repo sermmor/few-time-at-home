@@ -114,7 +114,6 @@ export const Rss = () => {
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
                 const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                // TODO PROBAR SI sortedData ha funcionado.
                 setUnfurlData(sortedData);
               });
             });
@@ -127,7 +126,6 @@ export const Rss = () => {
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: 10}).then(data => {
                 const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                // TODO PROBAR SI sortedData ha funcionado.
                 setUnfurlData(sortedData);
               });
             });
@@ -140,7 +138,6 @@ export const Rss = () => {
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
                 const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                // TODO PROBAR SI sortedData ha funcionado.
                 setUnfurlData(sortedData);
               });
             });
