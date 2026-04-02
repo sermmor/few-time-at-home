@@ -69,7 +69,7 @@ export const Rss = () => {
   const [amount, setAmount] = React.useState<number>(20);
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
   const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel[]>();
-  const [rssData, setRssData] = React.useState<RssDataModel>();
+  const [rssMessages, setRssMessages] = React.useState<string[]>([]);
   const [listState, setListState] = React.useState<StateItemList>(StateItemList.EMPTY);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
@@ -103,13 +103,15 @@ export const Rss = () => {
         variant='contained'
         sx={formSizeFields()}
         onClick={() => {
+          setRssMessages([]);
+          setUnfurlData([]);
           setListState(StateItemList.LOADING);
           if (rssType === 'youtube') {
             // tagType
             RSSActions.getRSSYoutube(tagType, amount).then(data => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(undefined);
-              setRssData(data);
+              setRssMessages(data ? data.messages : []);
               return data.messages.map(msg => getUrlMessage(msg));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
@@ -121,7 +123,7 @@ export const Rss = () => {
             RSSActions.getRSS(rssType, amount).then(data => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(undefined);
-              setRssData(data);
+              setRssMessages(data ? data.messages : []);
               return data.messages.map(msg => getUrlMessage(msg));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: rssType === 'favorites' ? LOADING_CARD_TIME : 10}).then(data => {
@@ -133,7 +135,7 @@ export const Rss = () => {
             ReadLaterRSSActions.getMessage({ amount }).then(({ data }) => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(data);
-              setRssData(undefined);
+              setRssMessages([]);
               return data.map(({ message }) => getUrlMessage(message));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
@@ -170,7 +172,7 @@ ${url}` }).then(({data}) => {
     { listState === StateItemList.LOADING && <LoadingComponent /> }
     {
       rssType !== 'saved' ?
-      listState !== StateItemList.LOADING && rssData && rssData.messages.map((msg: string, index: number) => <Box key={`card_${index}`}>
+      listState !== StateItemList.LOADING && rssMessages.map((msg: string, index: number) => <Box key={`card_${index}`}>
           <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {

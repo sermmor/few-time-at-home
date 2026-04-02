@@ -56,25 +56,36 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [dataToShowInCard, setDataToShowInCard] = React.useState<UnfurlDataModel>();
-  const [unfurlImageData, setUnfurlImageData] = React.useState<UnfurlYoutubeImageModel>();
-
-  const [header, ...rest] = message.split('\n');
-  const foot = rest[rest.length - 1];
-  const msg = rest.slice(0, rest.length - 1).join('\n');
-  let link = getFirstUrl(msg);
-  link = link ? link : foot;
+  const [header, setHeader] = React.useState<string>("");
+  const [foot, setFoot] = React.useState<string>("");
+  const [msg, setMsg] = React.useState<string>("");
+  const [link, setLink] = React.useState<string>("");
+  const [imageUrl, setImageUrl] = React.useState<string>("");
+  
+  React.useEffect(() => {
+    const [headerAux, ...rest] = message.split('\n');
+    const footAux = rest[rest.length - 1];
+    const msgAux = rest.slice(0, rest.length - 1).join('\n');
+    let linkAux = getFirstUrl(msgAux);
+    linkAux = linkAux ? linkAux : footAux;
+    
+    setHeader(headerAux);
+    setFoot(footAux);
+    setMsg(msgAux);
+    setLink(linkAux);
+  }, [message]);
 
   React.useEffect(() => {
+    setImageUrl("");
     setDataToShowInCard(unfurlData);
   }, [unfurlData]);
 
   React.useEffect(() => {
     if (dataToShowInCard && dataToShowInCard.url && isYoutubeUrl(dataToShowInCard.url)) {
-      UnfurlActions.getUnfurlYoutubeImage({ youtubeUrl: dataToShowInCard.url, indexItem: index }).then(data => setUnfurlImageData(data));
+      setImageUrl("");
+      UnfurlActions.getUnfurlYoutubeImage({ youtubeUrl: dataToShowInCard.url, indexItem: index }).then(data => setImageUrl(data.imageUrl));
     } else if (dataToShowInCard && dataToShowInCard.url) {
-      setUnfurlImageData({
-        imageUrl: dataToShowInCard.urlImage,
-      });
+      setImageUrl(dataToShowInCard.urlImage);
     }
   }, [dataToShowInCard, index]);
 
@@ -91,7 +102,7 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
       {dataToShowInCard && dataToShowInCard.title && <Box sx={unfurlStyle}>
         <Link href={link} target='_blank' rel='noreferrer'>
           {
-            <img width={isMobile ? '240rem' : '320rem'} src={unfurlImageData?.imageUrl} alt={dataToShowInCard.title} loading="lazy"/>
+            <img width={isMobile ? '240rem' : '320rem'} src={imageUrl} alt={dataToShowInCard.title} loading="lazy"/>
           }
           <Typography variant='h6' dangerouslySetInnerHTML={{__html: dataToShowInCard.title}} />
           <Typography sx={{fontSize: '10pt'}}>{dataToShowInCard.description}</Typography>
