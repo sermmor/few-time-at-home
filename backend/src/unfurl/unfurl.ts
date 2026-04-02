@@ -86,6 +86,13 @@ export const getUnfurl = (url: string): Promise<UnfurlData> => new Promise<Unfur
 });
 
 const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
+const isUrlAFile = (url: string) => {
+  const listOfExtensionFiles = [".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".mov", ".flv", ".mp4", ".mp3", ".tar.gz", ".zip", ".rar", ".7z"];
+  const urlLower = url.toLowerCase();
+
+  const typeExtensionIndex = listOfExtensionFiles.findIndex(extension => urlLower.indexOf(extension) > -1);
+  return typeExtensionIndex > -1;
+}
 
 export const getUnfurlWithCache = async (urlList: string[], loadTime: number): Promise<UnfurlData[]> => {
   if (urlList.length === 1) {
@@ -114,8 +121,16 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
   
   for (i = 0; i < urlListNotCached.length; i++) {
     currentUrl = urlListNotCached[i];
-    console.log(`> Url to unfurl ${currentUrl}`);
-    data = await getUnfurl(currentUrl);
+    if (!isUrlAFile(currentUrl)) {
+      console.log(`> Url to unfurl ${currentUrl}`);
+      data = await getUnfurl(currentUrl);
+    } else {
+      data = {
+        title: '',
+        urlImage: '',
+        description: '',
+      };
+    }
     console.log(`> Is youtube link? ${isYoutubeUrl(currentUrl)} (time = ${isYoutubeUrl(currentUrl) ? loadTime : 100})`);
     await awaitMilliseconds(isYoutubeUrl(currentUrl) ? loadTime : 100);
     dataToSend = {...data, date: new Date(), url: currentUrl};
