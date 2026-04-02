@@ -40,7 +40,7 @@ export const checkUntilConditionIsTrue = (predicate: () => boolean, doWhenCondit
 }
 
 export const awaitMilliseconds = async (millisecondsToAwait: number = 100) => new Promise<void>(resolve => {
-  setTimeout(() => (resolve(), millisecondsToAwait));
+  setTimeout(() => resolve(), millisecondsToAwait);
 });
 
 export const removeDuplicatesInStringArray = (listWithDuplicatesOrNot: string[]): string[] => {
