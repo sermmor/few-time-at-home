@@ -145,17 +145,11 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
   }
 
   // TODO: QUE TODO ESTO DEL UNFURL SE HAGA AUTOMÁTICAMENTE CADA VEZ QUE AUTOMÁTICAMENTE SE ACTUALIZAN LAS LISTAS DE MEDIOS.
-
-  if (urlListNotCached.length > 0) {
-    // TODO: REPENSAR PARA QUE ESTO DE SALVAR LA CACHÉ SE HAGA 1 SOLA VEZ AL DÍA.
-    // TODO: NO SALVAR LOS QUE DEN ERROR DE YOUTUBE (TODO VACÍO SALVO URL Y FECHA).
-    await UnfurlCacheService.getInstance().saveCache();
-  }
-
   return allData;
 };
 
 export const getUnfurlYoutubeImage = async (youtubeUrl: string, indexItem: number): Promise<string | undefined> => {
   const urlImage = await UnfurlCacheService.getInstance().getYoutubeImage(youtubeUrl, indexItem * 1000);
+  console.log(`Get youtube image ${youtubeUrl} with time ${indexItem * 1000}`);
   return urlImage;
 };

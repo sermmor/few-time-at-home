@@ -2,6 +2,7 @@ import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from "../utils";
 import { UnfurlData } from "./unfurl";
 
 const cachePath = 'data/cache/unfurl/unfurlSavedData.json';
+const timeInHoursToSaveCacheDataInFiles = 24; // 1 time in a day
 
 export interface UnfurlCacheData extends UnfurlData {
   url: string;
@@ -21,6 +22,9 @@ export class UnfurlCacheService {
 
   constructor(public isLoadedUnfurlCache = false, public unfurlCache: UnfurlCacheData[] = [] ) {
     UnfurlCacheService._instance = this;
+    setInterval(() => {
+      UnfurlCacheService.getInstance().saveCache();
+    }, timeInHoursToSaveCacheDataInFiles * 60 * 60 * 1000);
   }
 
   cleanCacheOfExpired = () => {
@@ -56,7 +60,7 @@ export class UnfurlCacheService {
 
   saveCache = async () => {
     this.cleanCacheOfExpired();
-    
+    this.unfurlCache = this.unfurlCache.filter(({title, urlImage, description}) => title === '' && urlImage === '' && description === '');
     const unfurlCacheToJson = this.unfurlCache.map(item => ({
       ...item,
       date: item.date.toISOString(),
