@@ -114,14 +114,19 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
   
   for (i = 0; i < urlListNotCached.length; i++) {
     currentUrl = urlListNotCached[i];
+    console.log(`> Url to unfurl ${currentUrl}`);
     data = await getUnfurl(currentUrl);
     await awaitMilliseconds(isYoutubeUrl(currentUrl) ? loadTime : 100);
     dataToSend = {...data, date: new Date(), url: currentUrl};
     UnfurlCacheService.getInstance().addDataToCache(dataToSend);
     allData.push(dataToSend);
+    console.log("Unfurled!");
   }
 
+  // TODO: SI EL USUARIO SIENTE QUE ESPERA DEMASIADO Y RECARGA LA PÁGINA, LA LECHE ÉSTA FALLA MIENTRAS CACHEA.
+
   if (urlListNotCached.length > 0) {
+    // TODO: REPENSAR PARA QUE ESTO DE SALVAR LA CACHÉ SE HAGA 1 SOLA VEZ AL DÍA.
     await UnfurlCacheService.getInstance().saveCache();
   }
 
