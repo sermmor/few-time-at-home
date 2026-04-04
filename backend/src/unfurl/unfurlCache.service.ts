@@ -60,7 +60,7 @@ export class UnfurlCacheService {
 
   saveCache = async () => {
     this.cleanCacheOfExpired();
-    this.unfurlCache = this.unfurlCache.filter(({title, urlImage, description}) => title === '' && urlImage === '' && description === '');
+    this.unfurlCache = this.unfurlCache.filter(({title, urlImage, description}) => title !== '' && urlImage !== '' && description !== '');
     const unfurlCacheToJson = this.unfurlCache.map(item => ({
       ...item,
       date: item.date.toISOString(),
