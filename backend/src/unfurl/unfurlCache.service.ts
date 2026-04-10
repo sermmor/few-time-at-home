@@ -1,8 +1,9 @@
 import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from "../utils";
 import { UnfurlData } from "./unfurl";
 import fetch from 'node-fetch';
-import { readFile, mkdir } from 'fs/promises';
+import { readFile, mkdir, readdir, unlink, stat } from 'fs/promises';
 import { writeFile } from 'fs';
+import { RecurrenceRule, scheduleJob } from 'node-schedule';
 
 const cachePath = 'data/cache/unfurl/unfurlSavedData.json';
 const timeInHoursToSaveCacheDataInFiles = 24; // 1 time in a day
@@ -25,9 +26,23 @@ export class UnfurlCacheService {
 
   constructor(public isLoadedUnfurlCache = false, public unfurlCache: UnfurlCacheData[] = [] ) {
     UnfurlCacheService._instance = this;
-    setInterval(() => {
+    
+    // Schedule cache save to run every 24 hours using node-schedule
+    const rule = new RecurrenceRule();
+    const now = new Date();
+    rule.hour = now.getHours();
+    rule.minute = now.getMinutes();
+    
+    scheduleJob('unfurl-cache-save', rule, () => {
       UnfurlCacheService.getInstance().saveCache();
-    }, timeInHoursToSaveCacheDataInFiles * 60 * 60 * 1000);
+    });
+    console.log(`Unfurl cache save scheduled for every 24h at ${rule.hour}:${String(rule.minute).padStart(2, '0')}`);
+
+    // Schedule image cleanup to run once a month on the 1st day at 00:00
+    scheduleJob('unfurl-image-cleanup', { date: 1, hour: 0, minute: 0 }, () => {
+      UnfurlCacheService.getInstance().cleanExpiredImages();
+    });
+    console.log("Unfurl image cleanup scheduled for the 1st day of each month at 00:00");
   }
 
   cleanCacheOfExpired = () => {
@@ -140,5 +155,33 @@ export class UnfurlCacheService {
         reject(err);
       }
     });
+  }
+
+  private cleanExpiredImages = async (): Promise<void> => {
+    try {
+      const imgCachePath = 'data/cache/unfurl/img';
+      const files = await readdir(imgCachePath);
+      const now = new Date();
+      const oneMonthAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+      let deletedCount = 0;
+
+      for (const file of files) {
+        const filePath = `${imgCachePath}/${file}`;
+        try {
+          const fileStats = await stat(filePath);
+          if (fileStats.mtime < oneMonthAgo) {
+            await unlink(filePath);
+            console.log(`Deleted expired image: ${file}`);
+            deletedCount++;
+          }
+        } catch (err) {
+          console.error(`Error processing file ${filePath}:`, err);
+        }
+      }
+
+      console.log(`Image cleanup completed. Deleted ${deletedCount} expired images.`);
+    } catch (err) {
+      console.error("Error during image cleanup:", err);
+    }
   }
 }
