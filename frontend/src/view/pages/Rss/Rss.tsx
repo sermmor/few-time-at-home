@@ -16,7 +16,7 @@ import { UnfurlDataModel } from '../../../data-model/unfurl';
 
 const LOADING_CARD_TIME = 5000;
 
-type RSSType = 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites';
+type RSSType = 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites' | 'random';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
@@ -90,7 +90,7 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          ['FAVORITES', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'NEWS', 'SAVED'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
+          ['FAVORITES', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'NEWS', 'SAVED', 'RANDOM'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
         }
       </Select>
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
@@ -119,7 +119,7 @@ export const Rss = () => {
                 setUnfurlData(sortedData);
               });
             });
-          } else if (rssType !== 'saved') {
+          } else if (rssType !== 'saved' && rssType !== 'random') {
             RSSActions.getRSS(rssType, amount).then(data => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(undefined);
@@ -131,8 +131,20 @@ export const Rss = () => {
                 setUnfurlData(sortedData);
               });
             });
-          } else {
+          } else if (rssType === 'saved') {
             ReadLaterRSSActions.getMessage({ amount }).then(({ data }) => {
+              setListState(StateItemList.CHARGED);
+              setReadLaterData(data);
+              setRssMessages([]);
+              return data.map(({ message }) => getUrlMessage(message));
+            }).then(urls => {
+              UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
+                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
+                setUnfurlData(sortedData);
+              });
+            });
+          } else {
+            ReadLaterRSSActions.getMessageRandom({ amount }).then(({ data }) => {
               setListState(StateItemList.CHARGED);
               setReadLaterData(data);
               setRssMessages([]);
@@ -171,7 +183,7 @@ ${url}` }).then(({data}) => {
     <Box sx={{display: 'flex', flexDirection: 'column'}}>
     { listState === StateItemList.LOADING && <LoadingComponent /> }
     {
-      rssType !== 'saved' ?
+      rssType !== 'saved' && rssType !== 'random' ?
       listState !== StateItemList.LOADING && rssMessages.map((msg: string, index: number) => <Box key={`card_${index}`}>
           <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
           <Box sx={buttonCardStyles()}>

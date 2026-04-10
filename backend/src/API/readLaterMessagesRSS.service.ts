@@ -6,12 +6,37 @@ export type ReadLaterMessage = {id: number; message: string};
 export class ReadLaterMessagesRSS {
   private static readLaterMessagesRSSPath = 'data/readLaterMessagesRSS.json';
   
+  private static shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+  
   static getMessagesRSSSaved = async(amount: number): Promise<ReadLaterMessage[]> => {
     let messages: ReadLaterMessage[] = [];
     try {
         const stats = await stat(ReadLaterMessagesRSS.readLaterMessagesRSSPath);
         messages = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
         messages = messages.reverse();
+        if (messages.length > amount) {
+          messages = messages.slice(0, amount);
+        }
+      } catch (err) {
+        await saveInAFilePromise('[]', ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+        console.log(`File ${ReadLaterMessagesRSS.readLaterMessagesRSSPath} created correctly.`);
+      }
+    return messages;
+  };
+
+  static getRandomMessagesRSSSaved = async(amount: number): Promise<ReadLaterMessage[]> => {
+    let messages: ReadLaterMessage[] = [];
+    try {
+        const stats = await stat(ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+        messages = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+        messages = ReadLaterMessagesRSS.shuffleArray(messages);
         if (messages.length > amount) {
           messages = messages.slice(0, amount);
         }

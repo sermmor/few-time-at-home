@@ -39,6 +39,7 @@ export class APIService {
   static getRssForceUpdateEndpoint = "/rss/force-update";
   static readLaterRSSEndpoint = {
     getMessages: "/readLaterRSS/get-messages",
+    getRandomMessages: "/readLaterRSS/get-random-messages",
     addMessages: "/readLaterRSS/add-messages",
     removeMessages: "/readLaterRSS/remove-messages",
   }
@@ -170,6 +171,15 @@ export class APIService {
         console.error("Received NO body text");
       } else {
         ReadLaterMessagesRSS.getMessagesRSSSaved(req.body.amount).then(data => {
+          res.send({ data });
+        });
+      }
+    });
+    this.app.post(APIService.readLaterRSSEndpoint.getRandomMessages, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        ReadLaterMessagesRSS.getRandomMessagesRSSSaved(req.body.amount).then(data => {
           res.send({ data });
         });
       }

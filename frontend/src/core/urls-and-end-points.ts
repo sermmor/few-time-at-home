@@ -59,9 +59,10 @@ const bookmarkEndpointList = {
 
 export const bookmarksEndpoint = (typeEndpoint: BookmarkEndpointList): string => `${getUrlApi()}${bookmarkEndpointList[typeEndpoint]}`;
 
-export type ReadLaterRSSEndpointList = 'get' | 'add' | 'remove';
+export type ReadLaterRSSEndpointList = 'get' | 'getRandom' | 'add' | 'remove';
 const readLaterRSSEndpointList = {
   'get': '/readLaterRSS/get-messages',
+  'getRandom': '/readLaterRSS/get-random-messages',
   'add': '/readLaterRSS/add-messages',
   'remove': '/readLaterRSS/remove-messages',
 };
