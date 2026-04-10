@@ -149,7 +149,12 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
 };
 
 export const getUnfurlYoutubeImage = async (youtubeUrl: string, indexItem: number): Promise<string | undefined> => {
-  const urlImage = await UnfurlCacheService.getInstance().getYoutubeImage(youtubeUrl, indexItem * 1000);
+  const imageBuffer = await UnfurlCacheService.getInstance().getYoutubeImage(youtubeUrl, indexItem * 1000);
   console.log(`Get youtube image ${youtubeUrl} with time ${indexItem * 1000}`);
-  return urlImage;
+  if (!imageBuffer) {
+    return undefined;
+  }
+  // Convertir Buffer a base64
+  const base64Image = imageBuffer.toString('base64');
+  return `data:image/jpeg;base64,${base64Image}`;
 };

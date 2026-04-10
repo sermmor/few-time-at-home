@@ -6,5 +6,5 @@ export interface UnfurlDataModel {
 }
 
 export interface UnfurlYoutubeImageModel {
-  imageUrl: string;
+  imageBuffer: string | undefined;
 }

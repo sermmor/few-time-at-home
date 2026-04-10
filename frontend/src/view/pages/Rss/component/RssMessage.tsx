@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Box, Card, CardContent, Link, useMediaQuery, useTheme } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { UnfurlActions } from '../../../../core/actions/unfurl';
-import { UnfurlDataModel, UnfurlYoutubeImageModel } from '../../../../data-model/unfurl';
+import { UnfurlDataModel } from '../../../../data-model/unfurl';
 
 interface Props {
   message: string;
@@ -31,7 +31,7 @@ const getFirstUrl = (text: string): string => {
   const splitText = text.split(`<a href=`);
   if (splitText && splitText.length > 1) {
     const urlSplited = splitText[1].split('>');
-    const urlWithParams = urlSplited[0].replace('\'', '').replace('\'', '').replace('\"', '').replace('\"', '');
+    const urlWithParams = urlSplited[0].replace(/'/g, '').replace(/"/g, '');
     return urlWithParams.split(' ')[0];
   }
   return '';
@@ -60,7 +60,8 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
   const [foot, setFoot] = React.useState<string>("");
   const [msg, setMsg] = React.useState<string>("");
   const [link, setLink] = React.useState<string>("");
-  const [imageUrl, setImageUrl] = React.useState<string>("");
+  const [imageUrl, setImageUrl] = React.useState<string>();
+  const [imageYoutubeBuffer, setImageYoutubeBuffer] = React.useState<string | undefined>();
   
   React.useEffect(() => {
     const [headerAux, ...rest] = message.split('\n');
@@ -76,15 +77,18 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
   }, [message]);
 
   React.useEffect(() => {
+    setImageYoutubeBuffer(undefined);
     setImageUrl("");
     setDataToShowInCard(unfurlData);
   }, [unfurlData]);
 
   React.useEffect(() => {
     if (dataToShowInCard && dataToShowInCard.url && isYoutubeUrl(dataToShowInCard.url)) {
+      setImageYoutubeBuffer(undefined);
       setImageUrl("");
-      UnfurlActions.getUnfurlYoutubeImage({ youtubeUrl: dataToShowInCard.url, indexItem: index }).then(data => setImageUrl(data.imageUrl));
+      UnfurlActions.getUnfurlYoutubeImage({ youtubeUrl: dataToShowInCard.url, indexItem: index }).then(data => setImageYoutubeBuffer(data.imageBuffer));
     } else if (dataToShowInCard && dataToShowInCard.url) {
+      setImageYoutubeBuffer(undefined);
       setImageUrl(dataToShowInCard.urlImage);
     }
   }, [dataToShowInCard, index]);
@@ -102,7 +106,7 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
       {dataToShowInCard && dataToShowInCard.title && <Box sx={unfurlStyle}>
         <Link href={link} target='_blank' rel='noreferrer'>
           {
-            <img width={isMobile ? '240rem' : '320rem'} src={imageUrl} alt={dataToShowInCard.title} loading="lazy"/>
+            <img width={isMobile ? '240rem' : '320rem'} src={imageYoutubeBuffer ? imageYoutubeBuffer : imageUrl} alt={dataToShowInCard.title} loading="lazy"/>
           }
           <Typography variant='h6' dangerouslySetInnerHTML={{__html: dataToShowInCard.title}} />
           <Typography sx={{fontSize: '10pt'}}>{dataToShowInCard.description}</Typography>

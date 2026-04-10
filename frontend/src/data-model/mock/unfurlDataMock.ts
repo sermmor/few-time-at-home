@@ -11,5 +11,5 @@ export const unfurlDataModelMock = (): {data: UnfurlDataModel[]} => ({
 });
 
 export const UnfurlYoutubeImageModelMock = (): UnfurlYoutubeImageModel => ({
-  imageUrl: 'https://i.ytimg.com/vi/IBLruNfUqUs/maxresdefault.jpg',
+  imageBuffer: undefined,
 });

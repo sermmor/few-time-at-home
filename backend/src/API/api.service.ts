@@ -543,8 +543,9 @@ export class APIService {
     this.app.post(APIService.unfurlYoutubeImageEndpoint, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          res.send({imageBuffer: undefined});
       } else {
-          getUnfurlYoutubeImage(req.body.youtubeUrl as string, req.body.indexItem as number).then(content => res.send({imageUrl: content}));    
+          getUnfurlYoutubeImage(req.body.youtubeUrl as string, req.body.indexItem as number).then(content => res.send({imageBuffer: content}));    
       }
     });
   }

@@ -1,5 +1,8 @@
 import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from "../utils";
 import { UnfurlData } from "./unfurl";
+import fetch from 'node-fetch';
+import { readFile, mkdir } from 'fs/promises';
+import { writeFile } from 'fs';
 
 const cachePath = 'data/cache/unfurl/unfurlSavedData.json';
 const timeInHoursToSaveCacheDataInFiles = 24; // 1 time in a day
@@ -68,12 +71,74 @@ export class UnfurlCacheService {
     await saveInAFilePromise(JSON.stringify(unfurlCacheToJson, null, 2), cachePath);
   }
 
-  getYoutubeImage = async (youtubeUrl: string, waitTime: number): Promise<string | undefined> => {
-    let split: string[];
+  getYoutubeImage = async (youtubeUrl: string, waitTime: number): Promise<Buffer | undefined> => {
     const match = youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([\w-]{11})/);
     const youtubeKey = match ? match[1] : '';
-    // TODO: En el caso de que YouTube bloqueé también esto, deberá de devolver un BLOB de la imagen que la tenemos descargada en la caché.
-    await awaitMilliseconds(waitTime);
-    return this.unfurlCache.find(data => data.url.includes(youtubeKey))?.urlImage;
+    
+    if (!youtubeKey) {
+      return undefined;
+    }
+
+    const imgCachePath = 'data/cache/unfurl/img';
+    const imageFilePath = `${imgCachePath}/${youtubeKey}.jpg`;
+
+    try {
+      // Crear la carpeta si no existe
+      await mkdir(imgCachePath, { recursive: true });
+
+      // Intentar leer el archivo si existe
+      try {
+        const imageBuffer = await readFile(imageFilePath);
+        console.log(`Loaded YouTube image from cache: ${youtubeKey}`);
+        return imageBuffer;
+      } catch (err) {
+        // Si el archivo no existe, descargarlo
+        console.log(`Downloading YouTube image for: ${youtubeKey}`);
+        await awaitMilliseconds(waitTime);
+        
+        const imageUrl = `https://img.youtube.com/vi/${youtubeKey}/maxresdefault.jpg`;
+        const response = await fetch(imageUrl);
+        
+        if (!response.ok) {
+          console.error(`Failed to download YouTube image: ${imageUrl}`);
+          return undefined;
+        }
+
+        const imageBuffer = await response.buffer();
+        
+        // Guardar la imagen en caché
+        await this.saveImageToCache(imageBuffer, imageFilePath);
+        console.log(`Saved YouTube image to cache: ${youtubeKey}`);
+        
+        return imageBuffer;
+      }
+    } catch (err) {
+      console.error(`Error in getYoutubeImage for ${youtubeKey}:`, err);
+      return undefined;
+    }
+  }
+
+  private saveImageToCache = async (buffer: Buffer, filePath: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
+        mkdir(folderPath, { recursive: true }).then(() => {
+          writeFile(filePath, buffer as any, (err: any) => {
+            if (err) {
+              console.error(`Error saving image to cache at ${filePath}:`, err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        }).catch((err: any) => {
+          console.error(`Error creating cache directory at ${folderPath}:`, err);
+          reject(err);
+        });
+      } catch (err) {
+        console.error(`Error saving image to cache at ${filePath}:`, err);
+        reject(err);
+      }
+    });
   }
 }
