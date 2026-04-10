@@ -41,6 +41,7 @@ export class UnfurlCacheService {
     // Schedule image cleanup to run once a month on the 1st day at 00:00
     scheduleJob('unfurl-image-cleanup', { date: 1, hour: 0, minute: 0 }, () => {
       UnfurlCacheService.getInstance().cleanExpiredImages();
+      console.log("[UNFURL] Cleaned unfurl image caché!");
     });
     console.log("Unfurl image cleanup scheduled for the 1st day of each month at 00:00");
   }
