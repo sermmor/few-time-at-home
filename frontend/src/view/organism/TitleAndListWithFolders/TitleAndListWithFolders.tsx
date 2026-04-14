@@ -14,7 +14,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloudCircleIcon from '@mui/icons-material/CloudCircle';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
+import { videoFileExtensions } from "../../molecules/ModalVideoPlayer/ModalVideoPlayer";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
 const widthBoxes = {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'};
@@ -247,7 +249,11 @@ export const TitleAndListWithFolders = ({
                   element,
                   deleteAction,
                   isInSelectListMode,
-                  IconOpenFileInEditor: element.id.indexOf('.txt') > -1 ? undefined : <PhotoLibraryIcon />,
+                  IconOpenFileInEditor: element.id.indexOf('.txt') > -1
+                    ? undefined
+                    : videoFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
+                      ? <VideoLibraryIcon />
+                      : <PhotoLibraryIcon />,
                   isElementSelected: isCheckedList[index],
                   onSelect: onSelectItemGeneral(index),
                   onOpenFileInEditor: filterFileInEditor && openFileInEditor && filterFileInEditor(element.id) ? openFileInEditor : undefined,

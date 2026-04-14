@@ -83,6 +83,7 @@ export class APIService {
     saveFile: '/cloud/save-file',
     uploadFile: '/cloud/upload-file',
     downloadFile: '/cloud/download-file',
+    streamFile: '/cloud/stream-file',
     searchInFolder: '/cloud/search-in-folder',
     deleteFileOrFolder: '/cloud/delete',
     zipFolder: '/cloud/zip-folder',
@@ -701,6 +702,35 @@ export class APIService {
           }
         });
       }
+    });
+
+    // query params: drive, path
+    // Streaming endpoint for the video player (and any inline viewing).
+    // NO Content-Disposition header so the browser treats the response as an inline
+    // resource. Express's res.sendFile() automatically handles HTTP Range requests,
+    // which allows the <video> element to seek and buffer efficiently.
+    this.app.get(APIService.cloudEndpointList.streamFile, (req, res) => {
+      const drive = req.query.drive as string;
+      const filePath = req.query.path as string;
+
+      if (!drive || !filePath) {
+        res.status(400).send({ error: 'Missing drive or path query parameter' });
+        return;
+      }
+
+      const options: { root: string } = {
+        root: `${ConfigurationService.Instance.cloudRootPath}/${cloudService.getPathDrive(drive)}`,
+      };
+
+      const fileRelativePath = filePath.split('/').slice(1).join('/');
+
+      res.sendFile(fileRelativePath, options, (err) => {
+        if (err) {
+          console.error(`Error streaming file: ${err}`);
+        } else {
+          console.log(`Streamed: ${fileRelativePath}`);
+        }
+      });
     });
 
     // query params: drive, path

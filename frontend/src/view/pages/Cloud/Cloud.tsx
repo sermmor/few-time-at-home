@@ -9,12 +9,13 @@ import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor,
-  downloadFile, downloadFileAndGetBlob, goBackToParentFolder, moveItemListToFolder, onSearchFileOrFolder, putInSelectedItemList, renameCloudFolder, 
+  downloadFile, downloadFileAndGetBlob, goBackToParentFolder, moveItemListToFolder, onSearchFileOrFolder, putInSelectedItemList, renameCloudFolder,
   renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles, zipFolder } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 import { imageFileExtensions, ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
 import { ModalNewName } from "../../molecules/ModalNewName/ModalNewName";
+import { ModalVideoPlayer, videoFileExtensions } from "../../molecules/ModalVideoPlayer/ModalVideoPlayer";
 import { cloudFilesName, routesFTAH } from "../../Routes";
 
 const cloudDriveName = 'cloud';
@@ -57,9 +58,11 @@ export const Cloud = () => {
   const [, setCurrentCloudPath] = React.useState<string>(`cloud${decodedPathname.split(cloudRootPath)[1]}`);
 
   const [isOpenPhotoLibraryDialog, setOpenPhotoLibraryDialog] = React.useState(false);
+  const [isOpenVideoPlayerDialog, setOpenVideoPlayerDialog] = React.useState(false);
   const [isOpenNameFileDialog, setOpenNameFileDialog] = React.useState(false);
   const [isOpenNameFolderDialog, setOpenNameFolderDialog] = React.useState(false);
   const [nameImageInPhotoLibrary, setNameImageInPhotoLibrary] = React.useState<string | undefined>();
+  const [currentVideoName, setCurrentVideoName] = React.useState<string | undefined>();
   const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [fileList, setFileList] = React.useState<CloudItem[]>([]);
@@ -133,8 +136,11 @@ export const Cloud = () => {
 
   const getUrlCloudFile = (item: CloudItem) => downloadFileAndGetBlob(action, item);
   const downloadCloudFile = (item: CloudItem) => downloadFile(action, item);
+  const getVideoStreamUrl = (item: CloudItem) =>
+    CloudActions.getStreamUrl({ drive: currentDrive, path: item.path });
 
-  const isAnImageFile = (name: string) => imageFileExtensions.filter(extension => name.toLowerCase().indexOf(extension) > -1).length > 0;
+  const isAnImageFile = (name: string) => imageFileExtensions.some(ext => name.toLowerCase().endsWith(ext));
+  const isAVideoFile = (name: string) => videoFileExtensions.some(ext => name.toLowerCase().endsWith(ext));
 
   return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
     {fileList && <div
@@ -157,15 +163,18 @@ export const Cloud = () => {
         onMoveItem={() => moveItemListToFolder(action)}
         onSearch={onSearchFileOrFolder(action)}
         createFile={() => setOpenNameFileDialog(true)}
-        filterFileInEditor={(id) => id.indexOf('.txt') > -1 || isAnImageFile(id)}
+        filterFileInEditor={(id) => id.indexOf('.txt') > -1 || isAnImageFile(id) || isAVideoFile(id)}
         openFileInEditor={(id) => {
           if (id.indexOf('.txt') > -1) {
             downloadAndOpenFileInEditor(action, id).then(() => navigate('/cloud/text-editor'));
+          } else if (isAVideoFile(id)) {
+            setCurrentVideoName(id);
+            setOpenVideoPlayerDialog(true);
           } else {
             setNameImageInPhotoLibrary(id);
             setOpenPhotoLibraryDialog(true);
           }
-        }} 
+        }}
         addFolder={() => setOpenNameFolderDialog(true)}
         // filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
         deleteAction={(id) => deleteItemAction(action, id)}
@@ -214,6 +223,14 @@ export const Cloud = () => {
       nameFirstPhoto={nameImageInPhotoLibrary}
       fileList={fileList}
       getUrlCloudFile={getUrlCloudFile}
+      downloadCloudFile={downloadCloudFile}
+    />
+    <ModalVideoPlayer
+      isOpen={isOpenVideoPlayerDialog}
+      onClose={() => setOpenVideoPlayerDialog(false)}
+      firstVideoName={currentVideoName}
+      fileList={fileList}
+      getStreamUrl={getVideoStreamUrl}
       downloadCloudFile={downloadCloudFile}
     />
     <ModalNewName

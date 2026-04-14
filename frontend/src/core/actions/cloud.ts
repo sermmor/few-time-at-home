@@ -46,4 +46,12 @@ const deleteFileOrFolder = (data: GenericCloudRequest) =>
 const zipFolder = (data: ZipCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("zipFolder"), data, messageResponseMock());
 
-export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder };
+/**
+ * Builds the URL for inline streaming of a cloud file (used by the video player).
+ * Pointing <video src> directly at this URL lets Express handle HTTP Range requests,
+ * which enables seeking without downloading the whole file first.
+ */
+const getStreamUrl = (data: DownloadFileToCloudResquest): string =>
+  `${getCloudEndpoint('streamFile')}?drive=${encodeURIComponent(data.drive)}&path=${encodeURIComponent(data.path)}`;
+
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, getStreamUrl };
