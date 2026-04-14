@@ -136,15 +136,21 @@ export class CloudService {
   uploadFile = (tempFile: string, relativePathFile: string) : Promise<string> => new Promise<string>(resolve => {
     // It's comes files from web to server.
     const pathFile = this.fromRelativePathToAbsolute(relativePathFile);
-    stat(tempFile, (err, stat) => {
+    stat(tempFile, (err, _stat) => {
       if (err === null) {
-        rename(tempFile, pathFile, (err) => {
-          if (err === null) {
-            resolve(`File or folder ${relativePathFile} uploaded correctly.`);
-          } else {
-            console.log(err);
-            resolve(`Error to uploaded file or folder ${tempFile} in ${relativePathFile}.`);
-          }
+        // Ensure the destination directory exists before moving the file.
+        // This is required when uploading files inside dragged folders (recursive upload),
+        // where subdirectories may not yet exist in the cloud.
+        const parentDir = pathFile.split('/').slice(0, -1).join('/');
+        mkdir(parentDir, { recursive: true }, () => {
+          rename(tempFile, pathFile, (renameErr) => {
+            if (renameErr === null) {
+              resolve(`File or folder ${relativePathFile} uploaded correctly.`);
+            } else {
+              console.log(renameErr);
+              resolve(`Error to uploaded file or folder ${tempFile} in ${relativePathFile}.`);
+            }
+          });
         });
       } else {
         console.log(err);

@@ -121,21 +121,143 @@ const uploadListFilesOneToOne = (
   }
 }
 
+// ─── Recursive folder upload helpers ────────────────────────────────────────
+
+/** Wraps FileSystemFileEntry.file() in a Promise. */
+const getFileFromEntry = (entry: FileSystemFileEntry): Promise<File> =>
+  new Promise((resolve, reject) => entry.file(resolve, reject));
+
+/**
+ * Wraps FileSystemDirectoryReader.readEntries() in a Promise.
+ * Note: readEntries() may return results in batches of up to 100; callers
+ * must keep reading until an empty array is returned.
+ */
+const readEntriesBatch = (reader: FileSystemDirectoryReader): Promise<FileSystemEntry[]> =>
+  new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+
+/**
+ * Recursively collects every file reachable from a FileSystemEntry.
+ * Returns a flat list of { file, folderPath } where folderPath is the
+ * cloud destination directory for that file.
+ *
+ * @param entry      The FileSystemEntry to traverse (file or directory).
+ * @param cloudBase  The cloud path that should receive the entry's contents.
+ */
+const collectFilesFromEntry = async (
+  entry: FileSystemEntry,
+  cloudBase: string,
+): Promise<{ file: File; folderPath: string }[]> => {
+  if (entry.isFile) {
+    const file = await getFileFromEntry(entry as FileSystemFileEntry);
+    return [{ file, folderPath: cloudBase }];
+  }
+
+  if (entry.isDirectory) {
+    const dirEntry = entry as FileSystemDirectoryEntry;
+    // The destination folder for this directory's contents is cloudBase/directoryName
+    const dirCloudPath = `${cloudBase}/${entry.name}`;
+    const reader = dirEntry.createReader();
+    const result: { file: File; folderPath: string }[] = [];
+
+    // readEntries may return batches — keep reading until we get an empty array.
+    while (true) {
+      const batch = await readEntriesBatch(reader);
+      if (batch.length === 0) break;
+      for (const subEntry of batch) {
+        const subFiles = await collectFilesFromEntry(subEntry, dirCloudPath);
+        result.push(...subFiles);
+      }
+    }
+    return result;
+  }
+
+  return [];
+};
+
+/**
+ * Uploads a flat list of { file, folderPath } pairs one by one, preserving
+ * the directory structure under the current cloud path.
+ */
+const uploadRecursiveFilesOneToOne = (
+  actions: ActionsProps,
+  filePathList: { file: File; folderPath: string }[],
+  total: number,
+): void => {
+  const { setSnackBarMessage, setOpenSnackbar, setErrorSnackbar, setCloudState } = actions;
+
+  if (filePathList.length === 0) {
+    setCloudState({ name: CloudStateName.NORMAL, description: '' });
+    setSnackBarMessage('All files uploaded to cloud!');
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
+    synchronizeWithCloud(actions);
+    return;
+  }
+
+  const { file, folderPath } = filePathList[0];
+  const current = total - filePathList.length + 1;
+  setCloudState({
+    name: CloudStateName.UPLOADING,
+    description: `Uploading ${current}/${total}: ${file.name}`,
+  });
+
+  CloudActions.uploadFile({ folderPathToSave: folderPath, files: [file] }).then(() => {
+    uploadRecursiveFilesOneToOne(actions, filePathList.slice(1), total);
+  });
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const uploadFiles = (
   actions: ActionsProps,
   event?: React.DragEvent<HTMLDivElement>,
   file?: File
 ) => {
-  // Fetch the files
-  let droppedFiles;
-  if (!file && event) {
-    droppedFiles = Array.from(event.dataTransfer.files);
-  } else if (file) {
-    droppedFiles = [file];
+  if (file) {
+    // Single file from the upload button — existing behaviour.
+    uploadListFilesOneToOne(actions, [file]);
+    return;
   }
-  if (droppedFiles) {
-    uploadListFilesOneToOne(actions, droppedFiles);
+
+  if (!event) return;
+
+  // Gather FileSystemEntry objects from the drag event.
+  const items = Array.from(event.dataTransfer.items);
+  const entries = items
+    .map(item => item.webkitGetAsEntry())
+    .filter((e): e is FileSystemEntry => e !== null);
+
+  const hasDirectories = entries.some(e => e.isDirectory);
+
+  if (!hasDirectories) {
+    // All items are plain files — use the existing path (includes duplicate check).
+    uploadListFilesOneToOne(actions, Array.from(event.dataTransfer.files));
+    return;
   }
+
+  // At least one folder was dropped — collect all files recursively then upload.
+  const { setCloudState, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar } = actions;
+  setCloudState({ name: CloudStateName.UPLOADING, description: 'Scanning folder structure…' });
+
+  Promise.all(entries.map(entry => collectFilesFromEntry(entry, actions.currentPathFolder)))
+    .then(results => {
+      const allFiles = results.flat();
+      if (allFiles.length === 0) {
+        setCloudState({ name: CloudStateName.NORMAL, description: '' });
+        setSnackBarMessage('No files found inside the dropped folder(s).');
+        setErrorSnackbar(true);
+        setOpenSnackbar(true);
+        return;
+      }
+      uploadRecursiveFilesOneToOne(actions, allFiles, allFiles.length);
+    })
+    .catch(err => {
+      console.error('Error scanning folder structure:', err);
+      setCloudState({ name: CloudStateName.NORMAL, description: '' });
+      setSnackBarMessage('Error reading folder structure.');
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
+    });
 };
 
 export const downloadFile = (
