@@ -58,7 +58,9 @@ readFile(keysPath, (err, data) => {
           bot.start(commands);
           const mediaAutoUpdate = new MediaRSSAutoupdate(commands);
           apiService = new APIService(channelMediaCollection, commands);
-          new AemetService(bot.sendMessageToTelegram);
+          if (keyData && keyData.connect_to_telegram) {
+            const aemet = new AemetService(bot.sendMessageToTelegram);
+          }
           
           console.log("> The bot is ready.");
         });
