@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface NewsRSSSectionProps {
   config: ConfigurationDataZipped;
@@ -21,7 +22,11 @@ export const NewsRSSSection: React.FC<NewsRSSSectionProps> = ({
   indexNewItemAdded,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>RSS de Noticias</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         deleteAction={deleteActionList('newsRSSList', (item: any, idToDelete: string) => item === idToDelete)}
@@ -31,6 +36,7 @@ export const NewsRSSSection: React.FC<NewsRSSSectionProps> = ({
         }/>}))}
       />
       <ConfigurationSaveButton config={config} type={'newsRSSList'}/>
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

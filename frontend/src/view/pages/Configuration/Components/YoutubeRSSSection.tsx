@@ -4,7 +4,8 @@ import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { LabelAndComboField } from "../../../molecules/LabelAndComboField/LabelAndComboField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box, Checkbox, Typography } from "@mui/material";
+import { Box, Checkbox, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface YoutubeRSSSectionProps {
   config: ConfigurationDataZipped;
@@ -22,7 +23,11 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
   indexNewItemAdded,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>YouTube RSS</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         showRowLine={true}
@@ -139,6 +144,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
         )}
       />
       <ConfigurationSaveButton config={config} type={'youtubeRssList'} />
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

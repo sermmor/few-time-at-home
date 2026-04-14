@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface CitasSectionProps {
   config: ConfigurationDataZipped;
@@ -21,7 +22,11 @@ export const CitasSection: React.FC<CitasSectionProps> = ({
   indexNewItemAdded,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Citas</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
@@ -53,6 +58,7 @@ export const CitasSection: React.FC<CitasSectionProps> = ({
         }))}
       />
       <ConfigurationSaveButton config={config} type={'quoteList'} />
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

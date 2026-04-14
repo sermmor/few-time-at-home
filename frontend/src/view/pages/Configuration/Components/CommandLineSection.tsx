@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Button, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Button, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { ConfigurationActions } from "../../../../core/actions/configuration";
 
 const commandLineStyle: SxProps<Theme> = {
@@ -29,6 +30,11 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
   setLineToSendResult,
 }) => {
   return (
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Línea de Comandos</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
     <Box sx={commandLineStyle}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
         <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
@@ -68,5 +74,7 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
         value={lineToSendResult}
       />
     </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };

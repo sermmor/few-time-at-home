@@ -1,6 +1,5 @@
 import React from "react";
-import { Box, SxProps, Theme, Snackbar, Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Box, SxProps, Theme, Snackbar } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataZipped, parseToZippedConfig } from "../../../data-model/configuration";
@@ -100,122 +99,19 @@ export const ConfigurationComponent = () => {
 
   return <>
     {config && <Box sx={formStyle}>
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Sincronizar</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Instancias Nitter</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <NitterInstancesSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Usuarios Twitter</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <TwitterUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Usuarios Mastodon</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Blog RSS</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>RSS de Noticias</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>YouTube RSS</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Citas</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Pomodoro</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Comandos Telegram</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <TelegramCommandsSection config={config} setConfig={setConfig} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Configuración RSS</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <RSSConfigurationSection config={config} setConfig={setConfig} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Otros</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <OthersSection config={config} setConfig={setConfig} />
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={{ opacity: 0.5 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Línea de Comandos</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
-        </AccordionDetails>
-      </Accordion>
+      <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
+      <NitterInstancesSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <TwitterUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
+      <TelegramCommandsSection config={config} setConfig={setConfig} />
+      <RSSConfigurationSection config={config} setConfig={setConfig} />
+      <OthersSection config={config} setConfig={setConfig} />
+      <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
     </Box>}
     <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} sx={{ zIndex: 9999 }}>
       <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>

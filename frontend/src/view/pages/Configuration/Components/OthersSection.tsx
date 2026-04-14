@@ -1,7 +1,8 @@
 import React from "react";
 import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
-import { Box, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, Checkbox, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const footerStyle: SxProps<Theme> = {
   display: 'flex',
@@ -24,7 +25,11 @@ export const OthersSection: React.FC<OthersSectionProps> = ({
   setConfig,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Otros</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
     <Box sx={footerStyle}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
         <Checkbox
@@ -147,6 +152,7 @@ export const OthersSection: React.FC<OthersSectionProps> = ({
       </Box>
     </Box>
     <ConfigurationSaveButton config={config} type={'configuration'} />
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

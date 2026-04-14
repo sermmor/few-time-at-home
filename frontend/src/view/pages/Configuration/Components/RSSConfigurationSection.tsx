@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { RSSActions } from "../../../../core/actions/rss";
 import { TitleAndSection } from "../../../organism/TitleAndSection/TitleAndSection";
-import { Box, Button } from "@mui/material";
+import { Button, Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface RSSConfigurationSectionProps {
   config: ConfigurationDataZipped;
@@ -17,7 +18,11 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
   const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
 
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Configuración RSS</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndSection
         title=""
         body={config.rssConfig}
@@ -43,6 +48,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
         </Button>}
       />
       <ConfigurationSaveButton config={config} type={'rssConfig'} />
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

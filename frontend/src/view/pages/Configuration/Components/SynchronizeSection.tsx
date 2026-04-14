@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Button, TextField, Typography, SxProps, Theme } from "@mui/material";
+import { Box, Button, TextField, Typography, SxProps, Theme, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { synchronizeActions } from "../../../../core/actions/synchronize";
 
 const commandLineStyle: SxProps<Theme> = {
@@ -25,6 +26,11 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
   setSynchronizeUrl,
 }) => {
   return (
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Sincronizar</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
     <Box sx={commandLineStyle}>
       <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Synchronize all data:</Typography>
       <TextField
@@ -44,5 +50,7 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
         Download
       </Button>
     </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };

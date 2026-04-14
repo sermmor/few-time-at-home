@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface TwitterUsersSectionProps {
   config: ConfigurationDataZipped;
@@ -21,7 +22,11 @@ export const TwitterUsersSection: React.FC<TwitterUsersSectionProps> = ({
   indexNewItemAdded,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Usuarios Twitter</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
@@ -31,6 +36,7 @@ export const TwitterUsersSection: React.FC<TwitterUsersSectionProps> = ({
         }/>}))}
       />
       <ConfigurationSaveButton config={config} type={'nitterRssUsersList'}/>
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

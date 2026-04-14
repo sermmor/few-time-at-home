@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
+import { Box, Button, SxProps, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { PomodoroActions } from "../../../../core/actions/pomodoro";
 import { PomodoroTimeModesEditor } from "./PomodoroTimeModesEditor/PomodoroTimeModesEditor";
 
@@ -28,6 +29,11 @@ export const PomodoroSection: React.FC<PomodoroSectionProps> = ({
   onShowSnackbar,
 }) => {
   return (
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Pomodoro</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
     <Box sx={commandLineStyle}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'space-between', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}, marginBottom: '1.5rem'}}>
         <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Modes:</Typography>
@@ -57,5 +63,7 @@ export const PomodoroSection: React.FC<PomodoroSectionProps> = ({
         onChange={setPomodoroTimeMode}
       />
     </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 };

@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface MastodonUsersSectionProps {
   config: ConfigurationDataZipped;
@@ -21,7 +22,11 @@ export const MastodonUsersSection: React.FC<MastodonUsersSectionProps> = ({
   indexNewItemAdded,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Usuarios Mastodon</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) => `@${user}@${instance}` === idToDelete)}
@@ -53,6 +58,7 @@ export const MastodonUsersSection: React.FC<MastodonUsersSectionProps> = ({
         }))}
       />
       <ConfigurationSaveButton config={config} type={'mastodonRssUsersList'} />
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

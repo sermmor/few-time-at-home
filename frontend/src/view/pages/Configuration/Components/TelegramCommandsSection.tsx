@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box } from "@mui/material";
+import { Box, Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface TelegramCommandsSectionProps {
   config: ConfigurationDataZipped;
@@ -15,7 +16,11 @@ export const TelegramCommandsSection: React.FC<TelegramCommandsSectionProps> = (
   setConfig,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Comandos Telegram</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         list={Object.keys(config.listBotCommands).map((commandName, index) => ({
@@ -40,6 +45,7 @@ export const TelegramCommandsSection: React.FC<TelegramCommandsSectionProps> = (
         })
       )} />
       <ConfigurationSaveButton config={config} type={'listBotCommands'} />
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };

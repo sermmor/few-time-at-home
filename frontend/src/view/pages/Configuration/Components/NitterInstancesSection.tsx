@@ -3,7 +3,8 @@ import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
 import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
-import { Box } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface NitterInstancesSectionProps {
   config: ConfigurationDataZipped;
@@ -21,7 +22,11 @@ export const NitterInstancesSection: React.FC<NitterInstancesSectionProps> = ({
   indexNewItemAdded,
 }) => {
   return (
-    <>
+    <Accordion sx={{ opacity: 0.5 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography>Instancias Nitter</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
       <TitleAndList
         title=''
         deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
@@ -31,6 +36,7 @@ export const NitterInstancesSection: React.FC<NitterInstancesSectionProps> = ({
         }/>}))}
       />
       <ConfigurationSaveButton config={config} type={'nitterInstancesList'}/>
-    </>
+      </AccordionDetails>
+    </Accordion>
   );
 };
