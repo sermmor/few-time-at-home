@@ -1,7 +1,9 @@
 import { Box, Button, Checkbox, MenuItem, Select, SxProps, TextField, Theme, Typography } from "@mui/material";
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import React from "react";
 import { Bitrate, BitrateWithK, ConverterDataModel, bitrateList, bitrateWithKList } from "../../../data-model/mp3Converter";
 import { Mp3ConverterActions } from "../../../core/actions/mp3Converter";
+import { ModalCloudBrowser } from "../../molecules/ModalCloudBrowser/ModalCloudBrowser";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -31,6 +33,8 @@ export const Mp3Converter = () => {
   const [isVideo, setIsVideo] = React.useState<boolean>(true);
   const [bitrate, setBitrate] = React.useState<Bitrate>(192);
   const [bitrateK, setBitrateK] = React.useState<BitrateWithK>('192k');
+  const [isBrowserFromOpen, setIsBrowserFromOpen] = React.useState<boolean>(false);
+  const [isBrowserToOpen, setIsBrowserToOpen] = React.useState<boolean>(false);
 
   const addResultLine = (line: string) => {
     resultInfo = `${resultInfo}${resultInfo ? '\n' : ''}${line}`;
@@ -42,19 +46,54 @@ export const Mp3Converter = () => {
       Video/Audio To Mp3 
     </Typography>
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <TextField
-        label="From convert path"
-        variant="standard"
-        value={folderFrom}
-        sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-        onChange={evt => setFolderFrom(evt.target.value)}
+      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
+        <TextField
+          label="From convert path"
+          variant="standard"
+          value={folderFrom}
+          sx={{ minWidth: { xs: '15.5rem', sm: '5rem', md: '5rem' } }}
+          onChange={evt => setFolderFrom(evt.target.value)}
+        />
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<FolderOpenIcon />}
+          onClick={() => setIsBrowserFromOpen(true)}
+          sx={{ whiteSpace: 'nowrap', textTransform: 'none' }}
+        >
+          Examinar
+        </Button>
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
+        <TextField
+          label="To convert path"
+          variant="standard"
+          value={folderTo}
+          sx={{ minWidth: { xs: '15.5rem', sm: '5rem', md: '5rem' } }}
+          onChange={evt => setFolderTo(evt.target.value)}
+        />
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<FolderOpenIcon />}
+          onClick={() => setIsBrowserToOpen(true)}
+          sx={{ whiteSpace: 'nowrap', textTransform: 'none' }}
+        >
+          Examinar
+        </Button>
+      </Box>
+
+      <ModalCloudBrowser
+        isOpen={isBrowserFromOpen}
+        onClose={() => setIsBrowserFromOpen(false)}
+        onAccept={path => setFolderFrom(path)}
+        title="Seleccionar carpeta de origen"
       />
-      <TextField
-        label="To convert path"
-        variant="standard"
-        value={folderTo}
-        sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-        onChange={evt => setFolderTo(evt.target.value)}
+      <ModalCloudBrowser
+        isOpen={isBrowserToOpen}
+        onClose={() => setIsBrowserToOpen(false)}
+        onAccept={path => setFolderTo(path)}
+        title="Seleccionar carpeta de destino"
       />
       <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center', }}>
         <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Bitrate: </Typography>
