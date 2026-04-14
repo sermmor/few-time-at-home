@@ -12,6 +12,7 @@ const formStyle: SxProps<Theme> = {
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  backgroundColor: 'rgba(245, 245, 245, .7)',
 };
 
 const rowFormStyle = (): SxProps<Theme> => ({
@@ -22,6 +23,17 @@ const rowFormStyle = (): SxProps<Theme> => ({
   justifyContent: 'center',
   minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'},
 });
+
+const getTextShadow = () => `
+  -1px -1px 0 black,
+  1px -1px 0 black,
+  -1px 1px 0 black,
+  1px 1px 0 black,
+  -1px 0 0 black,
+  1px 0 0 black,
+  0 -1px 0 black,
+  0 1px 0 black
+`;
 
 const alarmPath = `${process.env.PUBLIC_URL}/alarm.mp3`;
 
@@ -120,6 +132,8 @@ export const Pomodoro = (): JSX.Element => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
+        color: "white",
+        textShadow: getTextShadow(),
       }}
     >{timeToShow}</Typography>
     <Box sx={formStyle}>
@@ -174,6 +188,7 @@ export const Pomodoro = (): JSX.Element => {
         </Box>
       </Box>
     </Box>
-    <Typography sx={{textTransform: 'uppercase', fontSize: '3rem', textAlign:'right', position: 'fixed', bottom: '0px', right: '0px'}}>{timeToShow}</Typography>
+    <Typography sx={{textTransform: 'uppercase', fontSize: '3rem', textAlign:'right', 
+      position: 'fixed', bottom: '0px', right: '0px', color: "white", textShadow: getTextShadow(),}}>{timeToShow}</Typography>
   </>
 };

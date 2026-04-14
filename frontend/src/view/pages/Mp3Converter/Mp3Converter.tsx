@@ -10,6 +10,9 @@ const formStyle: SxProps<Theme> = {
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  backgroundColor: 'rgba(245, 245, 245, .7)',
+  paddingBottom: '2rem',
+  paddingTop: '1.5rem',
 };
 
 let resultInfo = '';

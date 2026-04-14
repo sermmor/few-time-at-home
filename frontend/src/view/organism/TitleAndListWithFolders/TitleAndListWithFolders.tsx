@@ -25,10 +25,25 @@ const listComponentStyle: SxProps<Theme> = {
   alignItems: 'left',
   justifyContent: 'center',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'whitesmoke',
+  backgroundColor: 'rgba(245, 245, 245, .7)',
   width: widthBoxes,
   marginBottom: '.5rem', 
 }
+
+const titleStyle = () => ({
+  textTransform: 'uppercase',
+  color: "white",
+  textShadow: `
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -1px 0 0 black,
+    1px 0 0 black,
+    0 -1px 0 black,
+    0 1px 0 black
+  `,
+});
 
 const itemListStyle: SxProps<Theme> = {
   display: 'flex',
@@ -42,11 +57,11 @@ const buttonListStyle: SxProps<Theme> = {
   flexWrap: 'wrap',
   alignItems: 'center',
   justifyContent: 'left',
-  backgroundColor: 'whitesmoke',
   width: widthBoxes,
   borderStyle: 'solid',
   borderWidth: '.05rem',
   borderColor: '#9f9f9f',
+  backgroundColor: 'rgba(245, 245, 245, .7)',
 }
 
 const breadcrumbStyle: SxProps<Theme> = {
@@ -160,7 +175,7 @@ export const TitleAndListWithFolders = ({
   }
   
   return <>
-    <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+    <Typography variant='h6' sx={titleStyle()}>
       {title}
     </Typography>
     {onSearch && <SearchAndList helperText={helpSearchLabel} widthBoxes={widthBoxes} onSearch={onSearch} />}

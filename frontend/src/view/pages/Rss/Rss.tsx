@@ -22,6 +22,9 @@ enum StateItemList { EMPTY, LOADING, CHARGED };
 
 const formFieldStyle = (): SxProps<Theme> => ({
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',  
+  backgroundColor: 'rgba(245, 245, 245, .7)',
+  paddingBottom: '.5rem',
+  paddingTop: '1.5rem',
 });
 
 const formSizeFields = (): SxProps<Theme> => ({
@@ -29,7 +32,7 @@ const formSizeFields = (): SxProps<Theme> => ({
 });
 
 const buttonCardStyles = (): SxProps<Theme> => ({
-  backgroundColor: '#b3ffb3',
+  backgroundColor: 'rgba(179, 255, 179, .7)',
   margin: '0rem 1rem 0rem 1rem',
 });
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(

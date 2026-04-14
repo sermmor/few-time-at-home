@@ -12,8 +12,24 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
+const titleStyle = () => ({
+  textTransform: 'uppercase',
+  color: "white",
+  textShadow: `
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -1px 0 0 black,
+    1px 0 0 black,
+    0 -1px 0 black,
+    0 1px 0 black
+  `,
+});
+
 const textAreaStyle: SxProps<Theme> = {
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '80%'},
+  backgroundColor: 'rgba(245, 245, 245, .7)'
 }
 
 const saveTextInCloud = (
@@ -53,7 +69,7 @@ const downloadText = (text: string) => {
 
 const ViewBox = ({ textData }: {textData: string}) => (
   <Box
-    style={{width: '80%', height: '28rem', overflow: "hidden", overflowY: "scroll",}}
+    style={{width: '80%', height: '28rem', overflow: "hidden", overflowY: "scroll", backgroundColor: 'rgba(245, 245, 245, .7)'}}
     dangerouslySetInnerHTML={{ __html: textData }}
   />
 );
@@ -75,7 +91,7 @@ export const TextEditor = () => {
   const applyEOFToText = (text: string): string => text.split('\n').join('<br />');
 
   return <Box sx={formStyle}>
-    <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+    <Typography variant='h6' sx={titleStyle()}>
       Text Editor
     </Typography>
     <Box>

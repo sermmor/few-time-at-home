@@ -72,11 +72,27 @@ export const Notifications = () => {
   
   const getBackgroundColor = (index: number) =>(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF';
 
+
+  const getNotificationStyle = (): React.CSSProperties => ({
+    color: 'red',
+    fontSize: '1.25rem',
+    textShadow: `
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black,
+      -1px 0 0 black,
+      1px 0 0 black,
+      0 -1px 0 black,
+      0 1px 0 black
+    `,
+  });
+
   return <Box sx={formStyle}>
     {notifications && <>
       <TitleAndList
         title='Notifications'
-        subtext={isNotificationsEnabled ? undefined : <p style={{color: 'red'}}>All notifications are disabled</p>}
+        subtext={isNotificationsEnabled ? undefined : <p style={getNotificationStyle()}>All notifications are disabled</p>}
         deleteAction={deleteActionList}
         addAction={() => {const today = new Date(); addActionList({timeToLaunch: today.toJSON(), message: 'new alert'})} }
         list={notifications.alerts.map((item, index) => ({id: `${item.timeToLaunch}`, item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%', backgroundColor: getBackgroundColor(index)}}>

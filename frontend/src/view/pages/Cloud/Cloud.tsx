@@ -142,7 +142,7 @@ export const Cloud = () => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
-          backgroundColor: dragIsOver ? 'Highlight' : 'white',
+          backgroundColor: dragIsOver ? 'Highlight' : 'rgba(245, 245, 245, 0)',
         }}
       >
       <TitleAndListWithFolders

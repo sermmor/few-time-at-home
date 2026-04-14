@@ -29,7 +29,7 @@ const commandLineStyle: SxProps<Theme> = {
   marginBottom: '2rem',
   padding: '1rem',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'whitesmoke',
+  backgroundColor: 'rgba(245, 245, 245, .7)',
 };
 
 const footerStyle: SxProps<Theme> = {
@@ -39,6 +39,8 @@ const footerStyle: SxProps<Theme> = {
   alignItems: 'left',
   justifyContent: 'initial',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  background: "rgba(255, 255, 255, .6)",
+  padding: '1.5rem',
 };
 
 const SaveConfigurationComponent = ({config: allConfig, type}: {config: ConfigurationDataZipped, type: string}) => {

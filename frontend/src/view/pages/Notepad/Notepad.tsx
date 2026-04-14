@@ -13,8 +13,24 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
+const titleStyle = () => ({
+  textTransform: 'uppercase',
+  color: "white",
+  textShadow: `
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -1px 0 0 black,
+    1px 0 0 black,
+    0 -1px 0 black,
+    0 1px 0 black
+  `,
+});
+
 const textAreaStyle: SxProps<Theme> = {
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '80%'},
+  backgroundColor: 'rgba(245, 245, 245, .7)',
 }
 
 const downloadText = (text: string) => {
@@ -42,7 +58,7 @@ export const Notepad = () => {
   }
 
   return <Box sx={formStyle}>
-    <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+    <Typography variant='h6' sx={titleStyle()}>
       Notepad {isNotificationsEnabled ? undefined : <span>(<span style={{color: 'red'}}>No context in Telegram</span>)</span>}
     </Typography>
     <TextField

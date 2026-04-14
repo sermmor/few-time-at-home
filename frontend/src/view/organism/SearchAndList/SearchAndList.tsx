@@ -12,6 +12,16 @@ const listComponentStyle = (widthBoxes: {xs: string; sm: string; md: string; lg:
   marginBottom: '.5rem', 
 });
 
+const fieldSearchStyle = (widthBoxes: {
+    xs: string;
+    sm: string;
+    md: string;
+    lg: string;
+}): SxProps<Theme> => ({
+  width: widthBoxes,
+  backgroundColor: 'rgba(245, 245, 245, .7)',
+});
+
 interface Props {
   helperText: string;
   widthBoxes: {xs: string; sm: string; md: string; lg: string;};
@@ -43,7 +53,7 @@ export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
         variant="outlined"
         value={toSearch}
         helperText={helperText}
-        sx={{width: widthBoxes}}
+        sx={fieldSearchStyle(widthBoxes)}
         onChange={evt => onTyping(evt.target.value)}
         onKeyDown={(evt) => evt.key === 'Escape' ? cleanFields()
           : (evt.key === 'Enter') ? searchText(toSearch) : undefined }

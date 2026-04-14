@@ -1,6 +1,21 @@
 import { Typography } from "@mui/material";
 import { ListComponent } from "../../molecules/ListComponent/ListComponent";
 
+const titleStyle = () => ({
+  textTransform: 'uppercase',
+  color: "white",
+  textShadow: `
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black,
+    -1px 0 0 black,
+    1px 0 0 black,
+    0 -1px 0 black,
+    0 1px 0 black
+  `,
+});
+
 export const TitleAndList = ({title, list, subtext, showRowLine, deleteAction, addAction}: {
   title: string;
   subtext?: JSX.Element;
@@ -9,7 +24,7 @@ export const TitleAndList = ({title, list, subtext, showRowLine, deleteAction, a
   deleteAction?: (id: string) => void;
   addAction?: () => void;
 }) => <>
-  <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
+  <Typography variant='h6' sx={titleStyle()}>
     {title}
   </Typography>
   {subtext}

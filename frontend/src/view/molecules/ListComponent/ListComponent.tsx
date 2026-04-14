@@ -8,7 +8,7 @@ const listComponentStyle: SxProps<Theme> = {
   alignItems: 'left',
   justifyContent: 'center',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'whitesmoke',
+  backgroundColor: 'rgba(245, 245, 245, .7)',
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'},
   marginBottom: '.5rem', 
 }

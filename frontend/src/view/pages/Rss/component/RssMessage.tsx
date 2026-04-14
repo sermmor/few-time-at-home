@@ -14,7 +14,7 @@ interface Props {
 const cardStyle = {
   margin: '1rem 1rem 0rem 1rem',
   color: 'whitesmoke',
-  backgroundColor: 'rgb(30, 30, 30)',
+  backgroundColor: 'rgba(30, 30, 30, .7)',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
 }
 
