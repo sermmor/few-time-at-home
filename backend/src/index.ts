@@ -15,6 +15,7 @@ import { BookmarkService } from './API/bookmark.service';
 import { Logger } from './logger';
 import { MediaRSSAutoupdate } from './processAutoupdate/mediaRSSAutoupdate';
 import { WebSocketsServerService } from './webSockets/webSocketsServer.service';
+import { AemetService } from './API/aemet.service';
 
 const keysPath = 'keys.json';
 
@@ -57,6 +58,7 @@ readFile(keysPath, (err, data) => {
           bot.start(commands);
           const mediaAutoUpdate = new MediaRSSAutoupdate(commands);
           apiService = new APIService(channelMediaCollection, commands);
+          new AemetService(bot.sendMessageToTelegram);
           
           console.log("> The bot is ready.");
         });
