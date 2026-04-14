@@ -72,6 +72,7 @@ export class APIService {
   static videoToMp3ConverterEndpoint = "/video-to-mp3-converter";
   static audioToMp3ConverterEndpoint = "/audio-to-mp3-converter";
   static stillConverterEndpoint = "/still-converter";
+  static backgroundImageEndpoint = "/background";
   static cloudEndpointList = {
     getDrivesList: '/cloud/drives',
     getFolderContent: '/cloud/get-folder-content',
@@ -121,6 +122,7 @@ export class APIService {
     this.bookmarksService();
     this.notepadService();
     this.converterToMp3Service();
+    this.backgroundImageService();
     this.cloudService();
     this.synchronizeService();
     
@@ -756,6 +758,28 @@ export class APIService {
           // res.send({message: "Configuración sincronizada del servidor subida al cliente."});
         });
       }
+    });
+  }
+
+  private backgroundImageService() {
+    const cloudService = new CloudService();
+    
+    this.app.get(APIService.backgroundImageEndpoint, (req, res) => {
+      cloudService.getBackgroundImageFileName().then(backgroundFileName => {
+        if (backgroundFileName) {
+          const cloudFolderPath = `${ConfigurationService.Instance.cloudRootPath}/cloud/${backgroundFileName}`;
+          res.sendFile(cloudFolderPath, (err) => {
+            if (err) {
+              console.error(`Error sending background image: ${err}`);
+              res.status(404).send({ error: 'Background image not found' });
+            } else {
+              console.log(`Sent background image: ${backgroundFileName}`);
+            }
+          });
+        } else {
+          res.status(404).send({ error: 'No background image found' });
+        }
+      });
     });
   }
 }

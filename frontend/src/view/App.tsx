@@ -6,6 +6,7 @@ import { routesFTAH } from './Routes';
 import { ConfigurationService } from '../service/configuration/configuration.service';
 import { WebSocketClientService } from '../service/webSocketService/webSocketClient.service';
 import { NotificationsActions } from '../core/actions/notifications';
+import { BackgroundActions } from '../core/actions/background';
 
 const ConfigData = require('../configuration.json');
 
@@ -90,11 +91,11 @@ const ServerInfoBar = () => {
 }
 
 const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
-<Box sx={{position: 'fixed', width:'100%', zIndex:'1'}}>
+<Box sx={{position: 'fixed', width:'100%', zIndex:'100'}}>
   <AppMenubar />
   <ServerInfoBar />
 </Box>
-<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem'}}>
+<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem', position: 'relative', zIndex: '1'}}>
   {
   element
   }
@@ -123,8 +124,29 @@ const AllRoutes = () => {
 }
 
 export const App = () => {
+    const [backgroundImage, setBackgroundImage] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+      BackgroundActions.getBackgroundImage().then(imageUrl => {
+        if (imageUrl) {
+          setBackgroundImage(imageUrl);
+        }
+      });
+    }, []);
+
+    const appContainerStyle: SxProps<Theme> = {
+      minHeight: '100vh',
+      backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+      backgroundRepeat: 'no-repeat',
+    };
+
     return (<>
         <CssBaseline/>
-        <AllRoutes />
+        <Box sx={appContainerStyle}>
+          <AllRoutes />
+        </Box>
     </>);
 }

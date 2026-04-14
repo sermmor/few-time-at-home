@@ -22,6 +22,7 @@ export const unfurlYoutubeImageEndpoint = (): string => `${getUrlApi()}/unfurl-y
 
 export const synchronizeDownloadEndpoint = (): string => `${getUrlApi()}/synchronize/download`;
 export const synchronizeUploadEndpoint = (): string => `${getUrlApi()}/synchronize/upload`;
+export const backgroundImageEndpoint = (): string => `${getUrlApi()}/background`;
 
 export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'searchInFolder' | 'deleteFileOrFolder' | 'zipFolder';
 const cloudEndpointList = {

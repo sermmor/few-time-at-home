@@ -145,3 +145,26 @@ export const fetchGetTextDownloadFile = (url: string, data: DownloadFile): Promi
   }).then(res => res.text())
     .then(text => resolve(text));
 });
+
+export const fetchBackgroundImage = (url: string): Promise<string | null> => new Promise<string | null>(resolve => {
+  if (ConfigurationService.Instance.isUsingMocks) {
+    resolve(null);
+  } else {
+    fetch(url)
+      .then(res => {
+        if (!res.ok) {
+          resolve(null);
+        } else {
+          return res.blob();
+        }
+      })
+      .then(blob => {
+        if (blob) {
+          resolve(URL.createObjectURL(blob));
+        } else {
+          resolve(null);
+        }
+      })
+      .catch(() => resolve(null));
+  }
+});

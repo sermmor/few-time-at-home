@@ -282,4 +282,23 @@ export class CloudService {
     const pathToZip = this.fromRelativePathToAbsolute(relativePathToZip);
     zip( pathToZip, `${pathToZip}.zip`, { compression } ).then(() => resolve(`Zip file created in ${relativePathToZip}.zip`));
   });
+
+  getBackgroundImageFileName = (): Promise<string | null> => new Promise<string | null>(resolve => {
+    const cloudFolderPath = this.fromRelativePathToAbsolute('cloud');
+    const imageExtensions = ['jpg', 'jpeg', 'webp', 'gif', 'png'];
+    
+    readdir(cloudFolderPath, (err, fileList) => {
+      if (err) {
+        console.log(`Error reading cloud folder: ${err}`);
+        resolve(null);
+      } else {
+        const backgroundFile = fileList?.find(fileName => {
+          const lowerFileName = fileName.toLowerCase();
+          return lowerFileName.startsWith('background') && 
+                 imageExtensions.some(ext => lowerFileName.endsWith(`.${ext}`));
+        });
+        resolve(backgroundFile || null);
+      }
+    });
+  });
 }
