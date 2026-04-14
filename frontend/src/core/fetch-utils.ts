@@ -91,33 +91,31 @@ const isTypeFileToShowInNewTab = (fileName: string): boolean => {
 export const fetchDownloadFile = (url: string, data: DownloadFile): Promise<void> => new Promise<void>(resolve => {
   const fileNamePathSplitted = data.path.split('/');
   const fileName = fileNamePathSplitted[fileNamePathSplitted.length - 1];
-  fetch(url, {
-    method: 'POST',
-    headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data, null, 2)
-  }).then(res => res.blob())
-  .then( blob => {
-    const url = window.URL.createObjectURL(blob);
-    const isAndroidOS = navigator.appVersion.toLowerCase().indexOf('android') !== -1;
-    const isTabletScreenSize = window.innerWidth < 1400; // If we are in iOS is imposible know if it's a Mac or a iPad, so we use the screen width.
-    if (!isAndroidOS && !isTabletScreenSize && isTypeFileToShowInNewTab(fileName)) {
-      // Show in new tab.
+  const isAndroidOS = navigator.appVersion.toLowerCase().indexOf('android') !== -1;
+  const isTabletScreenSize = window.innerWidth < 1400; // If we are in iOS is imposible know if it's a Mac or a iPad, so we use the screen width.
+
+  if (!isAndroidOS && !isTabletScreenSize && isTypeFileToShowInNewTab(fileName)) {
+    // Show viewable files (PDF, images) inline in a new tab — keep blob approach so they render directly.
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data, null, 2)
+    }).then(res => res.blob())
+    .then(blob => {
       window.open(URL.createObjectURL(blob));
       resolve();
-    } else {
-      // Download file.
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
-      a.click();    
-      a.remove();  //afterwards we remove the element again 
-      resolve();
-    }
-  });
+    });
+  } else {
+    // Native browser download via GET — the browser manages the transfer itself, so
+    // real-time progress appears in the browser's Downloads panel straight away.
+    // Content-Disposition: attachment (set server-side) prevents page navigation.
+    const nativeUrl = `${url}?drive=${encodeURIComponent(data.drive)}&path=${encodeURIComponent(data.path)}`;
+    window.location.href = nativeUrl;
+    resolve();
+  }
 });
 
 export const fetchDownloadFileAndGetBlob = (url: string, data: DownloadFile): Promise<string> => new Promise<string>(resolve => {

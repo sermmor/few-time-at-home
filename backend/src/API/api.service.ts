@@ -684,15 +684,15 @@ export class APIService {
           root: undefined
         };
 
-        
+
         if (cloudDefaultPath === req.body.cloud) {
           options.root = path.join(__dirname);
         } else {
           options.root = `${ConfigurationService.Instance.cloudRootPath}/${cloudService.getPathDrive(req.body.drive)}`;
         }
-        
+
         const fileRelativePath = (<string> req.body.path).split('/').slice(1).join('/'); // Remove 'drive'.
-        
+
         res.sendFile(fileRelativePath, options, (err) => {
           if (err) {
             console.error("Received NO body text");
@@ -701,6 +701,36 @@ export class APIService {
           }
         });
       }
+    });
+
+    // query params: drive, path
+    // Native GET endpoint so the browser handles the download itself and shows real progress
+    // in its Downloads panel. Content-Disposition: attachment ensures the browser downloads
+    // the file instead of trying to navigate to it.
+    this.app.get(APIService.cloudEndpointList.downloadFile, (req, res) => {
+      const drive = req.query.drive as string;
+      const filePath = req.query.path as string;
+
+      if (!drive || !filePath) {
+        res.status(400).send({ error: 'Missing drive or path query parameter' });
+        return;
+      }
+
+      const options: { root: string } = {
+        root: `${ConfigurationService.Instance.cloudRootPath}/${cloudService.getPathDrive(drive)}`,
+      };
+
+      const fileRelativePath = filePath.split('/').slice(1).join('/'); // Remove drive prefix.
+      const fileName = filePath.split('/').pop() || 'download';
+
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.sendFile(fileRelativePath, options, (err) => {
+        if (err) {
+          console.error(`Error sending file (GET download): ${err}`);
+        } else {
+          console.log(`Sent (GET): ${fileRelativePath}`);
+        }
+      });
     });
   }
 
