@@ -10,6 +10,9 @@ import { NotesService } from './notes.service';
 import Multer from 'multer';
 import { CloudService, cloudDefaultPath } from './cloud.service';
 import path from 'path';
+import ffmpeg from 'fluent-ffmpeg';
+const ffmpegPath: string = require('@ffmpeg-installer/ffmpeg').path;
+ffmpeg.setFfmpegPath(ffmpegPath);
 import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
@@ -705,10 +708,12 @@ export class APIService {
     });
 
     // query params: drive, path
-    // Streaming endpoint for the video player (and any inline viewing).
+    // Streaming endpoint for the video/audio player (and any inline viewing).
     // NO Content-Disposition header so the browser treats the response as an inline
     // resource. Express's res.sendFile() automatically handles HTTP Range requests,
-    // which allows the <video> element to seek and buffer efficiently.
+    // which allows the <video>/<audio> element to seek and buffer efficiently.
+    // WMA files are not natively supported by browsers, so they are transcoded to
+    // MP3 on-the-fly via ffmpeg and piped directly to the response.
     this.app.get(APIService.cloudEndpointList.streamFile, (req, res) => {
       const drive = req.query.drive as string;
       const filePath = req.query.path as string;
@@ -718,11 +723,32 @@ export class APIService {
         return;
       }
 
-      const options: { root: string } = {
-        root: `${ConfigurationService.Instance.cloudRootPath}/${cloudService.getPathDrive(drive)}`,
-      };
-
+      const root = `${ConfigurationService.Instance.cloudRootPath}/${cloudService.getPathDrive(drive)}`;
       const fileRelativePath = filePath.split('/').slice(1).join('/');
+      const absoluteFilePath = path.join(root, fileRelativePath);
+
+      // Transcode WMA (and any other browser-unsupported format) to MP3 on the fly.
+      if (fileRelativePath.toLowerCase().endsWith('.wma')) {
+        res.setHeader('Content-Type', 'audio/mpeg');
+        ffmpeg(absoluteFilePath)
+          .noVideo()
+          .audioCodec('libmp3lame')
+          .audioBitrate('192k')
+          .format('mp3')
+          .on('error', (err) => {
+            console.error(`WMA transcode error: ${err.message}`);
+            if (!res.headersSent) {
+              res.status(500).send({ error: 'Transcoding failed' });
+            }
+          })
+          .on('end', () => {
+            console.log(`Transcoded and streamed: ${fileRelativePath}`);
+          })
+          .pipe(res as any, { end: true });
+        return;
+      }
+
+      const options: { root: string } = { root };
 
       res.sendFile(fileRelativePath, options, (err) => {
         if (err) {

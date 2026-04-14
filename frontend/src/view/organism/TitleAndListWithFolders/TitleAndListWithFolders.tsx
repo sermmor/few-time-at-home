@@ -15,8 +15,10 @@ import CloudCircleIcon from '@mui/icons-material/CloudCircle';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { videoFileExtensions } from "../../molecules/ModalVideoPlayer/ModalVideoPlayer";
+import { audioFileExtensions } from "../../molecules/ModalAudioPlayer/ModalAudioPlayer";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
 
 const widthBoxes = {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'};
@@ -251,9 +253,11 @@ export const TitleAndListWithFolders = ({
                   isInSelectListMode,
                   IconOpenFileInEditor: element.id.indexOf('.txt') > -1
                     ? undefined
-                    : videoFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
-                      ? <VideoLibraryIcon />
-                      : <PhotoLibraryIcon />,
+                    : audioFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
+                      ? <MusicNoteIcon />
+                      : videoFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
+                        ? <VideoLibraryIcon />
+                        : <PhotoLibraryIcon />,
                   isElementSelected: isCheckedList[index],
                   onSelect: onSelectItemGeneral(index),
                   onOpenFileInEditor: filterFileInEditor && openFileInEditor && filterFileInEditor(element.id) ? openFileInEditor : undefined,
