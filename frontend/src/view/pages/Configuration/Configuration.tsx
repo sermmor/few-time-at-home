@@ -111,7 +111,7 @@ export const ConfigurationComponent = () => {
       <OthersSection config={config} setConfig={setConfig} />
       <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
     </Box>}
-    <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar}>
+    <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} sx={{ zIndex: 9999 }}>
       <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
         {snackBarMessage}
       </Alert>

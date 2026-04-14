@@ -91,11 +91,11 @@ const ServerInfoBar = () => {
 }
 
 const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
-<Box sx={{position: 'fixed', width:'100%', zIndex:'100'}}>
+<Box sx={{position: 'fixed', width:'100%', zIndex: 100}}>
   <AppMenubar />
   <ServerInfoBar />
 </Box>
-<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem', position: 'relative', zIndex: '1'}}>
+<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem', position: 'relative', zIndex: 1}}>
   {
   element
   }
