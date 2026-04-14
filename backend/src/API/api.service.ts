@@ -644,9 +644,14 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        cloudService.uploadFile(allFiles.path, `${req.body.folderPathToSave}/${allFiles.originalname}`).then(message => {
+        // Node's multipart parser (busboy/multer) reads field values and filenames as
+        // latin1 by default, even though browsers send them as UTF-8.  Re-encoding via
+        // Buffer fixes accented/non-ASCII characters (e.g. "Éste" → correct UTF-8).
+        const originalName = Buffer.from(allFiles.originalname, 'latin1').toString('utf8');
+        const folderPath   = Buffer.from(req.body.folderPathToSave, 'latin1').toString('utf8');
+        cloudService.uploadFile(allFiles.path, `${folderPath}/${originalName}`).then(message => {
           res.send({ message });
-          });
+        });
       }
     });
 
