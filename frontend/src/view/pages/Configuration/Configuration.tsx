@@ -9,6 +9,7 @@ import { synchronizeActions } from "../../../core/actions/synchronize";
 import { LabelAndComboField } from "../../molecules/LabelAndComboField/LabelAndComboField";
 import { TitleAndSection } from "../../organism/TitleAndSection/TitleAndSection";
 import { RSSActions } from "../../../core/actions/rss";
+import { PomodoroTimeModesEditor } from "./Components/PomodoroTimeModesEditor/PomodoroTimeModesEditor";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -373,31 +374,27 @@ export const ConfigurationComponent = () => {
           />
           <SaveConfigurationComponent config={config} type={'quoteList'}/>
         </>
-        { /* TODO POMODORO */ }
         <Box sx={commandLineStyle}>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Mode:</Typography>
+          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'space-between', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}, marginBottom: '1.5rem'}}>
+            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Modes:</Typography>
             <Button
-              variant='outlined'
+              variant='contained'
               sx={{minWidth: '15.5rem'}}
               onClick={() => {
-                const allTimeMode = JSON.parse(pomodoroTimeMode);
-                PomodoroActions.sendNewTimeMode(allTimeMode);
+                try {
+                  const allTimeMode = JSON.parse(pomodoroTimeMode);
+                  PomodoroActions.sendNewTimeMode(allTimeMode);
+                } catch (error) {
+                  console.error('Invalid JSON format');
+                }
               }}
               >
-              Send new pomodoro configuration
+              Send Configuration
             </Button>
           </Box>
-          <TextField
-            id="outlined-multiline"
-            label="Resultado"
-            multiline
-            rows={15}
-            sx={{width: '100%'}}
+          <PomodoroTimeModesEditor 
             value={pomodoroTimeMode}
-            onChange={evt => {
-              setPomodoroTimeMode(evt.target.value);
-            }}
+            onChange={setPomodoroTimeMode}
           />
         </Box>
         <TitleAndList
