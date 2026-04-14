@@ -13,6 +13,8 @@ const pathAdditionalConfigFiles: {[key: string]: string} = {
   nitterRssUsersList: 'data/config/nitterRssUsersList.json',
   quoteList: 'data/config/quoteList.json',
   youtubeRssList: 'data/config/youtubeRssList.json',
+  listBotCommands: 'data/config/listBotCommands.json',
+  rssConfig: 'data/config/rssConfig.json',
 };
 const listNamesAdditionalConfigFiles = Object.keys(pathAdditionalConfigFiles);
 
@@ -23,9 +25,16 @@ const readAdditionalConfigFile = (
 ): Promise<any> => new Promise<any>(resolve => {
   const nameFile = listNameFiles[index];
   readFile(pathAdditionalConfigFiles[nameFile], (err, data) => { 
-    if (err) throw err;
-    const configData = JSON.parse(<string> <any> data);
-    configToAdd[nameFile] = configData;
+    if (err) {
+      // For new config types like listBotCommands and rssConfig, skip if file doesn't exist yet
+      // They will remain in configuration.json until first saved separately
+      if (!['listBotCommands', 'rssConfig'].includes(nameFile)) {
+        throw err;
+      }
+    } else {
+      const configData = JSON.parse(<string> <any> data);
+      configToAdd[nameFile] = configData;
+    }
     if (index + 1 < listNameFiles.length) {
       readAdditionalConfigFile(listNameFiles, configToAdd, index + 1).then(completeConfig => resolve(completeConfig));
     } else {

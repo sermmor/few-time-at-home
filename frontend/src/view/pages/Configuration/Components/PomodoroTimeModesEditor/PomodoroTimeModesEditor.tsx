@@ -54,7 +54,7 @@ export const PomodoroTimeModesEditor: React.FC<PomodoroTimeModesEditorProps> = (
     } catch (error) {
       setParseError('Invalid JSON format');
     }
-  }, []);
+  }, [value]);
 
   // Update parent when timeModes changes
   const updateParent = (newTimeModes: TimeMode[]) => {

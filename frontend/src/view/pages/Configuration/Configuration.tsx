@@ -1,15 +1,22 @@
 import React from "react";
-import { Box, Button, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
+import { Box, SxProps, Theme, Snackbar } from "@mui/material";
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { ConfigurationActions } from "../../../core/actions/configuration";
-import { ConfigurationDataZipped, getContentConfigurationZippedByType, parseToZippedConfig } from "../../../data-model/configuration";
-import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
-import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
+import { ConfigurationDataZipped, parseToZippedConfig } from "../../../data-model/configuration";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
-import { synchronizeActions } from "../../../core/actions/synchronize";
-import { LabelAndComboField } from "../../molecules/LabelAndComboField/LabelAndComboField";
-import { TitleAndSection } from "../../organism/TitleAndSection/TitleAndSection";
-import { RSSActions } from "../../../core/actions/rss";
-import { PomodoroTimeModesEditor } from "./Components/PomodoroTimeModesEditor/PomodoroTimeModesEditor";
+import { SynchronizeSection } from "./Components/SynchronizeSection";
+import { NitterInstancesSection } from "./Components/NitterInstancesSection";
+import { TwitterUsersSection } from "./Components/TwitterUsersSection";
+import { MastodonUsersSection } from "./Components/MastodonUsersSection";
+import { BlogRSSSection } from "./Components/BlogRSSSection";
+import { NewsRSSSection } from "./Components/NewsRSSSection";
+import { YoutubeRSSSection } from "./Components/YoutubeRSSSection";
+import { CitasSection } from "./Components/CitasSection";
+import { PomodoroSection } from "./Components/PomodoroSection";
+import { TelegramCommandsSection } from "./Components/TelegramCommandsSection";
+import { RSSConfigurationSection } from "./Components/RSSConfigurationSection";
+import { OthersSection } from "./Components/OthersSection";
+import { CommandLineSection } from "./Components/CommandLineSection";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -20,50 +27,12 @@ const formStyle: SxProps<Theme> = {
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
 };
 
-const commandLineStyle: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-  alignItems: 'left',
-  justifyContent: 'initial',
-  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-  marginBottom: '2rem',
-  padding: '1rem',
-  color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-};
-
-const footerStyle: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '2rem',
-  alignItems: 'left',
-  justifyContent: 'initial',
-  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-  background: "rgba(255, 255, 255, .6)",
-  padding: '1.5rem',
-};
-
-const SaveConfigurationComponent = ({config: allConfig, type}: {config: ConfigurationDataZipped, type: string}) => {
-  const [isSave, setSave] = React.useState<boolean>(false);
-  const setConfiguration = () => {
-    ConfigurationActions.sendConfiguration({ type, content: getContentConfigurationZippedByType(allConfig, type) });
-    setSave(true);
-    setTimeout(() => setSave(false), 500);
-  }
-  return <Box
-    sx={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingRight: { xs: '0rem', sm: '3rem'}, paddingBottom: '3rem'}}
-    >
-      <Button
-        variant='contained'
-        sx={{minWidth: '15.5rem'}}
-        onClick={() => setConfiguration()}
-        >
-        Save
-        </Button>
-        {isSave && <Box sx={{paddingLeft: '1rem'}}>Saved!</Box>}
-    </Box>
-};
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref,
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 let indexNewItemAdded = 0;
 
@@ -73,7 +42,11 @@ export const ConfigurationComponent = () => {
   const [synchronizeUrl, setSynchronizeUrl] = React.useState<string>(`http://[host_IP]:3001`);
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   const [pomodoroTimeMode, setPomodoroTimeMode] = React.useState<string>('');
-  const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
+  const [snackBarMessage, setSnackBarMessage] = React.useState<string>('');
+  
+  const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
   
   React.useEffect(() => {
     ConfigurationActions.getConfigurationType().then(types => ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data))));
@@ -124,490 +97,24 @@ export const ConfigurationComponent = () => {
 
   return <>
     {config && <Box sx={formStyle}>
-        <Box sx={commandLineStyle}>
-          <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Synchronize all data:</Typography>
-          <TextField
-              label="Url backend to Synchronize:"
-              variant="standard"
-              value={synchronizeUrl}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
-              onChange={evt => {
-                setSynchronizeUrl(evt.target.value);
-              }}
-            />
-          {/* <Button
-              variant='outlined'
-              sx={{minWidth: '15.5rem'}}
-              onClick={() => synchronizeActions.uploadData(synchronizeUrl)}
-              >Upload</Button> */}
-          <Button
-              variant='contained'
-              sx={{minWidth: '15.5rem'}}
-              onClick={() => synchronizeActions.downloadData(synchronizeUrl)}
-              >Download</Button>
-        </Box>
-        <>
-          <TitleAndList
-            title='Nitter Instances'
-            deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
-            addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`) }
-            list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-              editActionList('nitterInstancesList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-            }/>}))}
-          />
-          <SaveConfigurationComponent config={config} type={'nitterInstancesList'}/>
-        </>
-        <>
-          <TitleAndList
-            title='Twitter Users'
-            deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
-            addAction={() => addActionList('nitterRssUsersList', `new User ${indexNewItemAdded}`) }
-            list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-              editActionList('nitterRssUsersList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-            }/>}))}
-          />
-          <SaveConfigurationComponent config={config} type={'nitterRssUsersList'}/>
-        </>
-        <>
-          <TitleAndList
-            title='Mastodon Users'
-            deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) => `@${user}@${instance}` === idToDelete)}
-            addAction={() => addActionList('mastodonRssUsersList', {user: `new User ${indexNewItemAdded}`, instance: `new Instance ${indexNewItemAdded}`}) }
-            list={config.mastodonRssUsersList.map(({instance, user}) => ({
-              id: `@${user}@${instance}`,
-              item: <>@<LabelAndTextField
-                text={user}
-                onChange={
-                  editActionList(
-                    'mastodonRssUsersList',
-                    `@${user}@${instance}`,
-                    ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
-                    (newConfig, index, newText) => ({...newConfig[index], user: newText,})
-                  )
-                }
-                />@<LabelAndTextField
-                text={instance}
-                onChange={
-                  editActionList(
-                    'mastodonRssUsersList',
-                    `@${user}@${instance}`,
-                    ({user: userToEdit, instance: instanceToEdit}: any, idToEdit: string) => `@${userToEdit}@${instanceToEdit}` === idToEdit,
-                    (newConfig, index, newText) => ({...newConfig[index], instance: newText,})
-                  )
-                }
-                />
-              </>
-            }))}
-          />
-          <SaveConfigurationComponent config={config} type={'mastodonRssUsersList'}/>
-        </>
-        <>
-          <TitleAndList
-            title='Blog RSS'
-            deleteAction={deleteActionList('blogRssList', (item: any, idToDelete: string) => item === idToDelete)}
-            addAction={() => addActionList('blogRssList', `new Blog ${indexNewItemAdded}`) }
-            list={config.blogRssList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-              editActionList('blogRssList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-            }/>}))}
-          />
-          <SaveConfigurationComponent config={config} type={'blogRssList'}/>
-        </>
-        <>
-          <TitleAndList
-            title='News RSS'
-            deleteAction={deleteActionList('newsRSSList', (item: any, idToDelete: string) => item === idToDelete)}
-            addAction={() => addActionList('newsRSSList', `new News ${indexNewItemAdded}`) }
-            list={config.newsRSSList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
-              editActionList('newsRSSList', `${item}`, (item: any, idToEdit: string) => item === idToEdit)
-            }/>}))}
-          />
-          <SaveConfigurationComponent config={config} type={'newsRSSList'}/>
-        </>
-        <>
-          <TitleAndList
-            title='Youtube RSS'
-            showRowLine={true}
-            deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item.url === idToDelete)}
-            addAction={() => addActionList('youtubeRssList', {
-              url: `new channel ${indexNewItemAdded}`,
-              show_not_publised_videos: true,
-              not_filter_shorts: false,
-              words_to_filter: 'defaultToIgnore',
-              mandatory_words: 'null',
-            })}
-            list={config.youtubeRssList.map((item) =>  ({id:`${item.url}`, item: <>
-                <Box sx={{ display: 'flex' }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <ul>
-                      <li style={{ width: '30rem' }}>
-                        Url: <LabelAndTextField text={item.url} onChange={
-                          editActionList(
-                            'youtubeRssList',
-                            `${item.url}`,
-                            (item: any, idToEdit: string) => item.url === idToEdit,
-                            (newConfig, index, newText) => ({...newConfig[index], url: newText,})
-                          )
-                        }/>
-                      </li>
-                      <li>
-                        Words to filter:<LabelAndTextField text={item.words_to_filter || ''} onChange={
-                          editActionList(
-                            'youtubeRssList',
-                            `${item.url}`,
-                            (item: any, idToEdit: string) => item.url === idToEdit,
-                            (newConfig, index, newText) => ({...newConfig[index], words_to_filter: newText,})
-                          )
-                        }/>
-                      </li>
-                      <li>
-                        Mandatory words: <LabelAndTextField text={item.mandatory_words || ''} onChange={
-                          editActionList(
-                            'youtubeRssList',
-                            `${item.url}`,
-                            (item: any, idToEdit: string) => item.url === idToEdit,
-                            (newConfig, index, newText) => ({...newConfig[index], mandatory_words: newText,})
-                          )
-                        }/>
-                      </li>
-                      <li>
-                        Tags: <LabelAndComboField
-                          text={item.tag || config.rssConfig.optionTagsYoutube[0]}
-                          options={config.rssConfig.optionTagsYoutube}
-                          onChange={
-                            editActionList(
-                              'youtubeRssList',
-                              `${item.url}`,
-                              (item: any, idToEdit: string) => item.url === idToEdit,
-                              (newConfig, index, newText) => ({...newConfig[index], tag: newText,})
-                            )
-                          }
-                          />
-                      </li>
-                    </ul>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center'}}>
-                      <Checkbox
-                        checked={item.not_filter_shorts}
-                        onChange={evt => {
-                          editActionList(
-                            'youtubeRssList',
-                            `${item.url}`,
-                            (item: any, idToEdit: string) => item.url === idToEdit,
-                            (newConfig, index, newText) => ({...newConfig[index], not_filter_shorts: newText,})
-                          )(evt.target.checked)
-                        }}
-                      />
-                      <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                        Not filter youtube shorts
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Checkbox
-                        checked={item.show_not_publised_videos}
-                        onChange={evt => {
-                          editActionList(
-                            'youtubeRssList',
-                            `${item.url}`,
-                            (item: any, idToEdit: string) => item.url === idToEdit,
-                            (newConfig, index, newText) => ({...newConfig[index], show_not_publised_videos: newText,})
-                          )(evt.target.checked)
-                        }}
-                      />
-                      <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                        Show "Proximamente" videos
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Checkbox
-                        checked={item.favorite}
-                        onChange={evt => {
-                          editActionList(
-                            'youtubeRssList',
-                            `${item.url}`,
-                            (item: any, idToEdit: string) => item.url === idToEdit,
-                            (newConfig, index, newText) => ({...newConfig[index], favorite: newText,})
-                          )(evt.target.checked)
-                        }}
-                      />
-                      <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                        Is favorite?
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </>})
-            )}
-          />
-          <SaveConfigurationComponent config={config} type={'youtubeRssList'}/>
-        </>
-        <>
-          <TitleAndList
-            title='Citas'
-            deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
-            addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`}) }
-            list={config.quoteList.map(({author, quote}) => ({
-              id: `@${author}@${quote}`,
-              item: <><LabelAndTextField
-                text={author}
-                onChange={
-                  editActionList(
-                    'quoteList',
-                    `@${author}@${quote}`,
-                    ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
-                    (newConfig, index, newText) => ({...newConfig[index], author: newText,})
-                  )
-                }
-                /><LabelAndTextField
-                text={quote}
-                onChange={
-                  editActionList(
-                    'quoteList',
-                    `@${author}@${quote}`,
-                    ({author: authorToEdit, quote: quoteToEdit}: any, idToEdit: string) => `@${authorToEdit}@${quoteToEdit}` === idToEdit,
-                    (newConfig, index, newText) => ({...newConfig[index], quote: newText,})
-                  )
-                }
-                />
-              </>
-            }))}
-          />
-          <SaveConfigurationComponent config={config} type={'quoteList'}/>
-        </>
-        <Box sx={commandLineStyle}>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'space-between', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}, marginBottom: '1.5rem'}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Modes:</Typography>
-            <Button
-              variant='contained'
-              sx={{minWidth: '15.5rem'}}
-              onClick={() => {
-                try {
-                  const allTimeMode = JSON.parse(pomodoroTimeMode);
-                  PomodoroActions.sendNewTimeMode(allTimeMode);
-                } catch (error) {
-                  console.error('Invalid JSON format');
-                }
-              }}
-              >
-              Send Configuration
-            </Button>
-          </Box>
-          <PomodoroTimeModesEditor 
-            value={pomodoroTimeMode}
-            onChange={setPomodoroTimeMode}
-          />
-        </Box>
-        <TitleAndList
-          title='Telegram commands'
-          list={Object.keys(config.listBotCommands).map((commandName, index) => ({
-              id:`${index}`,
-              item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>
-                <Box>{commandName}</Box>
-                <Box sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
-                  <LabelAndTextField
-                    text={config.listBotCommands[commandName]}
-                    onChange={(newText: string) => {
-                      const cloneList = {...config.listBotCommands};
-                      (cloneList as any)[commandName] = newText;
-                      setConfig({
-                        ...config,
-                        listBotCommands: cloneList,
-                      });
-                    }          
-                    }
-                  />
-                </Box>
-              </Box>
-          })
-        )} />
-
-        <TitleAndSection
-          title="RSS Configuration"
-          body={config.rssConfig}
-          onChange={(key: string, newText: number | boolean | string | string[]) => {
-            const cloneList = {...config.rssConfig};
-            (cloneList as any)[key] = newText;
-            setConfig({
-              ...config,
-              rssConfig: cloneList,
-            });
-          }}
-          subtext={<Button
-          variant='outlined'
-          sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'},}}
-          disabled={isUpdateRss}
-          onClick={() => {
-            setIsUpdateRss(true);
-            RSSActions.postForceUpdate().then(() => {
-              setIsUpdateRss(false);
-            });
-          }}>
-            Force Update
-          </Button>}
-        />
-
-        <Box sx={footerStyle}>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Checkbox
-              checked={config.showNitterRSSInAll}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  showNitterRSSInAll: evt.target.checked,
-                });
-              }}
-            />
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              Show Twitter in 'all' rss option?
-            </Typography>
-          </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              Windows FFMPEG library path: 
-            </Typography>
-            <TextField
-              label="Windows FFMPEG library path"
-              variant="standard"
-              value={config.windowsFFMPEGPath}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  windowsFFMPEGPath: evt.target.value,
-                });
-              }}
-            />
-          </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              Backup path
-            </Typography>
-            <TextField
-              label="Backup path"
-              variant="standard"
-              value={config.backupUrls}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  backupUrls: evt.target.value,
-                });
-              }}
-            />
-          </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              Cloud path
-            </Typography>
-            <TextField
-              label="Cloud path"
-              variant="standard"
-              value={config.cloudRootPath}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  cloudRootPath: evt.target.value,
-                });
-              }}
-            />
-          </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              Number of workers
-            </Typography>
-            <TextField
-              label="Workers"
-              variant="outlined"
-              value={config.numberOfWorkers}
-              type='number'
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  numberOfWorkers: +evt.target.value,
-                });
-              }}
-            />
-          </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              API Port:
-            </Typography>
-            <TextField
-              label="Port"
-              variant="outlined"
-              type='number'
-              value={config.apiPort}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  apiPort: +evt.target.value,
-                });
-              }}
-            />
-          </Box>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-              WebSocket Port:
-            </Typography>
-            <TextField
-              label="Port"
-              variant="outlined"
-              type='number'
-              value={config.webSocketPort}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
-              onChange={evt => {
-                setConfig({
-                  ...config,
-                  webSocketPort: +evt.target.value,
-                });
-              }}
-            />
-          </Box>
-        </Box>
-        <SaveConfigurationComponent config={config} type={'configuration'}/>
-        <Box sx={commandLineStyle}>
-          <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-            <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
-            <TextField
-              label="line to send"
-              variant="standard"
-              value={lineToSend}
-              sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
-              onChange={evt => {
-                setLineToSend(evt.target.value);
-              }}
-            />
-            <Button
-              variant='outlined'
-              sx={{minWidth: '15.5rem'}}
-              onClick={() => ConfigurationActions.sendCommandLine({commandLine: lineToSend}).then(result => {
-                if (result.stdout) {
-                  setLineToSendResult(result.stdout);
-                } else if (result.stderr) {
-                  setLineToSendResult(result.stderr);
-                } else if (result.stdout === '' && result.stderr === '') {
-                  setLineToSendResult('FINISHED');
-                } else {
-                  console.log(result);
-                }
-              })}
-              >
-              Send command line
-            </Button>
-          </Box>
-          <TextField
-            id="outlined-multiline-static"
-            label="Resultado"
-            multiline
-            rows={5}
-            sx={{width: '100%'}}
-            value={lineToSendResult}
-          />
-        </Box>
-      </Box>
-    }
+      <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
+      <NitterInstancesSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <TwitterUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+      <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
+      <TelegramCommandsSection config={config} setConfig={setConfig} />
+      <RSSConfigurationSection config={config} setConfig={setConfig} />
+      <OthersSection config={config} setConfig={setConfig} />
+      <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
+    </Box>}
+    <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar}>
+      <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
+        {snackBarMessage}
+      </Alert>
+    </Snackbar>
   </>;
 };
