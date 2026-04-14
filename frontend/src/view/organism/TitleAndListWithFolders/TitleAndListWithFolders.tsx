@@ -99,6 +99,8 @@ interface Props {
   openFileInEditor?: (id: string) => void;
   createFile?: () => void;
   showPhotoLibrary?: () => void;
+  /** Called when the user taps the "add to playlist" (+) button on an audio file or folder. */
+  onAddToPlaylist?: (id: string, isFolder: boolean) => void;
 }
 
 export const TitleAndListWithFolders = ({
@@ -126,6 +128,7 @@ export const TitleAndListWithFolders = ({
   openFileInEditor,
   createFile,
   showPhotoLibrary,
+  onAddToPlaylist,
 }: Props) => {
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
@@ -243,28 +246,37 @@ export const TitleAndListWithFolders = ({
     <Card sx={listComponentStyle}>
       <CardContent>
         {
-          list.map((element, index) =>
-            <Box key={element.id} sx={itemListStyle}>
-              {
-                (!filterItemPredicate || filterItemPredicate(element.id)) && 
-                <ItemListWithFoldersComponent {...{
-                  element,
-                  deleteAction,
-                  isInSelectListMode,
-                  IconOpenFileInEditor: element.id.indexOf('.txt') > -1
-                    ? undefined
-                    : audioFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
-                      ? <MusicNoteIcon />
-                      : videoFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
-                        ? <VideoLibraryIcon />
-                        : <PhotoLibraryIcon />,
-                  isElementSelected: isCheckedList[index],
-                  onSelect: onSelectItemGeneral(index),
-                  onOpenFileInEditor: filterFileInEditor && openFileInEditor && filterFileInEditor(element.id) ? openFileInEditor : undefined,
-                }}/>
-              }
-            </Box>
-          )
+          list.map((element, index) => {
+            // Show "add to playlist" (+) for audio files and for folders (which may contain audio).
+            const isAudioItem = audioFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext));
+            const showAddToPlaylist = onAddToPlaylist && (element.isFolder || isAudioItem);
+
+            return (
+              <Box key={element.id} sx={itemListStyle}>
+                {
+                  (!filterItemPredicate || filterItemPredicate(element.id)) &&
+                  <ItemListWithFoldersComponent {...{
+                    element,
+                    deleteAction,
+                    isInSelectListMode,
+                    IconOpenFileInEditor: element.id.indexOf('.txt') > -1
+                      ? undefined
+                      : isAudioItem
+                        ? <MusicNoteIcon />
+                        : videoFileExtensions.some(ext => element.id.toLowerCase().endsWith(ext))
+                          ? <VideoLibraryIcon />
+                          : <PhotoLibraryIcon />,
+                    isElementSelected: isCheckedList[index],
+                    onSelect: onSelectItemGeneral(index),
+                    onOpenFileInEditor: filterFileInEditor && openFileInEditor && filterFileInEditor(element.id) ? openFileInEditor : undefined,
+                    onAddToPlaylist: showAddToPlaylist
+                      ? (id: string) => onAddToPlaylist!(id, element.isFolder)
+                      : undefined,
+                  }}/>
+                }
+              </Box>
+            );
+          })
         }
       { addAction && <IconButton aria-label="addItem" onClick={addAction}>
           <AddCircleIcon />

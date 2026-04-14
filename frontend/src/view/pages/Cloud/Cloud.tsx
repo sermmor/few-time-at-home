@@ -18,6 +18,7 @@ import { ModalNewName } from "../../molecules/ModalNewName/ModalNewName";
 import { ModalVideoPlayer, videoFileExtensions } from "../../molecules/ModalVideoPlayer/ModalVideoPlayer";
 import { ModalAudioPlayer, audioFileExtensions } from "../../molecules/ModalAudioPlayer/ModalAudioPlayer";
 import { cloudFilesName, routesFTAH } from "../../Routes";
+import { MusicPlayerBar, PLAYER_BAR_HEIGHT } from "../../molecules/MusicPlayerBar/MusicPlayerBar";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -137,6 +138,35 @@ export const Cloud = () => {
     }
   };
 
+  // ── Music playlist ────────────────────────────────────────────────────────
+  const [playlist, setPlaylist] = React.useState<CloudItem[]>([]);
+
+  const getStreamUrlMemo = React.useCallback(
+    (item: CloudItem) => CloudActions.getStreamUrl({ drive: currentDrive, path: item.path }),
+    [currentDrive],
+  );
+
+  const addToPlaylist = React.useCallback((id: string, isFolder: boolean) => {
+    if (isFolder) {
+      // Fetch the folder's contents and add all audio files found.
+      const folderItem = fileList.find(f => f.name === id && f.isFolder);
+      if (!folderItem) return;
+      CloudActions.getAllFolderItems({ drive: currentDrive, folderPath: folderItem.path }).then(data => {
+        const audioFiles = data.data.filter(f => !f.isFolder && isAnAudioFile(f.name));
+        setPlaylist(prev => {
+          const existing = new Set(prev.map(p => p.path));
+          const toAdd = audioFiles.filter(f => !existing.has(f.path));
+          return toAdd.length > 0 ? [...prev, ...toAdd] : prev;
+        });
+      });
+    } else {
+      const item = fileList.find(f => f.name === id && !f.isFolder);
+      if (!item) return;
+      setPlaylist(prev => prev.some(p => p.path === item.path) ? prev : [...prev, item]);
+    }
+  }, [currentDrive, fileList]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const getUrlCloudFile = (item: CloudItem) => downloadFileAndGetBlob(action, item);
   const downloadCloudFile = (item: CloudItem) => downloadFile(action, item);
   const getVideoStreamUrl = (item: CloudItem) =>
@@ -146,7 +176,7 @@ export const Cloud = () => {
   const isAVideoFile = (name: string) => videoFileExtensions.some(ext => name.toLowerCase().endsWith(ext));
   const isAnAudioFile = (name: string) => audioFileExtensions.some(ext => name.toLowerCase().endsWith(ext));
 
-  return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={formStyle}>
+  return <ModalProgressComponent show={isShowingDescriptionState(cloudState)} progressMessage={cloudState.description}><Box sx={{...formStyle, paddingBottom: playlist.length > 0 ? PLAYER_BAR_HEIGHT : undefined}}>
     {fileList && <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -190,6 +220,7 @@ export const Cloud = () => {
         updateContent={() => synchronizeWithCloud(action)}
         goBackToParent={() => goBackToParentFolder(action).then(res => navigate(`${cloudRootPath}${res}`))}
         showPhotoLibrary={() => handleClickOpenPhotoLibraryDialog()}
+        onAddToPlaylist={addToPlaylist}
         list={
           sortFileList(fileList).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
             item.isFolder ?
@@ -268,6 +299,11 @@ export const Cloud = () => {
         name: newName,
         path: `${currentPathFolder}/${newName}`,
       })}}
+    />
+    <MusicPlayerBar
+      playlist={playlist}
+      getStreamUrl={getStreamUrlMemo}
+      onPlaylistChange={setPlaylist}
     />
   </Box>
   </ModalProgressComponent>;
