@@ -23,7 +23,7 @@ export const CitasSection: React.FC<CitasSectionProps> = ({
   return (
     <>
       <TitleAndList
-        title='Citas'
+        title=''
         deleteAction={deleteActionList('quoteList', ({author, quote}: any, idToDelete: string) => `@${author}@${quote}` === idToDelete)}
         addAction={() => addActionList('quoteList', {author: `new author ${indexNewItemAdded}`, quote: `new quote ${indexNewItemAdded}`})}
         list={config.quoteList.map(({author, quote}) => ({

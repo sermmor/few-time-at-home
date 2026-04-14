@@ -23,7 +23,7 @@ export const TwitterUsersSection: React.FC<TwitterUsersSectionProps> = ({
   return (
     <>
       <TitleAndList
-        title='Twitter Users'
+        title=''
         deleteAction={deleteActionList('nitterRssUsersList', (item: any, idToDelete: string) => item === idToDelete)}
         addAction={() => addActionList('nitterRssUsersList', `new User ${indexNewItemAdded}`)}
         list={config.nitterRssUsersList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={

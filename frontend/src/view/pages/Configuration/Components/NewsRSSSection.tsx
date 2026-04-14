@@ -23,7 +23,7 @@ export const NewsRSSSection: React.FC<NewsRSSSectionProps> = ({
   return (
     <>
       <TitleAndList
-        title='News RSS'
+        title=''
         deleteAction={deleteActionList('newsRSSList', (item: any, idToDelete: string) => item === idToDelete)}
         addAction={() => addActionList('newsRSSList', `new News ${indexNewItemAdded}`)}
         list={config.newsRSSList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={

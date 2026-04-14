@@ -17,7 +17,7 @@ export const TelegramCommandsSection: React.FC<TelegramCommandsSectionProps> = (
   return (
     <>
       <TitleAndList
-        title='Telegram commands'
+        title=''
         list={Object.keys(config.listBotCommands).map((commandName, index) => ({
             id:`${index}`,
             item: <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignContent: 'space-between', alignItems: 'center', justifyContent: 'center', width:'100%'}}>

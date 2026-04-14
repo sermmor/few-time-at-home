@@ -19,7 +19,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
   return (
     <>
       <TitleAndSection
-        title="RSS Configuration"
+        title=""
         body={config.rssConfig}
         onChange={(key: string, newText: number | boolean | string | string[]) => {
           const cloneList = {...config.rssConfig};

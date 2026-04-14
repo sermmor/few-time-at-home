@@ -23,7 +23,7 @@ export const MastodonUsersSection: React.FC<MastodonUsersSectionProps> = ({
   return (
     <>
       <TitleAndList
-        title='Mastodon Users'
+        title=''
         deleteAction={deleteActionList('mastodonRssUsersList', ({user, instance}: any, idToDelete: string) => `@${user}@${instance}` === idToDelete)}
         addAction={() => addActionList('mastodonRssUsersList', {user: `new User ${indexNewItemAdded}`, instance: `new Instance ${indexNewItemAdded}`})}
         list={config.mastodonRssUsersList.map(({instance, user}) => ({

@@ -24,7 +24,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
   return (
     <>
       <TitleAndList
-        title='Youtube RSS'
+        title=''
         showRowLine={true}
         deleteAction={deleteActionList('youtubeRssList', (item: any, idToDelete: string) => item.url === idToDelete)}
         addAction={() => addActionList('youtubeRssList', {

@@ -23,7 +23,7 @@ export const NitterInstancesSection: React.FC<NitterInstancesSectionProps> = ({
   return (
     <>
       <TitleAndList
-        title='Nitter Instances'
+        title=''
         deleteAction={deleteActionList('nitterInstancesList', (item: any, idToDelete: string) => item === idToDelete)}
         addAction={() => addActionList('nitterInstancesList', `new Instance ${indexNewItemAdded}`)}
         list={config.nitterInstancesList.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={
