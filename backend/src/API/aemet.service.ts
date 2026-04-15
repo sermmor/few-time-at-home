@@ -44,17 +44,65 @@ const extractDayXml = (xml: string, dateStr: string): string | null => {
   return match ? match[0] : null;
 };
 
-// Extracts the descripcion attribute of <estado_cielo> for a given periodo
-const getSkyDescription = (dayXml: string, periodo: string): string => {
+// Sub-periods that AEMET uses in the daily XML for today / tomorrow.
+// Index 0 = 00-06 (pre-dawn), 1 = 06-12 (Mañana), 2 = 12-18 (Tarde), 3 = 18-24 (Noche).
+const DAILY_SKY_SUBPERIODS = ['00-06', '06-12', '12-18', '18-24'] as const;
+
+/**
+ * Extracts the `descripcion` attribute of <estado_cielo> for one sub-period.
+ * Returns '' (empty string) when the period is absent or its description is empty,
+ * so callers can distinguish "no data" from "data is No disponible".
+ */
+const getSkyDescriptionRaw = (dayXml: string, periodo: string): string => {
   const patterns = [
     new RegExp(`<estado_cielo[^>]*periodo="${periodo}"[^>]*descripcion="([^"]*)"[^>]*>`),
     new RegExp(`<estado_cielo[^>]*descripcion="([^"]*)"[^>]*periodo="${periodo}"[^>]*>`),
   ];
   for (const regex of patterns) {
     const match = dayXml.match(regex);
-    if (match) return match[1];
+    if (match) return match[1].trim();
   }
-  return 'No disponible';
+  return '';
+};
+
+/**
+ * Fills empty slots in a string array with adjacent non-empty values.
+ * Rule: prefer the nearest PREVIOUS non-empty value; if none exists, use the nearest NEXT.
+ */
+const fillGaps = (values: string[]): string[] => {
+  const result = [...values];
+
+  // Forward pass — propagate last known value rightward.
+  let last = '';
+  for (let i = 0; i < result.length; i++) {
+    if (result[i]) { last = result[i]; }
+    else if (last) { result[i] = last; }
+  }
+
+  // Backward pass — fill any remaining empties from the nearest future value.
+  last = '';
+  for (let i = result.length - 1; i >= 0; i--) {
+    if (result[i]) { last = result[i]; }
+    else if (last) { result[i] = last; }
+  }
+
+  return result;
+};
+
+/**
+ * Returns sky descriptions for Morning (06-12), Afternoon (12-18) and Night (18-24).
+ * Empty sub-periods are filled from the nearest non-empty one (previous first, then next),
+ * so a day with only one populated sub-period propagates that description to all three slots.
+ */
+const getDailySkyDescriptions = (dayXml: string): { morning: string; afternoon: string; night: string } => {
+  const raw = DAILY_SKY_SUBPERIODS.map(p => getSkyDescriptionRaw(dayXml, p));
+  const filled = fillGaps(raw);
+  // Indices: 0=00-06, 1=06-12 (morning), 2=12-18 (afternoon), 3=18-24 (night)
+  return {
+    morning:   filled[1] || 'No disponible',
+    afternoon: filled[2] || 'No disponible',
+    night:     filled[3] || 'No disponible',
+  };
 };
 
 // Extracts the numeric content of <prob_precipitacion> for a given periodo
@@ -118,7 +166,7 @@ const formatWeatherMessage = (
   const lines: string[] = [
     `Tiempo en ${CITY_NAME} - ${dateStr}`,
     '',
-    `Manana: ${skyMorning}`,
+    `Mañana: ${skyMorning}`,
     `Tarde: ${skyAfternoon}`,
     `Noche: ${skyNight}`,
     '',
@@ -180,9 +228,8 @@ export class AemetService {
       return null;
     }
 
-    const skyMorning = getSkyDescription(todayDailyXml, 'M');
-    const skyAfternoon = getSkyDescription(todayDailyXml, 'T');
-    const skyNight = getSkyDescription(todayDailyXml, 'N');
+    const { morning: skyMorning, afternoon: skyAfternoon, night: skyNight } =
+      getDailySkyDescriptions(todayDailyXml);
     const tempMax = getTemperature(todayDailyXml, 'maxima');
     const tempMin = getTemperature(todayDailyXml, 'minima');
     const rainProb = getRainProbability(todayDailyXml, '00-24');
