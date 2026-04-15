@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import { useConfiguredDialogAlphas } from "../../../../../core/context/DialogAlphasContext";
 
 interface TimeMode {
   name: string;
@@ -22,12 +23,12 @@ interface PomodoroTimeModesEditorProps {
   onChange: (value: string) => void;
 }
 
-const timeModePaperStyle: SxProps<Theme> = {
+const getTimeModePaperStyle = (alpha: number): SxProps<Theme> => ({
   padding: '1.5rem',
   marginBottom: '1.5rem',
-  backgroundColor: 'rgba(245, 245, 245, 0.5)',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
   border: '1px solid rgba(0, 0, 0, 0.1)',
-};
+});
 
 const chainItemStyle: SxProps<Theme> = {
   display: 'flex',
@@ -40,6 +41,7 @@ export const PomodoroTimeModesEditor: React.FC<PomodoroTimeModesEditorProps> = (
   value,
   onChange,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   const [timeModes, setTimeModes] = React.useState<TimeMode[]>([]);
   const [parseError, setParseError] = React.useState<string>('');
 
@@ -114,7 +116,7 @@ export const PomodoroTimeModesEditor: React.FC<PomodoroTimeModesEditorProps> = (
   return (
     <Box sx={{ width: '100%' }}>
       {timeModes.map((timeMode, timeModeIndex) => (
-        <Paper key={timeModeIndex} sx={timeModePaperStyle}>
+        <Paper key={timeModeIndex} sx={getTimeModePaperStyle(alphas.pomodoroEditorConfig)}>
           <Box sx={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
             <Box sx={{ flex: 1 }}>
               <Typography variant="caption" sx={{ display: 'block', marginBottom: '0.3rem' }}>

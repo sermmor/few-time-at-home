@@ -115,13 +115,18 @@ export class ConfigurationService {
     normalWebNumberOfMessagesWithLinks: number;
   };
   quoteList: Quote[];
-  windowsFFMPEGPath:string;
+  windowsFFMPEGPath: string;
   backupUrls: string;
   cloudRootPath: string;
   showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
   webSocketPort: number;
+  dialogAlphas: {
+    general: number;
+    rssCard: number;
+    pomodoroEditorConfig: number;
+  };
 
   private configTypes;
   
@@ -144,6 +149,11 @@ export class ConfigurationService {
     this.twitterData = configurationData.twitterData;
     this.rssConfig = configurationData.rssConfig;
     this.windowsFFMPEGPath = configurationData.windowsFFMPEGPath;
+    this.dialogAlphas = configurationData.dialogAlphas || {
+      general: 0.7,
+      rssCard: 0.7,
+      pomodoroEditorConfig: 0.5,
+    };
 
     ConfigurationService.Instance = this;
   }
@@ -163,6 +173,7 @@ export class ConfigurationService {
         webSocketPort: this.webSocketPort,
         twitterData: this.twitterData,
         rssConfig: this.rssConfig,
+        dialogAlphas: this.dialogAlphas,
       }
     }
     return (<any> this)[typeConfig];
@@ -228,6 +239,7 @@ export class ConfigurationService {
     quoteList: this.quoteList,
     twitterData: this.twitterData,
     rssConfig: this.rssConfig,
+    dialogAlphas: this.dialogAlphas,
   });
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
@@ -245,7 +257,8 @@ export class ConfigurationService {
     this.quoteList = data.quoteList;
     this.twitterData = data.twitterData;
     this.rssConfig = data.rssConfig;
-    
+    this.dialogAlphas = data.dialogAlphas || this.dialogAlphas;
+
     this.configTypes.forEach(typeConfig => this.saveConfigurationByType(typeConfig));
 
     const channelMediaCollection = ChannelMediaRSSCollectionExport.Instance.channelMediaCollection;

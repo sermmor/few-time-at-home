@@ -4,6 +4,7 @@ import { Box, Card, CardContent, Link, useMediaQuery, useTheme } from '@mui/mate
 import Typography from '@mui/material/Typography';
 import { UnfurlActions } from '../../../../core/actions/unfurl';
 import { UnfurlDataModel } from '../../../../data-model/unfurl';
+import { useConfiguredDialogAlphas } from '../../../../core/context/DialogAlphasContext';
 
 interface Props {
   message: string;
@@ -11,21 +12,20 @@ interface Props {
   unfurlData?: UnfurlDataModel;
 }
 
-const cardStyle = {
+const getCardStyle = (alpha: number) => ({
   margin: '1rem 1rem 0rem 1rem',
   color: 'whitesmoke',
-  backgroundColor: 'rgba(30, 30, 30, .7)',
+  backgroundColor: `rgba(30, 30, 30, ${alpha})`,
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif'
-}
+})
 
-const unfurlStyle = {
-  ...cardStyle,
+const getUnfurlStyle = () => ({
   borderColor: 'white',
   border: {xs: '0rem', sm: '0.5rem'},
   margin: {xs: '0rem 0rem 0rem 0rem', sm: '1rem 1rem 0rem 1rem'},
   width: {xs: '15rem', sm: '20rem'},
   backgroundColor:'whitesmoke'
-}
+})
 
 const getFirstUrl = (text: string): string => {
   const splitText = text.split(`<a href=`);
@@ -53,6 +53,7 @@ const DivWithLinkFixed = styled.div`
 const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
 
 export const RssMessage = ({message, unfurlData, index}: Props) => {
+  const alphas = useConfiguredDialogAlphas();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [dataToShowInCard, setDataToShowInCard] = React.useState<UnfurlDataModel>();
@@ -94,7 +95,7 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
   }, [dataToShowInCard, index]);
 
 
-  return <><Card sx={cardStyle}>
+  return <><Card sx={getCardStyle(alphas.rssCard)}>
     <CardContent>
       <Typography variant='h5'>
         {header}
@@ -103,7 +104,7 @@ export const RssMessage = ({message, unfurlData, index}: Props) => {
       <Link href={foot} target='_blank' rel='noreferrer'>
         {foot}
       </Link>
-      {dataToShowInCard && dataToShowInCard.title && <Box sx={unfurlStyle}>
+      {dataToShowInCard && dataToShowInCard.title && <Box sx={getUnfurlStyle()}>
         <Link href={link} target='_blank' rel='noreferrer'>
           {
             <img width={isMobile ? '240rem' : '320rem'} src={imageYoutubeBuffer ? imageYoutubeBuffer : imageUrl} alt={dataToShowInCard.title} loading="lazy"/>

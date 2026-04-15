@@ -142,6 +142,11 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
       numberOfWorkers: 4,
       apiPort: 8080,
       webSocketPort: 8081,
+      dialogAlphas: {
+        general: 0.7,
+        rssCard: 0.7,
+        pomodoroEditorConfig: 0.5,
+      },
     }
   };
 }

@@ -1,5 +1,7 @@
 import { Box, Card, CardContent, Checkbox, SxProps, TextField, Theme, Typography } from "@mui/material";
+import React from "react";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
 type BodyData = {[key: string]: number | boolean | string | string[]};
 type OnChange = (key: string, newText: number | boolean | string | string[]) => void;
@@ -19,16 +21,16 @@ const titleStyle = () => ({
   `,
 });
 
-const cardComponentStyle: SxProps<Theme> = {
+const getCardComponentStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'left',
   justifyContent: 'center',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'},
-  marginBottom: '.5rem', 
-};
+  marginBottom: '.5rem',
+});
 
 export const parseBodyData = (
   key: string,
@@ -78,11 +80,13 @@ export const TitleAndSection = ({title, subtext, body, onChange}: {
   subtext?: JSX.Element;
   body: BodyData;
   onChange: OnChange;
-}) => <>
+}) => {
+  const alphas = useConfiguredDialogAlphas();
+  return <>
   <Typography variant='h6' sx={titleStyle()}>
     {title}
   </Typography>
-  <Card sx={cardComponentStyle}>
+  <Card sx={getCardComponentStyle(alphas.general)}>
     <CardContent>
       <Box style={{ marginBottom: '1rem' }}>
         {subtext}
@@ -98,3 +102,4 @@ export const TitleAndSection = ({title, subtext, body, onChange}: {
     </CardContent>
   </Card>
 </>;
+};

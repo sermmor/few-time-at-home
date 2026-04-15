@@ -19,6 +19,13 @@ type RssConfiguration = {
     initialWebNumberOfMessagesWithLinks: number;
     normalWebNumberOfMessagesWithLinks: number;
   };
+
+export interface DialogAlphas {
+  general: number;            // General/light card backgrounds (e.g. 0.7)
+  rssCard: number;            // RSS message cards dark background (e.g. 0.7)
+  pomodoroEditorConfig: number; // Pomodoro time modes editor (e.g. 0.5)
+}
+
 interface ConfigurationGeneral {
   listBotCommands: {[key: string]: string};
   windowsFFMPEGPath: string;
@@ -29,6 +36,7 @@ interface ConfigurationGeneral {
   apiPort: number;
   webSocketPort: number;
   rssConfig: RssConfiguration;
+  dialogAlphas: DialogAlphas;
 }
 
 export interface ConfigurationDataModel {
@@ -53,10 +61,11 @@ export interface ConfigurationDataZipped {
   apiPort: number;
   webSocketPort: number;
   rssConfig: RssConfiguration;
+  dialogAlphas: DialogAlphas;
 }
 
 export const parseToZippedConfig = (configList: ConfigurationDataModel[]): ConfigurationDataZipped => {
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
   return ({
     nitterInstancesList: getContentConfigurationByType(configList, 'nitterInstancesList') as string[],
     nitterRssUsersList: getContentConfigurationByType(configList, 'nitterRssUsersList') as string[],
@@ -74,22 +83,23 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     apiPort,
     webSocketPort,
     rssConfig,
+    dialogAlphas,
   });
 }
 
 export const parseToConfigDataModel = (configZipped: ConfigurationDataZipped): ConfigurationDataModel[] => {
   const configList: ConfigurationDataModel[] = [];
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig} = configZipped;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
   configList.push({
     type: 'configuration',
-    content: { listBotCommands,windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig },
+    content: { listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas },
   });
 
   ['nitterInstancesList', 'nitterRssUsersList', 'mastodonRssUsersList', 'blogRssList', 'newsRSSList', 'youtubeRssList', 'quoteList'].forEach(type => {
     configList.push({
       type,
       content: (configZipped as any)[type],
-    });  
+    });
   });
   return configList;
 }
@@ -101,9 +111,9 @@ export const getContentConfigurationByType = (configList: ConfigurationDataModel
 
 export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   if (type === 'configuration') {
-    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig} = configZipped;
-    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig};
-  } else { 
+    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
+    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas};
+  } else {
     return (configZipped as any)[type];
   }
 }

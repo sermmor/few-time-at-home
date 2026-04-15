@@ -2,8 +2,9 @@ import React from "react";
 import { Box, Button, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { ConfigurationActions } from "../../../../core/actions/configuration";
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
-const commandLineStyle: SxProps<Theme> = {
+const getCommandLineStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
@@ -13,8 +14,8 @@ const commandLineStyle: SxProps<Theme> = {
   marginBottom: '2rem',
   padding: '1rem',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-};
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+});
 
 interface CommandLineSectionProps {
   lineToSend: string;
@@ -29,13 +30,14 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
   lineToSendResult,
   setLineToSendResult,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   return (
     <Accordion sx={{ opacity: 0.5 }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Línea de Comandos</Typography>
       </AccordionSummary>
       <AccordionDetails>
-    <Box sx={commandLineStyle}>
+    <Box sx={getCommandLineStyle(alphas.general)}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
         <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
         <TextField

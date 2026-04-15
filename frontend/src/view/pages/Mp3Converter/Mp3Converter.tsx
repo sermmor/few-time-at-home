@@ -4,18 +4,19 @@ import React from "react";
 import { Bitrate, BitrateWithK, ConverterDataModel, bitrateList, bitrateWithKList } from "../../../data-model/mp3Converter";
 import { Mp3ConverterActions } from "../../../core/actions/mp3Converter";
 import { ModalCloudBrowser } from "../../molecules/ModalCloudBrowser/ModalCloudBrowser";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
-const formStyle: SxProps<Theme> = {
+const getFormStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
   paddingBottom: '2rem',
   paddingTop: '1.5rem',
-};
+});
 
 let resultInfo = '';
 
@@ -27,6 +28,7 @@ const stillConvertingProcess = (data: ConverterDataModel, addResultLine: (line: 
 }
 
 export const Mp3Converter = () => {
+  const alphas = useConfiguredDialogAlphas();
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   const [folderFrom, setFolderFrom] = React.useState<string>('');
   const [folderTo, setFolderTo] = React.useState<string>('');
@@ -41,7 +43,7 @@ export const Mp3Converter = () => {
     setLineToSendResult(resultInfo);
   };
 
-  return <Box sx={formStyle}>
+  return <Box sx={getFormStyle(alphas.general)}>
     <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
       Video/Audio To Mp3 
     </Typography>

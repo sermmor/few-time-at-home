@@ -20,19 +20,9 @@ import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFolder
 import { videoFileExtensions } from "../../molecules/ModalVideoPlayer/ModalVideoPlayer";
 import { audioFileExtensions } from "../../molecules/ModalAudioPlayer/ModalAudioPlayer";
 import { SearchAndList } from "../SearchAndList/SearchAndList";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
 const widthBoxes = {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'};
-
-const listComponentStyle: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'left',
-  justifyContent: 'center',
-  color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-  width: widthBoxes,
-  marginBottom: '.5rem', 
-}
 
 const titleStyle = () => ({
   textTransform: 'uppercase',
@@ -55,7 +45,24 @@ const itemListStyle: SxProps<Theme> = {
   alignItems: 'center',
   justifyContent: 'center',
 }
-const buttonListStyle: SxProps<Theme> = {
+
+const breadcrumbStyle: SxProps<Theme> = {
+  paddingLeft: '1rem',
+  fontStyle: 'oblique',
+}
+
+const getListComponentStyle = (alpha: number): SxProps<Theme> => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'left',
+  justifyContent: 'center',
+  color: 'rgb(30, 30, 30)',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+  width: widthBoxes,
+  marginBottom: '.5rem',
+});
+
+const getButtonListStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'row',
   flexWrap: 'wrap',
@@ -65,13 +72,8 @@ const buttonListStyle: SxProps<Theme> = {
   borderStyle: 'solid',
   borderWidth: '.05rem',
   borderColor: '#9f9f9f',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-}
-
-const breadcrumbStyle: SxProps<Theme> = {
-  paddingLeft: '1rem',
-  fontStyle: 'oblique',
-}
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+})
 
 interface Props {
   title: string;
@@ -130,6 +132,7 @@ export const TitleAndListWithFolders = ({
   showPhotoLibrary,
   onAddToPlaylist,
 }: Props) => {
+  const alphas = useConfiguredDialogAlphas();
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
   const [isInMoveItemMode, setMoveItemMode] = React.useState<boolean>(false);
   const [isCheckedList, setCheckedList] = React.useState<boolean[]>(list.map(() => false));
@@ -186,7 +189,7 @@ export const TitleAndListWithFolders = ({
       {title}
     </Typography>
     {onSearch && <SearchAndList helperText={helpSearchLabel} widthBoxes={widthBoxes} onSearch={onSearch} />}
-    {!noActionsMode && <Box sx={{...buttonListStyle, position: 'sticky', top: '4.3rem', zIndex: 3}}>
+    {!noActionsMode && <Box sx={{...getButtonListStyle(alphas.general), position: 'sticky', top: '4.3rem', zIndex: 3}}>
       <Button onClick={() => {
         checkOnSelectListMode(!isInSelectListMode);
         moveItemProcess(false);
@@ -240,10 +243,10 @@ export const TitleAndListWithFolders = ({
         <Button onClick={goBackToParent}><ArrowUpwardIcon /></Button>
       }
     </Box>}
-    {path && <Box sx={{...buttonListStyle, ...breadcrumbStyle}}>
+    {path && <Box sx={{...getButtonListStyle(alphas.general), paddingLeft: '1rem', fontStyle: 'oblique'}}>
       { path }
     </Box>}
-    <Card sx={listComponentStyle}>
+    <Card sx={getListComponentStyle(alphas.general)}>
       <CardContent>
         {
           list.map((element, index) => {

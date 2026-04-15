@@ -3,6 +3,7 @@ import React from "react";
 import { NotepadActions } from "../../../core/actions/notepad";
 import { NotificationsActions } from "../../../core/actions/notifications";
 import { TemporalData } from "../../../service/temporalData.service";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -28,10 +29,10 @@ const titleStyle = () => ({
   `,
 });
 
-const textAreaStyle: SxProps<Theme> = {
+const getTextAreaStyle = (alpha: number): SxProps<Theme> => ({
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '80%'},
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-}
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+})
 
 const downloadText = (text: string) => {
   const blob = new Blob([text], { type: "text/plain"});
@@ -46,6 +47,7 @@ const downloadText = (text: string) => {
 }
 
 export const Notepad = () => {
+  const alphas = useConfiguredDialogAlphas();
   const [textData, setTextData] = React.useState<string>(TemporalData.NotepadTextData);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
   React.useEffect(() => {
@@ -67,7 +69,7 @@ export const Notepad = () => {
       multiline
       autoFocus
       rows={28}
-      sx={textAreaStyle}
+      sx={getTextAreaStyle(alphas.general)}
       placeholder="Write what you want"
       value={textData}
       onChange={evt => setTextNotepad(evt.target.value)}

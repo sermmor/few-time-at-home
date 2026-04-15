@@ -3,8 +3,9 @@ import { Box, Button, SxProps, Theme, Typography, Accordion, AccordionSummary, A
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { PomodoroActions } from "../../../../core/actions/pomodoro";
 import { PomodoroTimeModesEditor } from "./PomodoroTimeModesEditor/PomodoroTimeModesEditor";
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
-const commandLineStyle: SxProps<Theme> = {
+const getPomodoroSectionStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
@@ -14,8 +15,8 @@ const commandLineStyle: SxProps<Theme> = {
   marginBottom: '2rem',
   padding: '1rem',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-};
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+});
 
 interface PomodoroSectionProps {
   pomodoroTimeMode: string;
@@ -28,13 +29,14 @@ export const PomodoroSection: React.FC<PomodoroSectionProps> = ({
   setPomodoroTimeMode,
   onShowSnackbar,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   return (
     <Accordion sx={{ opacity: 0.5 }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Pomodoro</Typography>
       </AccordionSummary>
       <AccordionDetails>
-    <Box sx={commandLineStyle}>
+    <Box sx={getPomodoroSectionStyle(alphas.general)}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'space-between', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}, marginBottom: '1.5rem'}}>
         <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Modes:</Typography>
         <Button

@@ -4,16 +4,17 @@ import { TemporalData } from "../../../service/temporalData.service";
 import { formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, parseFromTimeFieldToTimeToShow, showTimerChain } from "./TimerMode";
 import { TimerMode } from "../../../data-model/pomodoro";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
-const formStyle: SxProps<Theme> = {
+const getFormStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-};
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+});
 
 const rowFormStyle = (): SxProps<Theme> => ({
   display: 'flex',
@@ -66,6 +67,7 @@ const countDownTime = () => {
 };
 
 export const Pomodoro = (): JSX.Element => {
+  const alphas = useConfiguredDialogAlphas();
   // MM:SS
   const [listModes, setListModes] = React.useState<TimerMode[]>();
   const [isTimeRunning, setTimeRunning] = React.useState<boolean>(false);
@@ -116,7 +118,7 @@ export const Pomodoro = (): JSX.Element => {
   };
 
   if (!listModes) {
-    return <Box sx={formStyle}>
+    return <Box sx={getFormStyle(alphas.general)}>
     <Box sx={rowFormStyle()}>
       <CircularProgress />
     </Box>
@@ -136,8 +138,8 @@ export const Pomodoro = (): JSX.Element => {
         textShadow: getTextShadow(),
       }}
     >{timeToShow}</Typography>
-    <Box sx={formStyle}>
-      <Box sx={{...formStyle, zIndex: 300}}>
+    <Box sx={getFormStyle(alphas.general)}>
+      <Box sx={{...getFormStyle(alphas.general), zIndex: 300}}>
         <Box sx={{...rowFormStyle(), justifyContent: 'left', marginLeft: '17.75rem'}}>
           <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Mode:</Typography>
           <Select

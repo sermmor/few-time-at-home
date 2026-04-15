@@ -13,6 +13,7 @@ import { NewMessage } from './component/NewMessage';
 import { ConfigurationActions } from '../../../core/actions/configuration';
 import { UnfurlActions } from '../../../core/actions/unfurl';
 import { UnfurlDataModel } from '../../../data-model/unfurl';
+import { useConfiguredDialogAlphas } from '../../../core/context/DialogAlphasContext';
 
 const LOADING_CARD_TIME = 5000;
 
@@ -20,9 +21,9 @@ type RSSType = 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'saved' | 
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
-const formFieldStyle = (): SxProps<Theme> => ({
-  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',  
-  backgroundColor: 'rgba(245, 245, 245, .7)',
+const getFormFieldStyle = (alpha: number): SxProps<Theme> => ({
+  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
   paddingBottom: '.5rem',
   paddingTop: '1.5rem',
 });
@@ -31,8 +32,8 @@ const formSizeFields = (): SxProps<Theme> => ({
   minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'},
 });
 
-const buttonCardStyles = (): SxProps<Theme> => ({
-  backgroundColor: 'rgba(179, 255, 179, .7)',
+const getButtonCardStyles = (alpha: number): SxProps<Theme> => ({
+  backgroundColor: `rgba(179, 255, 179, ${alpha})`,
   margin: '0rem 1rem 0rem 1rem',
 });
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -66,6 +67,7 @@ const getUrlMessage = (message: string): string => {
 };
 
 export const Rss = () => {
+  const alphas = useConfiguredDialogAlphas();
   const [rssType, setRssType] = React.useState<RSSType>('favorites');
   const [tagType, setTagType] = React.useState<string>('null');
   const [optionsTagsYoutube, setOptionsTagsYoutube] = React.useState<string[]>([]);
@@ -86,7 +88,7 @@ export const Rss = () => {
   }, []);
 
   return <>
-    <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...formFieldStyle()}}>
+    <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...getFormFieldStyle(alphas.general)}}>
       <Select
         value={rssType}
         onChange={evt => setRssType(evt.target.value as RSSType)}
@@ -164,7 +166,7 @@ export const Rss = () => {
         GO
       </Button>
     </Box>
-    <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...formFieldStyle()}}>
+    <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...getFormFieldStyle(alphas.general)}}>
       {
         rssType === 'saved' && <NewMessage onNewMessage={(title, url, date) => new Promise<void>(resolve => {
           ReadLaterRSSActions.add({
@@ -189,7 +191,7 @@ ${url}` }).then(({data}) => {
       rssType !== 'saved' && rssType !== 'random' ?
       listState !== StateItemList.LOADING && rssMessages.map((msg: string, index: number) => <Box key={`card_${index}`}>
           <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={rssType !== 'favorites' ? Math.max(rssMessages.length - 1 - index, 0) : index} />
-          <Box sx={buttonCardStyles()}>
+          <Box sx={getButtonCardStyles(alphas.general)}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
               setSnackBarMessage("Bookmark saved!");
@@ -200,7 +202,7 @@ ${url}` }).then(({data}) => {
         </Box>) 
       : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={`card_${index}`}>
           <RssMessage key={index} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
-          <Box sx={buttonCardStyles()}>
+          <Box sx={getButtonCardStyles(alphas.general)}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
               console.log("Bookmark removed!");
               setSnackBarMessage("Bookmark removed!");

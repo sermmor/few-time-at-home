@@ -2,8 +2,9 @@ import React from "react";
 import { Box, Button, TextField, Typography, SxProps, Theme, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { synchronizeActions } from "../../../../core/actions/synchronize";
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
-const commandLineStyle: SxProps<Theme> = {
+const getSynchronizeSectionStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   gap: '1rem',
@@ -13,8 +14,8 @@ const commandLineStyle: SxProps<Theme> = {
   marginBottom: '2rem',
   padding: '1rem',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
-};
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
+});
 
 interface SynchronizeSectionProps {
   synchronizeUrl: string;
@@ -25,13 +26,14 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
   synchronizeUrl,
   setSynchronizeUrl,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   return (
     <Accordion sx={{ opacity: 0.5 }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Sincronizar</Typography>
       </AccordionSummary>
       <AccordionDetails>
-    <Box sx={commandLineStyle}>
+    <Box sx={getSynchronizeSectionStyle(alphas.general)}>
       <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Synchronize all data:</Typography>
       <TextField
         label="Url backend to Synchronize:"

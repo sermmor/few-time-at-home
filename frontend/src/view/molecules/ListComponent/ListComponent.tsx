@@ -1,17 +1,19 @@
 import { Box, Card, CardContent, IconButton, SxProps, Theme } from "@mui/material";
+import React from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
-const listComponentStyle: SxProps<Theme> = {
+const getListComponentStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'left',
   justifyContent: 'center',
   color: 'rgb(30, 30, 30)',
-  backgroundColor: 'rgba(245, 245, 245, .7)',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '70rem'},
-  marginBottom: '.5rem', 
-}
+  marginBottom: '.5rem',
+});
 
 const itemListStyle: SxProps<Theme> = {
   display: 'flex',
@@ -27,7 +29,9 @@ interface Props {
   showRowLine?: boolean;
 }
 
-export const ListComponent = ({list, deleteAction, addAction, showRowLine}: Props) => <Card sx={listComponentStyle}>
+export const ListComponent = ({list, deleteAction, addAction, showRowLine}: Props) => {
+  const alphas = useConfiguredDialogAlphas();
+  return <Card sx={getListComponentStyle(alphas.general)}>
     <CardContent>
       {
         list.map(element =>
@@ -43,10 +47,10 @@ export const ListComponent = ({list, deleteAction, addAction, showRowLine}: Prop
           </span>
         )
       }
-    { addAction && <IconButton aria-label="addItem" onClick={() => addAction()}>
-        <AddCircleIcon />
-      </IconButton>
-    }
-
+      { addAction && <IconButton aria-label="addItem" onClick={() => addAction()}>
+          <AddCircleIcon />
+        </IconButton>
+      }
     </CardContent>
   </Card>;
+};

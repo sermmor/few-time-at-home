@@ -1,5 +1,6 @@
 import { Card, CardContent, SxProps, TextField, Theme } from "@mui/material"
 import React from "react";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
 const listComponentStyle = (widthBoxes: {xs: string; sm: string; md: string; lg: string;}): SxProps<Theme> => ({
   display: 'flex',
@@ -9,7 +10,7 @@ const listComponentStyle = (widthBoxes: {xs: string; sm: string; md: string; lg:
   color: 'rgb(30, 30, 30)',
   backgroundColor: '#000000',
   width: widthBoxes,
-  marginBottom: '.5rem', 
+  marginBottom: '.5rem',
 });
 
 const fieldSearchStyle = (widthBoxes: {
@@ -17,9 +18,9 @@ const fieldSearchStyle = (widthBoxes: {
     sm: string;
     md: string;
     lg: string;
-}): SxProps<Theme> => ({
+}, alpha: number): SxProps<Theme> => ({
   width: widthBoxes,
-  backgroundColor: 'rgba(245, 245, 245, .7)',
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`,
 });
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
+  const alphas = useConfiguredDialogAlphas();
   const [toSearch, setToSearch] = React.useState<string>('');
   const [textSearched, setTextSearcher] = React.useState<(string | JSX.Element)[]>([]);
 
@@ -53,7 +55,7 @@ export const SearchAndList = ({helperText, widthBoxes, onSearch}: Props) => {
         variant="outlined"
         value={toSearch}
         helperText={helperText}
-        sx={fieldSearchStyle(widthBoxes)}
+        sx={fieldSearchStyle(widthBoxes, alphas.general)}
         onChange={evt => onTyping(evt.target.value)}
         onKeyDown={(evt) => evt.key === 'Escape' ? cleanFields()
           : (evt.key === 'Enter') ? searchText(toSearch) : undefined }

@@ -2,6 +2,7 @@ import React from "react";
 import { Alert, Box, Button, Snackbar, SxProps, TextField, Theme, Typography } from "@mui/material";
 import { TemporalData } from "../../../service/temporalData.service";
 import { CloudActions } from "../../../core/actions/cloud";
+import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -27,10 +28,10 @@ const titleStyle = () => ({
   `,
 });
 
-const textAreaStyle: SxProps<Theme> = {
+const getTextAreaStyle = (alpha: number): SxProps<Theme> => ({
   width: {xs: '15.5rem', sm: '27rem', md: '50rem', lg: '80%'},
-  backgroundColor: 'rgba(245, 245, 245, .7)'
-}
+  backgroundColor: `rgba(245, 245, 245, ${alpha})`
+})
 
 const saveTextInCloud = (
   textContent: string,
@@ -67,14 +68,15 @@ const downloadText = (text: string) => {
   document.body.removeChild(anchor);
 }
 
-const ViewBox = ({ textData }: {textData: string}) => (
+const ViewBox = ({ textData, alpha }: {textData: string; alpha: number}) => (
   <Box
-    style={{width: '80%', height: '28rem', overflow: "hidden", overflowY: "scroll", backgroundColor: 'rgba(245, 245, 245, .7)'}}
+    style={{width: '80%', height: '28rem', overflow: "hidden", overflowY: "scroll", backgroundColor: `rgba(245, 245, 245, ${alpha})`}}
     dangerouslySetInnerHTML={{ __html: textData }}
   />
 );
 
 export const TextEditor = () => {
+  const alphas = useConfiguredDialogAlphas();
   const [pathData, setPathData] = React.useState<string>(TemporalData.LastPathInTextEditor);
   const [textData, setTextData] = React.useState<string>(TemporalData.EditorTextData);
   const [isInViewMode, setInViewMode] = React.useState<boolean>(false);
@@ -105,7 +107,7 @@ export const TextEditor = () => {
       </Button>
     </Box>
     {
-      isInViewMode && <ViewBox textData={applyEOFToText(textData)} />
+      isInViewMode && <ViewBox textData={applyEOFToText(textData)} alpha={alphas.general} />
     }
     {
       !isInViewMode && <TextField
@@ -114,7 +116,7 @@ export const TextEditor = () => {
         multiline
         autoFocus
         rows={19}
-        sx={textAreaStyle}
+        sx={getTextAreaStyle(alphas.general)}
         placeholder="Write what you want"
         value={textData}
         onChange={evt => setTextEditor(evt.target.value)}
