@@ -188,7 +188,7 @@ ${url}` }).then(({data}) => {
     {
       rssType !== 'saved' && rssType !== 'random' ?
       listState !== StateItemList.LOADING && rssMessages.map((msg: string, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
+          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={rssType !== 'favorites' ? Math.max(rssMessages.length - 1 - index, 0) : index} />
           <Box sx={buttonCardStyles()}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
