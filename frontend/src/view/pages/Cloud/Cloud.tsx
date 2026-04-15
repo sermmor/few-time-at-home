@@ -152,7 +152,9 @@ export const Cloud = () => {
       const folderItem = fileList.find(f => f.name === id && f.isFolder);
       if (!folderItem) return;
       CloudActions.getAllFolderItems({ drive: currentDrive, folderPath: folderItem.path }).then(data => {
-        const audioFiles = data.data.filter(f => !f.isFolder && isAnAudioFile(f.name));
+        const audioFiles = data.data
+          .filter(f => !f.isFolder && isAnAudioFile(f.name))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
         setPlaylist(prev => {
           const existing = new Set(prev.map(p => p.path));
           const toAdd = audioFiles.filter(f => !existing.has(f.path));
