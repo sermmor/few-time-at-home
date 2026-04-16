@@ -277,7 +277,7 @@ export class MediaRSSAutoupdate {
       await getUnfurlYoutubeImage(url, 1);
     }
 
-    await forceToSaveUnfurlCache();
+    // await forceToSaveUnfurlCache();
 
     console.log(`[Unfurl] Cache warm-up complete for ${urls.length} YouTube URL(s).`);
     WebSocketsServerService.Instance.updateData({
