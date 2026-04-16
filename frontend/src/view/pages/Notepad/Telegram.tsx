@@ -55,7 +55,7 @@ const downloadText = (text: string) => {
   document.body.removeChild(anchor);
 }
 
-export const Notepad = () => {
+export const Telegram = () => {
   const alphas = useConfiguredDialogAlphas();
   const isMobileOrTablet = useIsMobileOrTablet();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -208,28 +208,28 @@ export const Notepad = () => {
         sx={{minWidth: '15.5rem'}}
         onClick={() => navigator.clipboard.writeText(textData)}
         >
-        Copy
+        Copy text
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => setTextNotepad('')}
         >
-        Remove
+        Clear text
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => downloadText(textData)}
         >
-        Download
+        Download text
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => NotepadActions.sendTextToTelegram(textData)}
         >
-        Send to Telegram
+        Send text to Telegram
       </Button>
     </Box>
   </Box>;

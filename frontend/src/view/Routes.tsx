@@ -3,7 +3,7 @@ import { Cloud } from "./pages/Cloud/Cloud";
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
 import { Mp3Converter } from "./pages/Mp3Converter/Mp3Converter";
-import { Notepad } from "./pages/Notepad/Notepad";
+import { Telegram } from "./pages/Notepad/Telegram";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
 import { Pomodoro } from "./pages/Pomodoro/Pomodoro";
@@ -69,10 +69,10 @@ export const routesFTAH: RouteFTAHElement[] = [
     element: <Pomodoro/>,
   },
   {
-    name: 'Notepad',
-    path: '/notepad',
-    group: '',
-    element: <Notepad/>,
+    name: 'Telegram',
+    path: '/Telegram',
+    group: 'Internet',
+    element: <Telegram/>,
   },
   {
     name: 'Text Editor',
