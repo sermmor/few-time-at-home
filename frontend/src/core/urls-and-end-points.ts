@@ -14,6 +14,7 @@ export const videoToMp3ConverterEndpoint = (): string => `${getUrlApi()}/video-t
 export const audioToMp3ConverterEndpoint = (): string => `${getUrlApi()}/audio-to-mp3-converter`;
 export const stillConverterEndpoint = (): string => `${getUrlApi()}/still-converter`;
 export const sendToTelegramEndpoint = (): string => `${getUrlApi()}/send-to-telegram`;
+export const sendFileToTelegramEndpoint = (): string => `${getUrlApi()}/send-file-to-telegram`;
 export const notificationsEndpoint = (): string => `${getUrlApi()}/alerts`;
 export const areNotificationsEnabledEndpoint = (): string => `${getUrlApi()}/alerts-is-ready`;
 export const quoteEndpoint = (): string => `${getUrlApi()}/random-quote`;

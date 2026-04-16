@@ -72,6 +72,7 @@ export class APIService {
   static unfurlEndpoint = "/unfurl";
   static unfurlYoutubeImageEndpoint = "/unfurl-youtube-image";
   static sendToTelegramEndpoint = "/send-to-telegram";
+  static sendFileToTelegramEndpoint = "/send-file-to-telegram";
   static videoToMp3ConverterEndpoint = "/video-to-mp3-converter";
   static audioToMp3ConverterEndpoint = "/audio-to-mp3-converter";
   static stillConverterEndpoint = "/still-converter";
@@ -574,6 +575,18 @@ export class APIService {
         const success = TelegramBot.Instance().sendNotepadTextToTelegram(req.body.text);
         res.send({isSended: success});
       }
+    });
+
+    this.app.post(APIService.sendFileToTelegramEndpoint, upload.single('file'), (req, res) => {
+      if (!req.file) {
+        console.error("No file received");
+        res.send({ isSended: false });
+        return;
+      }
+      const originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+      TelegramBot.Instance().sendDocumentToTelegram(req.file.path, originalName).then(isSended => {
+        res.send({ isSended });
+      });
     });
   }
 

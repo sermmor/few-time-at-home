@@ -7,7 +7,7 @@ import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
 import { CloudService, cloudDefaultPath } from "../API/cloud.service";
-import { createWriteStream, existsSync, mkdir } from "fs";
+import { createWriteStream, existsSync, mkdir, createReadStream, unlink } from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { MediaRSSAutoupdate } from "../processAutoupdate/mediaRSSAutoupdate";
@@ -110,8 +110,27 @@ export class TelegramBot {
     if (!this.context) return false;
 
     this.context.reply(`${text}`);
-    
+
     return true;
+  }
+
+  sendDocumentToTelegram = (filePath: string, fileName: string): Promise<boolean> => {
+    if (!this.context || !this.bot) return Promise.resolve(false);
+
+    const chatId = this.context.chat?.id;
+    if (!chatId) return Promise.resolve(false);
+
+    return this.bot.telegram.sendDocument(
+      chatId,
+      { source: createReadStream(filePath), filename: fileName },
+    ).then(() => {
+      unlink(filePath, err => { if (err) console.error(`Error deleting temp file: ${err}`); });
+      return true;
+    }).catch(err => {
+      console.error(`Error sending document to Telegram: ${err}`);
+      unlink(filePath, () => {});
+      return false;
+    });
   }
   private buildBotCommand = (
 
