@@ -68,7 +68,7 @@ export const Notepad = () => {
       label="Mi bloc de notas"
       multiline
       autoFocus
-      rows={28}
+      rows={10}
       sx={getTextAreaStyle(alphas.general)}
       placeholder="Write what you want"
       value={textData}
@@ -81,7 +81,7 @@ export const Notepad = () => {
         }
       }}
     />
-    <Box sx={{ display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '1rem' }}>
+    <Box sx={{ display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '1rem', backgroundColor: `rgba(245, 245, 245, ${alphas.general})`, padding: '.5rem' }}>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}

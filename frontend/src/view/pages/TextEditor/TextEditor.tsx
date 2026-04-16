@@ -129,7 +129,7 @@ export const TextEditor = () => {
         }}
       />
     }
-    <Box sx={{ display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '1rem' }}>
+    <Box sx={{ display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '1rem', backgroundColor: `rgba(245, 245, 245, ${alphas.general})`, padding: '.5rem' }}>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
