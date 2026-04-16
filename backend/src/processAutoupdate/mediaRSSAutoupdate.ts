@@ -2,6 +2,7 @@ import { ConfigurationService, TelegramBotCommand } from "../API";
 import { readJSONFile, saveInAFilePromise } from "../utils";
 import { WebSocketsServerService } from "../webSockets/webSocketsServer.service";
 import { YoutubeRSSUtils } from "../youtubeRSS/youtubeRSSUtils";
+import { getUnfurlWithCache, getUnfurlYoutubeImage, isYoutubeUrl } from "../unfurl/unfurl";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesNewsFeed: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
@@ -128,6 +129,11 @@ export class MediaRSSAutoupdate {
     let waitMe = await this.saveYoutubeFavorites();
 
     waitMe = await this.saveMedia(messagesMasto, messagesBlog, messagesNews, messagesYoutube);
+
+    // Warm up the unfurl + thumbnail cache for every new YouTube URL just downloaded.
+    // This runs after the RSS data is already saved so the app is usable immediately;
+    // the cache population happens quietly in the background respecting YouTube's rate limits.
+    await this.warmUpUnfurlCacheForNewYoutubeUrls(messagesYoutube);
   };
 
   private filterDuplicateUrls = (messages: string[]): string[] => {
@@ -234,6 +240,49 @@ export class MediaRSSAutoupdate {
     return true;
   };
 
+
+  // Each message is formatted as:  title\nauthor - date\ncontent\nurl
+  private extractYoutubeUrlsFromMessages = (messages: {tag: string; content: string[]}[]): string[] => {
+    const seen = new Set<string>();
+    for (const tagGroup of messages) {
+      for (const message of tagGroup.content) {
+        const url = message.split('\n')[3]?.trim();
+        if (url && isYoutubeUrl(url) && !seen.has(url)) {
+          seen.add(url);
+        }
+      }
+    }
+    return Array.from(seen);
+  };
+
+  private warmUpUnfurlCacheForNewYoutubeUrls = async (freshMessages: {tag: string; content: string[]}[]): Promise<void> => {
+    const urls = this.extractYoutubeUrlsFromMessages(freshMessages);
+    if (urls.length === 0) return;
+
+    console.log(`[Unfurl] Warming up cache for ${urls.length} YouTube URL(s)…`);
+    WebSocketsServerService.Instance.updateData({
+      ...WebSocketsServerService.Instance.webSocketData,
+      rssAutoUpdateMessage: `[Unfurl] Warming up unfurl + thumbnail cache for ${urls.length} YouTube URL(s)…`,
+    });
+
+    // getUnfurlWithCache already checks the cache internally and skips already-cached entries.
+    // It waits 5 000 ms between each YouTube URL to avoid triggering CAPTCHA challenges.
+    await getUnfurlWithCache(urls, 5000);
+
+    // Download + cache the YouTube thumbnail for each URL sequentially.
+    // getYoutubeImage skips the download entirely when the image is already on disk.
+    // We pass index=1 so there is a 1-second gap between consecutive image requests
+    // (the wait is only applied when the image is not yet cached).
+    for (const url of urls) {
+      await getUnfurlYoutubeImage(url, 1);
+    }
+
+    console.log(`[Unfurl] Cache warm-up complete for ${urls.length} YouTube URL(s).`);
+    WebSocketsServerService.Instance.updateData({
+      ...WebSocketsServerService.Instance.webSocketData,
+      rssAutoUpdateMessage: `[Unfurl] Cache warm-up complete for ${urls.length} YouTube URL(s).`,
+    });
+  };
 
   private updateMedia = (
     rssCommand: () => Promise<string[]>,

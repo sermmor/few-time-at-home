@@ -85,7 +85,7 @@ export const getUnfurl = (url: string): Promise<UnfurlData> => new Promise<Unfur
   // });
 });
 
-const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
+export const isYoutubeUrl = (url: string) => url.toLowerCase().indexOf("youtube") > -1 || url.toLowerCase().indexOf("youtu.be") > -1;
 const isUrlAFile = (url: string) => {
   const listOfExtensionFiles = [".pdf", ".xml", ".json", ".txt", ".doc", ".xlx", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".mov", ".flv", ".mp4", ".mp3", ".tar.gz", ".zip", ".rar", ".7z"];
   const urlLower = url.toLowerCase();
@@ -144,7 +144,6 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
     console.log("Unfurled!");
   }
 
-  // TODO: QUE TODO ESTO DE ACTUALIZAR LA CACHÉ DE UNFURL SE HAGA AUTOMÁTICAMENTE CADA VEZ QUE AUTOMÁTICAMENTE SE ACTUALIZAN LAS LISTAS DE MEDIOS.
   return allData;
 };
 
