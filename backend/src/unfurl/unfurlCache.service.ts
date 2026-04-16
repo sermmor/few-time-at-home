@@ -110,6 +110,7 @@ export class UnfurlCacheService {
     if (this.isLoadedYTImageIndex) {
       await this.saveYTImageIndex();
     }
+    console.log("[UNFURL] Saved unfurl cache.")
   }
 
   // ── YouTube image index ────────────────────────────────────────────────────
@@ -171,7 +172,7 @@ export class UnfurlCacheService {
       const imageBuffer = await response.buffer();
       await this.saveImageToCache(imageBuffer, imageFilePath);
       this.ytImageIndex.set(youtubeKey, imageFilePath);
-      await this.saveYTImageIndex();
+      // await this.saveYTImageIndex();
       console.log(`[UNFURL] Saved YouTube image to cache: ${youtubeKey}`);
       return imageBuffer;
     } catch (err) {

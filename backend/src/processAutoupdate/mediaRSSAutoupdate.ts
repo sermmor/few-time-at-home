@@ -2,7 +2,7 @@ import { ConfigurationService, TelegramBotCommand } from "../API";
 import { readJSONFile, saveInAFilePromise } from "../utils";
 import { WebSocketsServerService } from "../webSockets/webSocketsServer.service";
 import { YoutubeRSSUtils } from "../youtubeRSS/youtubeRSSUtils";
-import { getUnfurlWithCache, getUnfurlYoutubeImage, isYoutubeUrl } from "../unfurl/unfurl";
+import { forceToSaveUnfurlCache, getUnfurlWithCache, getUnfurlYoutubeImage, isYoutubeUrl } from "../unfurl/unfurl";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesNewsFeed: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
@@ -276,6 +276,8 @@ export class MediaRSSAutoupdate {
     for (const url of urls) {
       await getUnfurlYoutubeImage(url, 1);
     }
+
+    await forceToSaveUnfurlCache();
 
     console.log(`[Unfurl] Cache warm-up complete for ${urls.length} YouTube URL(s).`);
     WebSocketsServerService.Instance.updateData({

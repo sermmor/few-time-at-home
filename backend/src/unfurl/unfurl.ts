@@ -157,3 +157,7 @@ export const getUnfurlYoutubeImage = async (youtubeUrl: string, indexItem: numbe
   const base64Image = imageBuffer.toString('base64');
   return `data:image/jpeg;base64,${base64Image}`;
 };
+
+export const forceToSaveUnfurlCache = async (): Promise<void> => {
+  await UnfurlCacheService.getInstance().saveCache();
+};

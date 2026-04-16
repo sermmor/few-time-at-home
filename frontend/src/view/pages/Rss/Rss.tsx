@@ -180,7 +180,12 @@ ${url}` }).then(({data}) => {
             setOpenSnackbar(true);
             const newData = [{id: data.id, message: data.message}, ...(readLaterData || [])];
             setReadLaterData(newData);
-            resolve();
+            // Fetch unfurl for the new entry and prepend it so indices stay aligned
+            const newUrl = getUrlMessage(data.message);
+            UnfurlActions.getUnfurl({ urlList: [newUrl], loadTime: LOADING_CARD_TIME }).then(newUnfurl => {
+              setUnfurlData(prev => [newUnfurl[0], ...(prev || [])]);
+              resolve();
+            });
           })
         })} />
       }
