@@ -1,4 +1,6 @@
 import { stat, mkdir, readdir, rename, rm } from "fs";
+import { readdir as readdirAsync } from "fs/promises";
+import { Dirent } from "fs";
 import { zip, COMPRESSION_LEVEL } from 'zip-a-folder';
 import { getCurrentStringDateAndHour, saveInAFile } from "../utils";
 import { ConfigurationService } from "./configuration.service";
@@ -121,6 +123,66 @@ export class CloudService {
       resolve((result.length > maxResults) ? result.slice(0, maxResults) : result);
     });
   });
+
+  private recursiveSearchDeep = async (
+    absoluteFolderPath: string,
+    words: string[],
+    results: { path: string }[],
+    maxResults: number,
+    cancelled: { value: boolean },
+  ): Promise<void> => {
+    if (cancelled.value || results.length >= maxResults) return;
+
+    let entries: Dirent[];
+    try {
+      entries = await readdirAsync(absoluteFolderPath, { withFileTypes: true });
+    } catch (_e) {
+      return; // skip unreadable directories
+    }
+
+    const subDirs: string[] = [];
+
+    for (const entry of entries) {
+      if (cancelled.value || results.length >= maxResults) break;
+
+      const entryAbsPath = `${absoluteFolderPath}/${entry.name}`;
+      const entryRelPath = this.fromAbsolutePathToRelative(entryAbsPath);
+      const lowerName = entry.name.toLowerCase();
+      const lowerPath = entryRelPath.toLowerCase();
+
+      const matchesAll = words.every(w => lowerName.includes(w) || lowerPath.includes(w));
+      if (matchesAll) {
+        results.push({ path: entryRelPath });
+      }
+
+      if (entry.isDirectory()) {
+        subDirs.push(entryAbsPath);
+      }
+    }
+
+    // Process subdirectories in batches of 8 to avoid I/O saturation on SSD
+    const BATCH_SIZE = 8;
+    for (let i = 0; i < subDirs.length; i += BATCH_SIZE) {
+      if (cancelled.value || results.length >= maxResults) break;
+      const batch = subDirs.slice(i, i + BATCH_SIZE);
+      await Promise.all(batch.map(dir => this.recursiveSearchDeep(dir, words, results, maxResults, cancelled)));
+    }
+  };
+
+  searchCloudItemInDirectoryDeep = (
+    nameDrive: string,
+    relativeFolderPath: string,
+    searchToken: string,
+    cancelled: { value: boolean },
+  ): Promise<{ path: string }[]> => {
+    const words = searchToken.toLowerCase().split(' ').filter(v => v !== '');
+    const maxResults = 200;
+    const results: { path: string }[] = [];
+    const absoluteFolderPath = this.fromRelativePathToAbsolute(relativeFolderPath);
+
+    return this.recursiveSearchDeep(absoluteFolderPath, words, results, maxResults, cancelled)
+      .then(() => results);
+  };
 
   lsDirOperation = (nameDrive: string, relativePathItem: string): Promise<string[]> => new Promise<string[]>(resolve =>
     this.getFolderContent(nameDrive, relativePathItem).then(

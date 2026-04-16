@@ -10,8 +10,11 @@ const getDrivesList = (): Promise<CloudDrivesResponse> =>
 const getAllFolderItems = (data: GetFolderCloudRequest): Promise<CloudDataModel> =>
   fetchJsonSendAndReceive<CloudDataModel>(getCloudEndpoint('getFolderContent'), data, cloudDataModelMock());
 
-const searchAllItemsInFolder = (data: SearchItemsResquest) => 
+const searchAllItemsInFolder = (data: SearchItemsResquest) =>
   fetchJsonSendAndReceive<SearchItemsResponse>(getCloudEndpoint('searchInFolder'), data, {search: []});
+
+const searchAllItemsInFolderDeep = (data: SearchItemsResquest) =>
+  fetchJsonSendAndReceive<SearchItemsResponse & { timedOut: boolean }>(getCloudEndpoint('searchInFolderDeep'), data, { search: [], timedOut: false });
 
 const createFolder = (path: string) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("createFolder"), { path }, messageResponseMock());
@@ -54,4 +57,4 @@ const zipFolder = (data: ZipCloudRequest) =>
 const getStreamUrl = (data: DownloadFileToCloudResquest): string =>
   `${getCloudEndpoint('streamFile')}?drive=${encodeURIComponent(data.drive)}&path=${encodeURIComponent(data.path)}`;
 
-export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, getStreamUrl };
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, searchAllItemsInFolderDeep, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, getStreamUrl };

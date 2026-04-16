@@ -25,7 +25,7 @@ export const synchronizeDownloadEndpoint = (): string => `${getUrlApi()}/synchro
 export const synchronizeUploadEndpoint = (): string => `${getUrlApi()}/synchronize/upload`;
 export const backgroundImageEndpoint = (): string => `${getUrlApi()}/background`;
 
-export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'deleteFileOrFolder' | 'zipFolder';
+export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'searchInFolderDeep' | 'deleteFileOrFolder' | 'zipFolder';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',
   'getFolderContent': '/cloud/get-folder-content',
@@ -38,6 +38,7 @@ const cloudEndpointList = {
   'downloadFile': '/cloud/download-file',
   'streamFile': '/cloud/stream-file',
   'searchInFolder': '/cloud/search-in-folder',
+  'searchInFolderDeep': '/cloud/search-in-folder-deep',
   'deleteFileOrFolder': '/cloud/delete',
   'zipFolder': '/cloud/zip-folder',
 };

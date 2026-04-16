@@ -405,13 +405,18 @@ export const createBlankFile = (actions: ActionsProps, nameFile: string) => {
 }
 
 export const onSearchFileOrFolder = (actions: ActionsProps) => (textToSearch: string) => new Promise<(string | JSX.Element)[]>(resolve => {
-  const { currentDrive, currentPathFolder } = actions;
-  CloudActions.searchAllItemsInFolder({
+  const { currentDrive, currentPathFolder, setSnackBarMessage, setOpenSnackbar, setErrorSnackbar } = actions;
+  CloudActions.searchAllItemsInFolderDeep({
     nameDrive: currentDrive,
     folderPath: currentPathFolder,
     searchTokken: textToSearch,
-  }).then(allFilesAndFolderGetted => {
-    resolve(allFilesAndFolderGetted.search.map(({ path }, index) => 
+  }).then(({ search, timedOut }) => {
+    if (timedOut) {
+      setSnackBarMessage('El tiempo de búsqueda automática se ha superado. Se muestran los resultados parciales encontrados.');
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
+    }
+    resolve(search.map(({ path }, index) =>
       <p><Link target='_blank' key={`link_search_${index}`} rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={downloadFileOnlyWithPath(actions, `${path}`)}>
           {path}
         </Link></p>

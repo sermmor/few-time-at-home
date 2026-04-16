@@ -89,6 +89,7 @@ export class APIService {
     downloadFile: '/cloud/download-file',
     streamFile: '/cloud/stream-file',
     searchInFolder: '/cloud/search-in-folder',
+    searchInFolderDeep: '/cloud/search-in-folder-deep',
     deleteFileOrFolder: '/cloud/delete',
     zipFolder: '/cloud/zip-folder',
   };
@@ -677,6 +678,25 @@ export class APIService {
           res.send({ search });
         })
       }
+    });
+
+    // body: req.body.nameDrive, req.body.folderPath, req.body.searchTokken — deep recursive search with 30s timeout
+    this.app.post(APIService.cloudEndpointList.searchInFolderDeep, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+        return;
+      }
+      const cancelled = { value: false };
+      const timeout = setTimeout(() => { cancelled.value = true; }, 30000);
+      cloudService.searchCloudItemInDirectoryDeep(req.body.nameDrive, req.body.folderPath, req.body.searchTokken, cancelled)
+        .then(search => {
+          clearTimeout(timeout);
+          res.send({ search, timedOut: cancelled.value });
+        })
+        .catch(_err => {
+          clearTimeout(timeout);
+          res.send({ search: [], timedOut: false });
+        });
     });
 
     // body: drive, path
