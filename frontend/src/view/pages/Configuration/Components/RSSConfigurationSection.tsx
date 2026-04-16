@@ -5,6 +5,7 @@ import { RSSActions } from "../../../../core/actions/rss";
 import { TitleAndSection } from "../../../organism/TitleAndSection/TitleAndSection";
 import { Button, Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
 interface RSSConfigurationSectionProps {
   config: ConfigurationDataZipped;
@@ -15,10 +16,11 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
   config,
   setConfig,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
 
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Configuración RSS</Typography>
       </AccordionSummary>

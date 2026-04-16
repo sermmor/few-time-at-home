@@ -31,7 +31,7 @@ export const PomodoroSection: React.FC<PomodoroSectionProps> = ({
 }) => {
   const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Pomodoro</Typography>
       </AccordionSummary>

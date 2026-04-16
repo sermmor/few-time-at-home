@@ -126,6 +126,7 @@ export class ConfigurationService {
     general: number;
     rssCard: number;
     pomodoroEditorConfig: number;
+    configurationCards: number;
   };
 
   private configTypes;
@@ -149,10 +150,12 @@ export class ConfigurationService {
     this.twitterData = configurationData.twitterData;
     this.rssConfig = configurationData.rssConfig;
     this.windowsFFMPEGPath = configurationData.windowsFFMPEGPath;
-    this.dialogAlphas = configurationData.dialogAlphas || {
+    this.dialogAlphas = {
       general: 0.7,
       rssCard: 0.7,
       pomodoroEditorConfig: 0.5,
+      configurationCards: 0.5,
+      ...(configurationData.dialogAlphas || {}),
     };
 
     ConfigurationService.Instance = this;

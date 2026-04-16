@@ -2,6 +2,7 @@ import React from "react";
 import { ConfigurationDataZipped, getContentConfigurationZippedByType } from "../../../../data-model/configuration";
 import { ConfigurationActions } from "../../../../core/actions/configuration";
 import { Box, Button } from "@mui/material";
+import { useConfigurationSnackbar } from "./ConfigurationSnackbarContext";
 
 interface ConfigurationSaveButtonProps {
   config: ConfigurationDataZipped;
@@ -12,15 +13,13 @@ export const ConfigurationSaveButton: React.FC<ConfigurationSaveButtonProps> = (
   config,
   type,
 }) => {
-  const [isSave, setSave] = React.useState<boolean>(false);
+  const showSaveNotification = useConfigurationSnackbar();
 
   const setConfiguration = () => {
     ConfigurationActions.sendConfiguration({
       type,
       content: getContentConfigurationZippedByType(config, type),
-    });
-    setSave(true);
-    setTimeout(() => setSave(false), 500);
+    }).then(() => showSaveNotification());
   };
 
   return (
@@ -42,7 +41,6 @@ export const ConfigurationSaveButton: React.FC<ConfigurationSaveButtonProps> = (
       >
         Save
       </Button>
-      {isSave && <Box sx={{ paddingLeft: "1rem" }}>Saved!</Box>}
     </Box>
   );
 };

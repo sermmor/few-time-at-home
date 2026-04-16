@@ -27,7 +27,7 @@ export const OthersSection: React.FC<OthersSectionProps> = ({
 }) => {
   const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Otros</Typography>
       </AccordionSummary>
@@ -217,6 +217,28 @@ export const OthersSection: React.FC<OthersSectionProps> = ({
                 dialogAlphas: {
                   ...config.dialogAlphas,
                   pomodoroEditorConfig: Math.min(1, Math.max(0, +evt.target.value)),
+                },
+              });
+            }}
+          />
+        </Box>
+        <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left'}}>
+          <Typography variant='body1'>
+            Configuration cards (opacidad de secciones de configuración):
+          </Typography>
+          <TextField
+            label="Configuration Cards Alpha"
+            variant="standard"
+            type='number'
+            inputProps={{step: '0.1', min: '0', max: '1'}}
+            value={config.dialogAlphas.configurationCards}
+            sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '5rem'}}}
+            onChange={evt => {
+              setConfig({
+                ...config,
+                dialogAlphas: {
+                  ...config.dialogAlphas,
+                  configurationCards: Math.min(1, Math.max(0, +evt.target.value)),
                 },
               });
             }}

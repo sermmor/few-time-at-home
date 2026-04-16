@@ -6,6 +6,7 @@ import { LabelAndComboField } from "../../../molecules/LabelAndComboField/LabelA
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Box, Checkbox, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
 interface YoutubeRSSSectionProps {
   config: ConfigurationDataZipped;
@@ -22,8 +23,9 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
   editActionList,
   indexNewItemAdded,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>YouTube RSS</Typography>
       </AccordionSummary>

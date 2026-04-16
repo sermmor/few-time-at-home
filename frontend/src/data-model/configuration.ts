@@ -21,9 +21,10 @@ type RssConfiguration = {
   };
 
 export interface DialogAlphas {
-  general: number;            // General/light card backgrounds (e.g. 0.7)
-  rssCard: number;            // RSS message cards dark background (e.g. 0.7)
+  general: number;              // General/light card backgrounds (e.g. 0.7)
+  rssCard: number;              // RSS message cards dark background (e.g. 0.7)
   pomodoroEditorConfig: number; // Pomodoro time modes editor (e.g. 0.5)
+  configurationCards: number;   // Accordion opacity in Configuration sections (e.g. 0.5)
 }
 
 interface ConfigurationGeneral {

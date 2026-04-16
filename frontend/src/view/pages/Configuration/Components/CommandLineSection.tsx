@@ -32,7 +32,7 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
 }) => {
   const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Línea de Comandos</Typography>
       </AccordionSummary>

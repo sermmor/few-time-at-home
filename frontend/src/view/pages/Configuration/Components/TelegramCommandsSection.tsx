@@ -5,6 +5,7 @@ import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAnd
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Box, Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
 interface TelegramCommandsSectionProps {
   config: ConfigurationDataZipped;
@@ -15,8 +16,9 @@ export const TelegramCommandsSection: React.FC<TelegramCommandsSectionProps> = (
   config,
   setConfig,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Comandos Telegram</Typography>
       </AccordionSummary>

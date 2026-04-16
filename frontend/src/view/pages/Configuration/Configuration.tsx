@@ -17,6 +17,7 @@ import { TelegramCommandsSection } from "./Components/TelegramCommandsSection";
 import { RSSConfigurationSection } from "./Components/RSSConfigurationSection";
 import { OthersSection } from "./Components/OthersSection";
 import { CommandLineSection } from "./Components/CommandLineSection";
+import { ConfigurationSnackbarProvider } from "./Components/ConfigurationSnackbarContext";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -97,22 +98,30 @@ export const ConfigurationComponent = () => {
     });
   };
 
+  const showSaveNotification = () => {
+    setSnackBarMessage('Cambios guardados correctamente');
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
+  };
+
   return <>
-    {config && <Box sx={formStyle}>
-      <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
-      <NitterInstancesSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <TwitterUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-      <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
-      <TelegramCommandsSection config={config} setConfig={setConfig} />
-      <RSSConfigurationSection config={config} setConfig={setConfig} />
-      <OthersSection config={config} setConfig={setConfig} />
-      <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
-    </Box>}
+    <ConfigurationSnackbarProvider onSave={showSaveNotification}>
+      {config && <Box sx={formStyle}>
+        <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
+        <NitterInstancesSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <TwitterUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+        <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
+        <TelegramCommandsSection config={config} setConfig={setConfig} />
+        <RSSConfigurationSection config={config} setConfig={setConfig} />
+        <OthersSection config={config} setConfig={setConfig} />
+        <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
+      </Box>}
+    </ConfigurationSnackbarProvider>
     <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} sx={{ zIndex: 9999 }}>
       <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
         {snackBarMessage}

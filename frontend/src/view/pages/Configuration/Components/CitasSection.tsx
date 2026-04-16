@@ -5,6 +5,7 @@ import { LabelAndTextField } from "../../../molecules/LabelAndTextField/LabelAnd
 import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
 interface CitasSectionProps {
   config: ConfigurationDataZipped;
@@ -21,8 +22,9 @@ export const CitasSection: React.FC<CitasSectionProps> = ({
   editActionList,
   indexNewItemAdded,
 }) => {
+  const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Citas</Typography>
       </AccordionSummary>

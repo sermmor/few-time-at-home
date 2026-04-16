@@ -5,12 +5,14 @@ export interface DialogAlphas {
   general: number;
   rssCard: number;
   pomodoroEditorConfig: number;
+  configurationCards: number;
 }
 
 const defaultAlphas: DialogAlphas = {
   general: 0.7,
   rssCard: 0.7,
   pomodoroEditorConfig: 0.5,
+  configurationCards: 0.5,
 };
 
 export const DialogAlphasContext = createContext<DialogAlphas>(defaultAlphas);

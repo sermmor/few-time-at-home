@@ -28,7 +28,7 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
 }) => {
   const alphas = useConfiguredDialogAlphas();
   return (
-    <Accordion sx={{ opacity: 0.5 }}>
+    <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Sincronizar</Typography>
       </AccordionSummary>
