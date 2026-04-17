@@ -18,6 +18,9 @@ import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
+import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
+import * as http from 'http';
+import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
@@ -99,6 +102,11 @@ export class APIService {
     serverDownloadAppFile: '/synchronize/server/download',
     serverUploadAppFile: '/synchronize/server/upload',
   }
+  static networkEndpointList = {
+    discover: '/network/upnp-discover',
+    browse:   '/network/upnp-browse',
+    stream:   '/network/upnp-stream',
+  };
 
   app: Express;
 
@@ -131,7 +139,8 @@ export class APIService {
     this.backgroundImageService();
     this.cloudService();
     this.synchronizeService();
-    
+    this.upnpNetworkService();
+
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
     });
@@ -887,7 +896,7 @@ export class APIService {
 
   private backgroundImageService() {
     const cloudService = new CloudService();
-    
+
     this.app.get(APIService.backgroundImageEndpoint, (req, res) => {
       cloudService.getBackgroundImageFileName().then(backgroundFileName => {
         if (backgroundFileName) {
@@ -904,6 +913,105 @@ export class APIService {
           res.status(404).send({ error: 'No background image found' });
         }
       });
+    });
+  }
+
+  private upnpNetworkService() {
+    // GET /network/upnp-discover  — SSDP search, 4-second window
+    this.app.get(APIService.networkEndpointList.discover, async (_req: Request, res: Response) => {
+      try {
+        const servers = await discoverUpnpServers(4000);
+        res.send({ servers });
+      } catch (err) {
+        console.error('UPnP discover error:', err);
+        res.status(500).send({ servers: [] });
+      }
+    });
+
+    // POST /network/upnp-browse  — body: { controlUrl, objectId }
+    this.app.post(APIService.networkEndpointList.browse, async (req: Request, res: Response) => {
+      if (!req.body?.controlUrl) {
+        res.status(400).send({ error: 'Missing controlUrl' });
+        return;
+      }
+      try {
+        const result = await browseUpnpServer(req.body.controlUrl, req.body.objectId ?? '0');
+        res.send(result);
+      } catch (err) {
+        console.error('UPnP browse error:', err);
+        res.status(500).send({ containers: [], items: [] });
+      }
+    });
+
+    // GET /network/upnp-stream?url=<encoded>  — HTTP proxy with Range pass-through.
+    // Uses native http/https (not node-fetch) for reliable video streaming:
+    // correct Range/206 handling, client-disconnect abort, no pipe crashes.
+    this.app.get(APIService.networkEndpointList.stream, (req: Request, res: Response) => {
+      // Express already URL-decodes query params — no need to call decodeURIComponent.
+      const targetUrl = req.query.url as string;
+      if (!targetUrl) {
+        res.status(400).send({ error: 'Missing url parameter' });
+        return;
+      }
+
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(targetUrl);
+      } catch {
+        res.status(400).send({ error: 'Invalid url parameter' });
+        return;
+      }
+
+      console.log(`[UPnP Stream] → ${targetUrl}${req.headers.range ? '  Range: ' + req.headers.range : ''}`);
+
+      const lib = parsedUrl.protocol === 'https:' ? https : http;
+
+      const upstreamOptions: http.RequestOptions = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'GET',
+        headers: {
+          ...(req.headers.range ? { Range: req.headers.range } : {}),
+          'User-Agent': 'Node.js/UPnP-Proxy',
+          'Connection': 'keep-alive',
+        },
+      };
+
+      const upstreamReq = lib.request(upstreamOptions, (upstreamRes) => {
+        console.log(`[UPnP Stream] ← ${upstreamRes.statusCode}  ct=${upstreamRes.headers['content-type']}  len=${upstreamRes.headers['content-length']}`);
+
+        res.status(upstreamRes.statusCode || 200);
+
+        const passHeaders = [
+          'content-type', 'content-length', 'content-range',
+          'accept-ranges', 'transfer-encoding',
+        ];
+        passHeaders.forEach(h => {
+          const v = upstreamRes.headers[h];
+          if (v) res.setHeader(h, v as string);
+        });
+        // Ensure the browser knows seeking is possible even if upstream omits this header.
+        if (!upstreamRes.headers['accept-ranges']) {
+          res.setHeader('Accept-Ranges', 'bytes');
+        }
+
+        upstreamRes.pipe(res);
+
+        upstreamRes.on('error', (err) => {
+          console.error('[UPnP Stream] upstream response error:', err.message);
+        });
+      });
+
+      upstreamReq.on('error', (err) => {
+        console.error(`[UPnP Stream] request error for ${targetUrl}: ${err.message}`);
+        if (!res.headersSent) res.status(502).send({ error: err.message });
+      });
+
+      // When the browser aborts (e.g. seeking), destroy the upstream to free the connection.
+      req.on('close', () => upstreamReq.destroy());
+
+      upstreamReq.end();
     });
   }
 }

@@ -74,3 +74,7 @@ const readLaterRSSEndpointList = {
 export const readLaterRSSEndpoint = (typeEndpoint: ReadLaterRSSEndpointList): string => `${getUrlApi()}${readLaterRSSEndpointList[typeEndpoint]}`;
 
 export const rssForceUpdateEndpoint = (): string => `${getUrlApi()}/rss/force-update`;
+
+export const networkUpnpDiscoverEndpoint = (): string => `${getUrlApi()}/network/upnp-discover`;
+export const networkUpnpBrowseEndpoint = (): string => `${getUrlApi()}/network/upnp-browse`;
+export const networkUpnpStreamProxyBase = (): string => `${getUrlApi()}/network/upnp-stream`;

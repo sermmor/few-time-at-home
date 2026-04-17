@@ -14,8 +14,10 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import LanIcon from '@mui/icons-material/Lan';
 import { CloudItem } from '../../../data-model/cloud';
 import { ModalVideoCloudBrowser } from './ModalVideoCloudBrowser';
+import { ModalNetworkBrowser } from './ModalNetworkBrowser';
 
 export const VIDEO_PLAYER_BAR_HEIGHT = '5rem';
 
@@ -50,6 +52,7 @@ export const VideoPlayerBar = ({
   const [isShuffleOn, setIsShuffleOn] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isBrowserOpen, setIsBrowserOpen] = React.useState(false);
+  const [isNetworkBrowserOpen, setIsNetworkBrowserOpen] = React.useState(false);
   const [dragFromIndex, setDragFromIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
@@ -233,12 +236,17 @@ export const VideoPlayerBar = ({
   };
 
   // ── Render guard ──────────────────────────────────────────────────────────
-  if (playlist.length === 0 && !isBrowserOpen) {
+  if (playlist.length === 0 && !isBrowserOpen && !isNetworkBrowserOpen) {
     return (
       <>
         <ModalVideoCloudBrowser
           isOpen={isBrowserOpen}
           onClose={() => setIsBrowserOpen(false)}
+          onAddVideos={onAddVideos}
+        />
+        <ModalNetworkBrowser
+          isOpen={isNetworkBrowserOpen}
+          onClose={() => setIsNetworkBrowserOpen(false)}
           onAddVideos={onAddVideos}
         />
         {/* Minimal bar when playlist is empty */}
@@ -272,6 +280,16 @@ export const VideoPlayerBar = ({
               Añadir vídeos
             </Typography>
           </IconButton>
+          <IconButton
+            onClick={() => setIsNetworkBrowserOpen(true)}
+            sx={{ color: '#a0a0c0', gap: '0.5rem', borderRadius: '8px', padding: '0.4rem 1rem',
+              '&:hover': { color: '#eee', backgroundColor: 'rgba(255,255,255,0.06)' } }}
+          >
+            <LanIcon />
+            <Typography variant="body2" sx={{ color: 'inherit', fontSize: '0.85rem' }}>
+              Añadir desde red
+            </Typography>
+          </IconButton>
         </Box>
       </>
     );
@@ -285,6 +303,11 @@ export const VideoPlayerBar = ({
       <ModalVideoCloudBrowser
         isOpen={isBrowserOpen}
         onClose={() => setIsBrowserOpen(false)}
+        onAddVideos={onAddVideos}
+      />
+      <ModalNetworkBrowser
+        isOpen={isNetworkBrowserOpen}
+        onClose={() => setIsNetworkBrowserOpen(false)}
         onAddVideos={onAddVideos}
       />
 
@@ -332,6 +355,12 @@ export const VideoPlayerBar = ({
                 sx={{ color: '#7a7a9a', padding: '4px', '&:hover': { color: '#1db954' } }}
               >
                 <PlaylistAddIcon sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Añadir desde red local">
+              <IconButton size="small" onClick={() => setIsNetworkBrowserOpen(true)}
+                sx={{ color: '#7a7a9a', padding: '4px', '&:hover': { color: '#4db8ff' } }}>
+                <LanIcon sx={{ fontSize: '1rem' }} />
               </IconButton>
             </Tooltip>
           </Box>

@@ -4,6 +4,7 @@ import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { CloudItem } from '../../../data-model/cloud';
 import { CloudActions } from '../../../core/actions/cloud';
 import { VideoPlayerBar, VIDEO_PLAYER_BAR_HEIGHT } from '../../molecules/VideoPlayerBar/VideoPlayerBar';
+import { NETWORK_DRIVE } from '../../molecules/VideoPlayerBar/ModalNetworkBrowser';
 
 // EnvelopComponent in App.tsx applies paddingTop: '7rem' to every page,
 // but the actual AppMenubar + ServerInfoBar occupy only ~5.5rem.
@@ -70,7 +71,9 @@ export const VideoPlayer = (): JSX.Element => {
     if (!item) return;
 
     const wasPlaying = !video.paused;
-    video.src = CloudActions.getStreamUrl({ drive: item.driveName, path: item.path });
+    video.src = item.driveName === NETWORK_DRIVE
+      ? item.path
+      : CloudActions.getStreamUrl({ drive: item.driveName, path: item.path });
     video.load();
     if (wasPlaying) {
       video.play().catch(err => console.error('Video play error:', err));
