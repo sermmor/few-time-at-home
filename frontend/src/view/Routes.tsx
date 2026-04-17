@@ -3,6 +3,7 @@ import { Cloud } from "./pages/Cloud/Cloud";
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
 import { Mp3Converter } from "./pages/Mp3Converter/Mp3Converter";
+import { VideoPlayer } from "./pages/VideoPlayer/VideoPlayer";
 import { Telegram } from "./pages/Notepad/Telegram";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
@@ -85,6 +86,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/cloud/mp3-converter',
     group: 'Cloud',
     element: <Mp3Converter/>,
+  },
+  {
+    name: 'Video Player',
+    path: '/cloud/video-player',
+    group: 'Cloud',
+    element: <VideoPlayer/>,
   },
   {
     name: 'Configuration',
