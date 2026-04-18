@@ -91,12 +91,6 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
   return {
     type,
     content: {
-      listBotCommands: {
-        bot_all_command: 'allThings',
-        bot_masto_command: 'mastoThings',
-        bot_nitter_command: 'nitterThings',
-        bot_blog_command: 'blogThings',
-      },
       rssConfig: {
         updateAtStartApp: false,
         optionTagsYoutube: [

@@ -11,7 +11,6 @@ import { NewsRSSSection } from "./Components/NewsRSSSection";
 import { YoutubeRSSSection } from "./Components/YoutubeRSSSection";
 import { CitasSection } from "./Components/CitasSection";
 import { PomodoroSection } from "./Components/PomodoroSection";
-import { TelegramCommandsSection } from "./Components/TelegramCommandsSection";
 import { RSSConfigurationSection } from "./Components/RSSConfigurationSection";
 import { OthersSection } from "./Components/OthersSection";
 import { CommandLineSection } from "./Components/CommandLineSection";
@@ -112,7 +111,6 @@ export const ConfigurationComponent = () => {
         <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
         <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
         <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
-        <TelegramCommandsSection config={config} setConfig={setConfig} />
         <RSSConfigurationSection config={config} setConfig={setConfig} />
         <OthersSection config={config} setConfig={setConfig} />
         <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />

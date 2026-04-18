@@ -11,7 +11,6 @@ const pathAdditionalConfigFiles: {[key: string]: string} = {
   mastodonRssUsersList: 'data/config/mastodonRssUsersList.json',
   quoteList: 'data/config/quoteList.json',
   youtubeRssList: 'data/config/youtubeRssList.json',
-  listBotCommands: 'data/config/listBotCommands.json',
   rssConfig: 'data/config/rssConfig.json',
 };
 const listNamesAdditionalConfigFiles = Object.keys(pathAdditionalConfigFiles);
@@ -26,7 +25,7 @@ const readAdditionalConfigFile = (
     if (err) {
       // For new config types like listBotCommands and rssConfig, skip if file doesn't exist yet
       // They will remain in configuration.json until first saved separately
-      if (!['listBotCommands', 'rssConfig'].includes(nameFile)) {
+      if (nameFile !== 'rssConfig') {
         throw err;
       }
     } else {
@@ -70,29 +69,6 @@ export class ConfigurationService {
   blogRssList: string[];
   newsRSSList: string[];
   youtubeRssList: YoutubeData[];
-  listBotCommands: {
-      bot_login: string;
-      bot_all_command: string;
-      bot_masto_command: string;
-      bot_nitter_command: string;
-      bot_blog_command: string;
-      bot_youtube_command: string;
-      bot_notes_command: string;
-      bot_add_notes_command: string;
-      bot_add_bookmark_command: string;
-      bot_to_save_list_command: string;
-      bot_get_save_list_command: string;
-      bot_search_bookmark_command: string;
-      bot_add_alert: string;
-      bot_search_file: string;
-      bot_give_file_from_search: string;
-      bot_cloud_cd_path: string,
-      bot_cloud_ls_path: string,
-      bot_cloud_return_path: string
-      bot_cloud_upload_to_current_path: string;
-      bot_cloud_get_current_path: string;
-      bot_cloud_download_folder: string;
-  };
   rssConfig: {
     updateAtStartApp: boolean;
     optionTagsYoutube: string[];
@@ -123,7 +99,6 @@ export class ConfigurationService {
     this.blogRssList = configurationData.blogRssList;
     this.newsRSSList = configurationData.newsRSSList;
     this.youtubeRssList = configurationData.youtubeRssList;
-    this.listBotCommands = configurationData.listBotCommands;
     this.numberOfWorkers = configurationData.numberOfWorkers;
     this.backupUrls = configurationData.backupUrls;
     this.cloudRootPath = configurationData.cloudRootPath;
@@ -148,7 +123,6 @@ export class ConfigurationService {
   getConfigurationByType = (typeConfig: string) => {
     if (typeConfig === 'configuration') {
       return {
-        listBotCommands: this.listBotCommands,
         windowsFFMPEGPath: this.windowsFFMPEGPath,
         backupUrls: this.backupUrls,
         cloudRootPath: this.cloudRootPath,
@@ -211,7 +185,6 @@ export class ConfigurationService {
     blogRssList: this.blogRssList,
     newsRSSList: this.newsRSSList,
     youtubeRssList: this.youtubeRssList,
-    listBotCommands: this.listBotCommands,
     numberOfWorkers: this.numberOfWorkers,
     apiPort: this.apiPort,
     webSocketPort: this.webSocketPort,
@@ -225,7 +198,6 @@ export class ConfigurationService {
     this.blogRssList = data.blogRssList;
     this.newsRSSList = data.newsRSSList;
     this.youtubeRssList = data.youtubeRssList;
-    this.listBotCommands = data.listBotCommands;
     this.numberOfWorkers = data.numberOfWorkers;
     this.apiPort = data.apiPort;
     this.webSocketPort = data.webSocketPort;
