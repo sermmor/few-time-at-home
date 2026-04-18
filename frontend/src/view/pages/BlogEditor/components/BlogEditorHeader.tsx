@@ -1,9 +1,17 @@
 import React from 'react';
 import * as S from '../BlogEditorCss';
 
+export type EditorMode = 'edit' | 'wysiwyg' | 'preview';
+
+const MODES: { id: EditorMode; label: string; title: string }[] = [
+  { id: 'edit',    label: 'Edit HTML', title: 'Edit raw HTML source' },
+  { id: 'preview', label: 'Preview',   title: 'Render preview of the final output' },
+  { id: 'wysiwyg', label: 'Edit View', title: 'Edit visually like a word processor' },
+];
+
 interface Props {
-  mode: 'edit' | 'preview';
-  onModeChange: (mode: 'edit' | 'preview') => void;
+  mode: EditorMode;
+  onModeChange: (mode: EditorMode) => void;
   onExport: () => void;
   onImportMarkdown: () => void;
   onOpenFromCloud: () => void;
@@ -30,8 +38,12 @@ const BlogEditorHeader: React.FC<Props> = ({
           </span>
         )}
         <div style={S.modeToggleGroup()}>
-          <button style={S.modeToggleBtn(mode === 'edit')} onClick={() => onModeChange('edit')}>Edit</button>
-          <button style={S.modeToggleBtn(mode === 'preview')} onClick={() => onModeChange('preview')}>Preview</button>
+          {MODES.map(({ id, label, title }) => (
+            <button key={id} style={S.modeToggleBtn(mode === id)} title={title}
+              onClick={() => onModeChange(id)}>
+              {label}
+            </button>
+          ))}
         </div>
       </div>
       <div style={S.headerRight()}>

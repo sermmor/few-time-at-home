@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 import { EditorProvider, useEditor } from './BlogEditorContext';
 import BlogEditorHeader from './components/BlogEditorHeader';
@@ -12,6 +12,7 @@ import { ModalSaveToCloud } from './components/ModalSaveToCloud';
 import { createCodeEntry } from './utils/previewUtils';
 import { htmlToMarkdown, markdownToHtml } from './utils/markdownUtils';
 import { CloudActions } from '../../../core/actions/cloud';
+import { TemporalData } from '../../../service/temporalData.service';
 import * as S from './BlogEditorCss';
 
 // ── Inner component (needs EditorProvider already mounted) ────────────────────
@@ -19,8 +20,10 @@ import * as S from './BlogEditorCss';
 const BlogEditorInner: React.FC = () => {
   const { insertCode, getContent, textareaRef } = useEditor();
 
-  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const [mode, setMode] = useState<'edit' | 'wysiwyg' | 'preview'>('edit');
   const [previewHtml, setPreviewHtml] = useState('');
+  const [wysiwygInitContent, setWysiwygInitContent] = useState('');
+  const wysiwygHtmlRef = useRef('');
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [exportData, setExportData] = useState<{ embedded: string; full: string; markdown: string } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -42,23 +45,65 @@ const BlogEditorInner: React.FC = () => {
   });
   const closeSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
 
+  // ── Load file passed from Cloud via TemporalData bridge (on first mount) ────
+  useEffect(() => {
+    const content = TemporalData.EditorTextData;
+    const path    = TemporalData.LastPathInTextEditor;
+    if (content && path) {
+      const ta = textareaRef.current;
+      if (ta) {
+        ta.value = path.toLowerCase().endsWith('.md') ? markdownToHtml(content) : content;
+        ta.focus();
+      }
+      setCloudFilePath(path);
+      TemporalData.EditorTextData = '';
+      TemporalData.LastPathInTextEditor = '';
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── WYSIWYG helpers ───────────────────────────────────────────────────────────
+  const handleWysiwygUpdate = useCallback((html: string) => {
+    wysiwygHtmlRef.current = html;
+  }, []);
+
+  /** Returns the live content regardless of current mode. */
+  const getCurrentContent = useCallback(() => {
+    if (mode === 'wysiwyg') return wysiwygHtmlRef.current;
+    return getContent();
+  }, [mode, getContent]);
+
   // ── Tool toggle ──────────────────────────────────────────────────────────────
   const handleToolToggle = useCallback((tool: string) => {
     setActiveTool((prev) => (prev === tool ? null : tool));
   }, []);
 
-  // ── Mode (Edit / Preview) ────────────────────────────────────────────────────
-  const handleModeChange = useCallback((newMode: 'edit' | 'preview') => {
+  // ── Mode (Edit / WYSIWYG / Preview) ─────────────────────────────────────────
+  const handleModeChange = useCallback((newMode: 'edit' | 'wysiwyg' | 'preview') => {
+    // Leaving wysiwyg → flush contenteditable HTML back to the textarea
+    if (mode === 'wysiwyg' && newMode !== 'wysiwyg') {
+      const ta = textareaRef.current;
+      if (ta) ta.value = wysiwygHtmlRef.current;
+    }
+
+    if (newMode === 'wysiwyg') {
+      // Seed the WYSIWYG editor from the current textarea content
+      const seed = getContent();
+      wysiwygHtmlRef.current = seed;
+      setWysiwygInitContent(seed);
+      setActiveTool(null); // hide sidebar
+    }
+
     if (newMode === 'preview') {
-      const content = getContent();
+      const content = getCurrentContent();
       setPreviewHtml(createCodeEntry(content, tituloNota, pasarANotas, pasarABr, colorNota));
     }
+
     setMode(newMode);
-  }, [getContent, tituloNota, pasarANotas, pasarABr, colorNota]);
+  }, [mode, getContent, getCurrentContent, textareaRef, tituloNota, pasarANotas, pasarABr, colorNota]);
 
   // ── Export ───────────────────────────────────────────────────────────────────
   const handleExport = useCallback(() => {
-    const content = getContent();
+    const content = getCurrentContent();
     const embedded = createCodeEntry(content, tituloNota, pasarANotas, true, colorNota);
     const full =
       `<?xml version="1.0" encoding="UTF-8"?>\n` +
@@ -69,7 +114,7 @@ const BlogEditorInner: React.FC = () => {
       embedded + '\n<br /><br /><i>Created with BlogXtender.</i>' +
       `\n</body>\n</html>\n`;
     setExportData({ embedded, full, markdown: htmlToMarkdown(embedded) });
-  }, [getContent, tituloNota, pasarANotas, colorNota]);
+  }, [getCurrentContent, tituloNota, pasarANotas, colorNota]);
 
   // ── Import Markdown (append) ─────────────────────────────────────────────────
   const handleImportMarkdown = useCallback((html: string) => {
@@ -98,7 +143,7 @@ const BlogEditorInner: React.FC = () => {
 
   // ── Save ─────────────────────────────────────────────────────────────────────
   const doSave = useCallback(async (filePath: string) => {
-    const content = getContent();
+    const content = getCurrentContent();
     const textContent = filePath.toLowerCase().endsWith('.md')
       ? htmlToMarkdown(content)
       : content;
@@ -113,7 +158,7 @@ const BlogEditorInner: React.FC = () => {
     } catch {
       setSnackbar({ open: true, message: 'Error al guardar el fichero', severity: 'error' });
     }
-  }, [getContent]);
+  }, [getCurrentContent]);
 
   const handleSave = useCallback(() => {
     if (cloudFilePath) {
@@ -130,7 +175,9 @@ const BlogEditorInner: React.FC = () => {
   // ── Keyboard shortcuts ───────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Ctrl+S works in all modes; Ctrl+B / Ctrl+I only in HTML edit mode
       if (e.ctrlKey && !e.altKey && !e.metaKey) {
+        if (mode !== 'edit' && e.key !== 's') return;
         if (e.key === 'b') {
           e.preventDefault();
           insertCode('<span style="font-weight: bold;">', '</span>');
@@ -145,7 +192,7 @@ const BlogEditorInner: React.FC = () => {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [insertCode, handleSave]);
+  }, [mode, insertCode, handleSave]);
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -215,8 +262,13 @@ const BlogEditorInner: React.FC = () => {
 
       {/* Editor + Sidebar */}
       <div style={S.contentArea()}>
-        <BlogEditorPanel mode={mode} previewHtml={previewHtml} />
-        <BlogEditorSidebar
+        <BlogEditorPanel
+          mode={mode}
+          previewHtml={previewHtml}
+          wysiwygInitContent={wysiwygInitContent}
+          onWysiwygUpdate={handleWysiwygUpdate}
+        />
+        {mode !== 'wysiwyg' && <BlogEditorSidebar
           activeTool={activeTool}
           onClose={() => setActiveTool(null)}
           pasarABr={pasarABr}
@@ -227,7 +279,7 @@ const BlogEditorInner: React.FC = () => {
           onTituloNotaChange={setTituloNota}
           colorNota={colorNota}
           onColorNotaChange={setColorNota}
-        />
+        />}
       </div>
 
       {/* Save snackbar */}

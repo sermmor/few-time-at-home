@@ -21,7 +21,7 @@ const SIDEBAR_TOOLS: ToolDef[] = [
 interface Props {
   activeTool: string | null;
   onToolToggle: (tool: string) => void;
-  mode: 'edit' | 'preview';
+  mode: 'edit' | 'wysiwyg' | 'preview';
 }
 
 const Div: React.FC = () => <span style={S.toolbarDivider()} />;
@@ -57,7 +57,8 @@ const BlogEditorToolbar: React.FC<Props> = ({ activeTool, onToolToggle, mode }) 
 
   const ic = insertCode;
 
-  if (mode === 'preview') return null;
+  // HTML toolbar only visible in HTML edit mode; WYSIWYG has its own toolbar
+  if (mode !== 'edit') return null;
 
   return (
     <div style={S.toolbarBar()}>

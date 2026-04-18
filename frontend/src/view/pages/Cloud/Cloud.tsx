@@ -199,9 +199,9 @@ export const Cloud = () => {
         onMoveItem={() => moveItemListToFolder(action)}
         onSearch={onSearchFileOrFolder(action)}
         createFile={() => setOpenNameFileDialog(true)}
-        filterFileInEditor={(id) => id.indexOf('.txt') > -1 || isAnImageFile(id) || isAVideoFile(id) || isAnAudioFile(id)}
+        filterFileInEditor={(id) => id.endsWith('.txt') || id.endsWith('.html') || id.endsWith('.md') || isAnImageFile(id) || isAVideoFile(id) || isAnAudioFile(id)}
         openFileInEditor={(id) => {
-          if (id.indexOf('.txt') > -1) {
+          if (id.endsWith('.txt') || id.endsWith('.html') || id.endsWith('.md')) {
             downloadAndOpenFileInEditor(action, id).then(() => navigate('/cloud/text-editor'));
           } else if (isAnAudioFile(id)) {
             setCurrentAudioName(id);

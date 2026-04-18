@@ -1,5 +1,4 @@
 import { Bookmarks } from "./pages/Bookmarks/Bookmarks";
-import { BlogEditor } from "./pages/BlogEditor/BlogEditor";
 import { Cloud } from "./pages/Cloud/Cloud";
 import { ConfigurationComponent } from "./pages/Configuration/Configuration";
 import { Home } from "./pages/Home/Home";
@@ -93,12 +92,6 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/cloud/video-player',
     group: 'Cloud',
     element: <VideoPlayer/>,
-  },
-  {
-    name: 'Blog Editor',
-    path: '/blog-editor',
-    group: '',
-    element: <BlogEditor />,
   },
   {
     name: 'Configuration',
