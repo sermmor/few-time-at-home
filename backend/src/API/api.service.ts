@@ -95,10 +95,8 @@ export class APIService {
     zipFolder: '/cloud/zip-folder',
   };
   static synchronize = {
-    clientDownloadAppFile: '/synchronize/download',
-    clientUploadAppFile: '/synchronize/upload',
-    serverDownloadAppFile: '/synchronize/server/download',
-    serverUploadAppFile: '/synchronize/server/upload',
+    export:         '/synchronize/export',    // GET  — server packages data/ as zip
+    clientDownload: '/synchronize/download',  // POST — client fetches from remote URL
   }
   static networkEndpointList = {
     discover: '/network/upnp-discover',
@@ -815,57 +813,31 @@ export class APIService {
   private synchronizeService = () => {
     const synchronizeService = new SynchronizeService();
 
-    // ESTOY COMO CLIENTE, quiero descargar fichero del servidor.
-    // body: req.url
-    this.app.post(APIService.synchronize.clientDownloadAppFile, (req, res) => {
-      if (!req.body) {
-        console.error("Received NO body text");
-      } else {
-        synchronizeService.clientDownloadDataFromUrl(`${req.body.url}${APIService.synchronize.serverUploadAppFile}`).then(() => {
-          console.log("Configuración del cliente sincronizada.");
-          res.send({message: "Configuración del cliente sincronizada."});
-        });
+    // GET /synchronize/export — server packages data/ (excl. uploads/) as a zip and sends it
+    this.app.get(APIService.synchronize.export, async (_req, res) => {
+      try {
+        await synchronizeService.exportDataAsZip(res);
+      } catch (err) {
+        console.error('[Sync] Export error:', err);
+        if (!res.headersSent) res.status(500).send({ message: 'Export failed.' });
       }
     });
 
-    // ESTOY COMO CLIENTE, quiero subir fichero al servidor.
-    // body: req.url
-    this.app.post(APIService.synchronize.clientUploadAppFile, (req, res) => {
-      if (!req.body) {
-        console.error("Received NO body text");
-      } else {
-        // console.log(`${req.body.url}${APIService.synchronize.serverDownloadAppFile}`)
-        synchronizeService.clientUploadDataToUrl(`${req.body.url}${APIService.synchronize.serverDownloadAppFile}`).then(() => {
-          console.log("Configuración sincronizada del cliente subida.");
-          res.send({message: "Configuración sincronizada del cliente subida."});
-        });
+    // POST /synchronize/download — client downloads from a remote URL and applies data locally
+    this.app.post(APIService.synchronize.clientDownload, (req, res) => {
+      if (!req.body?.url) {
+        res.status(400).send({ message: 'Missing url field in request body.' });
+        return;
       }
-    });
-
-    // ESTOY COMO SERVIDOR, quiero descargar fichero del cliente.
-    // body: req.file
-    this.app.post(APIService.synchronize.serverDownloadAppFile, upload.single('file'), (req, res) => {
-      if (!req.body) {
-          console.error("Received NO body text");
-      } else {
-        const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        synchronizeService.serverDownloadDataFromUrl(allFiles.path).then(() => {
-          console.log("Configuración del servidor sincronizada.");
-          res.send({message: "Configuración del servidor sincronizada."});
+      synchronizeService.clientDownloadFromUrl(req.body.url)
+        .then(() => {
+          console.log('[Sync] Synchronization complete.');
+          res.send({ message: '✅ Sincronización completada.' });
+        })
+        .catch((err: any) => {
+          console.error('[Sync] Download error:', err);
+          res.status(500).send({ message: `❌ Error al sincronizar: ${err.message}` });
         });
-      }
-    });
-
-    // ESTOY COMO SERVIDOR, quiero subir fichero al cliente.
-    this.app.post(APIService.synchronize.serverUploadAppFile, (req, res) => {
-      if (!req.body) {
-          console.error("Received NO body text");
-      } else {
-        synchronizeService.serverUploadDataToUrl(res).then(() => {
-          console.log("Configuración sincronizada del servidor subida al cliente.");
-          // res.send({message: "Configuración sincronizada del servidor subida al cliente."});
-        });
-      }
     });
   }
 

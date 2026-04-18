@@ -1,117 +1,139 @@
-import { readFile, writeFile } from "fs/promises";
-import { createReadStream } from "fs";
-import path from "path";
-// import { YoutubeRSSMessageList } from "../youtubeRSS";
-import { AlertListService } from "./alertNotification.service";
-import { BookmarkService } from "./bookmark.service";
-import { ConfigurationService } from "./configuration.service";
-import { NotesService } from "./notes.service"
-import { PomodoroService } from "./pomodoro.service";
-import FormData from 'form-data';
-import { readJSONFile } from "../utils";
-import { ChannelMediaRSSCollectionExport } from "./messagesRSS.service";
-import { ReadLaterMessagesRSS } from "./readLaterMessagesRSS.service";
+/**
+ * SynchronizeService
+ *
+ * Exports / imports the entire `data/` directory as a zip archive.
+ *
+ *   GET  /synchronize/export    — packages data/ into a zip and streams it to the caller
+ *   POST /synchronize/download  — client: fetches the zip from a remote URL, extracts it
+ *                                          over data/, then reloads all in-memory service state
+ *
+ * Temporary zip files are placed at the backend root (NOT inside data/) so they are never
+ * accidentally included inside the archive itself.
+ *
+ * Files NOT transferred (they live at the backend root, outside data/):
+ *   • configuration.json  (instance-specific ports, paths, …)
+ *   • keys.json           (secrets / tokens)
+ */
 
-const fetch = require("node-fetch");
+import { zip } from 'zip-a-folder';
+import { exec }  from 'child_process';
+import path from 'path';
+import { writeFile, unlink } from 'fs/promises';
+import { NotesService }         from './notes.service';
+import { AlertListService }     from './alertNotification.service';
+import { PomodoroService }      from './pomodoro.service';
+import { ConfigurationService } from './configuration.service';
+import { MediaRSSAutoupdate }   from '../processAutoupdate/mediaRSSAutoupdate';
+import { UnfurlCacheService }   from '../unfurl/unfurlCache.service';
 
-const pathJsonSyncronize = 'data/synchronize.json';
+const fetch = require('node-fetch');
+
+const DATA_DIR   = 'data';
+const EXPORT_ZIP = 'sync_export.zip';  // backend root — never inside data/
+const IMPORT_ZIP = 'sync_import.zip';  // backend root — never inside data/
 
 export class SynchronizeService {
-  constructor() {}
 
-  private collectAllData = async() => {
-    const bookmark = await BookmarkService.Instance.fileContent();
-    const readLaterRss = await ReadLaterMessagesRSS.fileContent();
-    return {
-      notes: NotesService.Instance.fileContent(),
-      alerts: AlertListService.Instance.fileContent(),
-      bookmark,
-      pomodoro: PomodoroService.Instance.fileContent(),
-      youtube: ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.fileContent(),
-      configuration: ConfigurationService.Instance.fileContent(),
-      readLaterRss,
-    }
+  // ─── Export ─────────────────────────────────────────────────────────────────
+
+  /** Zip data/ with zip-a-folder and stream it to the HTTP response. */
+  exportDataAsZip = async (webResponse: any): Promise<void> => {
+    await zip(DATA_DIR, EXPORT_ZIP);
+
+    return new Promise<void>((resolve, reject) => {
+      webResponse.download(path.resolve(EXPORT_ZIP), 'sync_export.zip', (err: any) => {
+        unlink(EXPORT_ZIP).catch(() => {}); // clean up temp file (best-effort)
+        if (err) reject(err); else resolve();
+      });
+    });
   };
 
-  private setDataToApplication = async (dataText: any, parseJSON = true): Promise<void> => {
-    const data = parseJSON ? JSON.parse(<string> dataText) : dataText;
-    await NotesService.Instance.setFileContent(data.notes);
-    await AlertListService.Instance.setFileContent(data.alerts);
-    await BookmarkService.Instance.setFileContent(data.bookmark);
-    await PomodoroService.Instance.setFileContent(data.pomodoro);
-    await ChannelMediaRSSCollectionExport.Instance.channelMediaCollection.youtubeRSS.setFileContent(data.youtube);
-    await ConfigurationService.Instance.setFileContent(data.configuration);
-    await ReadLaterMessagesRSS.setFileContent(data.readLaterRss);
-  }
+  // ─── Import ─────────────────────────────────────────────────────────────────
 
-  // Como cliente, creo el fichero de sincronización y lo mando al servidor.
-  clientUploadDataToUrl = async (url: string): Promise<void> => {
-    const dataCollected = await this.collectAllData();
-    const data = JSON.stringify(dataCollected, null, 2);
-    await writeFile(pathJsonSyncronize, data);
-    
-    const formData = new FormData();
-    const stream = createReadStream(pathJsonSyncronize);
-    formData.append('file', stream);
+  /**
+   * Extract a zip over data/ and reload all in-memory service state.
+   *
+   * Extraction is delegated to the OS zip tool for reliability:
+   *   Linux / macOS → unzip  (pre-installed on most systems; apt install unzip if needed)
+   *   Windows       → PowerShell Expand-Archive  (available on Win 10+)
+   *
+   * The zip created by zip-a-folder stores files WITHOUT the top-level folder name,
+   * so extracting into data/ correctly rebuilds the directory tree.
+   */
+  importDataFromZip = async (zipPath: string): Promise<void> => {
+    await this.extractZip(path.resolve(zipPath), path.resolve(DATA_DIR));
+    await this.reloadAllServices();
+    await unlink(zipPath).catch(() => {}); // clean up import zip (best-effort)
+  };
 
-    await fetch(url, {
-      method: 'POST',
-      body: formData as unknown as BodyInit | null | undefined,
+  private extractZip = (absZipPath: string, absDestDir: string): Promise<void> =>
+    new Promise((resolve, reject) => {
+      const isWin = process.platform === 'win32';
+      const cmd   = isWin
+        ? `powershell.exe -Command "Expand-Archive -Path '${absZipPath}' -DestinationPath '${absDestDir}' -Force"`
+        : `unzip -o "${absZipPath}" -d "${absDestDir}"`;
+
+      exec(cmd, (err, _stdout, stderr) => {
+        if (err) {
+          console.error('[Sync] Extraction error:', stderr);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
     });
-  }
 
-  // Como cliente, me traigo un fichero de sincronización del servidor, me lo descargo y lo aplico a la aplicación.
-  clientDownloadDataFromUrl = async (url: string): Promise<void> => {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-      },
-    });
-    const dataJson = await res.json();
-    await this.setDataToApplication(dataJson, false);
-  }
+  // ─── Client download ─────────────────────────────────────────────────────────
 
-  // Como servidor, recibo un fichero de sincronización del cliente.
-  serverDownloadDataFromUrl = async (pathData: string): Promise<void> => {
-    console.log(`[SynchronizeService] SynchronizeService downloaded updated file in: ${pathData}`);
-    const dataJson = await readJSONFile(pathData, "{}");
-    await this.setDataToApplication(dataJson, false);
-  }
+  /** Fetch the zip from a remote instance's export endpoint and apply it locally. */
+  clientDownloadFromUrl = async (url: string): Promise<void> => {
+    const exportUrl = url.replace(/\/$/, '') + '/synchronize/export';
+    console.log(`[Sync] Fetching from: ${exportUrl}`);
 
-  private sendFileResponse = (webResponse: any, fileRelativePath: string, options: any): Promise<void> => new Promise<void>(resolve => {
-    webResponse.sendFile(fileRelativePath, options, (err: any) => {
-      if (err) {
-        console.error("[SynchronizeService] Received NO body text");
-      } else {
-        console.log(`[SynchronizeService] Sent: ${fileRelativePath}`);
-      }
-      resolve();
-    });
-  });
+    const res = await fetch(exportUrl);
+    if (!res.ok) throw new Error(`Remote returned HTTP ${res.status}`);
 
-  // Como servidor, mando un fichero de sincronización al cliente.
-  serverUploadDataToUrl = async (webResponse: any): Promise<void> => {
-    const dataCollected = await this.collectAllData();
-    const data = JSON.stringify(dataCollected, null, 2);
-    await writeFile(pathJsonSyncronize, data);
-    const options: {root: undefined | string} = {
-      root: this.getAbsoluteRoot(),
-    };
-    await this.sendFileResponse(webResponse, pathJsonSyncronize, options);
-  }
+    const buffer: Buffer = await res.buffer();
+    await writeFile(IMPORT_ZIP, buffer);
+    console.log(`[Sync] Zip downloaded (${buffer.length} bytes). Extracting…`);
 
-  private getAbsoluteRoot = (): string => {
-    let absoluteRoot = path.join(__dirname);
-    let isPathWindowsStyle = false;
-    let absoluteRootSplitted = absoluteRoot.split('/');
-    if (absoluteRootSplitted.length <= 1) {
-      isPathWindowsStyle = true;
-      absoluteRootSplitted = absoluteRoot.split('\\');
-    }
-    absoluteRootSplitted.pop();
-    absoluteRootSplitted.pop();
-    return absoluteRootSplitted.join(isPathWindowsStyle ? '\\' : '/');
-  }
+    await this.importDataFromZip(IMPORT_ZIP);
+    console.log('[Sync] Import complete.');
+  };
+
+  // ─── Service reload ──────────────────────────────────────────────────────────
+
+  /**
+   * After zip extraction the files on disk are fresh.
+   * Reset in-memory caches so every service picks up the new data on next access.
+   */
+  private reloadAllServices = async (): Promise<void> => {
+    // ── Notes ── reset array → will re-read lazily on next getNotes()
+    NotesService.Instance.notes = [];
+
+    // ── Alerts ── cancel all scheduled jobs, empty the list
+    //   AlertListService re-reads from disk and re-schedules on next launchAlerts() call
+    AlertListService.Instance.scheduleJobs.forEach(job => job.cancel());
+    AlertListService.Instance.alertList   = [];
+    AlertListService.Instance.scheduleJobs = [];
+
+    // ── Pomodoro ── reset → will re-read lazily on next refleshTimerModeList()
+    PomodoroService.Instance.timeModeList = [];
+
+    // ── Configuration sub-configs (data/config/*.json) ──
+    //   Root configuration.json (ports, paths, secrets) is intentionally NOT touched.
+    await ConfigurationService.Instance.reloadSubConfigsFromDisk();
+
+    // ── RSS message cache (data/config/media/*.json) ──
+    await MediaRSSAutoupdate.instance.reloadFromDisk();
+
+    // ── Unfurl cache (data/cache/unfurl/) ──
+    //   Reset lazy-load flags → will re-read from the extracted files on next request.
+    UnfurlCacheService.getInstance().resetForSync();
+
+    // ReadLaterMessagesRSS — static, always reads from disk; no action needed.
+    // BookmarkService      — reads from disk on every operation; no action needed.
+
+    console.log('[Sync] All services reloaded from disk.');
+  };
 }

@@ -46,7 +46,8 @@ export class MediaRSSAutoupdate {
     }, timeInHoursToSaveMediaDataInFiles * 60 * 60 * 1000);
   }
 
-  private loadFileData = async() => {
+  /** Public so SynchronizeService can reload after a zip import. */
+  public loadFileData = async() => {
     const fileVoid = "{messagesMasto: [], messagesBlog: [], messagesNewsFeed: [], messagesYoutube: []}";
     const dataOrVoid: FileMediaContentType | string = await readJSONFile(
       mediaFilePath,
@@ -58,6 +59,9 @@ export class MediaRSSAutoupdate {
     const dataOrVoidYoutube: string[] | string = await readJSONFile(favoriteYoutubeFilePath, "[]");
     this.youtubeFavoriteCompleteData = dataOrVoidYoutube === "[]" ? [] : dataOrVoidYoutube as string[];
   }
+
+  /** Reload the RSS message cache from disk (called by SynchronizeService after zip import). */
+  public reloadFromDisk = () => this.loadFileData();
 
   private saveFileData = async() => {
     await saveInAFilePromise(JSON.stringify(this.currentCompleteData, null, 2), mediaFilePath);

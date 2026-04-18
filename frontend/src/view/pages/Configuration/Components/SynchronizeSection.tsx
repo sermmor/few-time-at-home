@@ -1,5 +1,9 @@
-import React from "react";
-import { Box, Button, TextField, Typography, SxProps, Theme, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box, Button, TextField, Typography,
+  SxProps, Theme, Accordion, AccordionSummary, AccordionDetails,
+  CircularProgress,
+} from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { synchronizeActions } from "../../../../core/actions/synchronize";
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
@@ -22,36 +26,75 @@ interface SynchronizeSectionProps {
   setSynchronizeUrl: (url: string) => void;
 }
 
+type SyncStatus = 'idle' | 'loading' | 'done';
+
 export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
   synchronizeUrl,
   setSynchronizeUrl,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const [status,  setStatus]  = useState<SyncStatus>('idle');
+  const [message, setMessage] = useState('');
+
+  const handleDownload = () => {
+    setStatus('loading');
+    setMessage('');
+    synchronizeActions.downloadData(synchronizeUrl)
+      .then(res => {
+        setStatus('done');
+        setMessage(res.message ?? '✅ Sincronización completada.');
+      })
+      .catch(() => {
+        setStatus('done');
+        setMessage('❌ Error al conectar con el servidor remoto.');
+      });
+  };
+
+  const isLoading = status === 'loading';
+  const isError   = status === 'done' && message.startsWith('❌');
+
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography>Sincronizar</Typography>
       </AccordionSummary>
       <AccordionDetails>
-    <Box sx={getSynchronizeSectionStyle(alphas.general)}>
-      <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Synchronize all data:</Typography>
-      <TextField
-        label="Url backend to Synchronize:"
-        variant="standard"
-        value={synchronizeUrl}
-        sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
-        onChange={evt => {
-          setSynchronizeUrl(evt.target.value);
-        }}
-      />
-      <Button
-        variant='contained'
-        sx={{minWidth: '15.5rem'}}
-        onClick={() => synchronizeActions.downloadData(synchronizeUrl)}
-      >
-        Download
-      </Button>
-    </Box>
+        <Box sx={getSynchronizeSectionStyle(alphas.general)}>
+          <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>
+            Synchronize all data:
+          </Typography>
+          <Typography variant='body2' sx={{ color: 'rgb(80, 80, 80)' }}>
+            Introduce la URL base del backend remoto. Al pulsar Download, esta instancia
+            descargará los datos de esa instancia (notas, alertas, marcadores, RSS…) y
+            reemplazará los suyos propios. <strong>No</strong> se transferirán
+            configuration.json ni keys.json.
+          </Typography>
+          <TextField
+            label="URL del backend remoto"
+            variant="standard"
+            value={synchronizeUrl}
+            sx={{ minWidth: { xs: '15.5rem', sm: '5rem', md: '30rem' } }}
+            onChange={evt => setSynchronizeUrl(evt.target.value)}
+            disabled={isLoading}
+          />
+          <Button
+            variant='contained'
+            sx={{ minWidth: '15.5rem' }}
+            onClick={handleDownload}
+            disabled={isLoading || !synchronizeUrl}
+            startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : undefined}
+          >
+            {isLoading ? 'Sincronizando…' : 'Download'}
+          </Button>
+          {status === 'done' && (
+            <Typography
+              variant='body2'
+              sx={{ color: isError ? 'error.main' : 'success.main', fontWeight: 500 }}
+            >
+              {message}
+            </Typography>
+          )}
+        </Box>
       </AccordionDetails>
     </Accordion>
   );

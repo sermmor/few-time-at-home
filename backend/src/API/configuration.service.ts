@@ -120,6 +120,31 @@ export class ConfigurationService {
 
   getConfigTypes = (): string[] => this.configTypes;
 
+  /**
+   * Re-read the sub-config files in data/config/ from disk and update in-memory state.
+   * Called by SynchronizeService after a zip import.
+   * The root configuration.json (ports, paths, secrets) is intentionally NOT touched.
+   */
+  reloadSubConfigsFromDisk = (): Promise<void> => new Promise<void>(resolve => {
+    readAdditionalConfigFile(listNamesAdditionalConfigFiles, {}).then(subConfig => {
+      if (subConfig.mastodonRssUsersList !== undefined) this.mastodonRssUsersList = subConfig.mastodonRssUsersList;
+      if (subConfig.blogRssList         !== undefined) this.blogRssList          = subConfig.blogRssList;
+      if (subConfig.newsRSSList         !== undefined) this.newsRSSList          = subConfig.newsRSSList;
+      if (subConfig.youtubeRssList      !== undefined) this.youtubeRssList       = subConfig.youtubeRssList;
+      if (subConfig.quoteList           !== undefined) this.quoteList            = subConfig.quoteList;
+      if (subConfig.rssConfig           !== undefined) this.rssConfig            = subConfig.rssConfig;
+
+      const channelMediaCollection = ChannelMediaRSSCollectionExport.Instance.channelMediaCollection;
+      channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
+      channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
+      channelMediaCollection.newsRSS.refleshChannelMediaConfiguration();
+      channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
+        console.log('[Sync] ConfigurationService sub-configs reloaded from disk.');
+        resolve();
+      });
+    });
+  });
+
   getConfigurationByType = (typeConfig: string) => {
     if (typeConfig === 'configuration') {
       return {

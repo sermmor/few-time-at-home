@@ -83,6 +83,18 @@ export class UnfurlCacheService {
     return this.unfurlCache.find(data => data.url === url);
   };
 
+  /**
+   * Reset all in-memory state so the next request re-reads from the (freshly synced) disk files.
+   * Called by SynchronizeService after a zip import.
+   */
+  resetForSync = () => {
+    this.isLoadedUnfurlCache   = false;
+    this.unfurlCache           = [];
+    this.isLoadedYTImageIndex  = false;
+    this.ytImageIndex.clear();
+    console.log('[UNFURL] Cache reset for sync — will reload from disk on next access.');
+  };
+
   addDataToCache = (newData: UnfurlCacheData) => {
     const isAlreadyInCache = !!this.unfurlCache.find(({ url }) => newData.url === url);
     if (!isAlreadyInCache) {
