@@ -2,7 +2,6 @@ import { readFile, writeFileSync } from 'fs';
 import { APIService, ChannelMediaRSSCollection, ConfigurationService, getAllMessageCommands, TelegramBotCommand } from './API';
 import { BlogRSSMessageList } from './blogRSS';
 import { MastodonRSSMessageList } from './mastodonRSS/mastodonRSSMessageList';
-import { NitterRSSMessageList } from './nitterRSS';
 import { NewsRSSMessageList } from './blogRSS/newsRSSMessageList';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { YoutubeRSSMessageList } from './youtubeRSS';
@@ -43,7 +42,6 @@ readFile(keysPath, (err, data) => {
           }
   
           channelMediaCollection = {
-              nitterRSS: new NitterRSSMessageList(),
               mastodonRSS: new MastodonRSSMessageList(),
               blogRSS: new BlogRSSMessageList(),
               newsRSS: new NewsRSSMessageList(),

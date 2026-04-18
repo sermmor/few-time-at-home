@@ -5,8 +5,6 @@ import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataZipped, parseToZippedConfig } from "../../../data-model/configuration";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
 import { SynchronizeSection } from "./Components/SynchronizeSection";
-import { NitterInstancesSection } from "./Components/NitterInstancesSection";
-import { TwitterUsersSection } from "./Components/TwitterUsersSection";
 import { MastodonUsersSection } from "./Components/MastodonUsersSection";
 import { BlogRSSSection } from "./Components/BlogRSSSection";
 import { NewsRSSSection } from "./Components/NewsRSSSection";
@@ -108,8 +106,6 @@ export const ConfigurationComponent = () => {
     <ConfigurationSnackbarProvider onSave={showSaveNotification}>
       {config && <Box sx={formStyle}>
         <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
-        <NitterInstancesSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        <TwitterUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
         <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
         <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
         <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />

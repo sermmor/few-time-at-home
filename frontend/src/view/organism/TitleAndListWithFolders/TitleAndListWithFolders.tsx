@@ -262,7 +262,7 @@ export const TitleAndListWithFolders = ({
                     element,
                     deleteAction,
                     isInSelectListMode,
-                    IconOpenFileInEditor: element.id.indexOf('.txt') > -1
+                    IconOpenFileInEditor: (element.id.endsWith('.txt') || element.id.endsWith('.html') || element.id.endsWith('.md'))
                       ? undefined
                       : isAudioItem
                         ? <MusicNoteIcon />

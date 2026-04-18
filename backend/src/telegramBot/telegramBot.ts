@@ -77,7 +77,6 @@ export class TelegramBot {
       this.bot!.command(ConfigurationService.Instance.listBotCommands.bot_login, this.login);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_all_command, () => MediaRSSAutoupdate.getFavoritesYoutubeFileContent(20));
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_get_save_list_command, this.getSaveListFromTelegram);
-      this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_nitter_command, commandList.onCommandNitter);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_masto_command, MediaRSSAutoupdate.getMastoFileContent);
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_youtube_command, MediaRSSAutoupdate.getYoutubeFileContent('null'));
       this.buildBotCommand(this.bot!, ConfigurationService.Instance.listBotCommands.bot_blog_command, MediaRSSAutoupdate.getBlogFileContent);

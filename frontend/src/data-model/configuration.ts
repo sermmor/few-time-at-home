@@ -32,7 +32,6 @@ interface ConfigurationGeneral {
   windowsFFMPEGPath: string;
   backupUrls: string;
   cloudRootPath: string;
-  showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
   webSocketPort: number;
@@ -46,8 +45,6 @@ export interface ConfigurationDataModel {
 }
 
 export interface ConfigurationDataZipped {
-  nitterInstancesList: string[];
-  nitterRssUsersList: string[];
   mastodonRssUsersList: MastodonConfigurationList;
   blogRssList: string[];
   newsRSSList: string[];
@@ -57,7 +54,6 @@ export interface ConfigurationDataZipped {
   windowsFFMPEGPath: string;
   backupUrls: string;
   cloudRootPath: string;
-  showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
   webSocketPort: number;
@@ -66,10 +62,8 @@ export interface ConfigurationDataZipped {
 }
 
 export const parseToZippedConfig = (configList: ConfigurationDataModel[]): ConfigurationDataZipped => {
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
   return ({
-    nitterInstancesList: getContentConfigurationByType(configList, 'nitterInstancesList') as string[],
-    nitterRssUsersList: getContentConfigurationByType(configList, 'nitterRssUsersList') as string[],
     mastodonRssUsersList: getContentConfigurationByType(configList, 'mastodonRssUsersList') as { instance: string; user: string; }[],
     blogRssList: getContentConfigurationByType(configList, 'blogRssList') as string[],
     newsRSSList: getContentConfigurationByType(configList, 'newsRSSList') as string[],
@@ -79,7 +73,6 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     windowsFFMPEGPath,
     backupUrls,
     cloudRootPath,
-    showNitterRSSInAll,
     numberOfWorkers,
     apiPort,
     webSocketPort,
@@ -90,13 +83,13 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
 
 export const parseToConfigDataModel = (configZipped: ConfigurationDataZipped): ConfigurationDataModel[] => {
   const configList: ConfigurationDataModel[] = [];
-  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
+  const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
   configList.push({
     type: 'configuration',
-    content: { listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas },
+    content: { listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas },
   });
 
-  ['nitterInstancesList', 'nitterRssUsersList', 'mastodonRssUsersList', 'blogRssList', 'newsRSSList', 'youtubeRssList', 'quoteList'].forEach(type => {
+  ['mastodonRssUsersList', 'blogRssList', 'newsRSSList', 'youtubeRssList', 'quoteList'].forEach(type => {
     configList.push({
       type,
       content: (configZipped as any)[type],
@@ -112,8 +105,8 @@ export const getContentConfigurationByType = (configList: ConfigurationDataModel
 
 export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   if (type === 'configuration') {
-    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
-    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, showNitterRSSInAll, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas};
+    const {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
+    return {listBotCommands, windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas};
   } else {
     return (configZipped as any)[type];
   }

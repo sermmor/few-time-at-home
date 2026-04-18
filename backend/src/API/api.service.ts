@@ -13,7 +13,6 @@ import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 const ffmpegPath: string = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
-import { YoutubeRSSUtils } from '../youtubeRSS/youtubeRSSUtils';
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
@@ -37,7 +36,6 @@ export interface DataToSendInPieces {
 
 export class APIService {
   static getRssMastoEndpoint  = "/rss/mastodon"; // query: http://localhost:${port}/mastodon/all?amount=20
-  static getRssTwitterEndpoint  = "/rss/twitter";
   static getRssBlogEndpoint  = "/rss/blog";
   static getRssNewsEndpoint  = "/rss/news";
   static getRssYoutubeEndpoint  = "/rss/youtube";
@@ -118,7 +116,6 @@ export class APIService {
     this.app.use(express.json())
     this.app.use(cors());
 
-    this.getRSSLive(APIService.getRssTwitterEndpoint, this.commands.onCommandNitter);
     this.getRSS(APIService.getRssMastoEndpoint, 'mastodon');
     this.getRSS(APIService.getRssBlogEndpoint, 'blog');
     this.getRSS(APIService.getRssNewsEndpoint, 'news');
@@ -155,28 +152,6 @@ export class APIService {
           res.send({ messages: messagesToSend });
         } else {
           res.send({ messages: messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks)});
-        }
-      });
-    });
-  }
-
-  getRSSLive = (endpoint: string, rssCommand: () => Promise<string[]>) => {
-    this.app.get(endpoint, (req, res) => {
-      const webNumberOfMessagesWithLinks: number = req.query.amount ? +req.query.amount : 0;
-      ConfigurationService.Instance.twitterData.numberOfMessages = webNumberOfMessagesWithLinks;
-      if (endpoint === APIService.getRssYoutubeEndpoint) {
-        YoutubeRSSUtils.setTag(req.query.tag as string);
-      }
-
-      rssCommand().then(messagesToSend => {
-        if (endpoint === APIService.getRssYoutubeEndpoint) {
-          // Remove shorts videos.
-          YoutubeRSSUtils.filterYoutubeShorts(webNumberOfMessagesWithLinks).then(messages => {
-            res.send({ messages });
-          });
-        } else {
-          const messages = messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks);
-          res.send({ messages });
         }
       });
     });

@@ -3,8 +3,6 @@ import { ConfigurationDataModel, ConfigurationTypeDataModel } from '../configura
 export const configurationTypeDataModelMock = (): ConfigurationTypeDataModel => ({
   data: [
     'configuration',
-    'nitterInstancesList',
-    'nitterRssUsersList',
     'mastodonRssUsersList',
     'blogRssList',
     'youtubeRssList',
@@ -14,26 +12,6 @@ export const configurationTypeDataModelMock = (): ConfigurationTypeDataModel => 
 
 export const configurationDataModelMock = (type: string): ConfigurationDataModel => {
   switch (type) {
-    case 'nitterInstancesList':
-      return {
-        type,
-        content: [
-          'https://nitter1.com',
-          'https://nitter2.com',
-          'https://nitter3.com',
-          'https://nitter4.com',
-        ],
-      };
-    case 'nitterRssUsersList':
-      return {
-        type,
-        content: [
-          'nitterUser1',
-          'nitterUser2',
-          'nitterUser3',
-          'nitterUser4',
-        ],
-      };
     case 'mastodonRssUsersList':
       return {
         type,
@@ -138,7 +116,6 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
       windowsFFMPEGPath: "C:\\Workspace\\few-time-at-home\\backups\\ffmpeg\\bin\\ffmpeg.exe",
       backupUrls: "C:\\Workspace\\few-time-at-home\\backups",
       cloudRootPath: "C:\\Workspace\\few-time-at-home\\rootCloud",
-      showNitterRSSInAll: true,
       numberOfWorkers: 4,
       apiPort: 8080,
       webSocketPort: 8081,

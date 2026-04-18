@@ -1,7 +1,7 @@
 import React from "react";
 import { ConfigurationDataZipped } from "../../../../data-model/configuration";
 import { ConfigurationSaveButton } from "./ConfigurationSaveButton";
-import { Box, Checkbox, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import { Box, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
@@ -33,20 +33,6 @@ export const OthersSection: React.FC<OthersSectionProps> = ({
       </AccordionSummary>
       <AccordionDetails>
     <Box sx={getFooterStyle(alphas.general)}>
-      <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-        <Checkbox
-          checked={config.showNitterRSSInAll}
-          onChange={evt => {
-            setConfig({
-              ...config,
-              showNitterRSSInAll: evt.target.checked,
-            });
-          }}
-        />
-        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
-          Show Twitter in 'all' rss option?
-        </Typography>
-      </Box>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
         <Typography variant='h6' sx={{textTransform: 'uppercase'}}>
           Windows FFMPEG library path: 

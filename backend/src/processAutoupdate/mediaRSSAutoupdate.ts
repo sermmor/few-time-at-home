@@ -292,7 +292,6 @@ export class MediaRSSAutoupdate {
     youtubeTag = "null",
     isYoutubeRSS = false,
   ): Promise<string[]> => new Promise<string[]>(resolve => {
-    ConfigurationService.Instance.twitterData.numberOfMessages = webNumberOfMessagesWithLinks;
     if (isYoutubeRSS) {
       YoutubeRSSUtils.setTag(youtubeTag);
     }

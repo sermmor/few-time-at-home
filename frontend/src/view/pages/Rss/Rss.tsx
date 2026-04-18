@@ -17,7 +17,7 @@ import { useConfiguredDialogAlphas } from '../../../core/context/DialogAlphasCon
 
 const LOADING_CARD_TIME = 5000;
 
-type RSSType = 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites' | 'random';
+type RSSType = 'mastodon' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites' | 'random';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
@@ -95,7 +95,7 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          ['FAVORITES', 'MASTODON', 'TWITTER', 'YOUTUBE', 'BLOG', 'NEWS', 'SAVED', 'RANDOM'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
+          ['FAVORITES', 'MASTODON', 'YOUTUBE', 'BLOG', 'NEWS', 'SAVED', 'RANDOM'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
         }
       </Select>
       <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />

@@ -9,8 +9,6 @@ const pathAdditionalConfigFiles: {[key: string]: string} = {
   blogRssList: 'data/config/blogRssList.json',
   newsRSSList: 'data/config/newsRSSList.json',
   mastodonRssUsersList: 'data/config/mastodonRssUsersList.json',
-  nitterInstancesList: 'data/config/nitterInstancesList.json',
-  nitterRssUsersList: 'data/config/nitterRssUsersList.json',
   quoteList: 'data/config/quoteList.json',
   youtubeRssList: 'data/config/youtubeRssList.json',
   listBotCommands: 'data/config/listBotCommands.json',
@@ -64,8 +62,6 @@ export interface YoutubeData {
 export class ConfigurationService {
   static Instance: ConfigurationService;
 
-  nitterInstancesList: string[];
-  nitterRssUsersList: string[];
   mastodonRssUsersList:
   {
     instance: string;
@@ -97,15 +93,6 @@ export class ConfigurationService {
       bot_cloud_get_current_path: string;
       bot_cloud_download_folder: string;
   };
-  twitterData: {
-    urlTwitterAPI: string;
-    user_list_id: string;
-    user_name: string;
-    password: string;
-    email: string;
-    numberOfMessages: number;
-    userExceptionsList: string[];
-  };
   rssConfig: {
     updateAtStartApp: boolean;
     optionTagsYoutube: string[];
@@ -118,7 +105,6 @@ export class ConfigurationService {
   windowsFFMPEGPath: string;
   backupUrls: string;
   cloudRootPath: string;
-  showNitterRSSInAll: boolean;
   numberOfWorkers: number;
   apiPort: number;
   webSocketPort: number;
@@ -133,21 +119,17 @@ export class ConfigurationService {
   
   constructor(configurationData: any) {
     this.configTypes = ['configuration', ...listNamesAdditionalConfigFiles];
-    this.nitterInstancesList = configurationData.nitterInstancesList;
-    this.nitterRssUsersList = configurationData.nitterRssUsersList;
     this.mastodonRssUsersList = configurationData.mastodonRssUsersList;
     this.blogRssList = configurationData.blogRssList;
     this.newsRSSList = configurationData.newsRSSList;
     this.youtubeRssList = configurationData.youtubeRssList;
     this.listBotCommands = configurationData.listBotCommands;
-    this.showNitterRSSInAll = configurationData.showNitterRSSInAll;
     this.numberOfWorkers = configurationData.numberOfWorkers;
     this.backupUrls = configurationData.backupUrls;
     this.cloudRootPath = configurationData.cloudRootPath;
     this.apiPort = configurationData.apiPort;
     this.webSocketPort = configurationData.webSocketPort;
     this.quoteList = configurationData.quoteList;
-    this.twitterData = configurationData.twitterData;
     this.rssConfig = configurationData.rssConfig;
     this.windowsFFMPEGPath = configurationData.windowsFFMPEGPath;
     this.dialogAlphas = {
@@ -170,11 +152,9 @@ export class ConfigurationService {
         windowsFFMPEGPath: this.windowsFFMPEGPath,
         backupUrls: this.backupUrls,
         cloudRootPath: this.cloudRootPath,
-        showNitterRSSInAll: this.showNitterRSSInAll,
         numberOfWorkers: this.numberOfWorkers,
         apiPort: this.apiPort,
         webSocketPort: this.webSocketPort,
-        twitterData: this.twitterData,
         rssConfig: this.rssConfig,
         dialogAlphas: this.dialogAlphas,
       }
@@ -193,7 +173,6 @@ export class ConfigurationService {
 
     channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
-    channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.newsRSS.refleshChannelMediaConfiguration();
     if (typeConfig === 'youtubeRssList') {
       channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
@@ -228,37 +207,29 @@ export class ConfigurationService {
   }
 
   fileContent = (): any => ({
-    nitterInstancesList: this.nitterInstancesList,
-    nitterRssUsersList: this.nitterRssUsersList,
     mastodonRssUsersList: this.mastodonRssUsersList,
     blogRssList: this.blogRssList,
     newsRSSList: this.newsRSSList,
     youtubeRssList: this.youtubeRssList,
     listBotCommands: this.listBotCommands,
-    showNitterRSSInAll: this.showNitterRSSInAll,
     numberOfWorkers: this.numberOfWorkers,
     apiPort: this.apiPort,
     webSocketPort: this.webSocketPort,
     quoteList: this.quoteList,
-    twitterData: this.twitterData,
     rssConfig: this.rssConfig,
     dialogAlphas: this.dialogAlphas,
   });
 
   setFileContent = (data: any): Promise<void> => new Promise<void>(resolve => {
-    this.nitterInstancesList = data.nitterInstancesList;
-    this.nitterRssUsersList = data.nitterRssUsersList;
     this.mastodonRssUsersList = data.mastodonRssUsersList;
     this.blogRssList = data.blogRssList;
     this.newsRSSList = data.newsRSSList;
     this.youtubeRssList = data.youtubeRssList;
     this.listBotCommands = data.listBotCommands;
-    this.showNitterRSSInAll = data.showNitterRSSInAll;
     this.numberOfWorkers = data.numberOfWorkers;
     this.apiPort = data.apiPort;
     this.webSocketPort = data.webSocketPort;
     this.quoteList = data.quoteList;
-    this.twitterData = data.twitterData;
     this.rssConfig = data.rssConfig;
     this.dialogAlphas = data.dialogAlphas || this.dialogAlphas;
 
@@ -268,7 +239,6 @@ export class ConfigurationService {
 
     channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
-    channelMediaCollection.nitterRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.youtubeRSS.refleshChannelMediaConfiguration().then(() => {
       console.log("> Configuration changed!");
       resolve();
