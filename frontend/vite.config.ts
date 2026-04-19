@@ -9,5 +9,6 @@ export default defineConfig({
   },
   server: {
     port: 7000,
+    host: true,   // escucha en 0.0.0.0 → accesible desde la red local
   },
 });
