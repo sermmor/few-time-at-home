@@ -15,6 +15,7 @@ const ffmpegPath: string = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
+import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { SynchronizeService } from './synchronize.service';
 import { PlaylistExportService } from './playlistExport.service';
 import { BirthdayService } from './birthdayNotification.service';
@@ -347,6 +348,9 @@ export class APIService {
                   isFinishedConverter = true;
                   messageQueue.push("FINISHED!");
                 },
+                progress => {
+                  WebSocketsServerService.Instance?.broadcast(progress);
+                },
               );
               res.send({ message: "Ready!", isFinished: isFinishedConverter});
             } else {
@@ -378,6 +382,9 @@ export class APIService {
                 msg => {
                   isFinishedConverter = true;
                   messageQueue.push("FINISHED!");
+                },
+                progress => {
+                  WebSocketsServerService.Instance?.broadcast(progress);
                 },
               );
               res.send({ message: "Ready!", isFinished: isFinishedConverter});
@@ -653,11 +660,14 @@ export class APIService {
           console.error("Received NO body text");
       } else {
         const allFiles: Express.Multer.File = <Express.Multer.File> req.file;
-        // Node's multipart parser (busboy/multer) reads field values and filenames as
-        // latin1 by default, even though browsers send them as UTF-8.  Re-encoding via
-        // Buffer fixes accented/non-ASCII characters (e.g. "Éste" → correct UTF-8).
+        // `originalname` comes from the Content-Disposition header which browsers encode
+        // as raw UTF-8 bytes but multer stores as a latin1 string → re-encode to get the
+        // correct Unicode string (e.g. "MÃºsica" → "Música").
+        // `folderPathToSave` is a regular multipart text field: busboy/multer already
+        // decodes it as UTF-8, so NO re-encoding is needed here — applying the latin1
+        // trick to an already-correct UTF-8 string corrupts accented characters.
         const originalName = Buffer.from(allFiles.originalname, 'latin1').toString('utf8');
-        const folderPath   = Buffer.from(req.body.folderPathToSave, 'latin1').toString('utf8');
+        const folderPath   = req.body.folderPathToSave as string;
         cloudService.uploadFile(allFiles.path, `${folderPath}/${originalName}`).then(message => {
           res.send({ message });
         });

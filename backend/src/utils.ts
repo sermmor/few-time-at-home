@@ -172,6 +172,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
   const pathToCopyList = [
     'data/notes.txt',
     'data/alerts.json',
+    'data/birthdays.json',
     'data/pomodoro.json',
     'data/youtube_rss_urls.json',
     'keys.json',
@@ -189,6 +190,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
   const pathToPasteList = [
     'notes.txt',
     'alerts.json',
+    'birthdays.json',
     'pomodoro.json',
     'youtube_rss_urls.json',
     'keys.json',
@@ -196,8 +198,6 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
     'blogRssList.json',
     'newsRSSList.json',
     'mastodonRssUsersList.json',
-    'nitterInstancesList.json',
-    'nitterRssUsersList.json',
     'quoteList.json',
     'youtubeRssList.json',
     'readLaterMessagesRSS.json',

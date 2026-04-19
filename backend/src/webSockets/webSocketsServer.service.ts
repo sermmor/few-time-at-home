@@ -43,4 +43,14 @@ export class WebSocketsServerService {
       console.warn('WebSocket is not open. Cannot send data.');
     }
   };
+
+  /**
+   * Send an arbitrary JSON payload to the active client.
+   * Uses the same `this.ws` reference as updateData(), which is proven to work.
+   */
+  broadcast = (data: object): void => {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(data));
+    }
+  };
 }
