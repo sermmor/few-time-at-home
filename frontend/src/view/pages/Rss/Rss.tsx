@@ -1,8 +1,10 @@
-import { Box, Button, CircularProgress, IconButton, InputAdornment, MenuItem, Select, SxProps, TextField, Theme } from '@mui/material';
+import { Box, Button, CircularProgress, Fab, IconButton, InputAdornment, MenuItem, Select, SxProps, TextField, Theme, Zoom } from '@mui/material';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as React from 'react';
@@ -81,6 +83,21 @@ export const Rss = () => {
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
+
+  // ── Scroll buttons ──────────────────────────────────────────────────────────
+  const [showScrollTop,    setShowScrollTop]    = React.useState(false);
+  const [showScrollBottom, setShowScrollBottom] = React.useState(false);
+  React.useEffect(() => {
+    const onScroll = () => {
+      const scrolled  = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      setShowScrollBottom(maxScroll > 300 && scrolled < 50);
+      setShowScrollTop(scrolled >= 50);
+    };
+    onScroll(); // check on mount
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // ── SAVED search ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = React.useState<string>('');
@@ -283,5 +300,29 @@ export const Rss = () => {
         {snackBarMessage}
       </Alert>
     </Snackbar>
+
+    <Zoom in={showScrollTop}>
+      <Fab
+        size="medium"
+        color="primary"
+        aria-label="Volver arriba"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
+      >
+        <KeyboardArrowUpIcon />
+      </Fab>
+    </Zoom>
+
+    <Zoom in={showScrollBottom}>
+      <Fab
+        size="medium"
+        color="primary"
+        aria-label="Ir abajo"
+        onClick={() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })}
+        sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
+      >
+        <KeyboardArrowDownIcon />
+      </Fab>
+    </Zoom>
   </>;
 }
