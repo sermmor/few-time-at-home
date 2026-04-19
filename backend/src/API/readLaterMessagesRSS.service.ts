@@ -61,6 +61,22 @@ export class ReadLaterMessagesRSS {
     return newIndex;
   }
   
+  static searchMessagesRSSSaved = async(query: string, amount: number): Promise<ReadLaterMessage[]> => {
+    let messages: ReadLaterMessage[] = [];
+    try {
+      await stat(ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+      messages = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+      const q = query.toLowerCase();
+      messages = messages.filter(m => m.message.toLowerCase().includes(q)).reverse();
+      if (messages.length > amount) {
+        messages = messages.slice(0, amount);
+      }
+    } catch (err) {
+      await saveInAFilePromise('[]', ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+    }
+    return messages;
+  };
+
   static addMessageRSSToSavedList = async(messageToAdd: string): Promise<ReadLaterMessage> => {
     let messages: ReadLaterMessage[] = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
     messages = typeof messages === 'string' ? [] : messages;

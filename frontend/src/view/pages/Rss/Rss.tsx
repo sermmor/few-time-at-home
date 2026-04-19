@@ -1,11 +1,12 @@
-import { Box, Button, CircularProgress, MenuItem, Select, SxProps, TextField, Theme } from '@mui/material';
+import { Box, Button, CircularProgress, IconButton, InputAdornment, MenuItem, Select, SxProps, TextField, Theme } from '@mui/material';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as React from 'react';
 import { RSSActions } from '../../../core/actions/rss';
-import { RssDataModel } from '../../../data-model/rss';
 import { RssMessage } from './component/RssMessage';
 import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
@@ -80,6 +81,26 @@ export const Rss = () => {
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('This is fine.');
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
+
+  // ── SAVED search ────────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = React.useState<string>('');
+
+  const runSearch = () => {
+    if (!searchQuery.trim()) return;
+    setRssMessages([]);
+    setUnfurlData([]);
+    setListState(StateItemList.LOADING);
+    ReadLaterRSSActions.search({ query: searchQuery.trim(), amount }).then(({ data }) => {
+      setListState(StateItemList.CHARGED);
+      setReadLaterData(data);
+      return data.map(({ message }) => getUrlMessage(message));
+    }).then(urls => {
+      UnfurlActions.getUnfurl({ urlList: urls, loadTime: LOADING_CARD_TIME }).then(data => {
+        const sorted = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
+        setUnfurlData(sorted);
+      });
+    });
+  };
 
   React.useEffect(() => {
     ConfigurationActions.getConfiguration(['configuration']).then(data => {
@@ -166,30 +187,67 @@ export const Rss = () => {
         GO
       </Button>
     </Box>
-    <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem', flexFlow: 'row wrap', alignItems: 'center', justifyContent: 'center', ...getFormFieldStyle(alphas.general)}}>
-      {
-        rssType === 'saved' && <NewMessage onNewMessage={(title, url, date) => new Promise<void>(resolve => {
-          ReadLaterRSSActions.add({
-            message:`${title}
-Automatico - ${date}
+    {rssType === 'saved' && (
+      <Box sx={{
+        display: 'flex', flexDirection: 'column', gap: '0.75rem',
+        px: '1rem', pb: '0.75rem',
+        ...getFormFieldStyle(alphas.general),
+        paddingTop: '0.75rem',
+      }}>
+        {/* Search bar */}
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '0.5rem', alignItems: 'center' }}>
+          <TextField
+            label="Buscar en Saved"
+            variant="outlined"
+            size="small"
+            fullWidth
+            value={searchQuery}
+            onChange={evt => setSearchQuery(evt.target.value)}
+            onKeyDown={evt => evt.key === 'Enter' && runSearch()}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery ? (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => setSearchQuery('')}>
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={runSearch}
+            disabled={!searchQuery.trim()}
+            sx={{ whiteSpace: 'nowrap', textTransform: 'none', minWidth: '90px' }}
+          >
+            Buscar
+          </Button>
+        </Box>
 
-${url}` }).then(({data}) => {
-            console.log("Bookmark saved!");
+        {/* Add link (collapsible) */}
+        <NewMessage onNewMessage={(title, url, date) => new Promise<void>(resolve => {
+          ReadLaterRSSActions.add({
+            message: `${title}\nAutomatico - ${date}\n\n${url}`,
+          }).then(({ data }) => {
             setSnackBarMessage("Bookmark saved!");
             setErrorSnackbar(false);
             setOpenSnackbar(true);
-            const newData = [{id: data.id, message: data.message}, ...(readLaterData || [])];
+            const newData = [{ id: data.id, message: data.message }, ...(readLaterData || [])];
             setReadLaterData(newData);
-            // Fetch unfurl for the new entry and prepend it so indices stay aligned
             const newUrl = getUrlMessage(data.message);
             UnfurlActions.getUnfurl({ urlList: [newUrl], loadTime: LOADING_CARD_TIME }).then(newUnfurl => {
               setUnfurlData(prev => [newUnfurl[0], ...(prev || [])]);
               resolve();
             });
-          })
+          });
         })} />
-      }
-    </Box>
+      </Box>
+    )}
     <Box sx={{display: 'flex', flexDirection: 'column'}}>
     { listState === StateItemList.LOADING && <LoadingComponent /> }
     {

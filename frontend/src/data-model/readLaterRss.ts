@@ -23,3 +23,12 @@ export interface ReadLaterRemoveMessagesRequest {
 export interface ReadLaterRemoveMessagesResponse {
   response: string;
 }
+
+export interface ReadLaterSearchMessagesRequest {
+  query: string;
+  amount: number;
+}
+
+export interface ReadLaterSearchMessagesResponse {
+  data: ReadLaterMessage[];
+}

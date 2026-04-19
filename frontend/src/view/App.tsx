@@ -7,8 +7,8 @@ import { ConfigurationService } from '../service/configuration/configuration.ser
 import { WebSocketClientService } from '../service/webSocketService/webSocketClient.service';
 import { NotificationsActions } from '../core/actions/notifications';
 import { BackgroundActions } from '../core/actions/background';
-
-const ConfigData = require('../configuration.json');
+import { CyberpunkLoadingScreen } from './CyberpunkLoadingScreen';
+import ConfigData from '../configuration.json';
 
 const styleDinamicBar = (message: JSX.Element) => ({
   display: 'flex',
@@ -123,16 +123,50 @@ const AllRoutes = () => {
   </BrowserRouter>;
 }
 
+const READY_URL = `http://${ConfigData.ip}:${ConfigData.port}/ready`;
+const POLL_INTERVAL_MS = 2000;
+const POLL_TIMEOUT_MS  = 3000;
+
 export const App = () => {
     const [backgroundImage, setBackgroundImage] = React.useState<string | null>(null);
+    const [backendReady, setBackendReady]         = React.useState<boolean>(false);
+
+    // Poll /ready until the backend responds
+    React.useEffect(() => {
+      let cancelled = false;
+      let timerId: ReturnType<typeof setTimeout>;
+
+      const poll = () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), POLL_TIMEOUT_MS);
+        fetch(READY_URL, { signal: controller.signal })
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then((data: { ready?: boolean }) => {
+            clearTimeout(timeout);
+            if (!cancelled && data?.ready) {
+              setBackendReady(true);
+            } else if (!cancelled) {
+              timerId = setTimeout(poll, POLL_INTERVAL_MS);
+            }
+          })
+          .catch(() => {
+            clearTimeout(timeout);
+            if (!cancelled) timerId = setTimeout(poll, POLL_INTERVAL_MS);
+          });
+      };
+
+      poll();
+      return () => { cancelled = true; clearTimeout(timerId); };
+    }, []);
 
     React.useEffect(() => {
+      if (!backendReady) return;
       BackgroundActions.getBackgroundImage().then(imageUrl => {
         if (imageUrl) {
           setBackgroundImage(imageUrl);
         }
       });
-    }, []);
+    }, [backendReady]);
 
     const appContainerStyle: SxProps<Theme> = {
       minHeight: '100vh',
@@ -142,6 +176,10 @@ export const App = () => {
       backgroundAttachment: 'fixed',
       backgroundRepeat: 'no-repeat',
     };
+
+    if (!backendReady) {
+      return <CyberpunkLoadingScreen />;
+    }
 
     return (<>
         <CssBaseline/>

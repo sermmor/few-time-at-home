@@ -36,7 +36,7 @@ const getTextShadow = () => `
   0 1px 0 black
 `;
 
-const alarmPath = `${process.env.PUBLIC_URL}/alarm.mp3`;
+const alarmPath = '/alarm.mp3';
 
 const oneSecond = 1000;
 

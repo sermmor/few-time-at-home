@@ -49,6 +49,7 @@ export class APIService {
     getRandomMessages: "/readLaterRSS/get-random-messages",
     addMessages: "/readLaterRSS/add-messages",
     removeMessages: "/readLaterRSS/remove-messages",
+    searchMessages: "/readLaterRSS/search-messages",
   }
   static configurationEndpoint = "/configuration";
   static configurationTypeEndpoint = "/configuration/type";
@@ -125,6 +126,10 @@ export class APIService {
     this.app = express();
     this.app.use(express.json())
     this.app.use(cors());
+
+    this.app.get('/ready', (_req: Request, res: Response) => {
+      res.status(200).json({ ready: true, timestamp: new Date().toISOString() });
+    });
 
     this.getRSS(APIService.getRssMastoEndpoint, 'mastodon');
     this.getRSS(APIService.getRssBlogEndpoint, 'blog');
@@ -203,6 +208,15 @@ export class APIService {
       } else {
         ReadLaterMessagesRSS.removeMessageRSSFromSavedList(req.body.id).then(() => {
           res.send({ response: 'OK' });
+        });
+      }
+    });
+    this.app.post(APIService.readLaterRSSEndpoint.searchMessages, (req, res) => {
+      if (!req.body) {
+        console.error("Received NO body text");
+      } else {
+        ReadLaterMessagesRSS.searchMessagesRSSSaved(req.body.query, req.body.amount).then(data => {
+          res.send({ data });
         });
       }
     });

@@ -1,4 +1,4 @@
-import { ReadLaterAddMessagesRequest, ReadLaterAddMessagesResponse, ReadLaterGetMessagesRequest, ReadLaterGetMessagesResponse, ReadLaterRemoveMessagesRequest, ReadLaterRemoveMessagesResponse } from "../readLaterRss";
+import { ReadLaterAddMessagesRequest, ReadLaterAddMessagesResponse, ReadLaterGetMessagesRequest, ReadLaterGetMessagesResponse, ReadLaterRemoveMessagesRequest, ReadLaterRemoveMessagesResponse, ReadLaterSearchMessagesRequest, ReadLaterSearchMessagesResponse } from "../readLaterRss";
 
 export const readLaterGetMessagesRequestMock = (): ReadLaterGetMessagesRequest  => ({
   amount: 20,
@@ -34,4 +34,15 @@ export const readLaterRemoveMessagesRequestMock = (): ReadLaterRemoveMessagesReq
 
 export const readLaterRemoveMessagesResponseMock = (): ReadLaterRemoveMessagesResponse  => ({
   response: 'OK'
+});
+
+export const readLaterSearchMessagesRequestMock = (): ReadLaterSearchMessagesRequest => ({
+  query: 'test',
+  amount: 20,
+});
+
+export const readLaterSearchMessagesResponseMock = (): ReadLaterSearchMessagesResponse => ({
+  data: [
+    { id: 0, message: 'blablabla' },
+  ],
 });
