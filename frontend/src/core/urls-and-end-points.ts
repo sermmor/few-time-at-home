@@ -79,6 +79,8 @@ export const playlistOAuthStartEndpoint = (platform: 'youtube' | 'spotify'): str
   `${getUrlApi()}/playlist/oauth/${platform}/start`;
 export const playlistCreateEndpoint = (): string => `${getUrlApi()}/playlist/create`;
 
+export const birthdaysEndpoint = (): string => `${getUrlApi()}/birthdays`;
+
 export const networkUpnpDiscoverEndpoint = (): string => `${getUrlApi()}/network/upnp-discover`;
 export const networkUpnpBrowseEndpoint = (): string => `${getUrlApi()}/network/upnp-browse`;
 export const networkUpnpStreamProxyBase = (): string => `${getUrlApi()}/network/upnp-stream`;

@@ -17,6 +17,7 @@ import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
 import { PlaylistExportService } from './playlistExport.service';
+import { BirthdayService } from './birthdayNotification.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
 import * as http from 'http';
@@ -56,6 +57,7 @@ export class APIService {
   static pomodoroEndpoint = "/pomodoro";
   static alertsEndpoint = "/alerts";
   static alertIsReadyEndpoint = "/alerts-is-ready";
+  static birthdaysEndpoint = "/birthdays";
   static bookmarksEndpoint = {
     getPathList: "/bookmarks/path",
     getTrashList: "/bookmarks/trash",
@@ -144,6 +146,7 @@ export class APIService {
     this.cloudService();
     this.synchronizeService();
     this.playlistExportService();
+    this.birthdaysService();
     this.upnpNetworkService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
@@ -948,6 +951,29 @@ export class APIService {
         console.error('[Playlist] Creation error:', e.message);
         res.status(500).send({ message: e.message });
       }
+    });
+  }
+
+  private birthdaysService() {
+    const svc = new BirthdayService();
+    svc.loadAndSchedule(TelegramBot.Instance().sendMessageToTelegram);
+
+    this.app.get(APIService.birthdaysEndpoint, (_req, res) => {
+      BirthdayService.Instance
+        .getBirthdays(TelegramBot.Instance().sendMessageToTelegram)
+        .then(data => res.send({ birthdays: data }));
+    });
+
+    this.app.post(APIService.birthdaysEndpoint, (req, res) => {
+      const birthdays = req.body?.birthdays;
+      if (!Array.isArray(birthdays)) {
+        res.status(400).send({ message: 'Expected { birthdays: Birthday[] }' });
+        return;
+      }
+      BirthdayService.Instance
+        .updateBirthdays(birthdays, TelegramBot.Instance().sendMessageToTelegram)
+        .then(data => res.send({ birthdays: data }))
+        .catch((err: any) => res.status(500).send({ message: err.message }));
     });
   }
 

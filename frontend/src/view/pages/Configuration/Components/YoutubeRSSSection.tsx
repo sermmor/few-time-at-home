@@ -42,10 +42,10 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
           mandatory_words: 'null',
         })}
         list={config.youtubeRssList.map((item) =>  ({id:`${item.url}`, item: <>
-            <Box sx={{ display: 'flex' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <ul>
-                  <li style={{ width: '30rem' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+                  <li style={{ maxWidth: '30rem', width: '100%' }}>
                     Url: <LabelAndTextField text={item.url} onChange={
                       editActionList(
                         'youtubeRssList',
@@ -91,7 +91,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                   </li>
                 </ul>
               </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'left', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', mt: { xs: 1, md: 0 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center'}}>
                   <Checkbox
                     checked={item.not_filter_shorts}
