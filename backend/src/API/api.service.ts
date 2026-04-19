@@ -16,6 +16,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { SynchronizeService } from './synchronize.service';
+import { PlaylistExportService } from './playlistExport.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
 import * as http from 'http';
@@ -98,6 +99,13 @@ export class APIService {
     export:         '/synchronize/export',    // GET  — server packages data/ as zip
     clientDownload: '/synchronize/download',  // POST — client fetches from remote URL
   }
+  static playlist = {
+    youtubeOAuthStart:    '/playlist/oauth/youtube/start',
+    youtubeOAuthCallback: '/playlist/oauth/youtube/callback',
+    spotifyOAuthStart:    '/playlist/oauth/spotify/start',
+    spotifyOAuthCallback: '/playlist/oauth/spotify/callback',
+    create:               '/playlist/create',
+  }
   static networkEndpointList = {
     discover: '/network/upnp-discover',
     browse:   '/network/upnp-browse',
@@ -107,6 +115,7 @@ export class APIService {
   app: Express;
 
   constructor(
+    private keyData: any,
     private channelMediaCollection: ChannelMediaRSSCollection,
     private commands: TelegramBotCommand,
   ) {
@@ -134,6 +143,7 @@ export class APIService {
     this.backgroundImageService();
     this.cloudService();
     this.synchronizeService();
+    this.playlistExportService();
     this.upnpNetworkService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
@@ -860,6 +870,84 @@ export class APIService {
           res.status(404).send({ error: 'No background image found' });
         }
       });
+    });
+  }
+
+  private playlistExportService() {
+    const port = ConfigurationService.Instance.apiPort;
+    const svc  = new PlaylistExportService(
+      this.keyData?.youtube_playlist_client_id     ?? '',
+      this.keyData?.youtube_playlist_client_secret ?? '',
+      this.keyData?.spotify_playlist_client_id     ?? '',
+      this.keyData?.spotify_playlist_client_secret ?? '',
+      port,
+    );
+
+    // ── YouTube OAuth ────────────────────────────────────────────────────────
+
+    this.app.get(APIService.playlist.youtubeOAuthStart, (_req, res) => {
+      if (!svc.isConfigured('youtube')) {
+        res.status(503).send(svc.makeCallbackHtml('youtube', '', 'youtube_playlist_client_id / secret no configurados en keys.json'));
+        return;
+      }
+      res.redirect(svc.getYoutubeAuthUrl());
+    });
+
+    this.app.get(APIService.playlist.youtubeOAuthCallback, async (req, res) => {
+      const { code, error } = req.query as Record<string, string>;
+      if (error || !code) {
+        res.send(svc.makeCallbackHtml('youtube', '', error ?? 'No se recibió código de autorización'));
+        return;
+      }
+      try {
+        const token = await svc.exchangeYoutubeCode(code);
+        res.send(svc.makeCallbackHtml('youtube', token));
+      } catch (e: any) {
+        res.send(svc.makeCallbackHtml('youtube', '', e.message));
+      }
+    });
+
+    // ── Spotify OAuth ────────────────────────────────────────────────────────
+
+    this.app.get(APIService.playlist.spotifyOAuthStart, (_req, res) => {
+      if (!svc.isConfigured('spotify')) {
+        res.status(503).send(svc.makeCallbackHtml('spotify', '', 'spotify_playlist_client_id / secret no configurados en keys.json'));
+        return;
+      }
+      res.redirect(svc.getSpotifyAuthUrl());
+    });
+
+    this.app.get(APIService.playlist.spotifyOAuthCallback, async (req, res) => {
+      const { code, error } = req.query as Record<string, string>;
+      if (error || !code) {
+        res.send(svc.makeCallbackHtml('spotify', '', error ?? 'No se recibió código de autorización'));
+        return;
+      }
+      try {
+        const token = await svc.exchangeSpotifyCode(code);
+        res.send(svc.makeCallbackHtml('spotify', token));
+      } catch (e: any) {
+        res.send(svc.makeCallbackHtml('spotify', '', e.message));
+      }
+    });
+
+    // ── Playlist creation ────────────────────────────────────────────────────
+
+    this.app.post(APIService.playlist.create, async (req, res) => {
+      const { platform, name, description, songs, token } = req.body ?? {};
+      if (!platform || !name || !Array.isArray(songs) || !token) {
+        res.status(400).send({ message: 'Faltan campos: platform, name, songs, token' });
+        return;
+      }
+      try {
+        const result = platform === 'youtube'
+          ? await svc.createYoutubePlaylist(token, name, description ?? '', songs)
+          : await svc.createSpotifyPlaylist(token, name, description ?? '', songs);
+        res.send(result);
+      } catch (e: any) {
+        console.error('[Playlist] Creation error:', e.message);
+        res.status(500).send({ message: e.message });
+      }
     });
   }
 

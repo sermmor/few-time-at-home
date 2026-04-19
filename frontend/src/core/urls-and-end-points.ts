@@ -75,6 +75,10 @@ export const readLaterRSSEndpoint = (typeEndpoint: ReadLaterRSSEndpointList): st
 
 export const rssForceUpdateEndpoint = (): string => `${getUrlApi()}/rss/force-update`;
 
+export const playlistOAuthStartEndpoint = (platform: 'youtube' | 'spotify'): string =>
+  `${getUrlApi()}/playlist/oauth/${platform}/start`;
+export const playlistCreateEndpoint = (): string => `${getUrlApi()}/playlist/create`;
+
 export const networkUpnpDiscoverEndpoint = (): string => `${getUrlApi()}/network/upnp-discover`;
 export const networkUpnpBrowseEndpoint = (): string => `${getUrlApi()}/network/upnp-browse`;
 export const networkUpnpStreamProxyBase = (): string => `${getUrlApi()}/network/upnp-stream`;

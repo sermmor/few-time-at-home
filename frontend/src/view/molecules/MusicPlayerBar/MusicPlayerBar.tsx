@@ -9,7 +9,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import IosShareIcon from '@mui/icons-material/IosShare';
 import { CloudItem } from '../../../data-model/cloud';
+import { SharePlaylistDialog } from '../SharePlaylistDialog/SharePlaylistDialog';
 
 export const PLAYER_BAR_HEIGHT = '5rem';
 
@@ -34,7 +36,8 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded,     setIsExpanded]     = React.useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
   const [dragFromIndex, setDragFromIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
@@ -219,12 +222,14 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
         }}>
           {/* Panel header */}
           <Box sx={{
-            padding: '0.55rem 1rem',
+            padding: '0.3rem 0.5rem 0.3rem 1rem',
             borderBottom: '1px solid #2e2e4a',
             backgroundColor: '#141428',
             position: 'sticky',
             top: 0,
             zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
           }}>
             <Typography variant="caption" sx={{
               color: '#7a7a9a',
@@ -232,9 +237,18 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
               letterSpacing: '0.08em',
               fontWeight: 600,
               fontSize: '0.68rem',
+              flexGrow: 1,
             }}>
               Cola de reproducción · {playlist.length} {playlist.length === 1 ? 'canción' : 'canciones'}
             </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setShareDialogOpen(true)}
+              title="Crear lista en YouTube / Spotify"
+              sx={{ color: '#484868', padding: '4px', '&:hover': { color: '#1db954' } }}
+            >
+              <IosShareIcon sx={{ fontSize: '1rem' }} />
+            </IconButton>
           </Box>
 
           {/* Song rows */}
@@ -435,6 +449,13 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
           </Typography>
         </Box>
       </Box>
+
+      {/* ── Share dialog ── */}
+      <SharePlaylistDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        playlist={playlist}
+      />
     </>
   );
 };

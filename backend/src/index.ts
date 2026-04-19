@@ -55,7 +55,7 @@ readFile(keysPath, (err, data) => {
           const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
           bot.start(commands);
           const mediaAutoUpdate = new MediaRSSAutoupdate(commands);
-          apiService = new APIService(channelMediaCollection, commands);
+          apiService = new APIService(keyData, channelMediaCollection, commands);
           if (keyData && keyData.connect_to_telegram) {
             const aemet = new AemetService(bot.sendMessageToTelegram);
           }
