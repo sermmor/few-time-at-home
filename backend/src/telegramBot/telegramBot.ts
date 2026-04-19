@@ -13,8 +13,18 @@
  *     📝 Notas   ──► Ver notas  |  Añadir nota (→ text input)
  *     🔖 Marcadores ──► Añadir (→ URL input) | Buscar (→ text input)
  *     💾 Guardados  ──► Ver guardados | Añadir (→ URL input)
- *     ☁️ Cloud ──► ls | pwd | cd (→ text) | ⬆ | 🔍 (→ text) | 📥 (→ index) | 📦
+ *     ☁️ Cloud ──► 📂 Explorar (paginated, clickable) | 🔍 Buscar deep (→ text, paginated)
+ *                    📦 Bajar carpeta (with size guard) | ⬆️ Subir nivel
  *     🔔 Alertas ──► Añadir → 📅 calendar → ⏰ hour grid → ⏱ minute grid → ✏️ message
+ *
+ * Cloud navigation
+ * ────────────────
+ *   - Folders are displayed as inline-keyboard buttons; tapping one navigates into it.
+ *   - Files are displayed as buttons; tapping one downloads the file (size-checked first).
+ *   - Listings are paginated (CLOUD_PAGE_SIZE items per page, Prev/Next buttons).
+ *   - Search uses deep recursive scan (searchCloudItemInDirectoryDeep).
+ *   - Before any file is sent, its size is checked; files > 50 MB are rejected with a
+ *     clear message showing the file size and the 50 MB limit.
  */
 
 import Telegraf, { Markup } from "telegraf";
@@ -24,8 +34,8 @@ import { BookmarkService } from "../API/bookmark.service";
 import { TelegramBotCommand } from "../API/messagesRSS.service";
 import { NotesService } from "../API/notes.service";
 import { extractTelegramData, TelegramData } from "./telegramData";
-import { CloudService, cloudDefaultPath } from "../API/cloud.service";
-import { createWriteStream, existsSync, mkdir, createReadStream, unlink } from "fs";
+import { CloudItem, CloudService, cloudDefaultPath } from "../API/cloud.service";
+import { createWriteStream, existsSync, mkdir, createReadStream, unlink, stat } from "fs";
 import { Readable } from "stream";
 import { finished } from "stream/promises";
 import { MediaRSSAutoupdate } from "../processAutoupdate/mediaRSSAutoupdate";
@@ -38,6 +48,15 @@ const fetch = require("node-fetch");
 
 const LOGIN_COMMAND = 'login';
 
+/** Items shown per page in directory listings and search results. */
+const CLOUD_PAGE_SIZE = 6;
+
+/**
+ * Telegram Bot API limit for sendDocument: 50 MB.
+ * Files larger than this will be rejected before attempting the upload.
+ */
+const TELEGRAM_MAX_FILE_BYTES = 50 * 1024 * 1024;
+
 // ─── State machine ────────────────────────────────────────────────────────────
 
 type BotState =
@@ -46,9 +65,7 @@ type BotState =
   | 'WAITING_BOOKMARK_ADD'
   | 'WAITING_BOOKMARK_SEARCH'
   | 'WAITING_SAVE_URL'
-  | 'WAITING_CLOUD_CD'
   | 'WAITING_CLOUD_SEARCH'
-  | 'WAITING_CLOUD_FILE_INDEX'
   | 'WAITING_ALERT_MESSAGE';
 
 // ─── Bot class ────────────────────────────────────────────────────────────────
@@ -69,8 +86,11 @@ export class TelegramBot {
   private pendingAlert: { date?: Date; hour?: number; minute?: number } = {};
 
   // Cloud navigation
-  private currentCloudDir = '/';
-  private lastSearchInCloudPathList: string[] = [];
+  private currentCloudDir     = '/';
+  private cloudCurrentItems:   CloudItem[]                          = [];  // items in current directory listing
+  private cloudListPage        = 0;                                         // current page of listing
+  private cloudSearchResults:  { path: string; isFolder: boolean }[] = [];  // last deep-search results
+  private cloudSearchPage      = 0;                                         // current page of search results
 
   constructor(userData: any, telegramBotData?: TelegramData, bot?: Telegraf<TelegrafContext>) {
     TelegramBot._instance = this;
@@ -156,21 +176,89 @@ export class TelegramBot {
       [Markup.callbackButton('← Volver', 'menu_saved')],
     ]).extra(),
 
-    cloud: (dir: string) => Markup.inlineKeyboard([
-      [Markup.callbackButton('📂 Listar',        'cloud_ls'),
-       Markup.callbackButton('📍 Path actual',   'cloud_pwd')],
-      [Markup.callbackButton('📁 Cambiar dir.',  'cloud_cd'),
-       Markup.callbackButton('⬆️ Subir nivel',   'cloud_up')],
-      [Markup.callbackButton('🔍 Buscar fichero','cloud_search')],
-      [Markup.callbackButton('📥 Obtener por nº','cloud_get'),
-       Markup.callbackButton('📦 Bajar carpeta', 'cloud_folder')],
-      [Markup.callbackButton('← Volver',         'back_main')],
+    /** Main Cloud menu. */
+    cloud: () => Markup.inlineKeyboard([
+      [Markup.callbackButton('📂 Explorar directorio',  'cloud_browse')],
+      [Markup.callbackButton('🔍 Buscar (profundo)',    'cloud_search'),
+       Markup.callbackButton('⬆️ Subir nivel',          'cloud_up')],
+      [Markup.callbackButton('📍 Path actual',          'cloud_pwd'),
+       Markup.callbackButton('📦 Bajar carpeta',        'cloud_folder')],
+      [Markup.callbackButton('← Volver',               'back_main')],
     ]).extra(),
 
     alerts: () => Markup.inlineKeyboard([
       [Markup.callbackButton('➕ Añadir alerta', 'alert_add')],
       [Markup.callbackButton('← Volver',         'back_main')],
     ]).extra(),
+  };
+
+  // ─── Cloud keyboard builders ───────────────────────────────────────────────
+
+  /**
+   * Paginated inline keyboard for a directory listing.
+   * Folders show a 📁 icon and navigate on tap; files show 📄 and download on tap.
+   */
+  private cloudBrowseKeyboard = (items: CloudItem[], page: number): any => {
+    const totalPages = Math.ceil(items.length / CLOUD_PAGE_SIZE) || 1;
+    const pageItems  = items.slice(page * CLOUD_PAGE_SIZE, (page + 1) * CLOUD_PAGE_SIZE);
+    const rows: any[][] = [];
+
+    pageItems.forEach((item, i) => {
+      const globalIdx  = page * CLOUD_PAGE_SIZE + i;
+      const icon       = item.isFolder ? '📁' : '📄';
+      const label      = item.name.length > 30 ? item.name.substring(0, 28) + '…' : item.name;
+      const action     = item.isFolder
+        ? `cloud_enter_${globalIdx}`
+        : `cloud_dl_${globalIdx}`;
+      rows.push([Markup.callbackButton(`${icon} ${label}`, action)]);
+    });
+
+    // Pagination row (only when multiple pages)
+    if (totalPages > 1) {
+      const pgRow: any[] = [];
+      if (page > 0)               pgRow.push(Markup.callbackButton('◀ Ant.', `cloud_pg_${page - 1}`));
+      pgRow.push(Markup.callbackButton(`${page + 1}/${totalPages}`, 'cal_noop'));
+      if (page < totalPages - 1)  pgRow.push(Markup.callbackButton('Sig. ▶', `cloud_pg_${page + 1}`));
+      rows.push(pgRow);
+    }
+
+    // Action row
+    rows.push([
+      Markup.callbackButton('⬆️ Subir', 'cloud_up'),
+      Markup.callbackButton('🔍 Buscar', 'cloud_search'),
+      Markup.callbackButton('← Cloud',  'menu_cloud'),
+    ]);
+
+    return Markup.inlineKeyboard(rows).extra();
+  };
+
+  /**
+   * Paginated inline keyboard for deep-search results.
+   * Files tap to download; folders tap to navigate into them.
+   */
+  private cloudSearchKeyboard = (results: { path: string; isFolder: boolean }[], page: number): any => {
+    const totalPages = Math.ceil(results.length / CLOUD_PAGE_SIZE) || 1;
+    const pageItems  = results.slice(page * CLOUD_PAGE_SIZE, (page + 1) * CLOUD_PAGE_SIZE);
+    const rows: any[][] = [];
+
+    pageItems.forEach((item, i) => {
+      const globalIdx = page * CLOUD_PAGE_SIZE + i;
+      const name      = item.path.split('/').pop() ?? item.path;
+      const label     = name.length > 32 ? name.substring(0, 30) + '…' : name;
+      const icon      = item.isFolder ? '📁' : '📄';
+      rows.push([Markup.callbackButton(`${icon} ${label}`, `cloud_sdl_${globalIdx}`)]);
+    });
+
+    if (totalPages > 1) {
+      const pgRow: any[] = [];
+      if (page > 0)               pgRow.push(Markup.callbackButton('◀ Ant.', `cloud_spg_${page - 1}`));
+      pgRow.push(Markup.callbackButton(`${page + 1}/${totalPages}`, 'cal_noop'));
+      if (page < totalPages - 1)  pgRow.push(Markup.callbackButton('Sig. ▶', `cloud_spg_${page + 1}`));
+      rows.push(pgRow);
+    }
+
+    rows.push([Markup.callbackButton('← Cloud', 'menu_cloud')]);
+    return Markup.inlineKeyboard(rows).extra();
   };
 
   // ─── Calendar / time keyboard builders ─────────────────────────────────────
@@ -185,13 +273,11 @@ export class TelegramBot {
     const next = month === 11 ? { y: year + 1, m: 0  } : { y: year, m: month + 1 };
 
     const rows: any[][] = [
-      // Header: prev / month+year / next
       [
         Markup.callbackButton('◀', `cal_nav_${prev.y}_${prev.m}`),
         Markup.callbackButton(`${MONTHS[month]} ${year}`, 'cal_noop'),
         Markup.callbackButton('▶', `cal_nav_${next.y}_${next.m}`),
       ],
-      // Day-of-week labels
       ['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(d => Markup.callbackButton(d, 'cal_noop')),
     ];
 
@@ -238,7 +324,6 @@ export class TelegramBot {
 
   // ─── Menu helpers ───────────────────────────────────────────────────────────
 
-  /** Show main menu — reply if `edit=false`, try to edit the message otherwise. */
   private showMain = (ctx: TelegrafContext, edit = false) => {
     this.state = 'IDLE';
     const text = '🏠 Menú principal';
@@ -250,10 +335,78 @@ export class TelegramBot {
     }
   };
 
-  /** Edit the current message to show a sub-menu; fall back to reply. */
   private editTo = (ctx: TelegrafContext, text: string, keyboard: any) =>
     (ctx.editMessageText(text, keyboard) as Promise<any>)
       .catch(() => ctx.reply(text, keyboard));
+
+  // ─── Cloud helpers ──────────────────────────────────────────────────────────
+
+  /**
+   * Loads the current directory and renders it as a paginated browse keyboard.
+   * When `edit=true` (default) the existing message is updated in-place;
+   * when `edit=false` a new message is sent.
+   *
+   * '/' is treated as a virtual root: we actually list `cloudDefaultPath`.
+   * Going up from there returns to the Cloud menu.
+   */
+  private loadAndShowDirectory = async (ctx: TelegrafContext, edit = true) => {
+    // '/' → list the real cloud root folder
+    const dirToList = this.currentCloudDir === '/' ? cloudDefaultPath : this.currentCloudDir;
+    try {
+      const items = await CloudService.Instance.getFolderContent(cloudDefaultPath, dirToList);
+      // Sort: folders first, then alphabetical within each group.
+      this.cloudCurrentItems = items.sort((a, b) => {
+        if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+      this.cloudListPage = 0;
+
+      if (this.cloudCurrentItems.length === 0) {
+        const emptyKb = Markup.inlineKeyboard([
+          [Markup.callbackButton('⬆️ Subir nivel', 'cloud_up')],
+          [Markup.callbackButton('← Cloud',       'menu_cloud')],
+        ]).extra();
+        const text = `📂 ${dirToList}\n📭 Directorio vacío`;
+        if (edit) this.editTo(ctx, text, emptyKb);
+        else      ctx.reply(text, emptyKb as any);
+        return;
+      }
+
+      const text = `📂 ${dirToList}  (${this.cloudCurrentItems.length} elemento(s))`;
+      const kb   = this.cloudBrowseKeyboard(this.cloudCurrentItems, 0);
+      if (edit) this.editTo(ctx, text, kb);
+      else      ctx.reply(text, kb as any);
+    } catch {
+      ctx.reply(`❌ Error al listar: ${dirToList}`);
+    }
+  };
+
+  /**
+   * Checks the file size, then sends it via replyWithDocument.
+   * Files larger than TELEGRAM_MAX_FILE_BYTES are rejected with a clear message.
+   */
+  private sendCloudFile = (ctx: TelegrafContext, relativePath: string) => {
+    const absPath = CloudService.Instance.giveMeRealPathFile(relativePath);
+    stat(absPath, (err, fileStats) => {
+      if (err) {
+        ctx.reply(`❌ No se puede leer el fichero:\n${relativePath}`);
+        return;
+      }
+      if (fileStats.size > TELEGRAM_MAX_FILE_BYTES) {
+        const mb    = (fileStats.size / 1024 / 1024).toFixed(1);
+        const maxMb = (TELEGRAM_MAX_FILE_BYTES / 1024 / 1024).toFixed(0);
+        ctx.reply(
+          `❌ El fichero es demasiado grande para que el bot lo envíe.\n` +
+          `📦 Tamaño: ${mb} MB  |  🚫 Máximo: ${maxMb} MB\n` +
+          `📄 ${relativePath}`
+        );
+        return;
+      }
+      ctx.reply(`📥 Enviando: ${relativePath}`);
+      ctx.replyWithDocument({ source: absPath })
+        .catch(() => ctx.reply(`❌ Error al enviar:\n${relativePath}`));
+    });
+  };
 
   // ─── RSS ────────────────────────────────────────────────────────────────────
 
@@ -300,7 +453,7 @@ export class TelegramBot {
 
   private handleText = (ctx: TelegrafContext, text: string) => {
     const prev = this.state;
-    this.state = 'IDLE'; // reset before async work so stray messages don't re-trigger
+    this.state = 'IDLE';
 
     switch (prev) {
       case 'WAITING_NOTE':
@@ -341,50 +494,38 @@ export class TelegramBot {
         });
         break;
 
-      case 'WAITING_CLOUD_CD': {
-        const candidate = this.currentCloudDir === '/'
-          ? text.replace(/^\//, '')
-          : `${this.currentCloudDir}/${text.replace(/^\//, '')}`;
-        CloudService.Instance.lsDirOperation(cloudDefaultPath, candidate)
-          .then(items => {
-            if (items.length > 0) {
-              this.currentCloudDir = candidate;
-              ctx.reply(`✅ Directorio: ${this.currentCloudDir}`);
-            } else {
-              ctx.reply(`❌ No existe: ${candidate}`);
-            }
-            this.showMain(ctx);
-          })
-          .catch(() => { ctx.reply(`❌ Error al cambiar a: ${candidate}`); this.showMain(ctx); });
-        break;
-      }
-
-      case 'WAITING_CLOUD_SEARCH':
-        CloudService.Instance.searchCloudItemInDirectory(cloudDefaultPath, this.currentCloudDir, text)
-          .then(results => {
-            this.lastSearchInCloudPathList = results.map(r => r.path);
-            if (results.length === 0) {
+      case 'WAITING_CLOUD_SEARCH': {
+        const cancelled = { value: false };
+        ctx.reply(`🔍 Buscando "${text}" en ${this.currentCloudDir === '/' ? 'toda la cloud' : this.currentCloudDir}…`);
+        CloudService.Instance
+          .searchCloudItemInDirectoryDeep(cloudDefaultPath, this.currentCloudDir === '/' ? cloudDefaultPath : this.currentCloudDir, text, cancelled)
+          .then(rawResults => {
+            if (rawResults.length === 0) {
               ctx.reply('📭 Sin resultados.');
               this.showMain(ctx);
               return;
             }
-            const lines = this.lastSearchInCloudPathList.map((p, i) => `${i}. ${p}`);
-            this.chunked(lines, 10).forEach((chunk, i) =>
-              setTimeout(() => ctx.reply(chunk.join('\n')), i * 400));
-            setTimeout(() => this.showMain(ctx), Math.ceil(lines.length / 10) * 400 + 400);
+            // Resolve isFolder for each result so the keyboard shows the right icon
+            // and the download handler knows whether to navigate or send.
+            const statPromises = rawResults.map(r =>
+              new Promise<{ path: string; isFolder: boolean }>(resolve => {
+                const absPath = CloudService.Instance.giveMeRealPathFile(r.path);
+                stat(absPath, (err, s) => resolve({ path: r.path, isFolder: !err && s.isDirectory() }));
+              })
+            );
+            Promise.all(statPromises).then(enriched => {
+              this.cloudSearchResults = enriched;
+              this.cloudSearchPage    = 0;
+              ctx.reply(
+                `🔍 ${enriched.length} resultado(s) para "${text}":`,
+                this.cloudSearchKeyboard(enriched, 0) as any,
+              );
+            });
+          })
+          .catch(() => {
+            ctx.reply('❌ Error en la búsqueda.');
+            this.showMain(ctx);
           });
-        break;
-
-      case 'WAITING_CLOUD_FILE_INDEX': {
-        const idx = parseInt(text, 10);
-        if (!isNaN(idx) && idx >= 0 && idx < this.lastSearchInCloudPathList.length) {
-          ctx.reply(`📥 Enviando: ${this.lastSearchInCloudPathList[idx]}`);
-          ctx.replyWithDocument({ source: CloudService.Instance.giveMeRealPathFile(this.lastSearchInCloudPathList[idx]) })
-            .catch(() => ctx.reply('❌ Fichero demasiado grande para Telegram.'));
-        } else {
-          ctx.reply('❌ Índice inválido.');
-        }
-        this.showMain(ctx);
         break;
       }
 
@@ -393,12 +534,11 @@ export class TelegramBot {
         break;
 
       default:
-        // User typed something outside a prompt — just show the menu again
         this.showMain(ctx);
     }
   };
 
-  // ─── Alert creator (final step of the multi-step flow) ─────────────────────
+  // ─── Alert creator ──────────────────────────────────────────────────────────
 
   private createAlert = (ctx: TelegrafContext, message: string) => {
     const { date, hour, minute } = this.pendingAlert;
@@ -407,9 +547,7 @@ export class TelegramBot {
       this.showMain(ctx);
       return;
     }
-    const timeToLaunch = new Date(
-      date.getFullYear(), date.getMonth(), date.getDate(), hour, minute
-    );
+    const timeToLaunch = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, minute);
     const dateStr = `${String(timeToLaunch.getDate()).padStart(2,'0')}/${String(timeToLaunch.getMonth()+1).padStart(2,'0')}/${timeToLaunch.getFullYear()}`;
     const timeStr = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
     AlertListService.Instance.addAlerts({ timeToLaunch, message }, this.sendMessageToTelegram)
@@ -426,7 +564,7 @@ export class TelegramBot {
   start(_commandList: TelegramBotCommand) {
     if (!this.telegramBotData.connect_to_telegram) return;
 
-    // ── /login <password> — the only text command ──────────────────────────
+    // ── /login <password> ─────────────────────────────────────────────────
     this.bot!.command(LOGIN_COMMAND, (ctx) => {
       if (!ctx.message?.text) return;
       const pass = ctx.message.text.replace(`/${LOGIN_COMMAND}`, '').trimStart();
@@ -439,7 +577,7 @@ export class TelegramBot {
       }
     });
 
-    // ── /start ─────────────────────────────────────────────────────────────
+    // ── /start ────────────────────────────────────────────────────────────
     this.bot!.start((ctx) => {
       if (!this.isUserClient(ctx)) {
         ctx.reply(`Hola! Usa /${LOGIN_COMMAND} <contraseña> para autenticarte.`);
@@ -448,14 +586,14 @@ export class TelegramBot {
       this.showMain(ctx);
     });
 
-    // ── Navigation: back to main menu ──────────────────────────────────────
+    // ── Navigation: back to main menu ─────────────────────────────────────
     this.bot!.action('back_main', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
       this.showMain(ctx, true);
     });
 
-    // ── RSS menu ───────────────────────────────────────────────────────────
+    // ── RSS menu ──────────────────────────────────────────────────────────
     this.bot!.action('menu_rss', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -479,7 +617,7 @@ export class TelegramBot {
       });
     });
 
-    // ── Notes menu ─────────────────────────────────────────────────────────
+    // ── Notes menu ────────────────────────────────────────────────────────
     this.bot!.action('menu_notes', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -506,7 +644,7 @@ export class TelegramBot {
       this.editTo(ctx, '📝 Escribe el contenido de la nota:', undefined);
     });
 
-    // ── Bookmarks menu ─────────────────────────────────────────────────────
+    // ── Bookmarks menu ────────────────────────────────────────────────────
     this.bot!.action('menu_bookmarks', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -527,7 +665,7 @@ export class TelegramBot {
       this.editTo(ctx, '🔍 Escribe el término de búsqueda:', undefined);
     });
 
-    // ── Saved list menu ────────────────────────────────────────────────────
+    // ── Saved list menu ───────────────────────────────────────────────────
     this.bot!.action('menu_saved', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -555,86 +693,141 @@ export class TelegramBot {
       this.editTo(ctx, '💾 Envía la URL que quieres guardar:', undefined);
     });
 
-    // ── Cloud menu ─────────────────────────────────────────────────────────
+    // ── Cloud menu ────────────────────────────────────────────────────────
+
     this.bot!.action('menu_cloud', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
-      this.editTo(ctx, `☁️ Cloud  |  📍 ${this.currentCloudDir}`, this.kb.cloud(this.currentCloudDir));
+      this.editTo(ctx, `☁️ Cloud  |  📍 ${this.currentCloudDir}`, this.kb.cloud());
     });
 
+    /** 📍 Show current path */
     this.bot!.action('cloud_pwd', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
       ctx.reply(`📍 Path actual: ${this.currentCloudDir}`);
     });
 
-    this.bot!.action('cloud_ls', (ctx) => {
+    /** 📂 Browse current directory (paginated, clickable items) */
+    this.bot!.action('cloud_browse', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
-      if (this.currentCloudDir === '/') {
-        ctx.reply(`📂 Raíz: ${cloudDefaultPath}`);
-        return;
-      }
-      CloudService.Instance.lsDirOperation(cloudDefaultPath, this.currentCloudDir).then(items => {
-        if (items.length === 0) { ctx.reply('📭 Directorio vacío.'); return; }
-        this.chunked(items.map((p, i) => `${i}. ${p}`), 10)
-          .forEach((chunk, i) => setTimeout(() => ctx.reply(chunk.join('\n')), i * 400));
-      });
+      this.loadAndShowDirectory(ctx);
     });
 
-    this.bot!.action('cloud_cd', (ctx) => {
+    /** ◀ / ▶ Paginate directory listing  — data: "cloud_pg_<page>" */
+    this.bot!.action(/^cloud_pg_/, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
-      this.state = 'WAITING_CLOUD_CD';
-      this.editTo(ctx, `📁 Path actual: ${this.currentCloudDir}\nEscribe el nombre del subdirectorio:`, undefined);
+      const page = parseInt(((ctx.callbackQuery as any).data as string).replace('cloud_pg_', ''), 10);
+      this.cloudListPage = page;
+      const text = `📂 ${this.currentCloudDir}  (${this.cloudCurrentItems.length} elemento(s))`;
+      this.editTo(ctx, text, this.cloudBrowseKeyboard(this.cloudCurrentItems, page));
     });
 
+    /** 📁 Enter subdirectory — data: "cloud_enter_<idx>" */
+    this.bot!.action(/^cloud_enter_/, (ctx) => {
+      if (!this.isUserClient(ctx)) return;
+      ctx.answerCbQuery();
+      const idx  = parseInt(((ctx.callbackQuery as any).data as string).replace('cloud_enter_', ''), 10);
+      const item = this.cloudCurrentItems[idx];
+      if (!item || !item.isFolder) { ctx.reply('❌ No es una carpeta.'); return; }
+      this.currentCloudDir = item.path;
+      this.loadAndShowDirectory(ctx);
+    });
+
+    /** 📄 Download file from listing — data: "cloud_dl_<idx>" */
+    this.bot!.action(/^cloud_dl_/, (ctx) => {
+      if (!this.isUserClient(ctx)) return;
+      ctx.answerCbQuery();
+      const idx  = parseInt(((ctx.callbackQuery as any).data as string).replace('cloud_dl_', ''), 10);
+      const item = this.cloudCurrentItems[idx];
+      if (!item || item.isFolder) { ctx.reply('❌ No es un fichero.'); return; }
+      this.sendCloudFile(ctx, item.path);
+    });
+
+    /** ⬆️ Go up one directory level */
     this.bot!.action('cloud_up', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
-      if (this.currentCloudDir !== '/') {
-        const parts = this.currentCloudDir.split('/');
-        parts.pop();
-        this.currentCloudDir = parts.join('/') || '/';
+      // If we're at the virtual root or at the top-level cloud folder, go back to Cloud menu.
+      if (this.currentCloudDir === '/' || this.currentCloudDir === cloudDefaultPath) {
+        this.currentCloudDir = '/';
+        this.editTo(ctx, `☁️ Cloud  |  📍 /`, this.kb.cloud());
+        return;
       }
-      ctx.reply(`⬆️ Ahora en: ${this.currentCloudDir}`);
+      const parts = this.currentCloudDir.split('/');
+      parts.pop();
+      this.currentCloudDir = parts.join('/') || '/';
+      this.loadAndShowDirectory(ctx);
     });
 
+    /** 🔍 Start deep search (prompts for text) */
     this.bot!.action('cloud_search', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
       this.state = 'WAITING_CLOUD_SEARCH';
-      this.editTo(ctx, `🔍 Path: ${this.currentCloudDir}\nEscribe el término de búsqueda:`, undefined);
+      this.editTo(ctx,
+        `🔍 Búsqueda profunda en: ${this.currentCloudDir === '/' ? 'toda la cloud' : this.currentCloudDir}\n` +
+        `Escribe el término de búsqueda:`,
+        undefined,
+      );
     });
 
-    this.bot!.action('cloud_get', (ctx) => {
+    /** ◀ / ▶ Paginate search results — data: "cloud_spg_<page>" */
+    this.bot!.action(/^cloud_spg_/, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
-      if (this.lastSearchInCloudPathList.length === 0) {
-        ctx.reply('⚠️ No hay búsqueda reciente. Usa 🔍 Buscar fichero primero.');
-        return;
-      }
-      this.state = 'WAITING_CLOUD_FILE_INDEX';
+      const page = parseInt(((ctx.callbackQuery as any).data as string).replace('cloud_spg_', ''), 10);
+      this.cloudSearchPage = page;
       this.editTo(ctx,
-        `📥 Escribe el número del fichero (0–${this.lastSearchInCloudPathList.length - 1}):`,
-        undefined);
+        `🔍 ${this.cloudSearchResults.length} resultado(s):`,
+        this.cloudSearchKeyboard(this.cloudSearchResults, page),
+      );
     });
 
+    /** 📁📄 Navigate into folder / download file from search results — data: "cloud_sdl_<idx>" */
+    this.bot!.action(/^cloud_sdl_/, (ctx) => {
+      if (!this.isUserClient(ctx)) return;
+      ctx.answerCbQuery();
+      const idx    = parseInt(((ctx.callbackQuery as any).data as string).replace('cloud_sdl_', ''), 10);
+      const result = this.cloudSearchResults[idx];
+      if (!result) { ctx.reply('❌ Índice inválido.'); return; }
+      if (result.isFolder) {
+        // Navigate into the found folder and show its contents.
+        this.currentCloudDir = result.path;
+        this.loadAndShowDirectory(ctx, false);
+      } else {
+        this.sendCloudFile(ctx, result.path);
+      }
+    });
+
+    /** 📦 Send all files in current directory one by one (with size check) */
     this.bot!.action('cloud_folder', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
+      if (this.currentCloudDir === '/') {
+        ctx.reply('⚠️ Navega a una carpeta concreta antes de usar esta opción.');
+        return;
+      }
       CloudService.Instance.getListFolderFiles(cloudDefaultPath, this.currentCloudDir)
-        .then(list => this.sendFolderFiles(ctx, list.slice(0, 30), 0));
+        .then(list => {
+          if (list.length === 0) {
+            ctx.reply('📭 No hay ficheros en esta carpeta (sólo subcarpetas).');
+            return;
+          }
+          ctx.reply(`📦 Enviando ${list.length} fichero(s) de "${this.currentCloudDir}"…\n(Los ficheros > 50 MB se omitirán)`);
+          this.sendFolderFiles(ctx, list, 0);
+        });
     });
 
-    // ── Alerts menu ────────────────────────────────────────────────────────
+    // ── Alerts menu ───────────────────────────────────────────────────────
     this.bot!.action('menu_alerts', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
       this.editTo(ctx, '🔔 Alertas:', this.kb.alerts());
     });
 
-    // alert_add: open calendar for current month
     this.bot!.action('alert_add', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -643,35 +836,29 @@ export class TelegramBot {
       this.editTo(ctx, '🔔 Selecciona la fecha:', this.calendarKeyboard(now.getFullYear(), now.getMonth()));
     });
 
-    // Calendar: no-op (labels / empty cells)
     this.bot!.action('cal_noop', (ctx) => { ctx.answerCbQuery(); });
 
-    // Calendar: navigate month
     this.bot!.action(/^cal_nav_/, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
       const parts = ((ctx.callbackQuery as any)?.data as string).split('_');
-      // data = "cal_nav_<year>_<month>"
       const year  = parseInt(parts[2], 10);
       const month = parseInt(parts[3], 10);
       this.editTo(ctx, '🔔 Selecciona la fecha:', this.calendarKeyboard(year, month));
     });
 
-    // Calendar: day selected → show hour picker
     this.bot!.action(/^cal_day_/, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
       const parts = ((ctx.callbackQuery as any)?.data as string).split('_');
-      // data = "cal_day_<year>_<MM>_<DD>"
       const year  = parseInt(parts[2], 10);
-      const month = parseInt(parts[3], 10) - 1; // back to 0-based
+      const month = parseInt(parts[3], 10) - 1;
       const day   = parseInt(parts[4], 10);
       this.pendingAlert.date = new Date(year, month, day);
       const dateStr = `${parts[4]}/${parts[3]}/${parts[2]}`;
       this.editTo(ctx, `🔔 Fecha: ${dateStr}\n⏰ Selecciona la hora:`, this.hourKeyboard());
     });
 
-    // Hour selected → show minute picker
     this.bot!.action(/^time_h_/, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -684,7 +871,6 @@ export class TelegramBot {
         this.minuteKeyboard());
     });
 
-    // Minute selected → ask for message text
     this.bot!.action(/^time_m_/, (ctx) => {
       if (!this.isUserClient(ctx)) return;
       ctx.answerCbQuery();
@@ -697,15 +883,15 @@ export class TelegramBot {
       this.editTo(ctx, `🔔 Fecha: ${dateStr}  Hora: ${timeStr}\n✏️ Escribe el mensaje de la alerta:`, undefined);
     });
 
-    // ── Text messages (state-machine input) ────────────────────────────────
+    // ── Text messages (state-machine input) ───────────────────────────────
     this.bot!.on('text', (ctx) => {
       if (!this.isUserClient(ctx)) return;
       const text = ctx.message?.text ?? '';
-      if (text.startsWith('/')) return; // handled by command() above
+      if (text.startsWith('/')) return;
       this.handleText(ctx, text);
     });
 
-    // ── File uploads ───────────────────────────────────────────────────────
+    // ── File uploads from user → cloud ────────────────────────────────────
     this.bot!.on('photo',     this.uploadFileToCloud);
     this.bot!.on('audio',     this.uploadFileToCloud);
     this.bot!.on('document',  this.uploadFileToCloud);
@@ -717,12 +903,12 @@ export class TelegramBot {
     this.bot!.launch();
   }
 
-  // ─── Cloud file upload ──────────────────────────────────────────────────────
+  // ─── Cloud file upload (user → cloud) ──────────────────────────────────────
 
   uploadFileToCloud = (ctx: TelegrafContext) => {
     if (!this.isUserClient(ctx)) return;
     if (!this.currentCloudDir || this.currentCloudDir === '/') {
-      ctx.reply('⚠️ No se puede subir a la raíz. Cambia de directorio primero.');
+      ctx.reply('⚠️ No se puede subir a la raíz. Navega a una carpeta concreta primero.');
       return;
     }
     const fileItemId = this.getFileId(ctx);
@@ -740,7 +926,7 @@ export class TelegramBot {
           })
         );
       })
-      .catch(() => ctx.reply('❌ Fichero demasiado grande para Telegram.'));
+      .catch(() => ctx.reply('❌ No se pudo obtener el fichero desde Telegram (puede ser demasiado grande para la API).'));
   };
 
   private saveToCloud = (ctx: TelegrafContext, res: any, tempDir: string, name: string, ext: string) => {
@@ -749,7 +935,7 @@ export class TelegramBot {
     const body  = (Readable as any).from(res.body);
     finished(body.pipe(createWriteStream(tmp))).then(() => {
       CloudService.Instance.uploadFile(tmp, final);
-      ctx.reply(`✅ Guardado: ${final}`);
+      ctx.reply(`✅ Guardado en: ${final}`);
     });
   };
 
@@ -766,17 +952,38 @@ export class TelegramBot {
     ctx.message?.document?.file_name ||
     ctx.message?.animation?.file_name;
 
-  // ─── Send folder files one-by-one ──────────────────────────────────────────
+  // ─── Send folder files one-by-one (with file-size guard) ───────────────────
 
   private sendFolderFiles = (ctx: TelegrafContext, list: string[], index: number) => {
-    if (index >= list.length) { ctx.reply('✅ Todos los ficheros enviados.'); return; }
-    ctx.reply(`📤 Enviando (${index + 1}/${list.length}): ${list[index]}`);
-    ctx.replyWithDocument({ source: list[index] })
-      .then(()  => this.sendFolderFiles(ctx, list, index + 1))
-      .catch(() => {
-        ctx.reply('❌ Fichero demasiado grande para Telegram, saltando…');
+    if (index >= list.length) {
+      ctx.reply('✅ Carpeta enviada.');
+      this.showMain(ctx);
+      return;
+    }
+    const relativePath = list[index];
+    const absPath      = CloudService.Instance.giveMeRealPathFile(relativePath);
+
+    stat(absPath, (err, fileStats) => {
+      if (err) {
+        ctx.reply(`⚠️ No se puede leer (${index + 1}/${list.length}): ${relativePath}`);
         this.sendFolderFiles(ctx, list, index + 1);
-      });
+        return;
+      }
+      if (fileStats.size > TELEGRAM_MAX_FILE_BYTES) {
+        const mb    = (fileStats.size / 1024 / 1024).toFixed(1);
+        const maxMb = (TELEGRAM_MAX_FILE_BYTES / 1024 / 1024).toFixed(0);
+        ctx.reply(`⏭️ Omitido — ${mb} MB > ${maxMb} MB (${index + 1}/${list.length}):\n${relativePath}`);
+        this.sendFolderFiles(ctx, list, index + 1);
+        return;
+      }
+      ctx.reply(`📤 (${index + 1}/${list.length}): ${relativePath}`);
+      ctx.replyWithDocument({ source: absPath })
+        .then(()  => this.sendFolderFiles(ctx, list, index + 1))
+        .catch(() => {
+          ctx.reply(`❌ Error al enviar (${index + 1}/${list.length}):\n${relativePath}`);
+          this.sendFolderFiles(ctx, list, index + 1);
+        });
+    });
   };
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -795,7 +1002,7 @@ export class TelegramBot {
     return out;
   };
 
-  // ─── Public API (used by alertsService, notepadService, etc.) ──────────────
+  // ─── Public API ────────────────────────────────────────────────────────────
 
   sendNotepadTextToTelegram = (text: string): boolean => {
     if (!this.context) return false;
