@@ -900,7 +900,14 @@ export class TelegramBot {
     this.bot!.on('animation', this.uploadFileToCloud);
 
     this.launchAlertsToTelegram();
-    this.bot!.launch();
+
+    // Descarta updates acumulados mientras la app estaba apagada.
+    // Sin esto, el bot procesa todos los mensajes viejos antes de
+    // llegar al /login recién enviado, causando un retraso considerable.
+    this.bot!.telegram
+      .callApi('deleteWebhook', { drop_pending_updates: true } as any)
+      .catch(() => {/* ignorar si falla, el launch continúa igual */})
+      .finally(() => this.bot!.launch());
   }
 
   // ─── Cloud file upload (user → cloud) ──────────────────────────────────────
