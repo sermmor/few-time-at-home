@@ -1029,7 +1029,7 @@ export class APIService {
     // GET /network/upnp-discover  — SSDP search, 4-second window
     this.app.get(APIService.networkEndpointList.discover, async (_req: Request, res: Response) => {
       try {
-        const servers = await discoverUpnpServers(4000);
+        const servers = await discoverUpnpServers(6000);
         res.send({ servers });
       } catch (err) {
         console.error('UPnP discover error:', err);

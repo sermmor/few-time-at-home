@@ -1,4 +1,5 @@
 import * as dgram from 'dgram';
+import * as os from 'os';
 import fetch from 'node-fetch';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -67,14 +68,35 @@ function decodeEntities(s: string): string {
 const SSDP_MULTICAST = '239.255.255.250';
 const SSDP_PORT = 1900;
 
-function ssdpDiscover(timeoutMs = 4000): Promise<string[]> {
+// Search types to send — broadest first so we catch routers (IGD),
+// NAS boxes and any other device that may host a ContentDirectory service.
+const SSDP_SEARCH_TYPES = [
+  'ssdp:all',
+  'urn:schemas-upnp-org:device:MediaServer:1',
+  'urn:schemas-upnp-org:service:ContentDirectory:1',
+];
+
+/** Returns all non-loopback IPv4 addresses on this machine. */
+function getLanInterfaces(): string[] {
+  const result: string[] = [];
+  for (const iface of Object.values(os.networkInterfaces())) {
+    if (!iface) continue;
+    for (const addr of iface) {
+      if (addr.family === 'IPv4' && !addr.internal) result.push(addr.address);
+    }
+  }
+  return result;
+}
+
+const makeMessage = (st: string) => Buffer.from(
+  `M-SEARCH * HTTP/1.1\r\nHOST: ${SSDP_MULTICAST}:${SSDP_PORT}\r\nMAN: "ssdp:discover"\r\nMX: 4\r\nST: ${st}\r\n\r\n`
+);
+
+/** Run SSDP discovery bound to a specific local interface address. */
+function ssdpDiscoverOnInterface(ifaceAddr: string, timeoutMs: number): Promise<string[]> {
   return new Promise(resolve => {
     const socket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
     const locations = new Set<string>();
-
-    const message = Buffer.from(
-      `M-SEARCH * HTTP/1.1\r\nHOST: ${SSDP_MULTICAST}:${SSDP_PORT}\r\nMAN: "ssdp:discover"\r\nMX: 3\r\nST: urn:schemas-upnp-org:device:MediaServer:1\r\n\r\n`
-    );
 
     socket.on('message', (msg: Buffer) => {
       const text = msg.toString();
@@ -82,12 +104,22 @@ function ssdpDiscover(timeoutMs = 4000): Promise<string[]> {
       if (m) locations.add(m[1]);
     });
 
-    socket.on('error', () => {/* ignore network errors */});
+    socket.on('error', () => {/* ignore */});
 
-    socket.bind(0, () => {
+    socket.bind(0, ifaceAddr, () => {
       try {
         socket.setMulticastTTL(4);
-        socket.send(message, 0, message.length, SSDP_PORT, SSDP_MULTICAST);
+        // Bind multicast membership to this specific interface so we
+        // receive both multicast responses and unicast replies on it.
+        socket.addMembership(SSDP_MULTICAST, ifaceAddr);
+
+        // Stagger search types slightly to avoid packet collisions.
+        SSDP_SEARCH_TYPES.forEach((st, i) => {
+          const buf = makeMessage(st);
+          setTimeout(() => {
+            try { socket.send(buf, 0, buf.length, SSDP_PORT, SSDP_MULTICAST); } catch (_) {/* ignore */}
+          }, i * 300);
+        });
       } catch (_) {/* ignore */}
 
       setTimeout(() => {
@@ -96,6 +128,22 @@ function ssdpDiscover(timeoutMs = 4000): Promise<string[]> {
       }, timeoutMs);
     });
   });
+}
+
+function ssdpDiscover(timeoutMs = 6000): Promise<string[]> {
+  const ifaces = getLanInterfaces();
+  console.log(`[UPnP] LAN interfaces found: ${ifaces.length > 0 ? ifaces.join(', ') : 'none — falling back to 0.0.0.0'}`);
+
+  // If no LAN interface is detected (e.g. only loopback), fall back to 0.0.0.0.
+  const targets = ifaces.length > 0 ? ifaces : ['0.0.0.0'];
+
+  return Promise.all(targets.map(addr => ssdpDiscoverOnInterface(addr, timeoutMs)))
+    .then(results => {
+      const all = new Set<string>();
+      results.forEach(r => r.forEach(loc => all.add(loc)));
+      console.log(`[UPnP] SSDP locations discovered: ${all.size > 0 ? Array.from(all).join(', ') : 'none'}`);
+      return Array.from(all);
+    });
 }
 
 // ── Device description fetching ────────────────────────────────────────────

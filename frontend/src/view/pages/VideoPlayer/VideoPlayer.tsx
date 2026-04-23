@@ -6,13 +6,12 @@ import { CloudActions } from '../../../core/actions/cloud';
 import { VideoPlayerBar, VIDEO_PLAYER_BAR_HEIGHT } from '../../molecules/VideoPlayerBar/VideoPlayerBar';
 import { NETWORK_DRIVE } from '../../molecules/VideoPlayerBar/ModalNetworkBrowser';
 
-// EnvelopComponent in App.tsx applies paddingTop: '7rem' to every page,
-// but the actual AppMenubar + ServerInfoBar occupy only ~5.5rem.
-// That leaves a ~1.5rem dead gap at the top.
-// VIDEO_TOP_OFFSET is the true visual height of the bars (used for height calc).
+// EnvelopComponent in App.tsx applies paddingTop: '5.5rem' to non-config pages.
+// The actual AppMenubar alone occupies ~4rem, leaving ~1.5rem of breathing room.
+// VIDEO_TOP_OFFSET is the true visual height of the bar (used for height calc).
 // VIDEO_TOP_MARGIN pulls the Box up by the excess padding to close the gap.
-const VIDEO_TOP_OFFSET = '5.5rem';   // real bar height
-const VIDEO_TOP_MARGIN = '-1.5rem';  // 5.5rem − 7rem padding = −1.5rem
+const VIDEO_TOP_OFFSET = '4rem';     // real AppMenubar-only height
+const VIDEO_TOP_MARGIN = '-1.5rem';  // 4rem − 5.5rem padding = −1.5rem
 
 export const VideoPlayer = (): JSX.Element => {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -23,6 +22,12 @@ export const VideoPlayer = (): JSX.Element => {
   // Refs to break stale-closure in video event handlers
   const playlistRef = React.useRef(playlist);
   React.useEffect(() => { playlistRef.current = playlist; }, [playlist]);
+
+  const currentTrackPathRef = React.useRef(currentTrackPath);
+  React.useEffect(() => { currentTrackPathRef.current = currentTrackPath; }, [currentTrackPath]);
+
+  // Set to true when a track ends naturally so the next track auto-plays
+  const autoAdvanceRef = React.useRef(false);
 
   const prevPlaylistRef = React.useRef<CloudItem[]>(playlist);
 
@@ -70,7 +75,8 @@ export const VideoPlayer = (): JSX.Element => {
     const item = pl.find(i => i.path === currentTrackPath);
     if (!item) return;
 
-    const wasPlaying = !video.paused;
+    const wasPlaying = !video.paused || autoAdvanceRef.current;
+    autoAdvanceRef.current = false;
     video.src = item.driveName === NETWORK_DRIVE
       ? item.path
       : CloudActions.getStreamUrl({ drive: item.driveName, path: item.path });
@@ -79,6 +85,19 @@ export const VideoPlayer = (): JSX.Element => {
       video.play().catch(err => console.error('Video play error:', err));
     }
   }, [currentTrackPath]);
+
+  // ── Auto-advance when a video ends ───────────────────────────────────────
+  const handleEnded = React.useCallback(() => {
+    const pl  = playlistRef.current;
+    const cur = currentTrackPathRef.current;
+    if (!cur || pl.length === 0) return;
+
+    const idx = pl.findIndex(i => i.path === cur);
+    if (idx === -1 || idx >= pl.length - 1) return; // last track → stop
+
+    autoAdvanceRef.current = true;
+    setCurrentTrackPath(pl[idx + 1].path);
+  }, []);
 
   // ── Playlist helpers ──────────────────────────────────────────────────────
   const handleAddVideos = (items: CloudItem[]) => {
@@ -138,6 +157,7 @@ export const VideoPlayer = (): JSX.Element => {
               objectFit: 'contain',
               backgroundColor: '#000',
             }}
+            onEnded={handleEnded}
             onError={(e) => console.error('Video error:', e)}
           />
         )}

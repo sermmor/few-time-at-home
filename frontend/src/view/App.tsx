@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, CssBaseline, SxProps, Theme } from '@mui/material';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
 import { ConfigurationService } from '../service/configuration/configuration.service';
@@ -92,17 +92,26 @@ const ServerInfoBar = () => {
     </Box>
 }
 
-const EnvelopComponent = ({element}: {element: JSX.Element}) => <>
-<Box sx={{position: 'fixed', width:'100%', zIndex: 100}}>
-  <AppMenubar />
-  <ServerInfoBar />
-</Box>
-<Box sx={{paddingLeft: '1rem', paddingRight: '1rem', paddingTop: '7rem', position: 'relative', zIndex: 1}}>
-  {
-  element
-  }
-</Box>
-</>;
+const EnvelopComponent = ({element}: {element: JSX.Element}) => {
+  const { pathname } = useLocation();
+  const isConfigPage = pathname === '/configuration';
+
+  return <>
+    <Box sx={{position: 'fixed', width:'100%', zIndex: 100}}>
+      <AppMenubar />
+      {isConfigPage && <ServerInfoBar />}
+    </Box>
+    <Box sx={{
+      paddingLeft: '1rem',
+      paddingRight: '1rem',
+      paddingTop: isConfigPage ? '7rem' : '5.5rem',
+      position: 'relative',
+      zIndex: 1,
+    }}>
+      {element}
+    </Box>
+  </>;
+};
 
 const AllRoutes = () => {
   const config = new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);

@@ -200,7 +200,7 @@ const BlogEditorInner: React.FC = () => {
       marginLeft: '-1rem',
       marginRight: '-1rem',
       marginTop: '-1.5rem',
-      height: 'calc(100vh - 5.5rem)',
+      height: 'calc(100vh - 4rem)',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
