@@ -1,6 +1,8 @@
 import React from "react";
-import { Box, SxProps, Theme, Snackbar } from "@mui/material";
+import { Box, SxProps, Theme, Snackbar, GlobalStyles } from "@mui/material";
+import { ThemeProvider } from '@mui/material/styles';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { cyberpunkConfigTheme } from './cyberpunk-config-theme';
 import { ConfigurationActions } from "../../../core/actions/configuration";
 import { ConfigurationDataZipped, parseToZippedConfig } from "../../../data-model/configuration";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
@@ -18,14 +20,12 @@ import { APIsSection } from "./Components/APIsSection";
 import { ConfigurationSnackbarProvider } from "./Components/ConfigurationSnackbarContext";
 
 const formStyle: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1rem',
-  alignItems: 'center',
+  display:        'flex',
+  flexDirection:  'column',
+  gap:            '0.75rem',
+  alignItems:     'center',
   justifyContent: 'center',
-  fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-  // width: '90%',
-  // maxWidth: '1000px',
+  width:          '100%',
 };
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -102,26 +102,66 @@ export const ConfigurationComponent = () => {
     setOpenSnackbar(true);
   };
 
-  return <>
-    <ConfigurationSnackbarProvider onSave={showSaveNotification}>
-      {config && <Box sx={formStyle}>
-        <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
-        <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
-        <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
-        <RSSConfigurationSection config={config} setConfig={setConfig} />
-        <OthersSection config={config} setConfig={setConfig} />
-        <APIsSection />
-        <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
-      </Box>}
-    </ConfigurationSnackbarProvider>
-    <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} sx={{ zIndex: 9999 }}>
-      <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
-        {snackBarMessage}
-      </Alert>
-    </Snackbar>
-  </>;
+  return (
+    <ThemeProvider theme={cyberpunkConfigTheme}>
+      {/* Override all light/grey backgrounds inside accordion sections */}
+      <GlobalStyles styles={{
+        /* All nested Box, Card, Paper get the dark background */
+        '#cyberpunk-config .MuiAccordionDetails-root .MuiBox-root,\
+         #cyberpunk-config .MuiAccordionDetails-root .MuiCard-root,\
+         #cyberpunk-config .MuiAccordionDetails-root .MuiPaper-root': {
+          background:      '#020c18 !important',
+          backgroundColor: '#020c18 !important',
+        },
+        /* All text nodes inside sections → cyan */
+        '#cyberpunk-config .MuiAccordionDetails-root .MuiTypography-root,\
+         #cyberpunk-config .MuiAccordionDetails-root li,\
+         #cyberpunk-config .MuiAccordionDetails-root span:not(.MuiSwitch-track):not(.MuiSwitch-thumb)': {
+          color: '#00ffe7 !important',
+        },
+        /* Dividers and list separators */
+        '#cyberpunk-config .MuiAccordionDetails-root .MuiDivider-root': {
+          borderColor: 'rgba(0,255,231,0.18) !important',
+        },
+        /* List item borders */
+        '#cyberpunk-config .MuiAccordionDetails-root .MuiListItem-root,\
+         #cyberpunk-config .MuiAccordionDetails-root [class*="itemList"]': {
+          borderColor:  'rgba(0,255,231,0.15) !important',
+          borderBottom: '1px solid rgba(0,255,231,0.12) !important',
+        },
+      }} />
+
+      <Box
+        id="cyberpunk-config"
+        sx={{
+          backgroundColor: '#020c18',
+          minHeight:        '100%',
+          width:            '100%',
+          paddingBottom:    '3rem',
+        }}
+      >
+        <ConfigurationSnackbarProvider onSave={showSaveNotification}>
+          {config && <Box sx={formStyle}>
+            <SynchronizeSection synchronizeUrl={synchronizeUrl} setSynchronizeUrl={setSynchronizeUrl} />
+            <MastodonUsersSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+            <BlogRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+            <NewsRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+            <YoutubeRSSSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+            <CitasSection config={config} deleteActionList={deleteActionList} addActionList={addActionList} editActionList={editActionList} indexNewItemAdded={indexNewItemAdded} />
+            <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
+            <RSSConfigurationSection config={config} setConfig={setConfig} />
+            <OthersSection config={config} setConfig={setConfig} />
+            <APIsSection />
+            <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
+          </Box>}
+        </ConfigurationSnackbarProvider>
+      </Box>
+
+      <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} sx={{ zIndex: 9999 }}>
+        <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
+    </ThemeProvider>
+  );
 };

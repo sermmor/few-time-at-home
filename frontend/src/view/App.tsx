@@ -12,85 +12,114 @@ import { SetupWizard } from './pages/Setup/SetupWizard';
 import { SetupActions } from '../core/actions/setup';
 import ConfigData from '../configuration.json';
 
-const styleDinamicBar = (message: JSX.Element) => ({
-  display: 'flex',
+// ── Cyberpunk ServerInfoBar ────────────────────────────────────────────────
+const CY_BAR = {
+  bg:       '#020c18',
+  cyan:     '#00ffe7',
+  cyanDim:  'rgba(0,255,231,0.55)',
+  magenta:  '#ff00cc',
+  border:   'rgba(0,255,231,0.28)',
+};
+
+const barTextSx = {
+  fontFamily:    '"Courier New", Courier, monospace',
+  fontSize:      '0.7rem',
+  letterSpacing: '0.04rem',
+  color:         CY_BAR.cyanDim,
+  lineHeight:    1,
+};
+
+const styleMarqueeBar = (hasContent: boolean): SxProps<Theme> => ({
+  display:       'inline-flex',
   flexDirection: 'row',
-  gap: '.25rem',
-  whiteSpace: 'nowrap',
-  animation: message
-    ? 'marquee 30s linear infinite'
-    : 'none',
-  '@keyframes marquee': {
-    '0%': {
-      transform: 'translateX(100%)',
-    },
-    '100%': {
-      transform: 'translateX(-50%)',
-    },
+  gap:           '0.5rem',
+  whiteSpace:    'nowrap',
+  animation:     hasContent ? 'cy-marquee 35s linear infinite' : 'none',
+  // Start fully off-screen to the right, end fully off-screen to the left
+  '@keyframes cy-marquee': {
+    '0%':   { transform: 'translateX(100vw)' },
+    '100%': { transform: 'translateX(-100%)' },
   },
+  ...barTextSx,
 });
 
 const styleStaticBar = (): SxProps<Theme> => ({
-  display: 'flex',
+  display:      'flex',
   flexDirection: 'row',
-  gap: '.25rem',
-  paddingLeft: '1rem',
-  overflowX: 'auto',
-  overflowY: 'hidden',
+  gap:          '0.5rem',
+  paddingLeft:  '0.75rem',
+  overflowX:    'auto',
+  overflowY:    'hidden',
   scrollbarWidth: 'none',
+  ...barTextSx,
 });
 
 const ServerInfoBar = () => {
-  const [message, setMessage] = React.useState<JSX.Element | undefined>();
+  const [message, setMessage]                   = React.useState<JSX.Element | undefined>();
   const [notificationInfo, setNotificationInfo] = React.useState<JSX.Element | undefined>();
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
-  const [isShowStaticBar, setIsShowStaticBar] = React.useState<boolean>(false);
-  
+  const [isShowStaticBar, setIsShowStaticBar]   = React.useState<boolean>(false);
+
   React.useEffect(() => {
-    NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
-    setNotificationInfo(isNotificationsEnabled ? undefined : <span style={{color: 'red'}}>No context in Telegram</span>);
+    NotificationsActions.getAreNotificationsEnabled().then(ok => setIsNotificationsEnabled(ok));
+    setNotificationInfo(
+      isNotificationsEnabled
+        ? undefined
+        : <span style={{ color: CY_BAR.magenta, textShadow: `0 0 6px ${CY_BAR.magenta}` }}>
+            !! NO TELEGRAM CTX
+          </span>
+    );
   }, [isNotificationsEnabled]);
 
-  React.useEffect(() => { 
-    WebSocketClientService.Instance.subscribeToUpdates((webSocketData) => {
+  React.useEffect(() => {
+    WebSocketClientService.Instance.subscribeToUpdates(data => {
       setMessage(
-      <>
-        <div>{webSocketData.rssAutoUpdateMessage}</div>
-        <div>{` | ${webSocketData.rssSaveMessage}`}</div>
+        <>
+          <span style={{ color: CY_BAR.cyan }}>SYS&gt;</span>
+          <span>{data.rssAutoUpdateMessage}</span>
+          <span style={{ color: CY_BAR.border }}>|</span>
+          <span>{data.rssSaveMessage}</span>
         </>
       );
     });
-   }, []);
+  }, []);
 
-   return <Box
-    sx={{
-      width: '100%',
-      backgroundColor: '#c7ddff',
-      color: '#393939',
-      padding: '0rem',
-      textAlign: 'left',
-      marginTop: '0rem',
-      overflow: 'hidden',
-      whiteSpace: 'nowrap',
-      position: 'relative',
-    }}>
-      {
-        isShowStaticBar ? <Box
-          component="span"
-          sx={styleStaticBar()}
-          onClick={() => setIsShowStaticBar(!isShowStaticBar)}
-        >
-          {message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}
-      </Box> : <Box
-          component="span"
-          sx={styleDinamicBar(<>{message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}</>)}
-          onClick={() => setIsShowStaticBar(!isShowStaticBar)}
-        >
-          {message}{notificationInfo ? <div>{" | "}{notificationInfo}</div> : undefined}
-        </Box>
+  const content = (
+    <>
+      {message}
+      {notificationInfo && (
+        <>
+          <span style={{ color: CY_BAR.border, margin: '0 0.3rem' }}>|</span>
+          {notificationInfo}
+        </>
+      )}
+    </>
+  );
+
+  return (
+    <Box
+      onClick={() => setIsShowStaticBar(s => !s)}
+      sx={{
+        width:           '100%',
+        backgroundColor: CY_BAR.bg,
+        borderTop:       `1px solid ${CY_BAR.border}`,
+        borderBottom:    `1px solid ${CY_BAR.border}`,
+        padding:         '3px 0',
+        overflow:        'hidden',
+        whiteSpace:      'nowrap',
+        cursor:          'pointer',
+        userSelect:      'none',
+        position:        'relative',
+        '&:hover': { borderColor: 'rgba(0,255,231,0.5)' },
+      }}
+    >
+      {isShowStaticBar
+        ? <Box component="span" sx={styleStaticBar()}>{content}</Box>
+        : <Box component="span" sx={styleMarqueeBar(!!message)}>{content}</Box>
       }
     </Box>
-}
+  );
+};
 
 const EnvelopComponent = ({element}: {element: JSX.Element}) => {
   const { pathname } = useLocation();
