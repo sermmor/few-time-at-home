@@ -8,6 +8,8 @@ import { WebSocketClientService } from '../service/webSocketService/webSocketCli
 import { NotificationsActions } from '../core/actions/notifications';
 import { BackgroundActions } from '../core/actions/background';
 import { CyberpunkLoadingScreen } from './CyberpunkLoadingScreen';
+import { SetupWizard } from './pages/Setup/SetupWizard';
+import { SetupActions } from '../core/actions/setup';
 import ConfigData from '../configuration.json';
 
 const styleDinamicBar = (message: JSX.Element) => ({
@@ -128,11 +130,23 @@ const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS  = 3000;
 
 export const App = () => {
+    const [needsSetup, setNeedsSetup]       = React.useState<boolean | null>(null); // null = checking
+    const [doPoll, setDoPoll]               = React.useState<boolean>(false);
     const [backgroundImage, setBackgroundImage] = React.useState<string | null>(null);
-    const [backendReady, setBackendReady]         = React.useState<boolean>(false);
+    const [backendReady, setBackendReady]   = React.useState<boolean>(false);
 
-    // Poll /ready until the backend responds
+    // Step 1: check whether this is a fresh install that needs the wizard
     React.useEffect(() => {
+      SetupActions.checkStatus().then(({ needsSetup: ns }) => {
+        setNeedsSetup(ns);
+        if (!ns) setDoPoll(true); // skip wizard → start polling immediately
+      });
+    }, []);
+
+    // Step 2: poll /ready — only starts once doPoll is true
+    React.useEffect(() => {
+      if (!doPoll) return;
+
       let cancelled = false;
       let timerId: ReturnType<typeof setTimeout>;
 
@@ -157,14 +171,12 @@ export const App = () => {
 
       poll();
       return () => { cancelled = true; clearTimeout(timerId); };
-    }, []);
+    }, [doPoll]);
 
     React.useEffect(() => {
       if (!backendReady) return;
       BackgroundActions.getBackgroundImage().then(imageUrl => {
-        if (imageUrl) {
-          setBackgroundImage(imageUrl);
-        }
+        if (imageUrl) setBackgroundImage(imageUrl);
       });
     }, [backendReady]);
 
@@ -177,6 +189,24 @@ export const App = () => {
       backgroundRepeat: 'no-repeat',
     };
 
+    // Still checking setup status
+    if (needsSetup === null) {
+      return <CyberpunkLoadingScreen />;
+    }
+
+    // Fresh install: show the installation wizard
+    if (needsSetup === true) {
+      return (
+        <SetupWizard
+          onComplete={() => {
+            setNeedsSetup(false);
+            setDoPoll(true); // begin polling for the real backend
+          }}
+        />
+      );
+    }
+
+    // Backend not yet ready: cyberpunk loading screen
     if (!backendReady) {
       return <CyberpunkLoadingScreen />;
     }

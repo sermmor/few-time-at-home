@@ -14,6 +14,7 @@ import { PomodoroSection } from "./Components/PomodoroSection";
 import { RSSConfigurationSection } from "./Components/RSSConfigurationSection";
 import { OthersSection } from "./Components/OthersSection";
 import { CommandLineSection } from "./Components/CommandLineSection";
+import { APIsSection } from "./Components/APIsSection";
 import { ConfigurationSnackbarProvider } from "./Components/ConfigurationSnackbarContext";
 
 const formStyle: SxProps<Theme> = {
@@ -113,6 +114,7 @@ export const ConfigurationComponent = () => {
         <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
         <RSSConfigurationSection config={config} setConfig={setConfig} />
         <OthersSection config={config} setConfig={setConfig} />
+        <APIsSection />
         <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
       </Box>}
     </ConfigurationSnackbarProvider>

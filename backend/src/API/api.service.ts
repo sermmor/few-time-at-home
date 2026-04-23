@@ -1,4 +1,5 @@
 import express, {Express, Request, Response} from 'express';
+import { readFile, writeFile } from 'fs';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { TelegramBot } from '../telegramBot/telegramBot';
 import { getUnfurl, getUnfurlWithCache, getUnfurlYoutubeImage } from '../unfurl/unfurl';
@@ -51,6 +52,7 @@ export class APIService {
     removeMessages: "/readLaterRSS/remove-messages",
     searchMessages: "/readLaterRSS/search-messages",
   }
+  static keysEndpoint = "/keys";
   static configurationEndpoint = "/configuration";
   static configurationTypeEndpoint = "/configuration/type";
   static configurationListByTypeEndpoint = "/configuration/type/list";
@@ -140,6 +142,7 @@ export class APIService {
     this.forceUpdateRSS();
     this.unfurlService();
     this.unfurlYoutubeImageService();
+    this.keysService();
     this.configurationService();
     this.getRandomQuoteService();
     this.notesService();
@@ -241,6 +244,27 @@ export class APIService {
       }).catch(err => {
         console.error("Error during force update RSS:", err);
         res.status(500).send({ error: 'Failed to force update RSS' });
+      });
+    });
+  }
+
+  private keysService() {
+    this.app.get(APIService.keysEndpoint, (_req, res) => {
+      readFile('keys.json', (err, data) => {
+        if (err) return res.status(500).json({ error: 'Cannot read keys.json' });
+        try {
+          res.json(JSON.parse(data.toString()));
+        } catch {
+          res.status(500).json({ error: 'Invalid keys.json' });
+        }
+      });
+    });
+
+    this.app.post(APIService.keysEndpoint, (req, res) => {
+      if (!req.body) return res.status(400).json({ error: 'No body' });
+      writeFile('keys.json', JSON.stringify(req.body, null, 2), 'utf8', err => {
+        if (err) return res.status(500).json({ error: 'Cannot write keys.json' });
+        res.json({ success: true });
       });
     });
   }

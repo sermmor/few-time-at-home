@@ -50,3 +50,25 @@ $ brew install lame
 1. Go to the the [Lame Download Page](https://lame.buanzo.org/#lamewindl) and download the EXE or ZIP file.
 2. Navigate to the directory Lame was installed in (most commonly `C:\Program Files (x86)\Lame For Audacity`).
 3. Add the directory to your [Environment Variables](https://www.java.com/en/download/help/path.xml).
+
+## Frontend configuration
+
+The file `frontend/src/configuration.json` tells the frontend where to find the backend. You need to edit it manually if the backend is not running on the same machine as the browser.
+
+```json
+{
+  "ip":             "localhost",
+  "port":           4001,
+  "webSocketPort":  4002,
+  "isUsingMocks":   false
+}
+```
+
+| Field | Description | Default |
+|---|---|---|
+| `ip` | IP address or hostname of the machine running the backend. Use `localhost` when both run on the same machine, or the LAN IP (e.g. `192.168.1.50`) when accessing from another device. | `localhost` |
+| `port` | HTTP port the backend API listens on. Must match `apiPort` in the backend `configuration.json` created during setup. | `4001` |
+| `webSocketPort` | Port for the WebSocket server (used for live RSS update notifications). Must match `webSocketPort` in the backend `configuration.json`. | `4002` |
+| `isUsingMocks` | Set to `true` to run the frontend with local mock data, without a real backend. Useful for UI development. | `false` |
+
+> **Local Server / remote setup**: if you are running the backend on a local server and the frontend on a laptop, set `ip` to the server's local IP address (e.g. `192.168.1.50`) before running `npm start` or building the frontend.
