@@ -20,6 +20,46 @@ export class SupabaseNotificationService {
 
   isConfigured = (): boolean => !!(this.supabaseUrl && this.serviceKey);
 
+  syncPomodoroModes = (modes: any[]): void => {
+    if (!this.isConfigured()) return;
+    const body = JSON.stringify({
+      id:         1,
+      modes,
+      updated_at: new Date().toISOString(),
+    });
+    try {
+      const url = new URL(`${this.supabaseUrl}/rest/v1/pomodoro_config`);
+      const req = https.request(
+        {
+          hostname: url.hostname,
+          port:     url.port ? Number(url.port) : 443,
+          path:     url.pathname,
+          method:   'POST',
+          headers: {
+            'Content-Type':   'application/json',
+            'Content-Length': Buffer.byteLength(body),
+            'apikey':         this.serviceKey,
+            'Authorization':  `Bearer ${this.serviceKey}`,
+            // Upsert: insert if id=1 doesn't exist, update if it does.
+            'Prefer':         'resolution=merge-duplicates,return=minimal',
+          },
+        },
+        (res) => {
+          if (res.statusCode && res.statusCode >= 400) {
+            console.error(`[Supabase] Sync pomodoro failed — HTTP ${res.statusCode}`);
+          } else {
+            console.log('[Supabase] Pomodoro modes synced.');
+          }
+        },
+      );
+      req.on('error', (err) => console.error('[Supabase] Pomodoro sync error:', err.message));
+      req.write(body);
+      req.end();
+    } catch (err) {
+      console.error('[Supabase] Pomodoro sync error:', err);
+    }
+  };
+
   clearAlerts = (): Promise<void> => new Promise((resolve, reject) => {
     if (!this.isConfigured()) { resolve(); return; }
     try {

@@ -30,3 +30,22 @@ CREATE POLICY "anon_delete" ON public.alerts FOR DELETE USING (true);
 
 -- 3. Enable Realtime so the Flutter app receives live updates
 ALTER PUBLICATION supabase_realtime ADD TABLE public.alerts;
+
+-- ============================================================
+-- Pomodoro configuration (synced from the web frontend)
+-- ============================================================
+
+-- Single-row table: id is always 1. The backend upserts this row
+-- every time Configuration → Pomodoro is saved in the web app.
+CREATE TABLE IF NOT EXISTS public.pomodoro_config (
+  id         INTEGER     PRIMARY KEY DEFAULT 1,
+  modes      JSONB       NOT NULL DEFAULT '[]',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+GRANT ALL    ON TABLE public.pomodoro_config TO service_role;
+GRANT SELECT ON TABLE public.pomodoro_config TO anon;
+GRANT SELECT ON TABLE public.pomodoro_config TO authenticated;
+
+ALTER TABLE public.pomodoro_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_read_pomodoro" ON public.pomodoro_config FOR SELECT USING (true);

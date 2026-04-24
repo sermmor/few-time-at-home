@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'screens/alerts_screen.dart';
+import 'screens/pomodoro_screen.dart';
 import 'services/notification_service.dart';
 
 /// Called by Firebase when a push arrives and the app is BACKGROUND or KILLED.
@@ -43,7 +44,7 @@ class FtahNotificationsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FTAH Alerts',
+      title: 'Few Time @ Home',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF020c18),
@@ -53,7 +54,130 @@ class FtahNotificationsApp extends StatelessWidget {
           surface:   Color(0xFF0a1628),
         ),
       ),
-      home: const AlertsScreen(),
+      home: const MainScreen(),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  static const _cyan    = Color(0xFF00FFE7);
+  static const _magenta = Color(0xFFFF00CC);
+  static const _bg      = Color(0xFF020C18);
+  static const _bgPanel = Color(0xFF071526);
+
+  int _tabIndex = 0;
+
+  // Keep both screens alive with IndexedStack so the Pomodoro timer
+  // is not reset when switching tabs.
+  static const _screens = [
+    AlertsScreen(),
+    PomodoroScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _bg,
+      // IndexedStack preserves widget state across tab switches.
+      body: IndexedStack(
+        index: _tabIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: _buildNavBar(),
+    );
+  }
+
+  Widget _buildNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color:  _bgPanel,
+        border: Border(top: BorderSide(color: _cyan.withOpacity(0.22), width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color:      _cyan.withOpacity(0.06),
+            blurRadius: 12,
+            offset:     const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex:            _tabIndex,
+        onTap:                   (i) => setState(() => _tabIndex = i),
+        backgroundColor:         Colors.transparent,
+        elevation:               0,
+        selectedItemColor:       _cyan,
+        unselectedItemColor:     _cyan.withOpacity(0.28),
+        selectedLabelStyle: const TextStyle(
+          fontFamily:    'monospace',
+          fontSize:      9,
+          letterSpacing: 1.5,
+          fontWeight:    FontWeight.bold,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontFamily:    'monospace',
+          fontSize:      9,
+          letterSpacing: 1.5,
+        ),
+        items: [
+          BottomNavigationBarItem(
+            icon: _NavIcon(
+              icon:     Icons.notifications_outlined,
+              active:   _tabIndex == 0,
+              color:    _cyan,
+            ),
+            activeIcon: _NavIcon(
+              icon:   Icons.notifications,
+              active: true,
+              color:  _cyan,
+            ),
+            label: 'ALERTAS',
+          ),
+          BottomNavigationBarItem(
+            icon: _NavIcon(
+              icon:   Icons.timer_outlined,
+              active: _tabIndex == 1,
+              color:  _magenta,
+            ),
+            activeIcon: _NavIcon(
+              icon:   Icons.timer,
+              active: true,
+              color:  _magenta,
+            ),
+            label: 'POMODORO',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavIcon extends StatelessWidget {
+  const _NavIcon({
+    required this.icon,
+    required this.active,
+    required this.color,
+  });
+
+  final IconData icon;
+  final bool     active;
+  final Color    color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      icon,
+      size:  22,
+      color: active ? color : color.withOpacity(0.3),
+      shadows: active
+          ? [Shadow(color: color.withOpacity(0.5), blurRadius: 8)]
+          : null,
     );
   }
 }

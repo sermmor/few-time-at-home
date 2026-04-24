@@ -343,7 +343,10 @@ export class APIService {
         if (!req.body) {
             console.error("Received NO body text");
         } else {
-          PomodoroService.Instance.setTimeModeList(req.body.data).then(data => res.send({data}));
+          PomodoroService.Instance.setTimeModeList(req.body.data).then(data => {
+            SupabaseNotificationService.Instance?.syncPomodoroModes(req.body.data);
+            res.send({data});
+          });
         }
     });
 
