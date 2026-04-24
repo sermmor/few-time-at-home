@@ -84,7 +84,7 @@ export class AlertListService {
       // alert.timeToLaunch === UK HOUR
       this.scheduleJobs.push(scheduleJob(alert.message, alert.timeToLaunch, () => {
         sendMessage(alert.message);
-        this.sendEmail(alert.message);
+        // this.sendEmail(alert.message);
         this.sendToFcm(alert.message);
         this.sendToSupabase(alert.message, false);
       }));
@@ -95,7 +95,7 @@ export class AlertListService {
         dayOfWeek: alert.dayOfWeek === undefined ? 1 : alert.dayOfWeek
       }, () => {
         sendMessage(alert.message);
-        this.sendEmail(alert.message);
+        // this.sendEmail(alert.message);
         this.sendToFcm(alert.message);
         this.sendToSupabase(alert.message, true);
       }));
@@ -108,7 +108,7 @@ export class AlertListService {
         alert.dayOfMonth === undefined ? 1 : alert.dayOfMonth
       } * *`, () => {
         sendMessage(alert.message);
-        this.sendEmail(alert.message);
+        // this.sendEmail(alert.message);
         this.sendToFcm(alert.message);
         this.sendToSupabase(alert.message, true);
       }));
