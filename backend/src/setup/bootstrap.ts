@@ -16,6 +16,8 @@ import { readAllConfigurationsFiles } from '../API/configuration.service';
 import { ChannelMediaRSSCollectionExport } from '../API/messagesRSS.service';
 import { extractEmailData }       from '../API/email-data/email-data.interface';
 import { MailService }            from '../API/mail.service';
+import { FcmNotificationService }      from '../API/fcmNotification.service';
+import { SupabaseNotificationService } from '../API/supabaseNotification.service';
 import { BookmarkService }        from '../API/bookmark.service';
 import { Logger }                 from '../logger';
 import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate';
@@ -32,6 +34,11 @@ export const bootstrapApp = (): void => {
       new ConfigurationService(configData);
       const emailData = extractEmailData(keyData);
       new MailService(emailData);
+      new FcmNotificationService();
+      new SupabaseNotificationService(
+        keyData.supabase_url         || '',
+        keyData.supabase_service_key || '',
+      );
 
       BookmarkService.parseFromOldBookmarks().then(() => {
         if (!keyData.is_backup_disabled) {

@@ -1,0 +1,17 @@
+/// Supabase credentials for the Flutter app.
+///
+/// Setup:
+///   1. Copy this file to supabase_config.dart (same directory).
+///   2. Go to https://supabase.com → your project → Project Settings → API.
+///   3. Copy "Project URL"       → paste as [url]
+///   4. Copy "anon / public" key → paste as [anonKey]
+///
+/// ⚠️  The service_role key is SECRET — it stays ONLY in keys.json on the
+///     backend server. Never put it in the Flutter app.
+///
+/// ⚠️  supabase_config.dart is listed in .gitignore. Never commit it.
+///     Commit only this .example template.
+class SupabaseConfig {
+  static const String url     = '';   // e.g. https://xyzxyz.supabase.co
+  static const String anonKey = '';   // anon / public key from Project Settings → API
+}

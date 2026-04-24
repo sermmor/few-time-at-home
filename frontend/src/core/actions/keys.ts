@@ -16,6 +16,8 @@ export interface KeysData {
   youtube_playlist_client_secret: string;
   spotify_playlist_client_id:     string;
   spotify_playlist_client_secret: string;
+  supabase_url:                   string;
+  supabase_service_key:           string;
 }
 
 const emptyKeys: KeysData = {
@@ -33,6 +35,8 @@ const emptyKeys: KeysData = {
   youtube_playlist_client_secret: '',
   spotify_playlist_client_id:     '',
   spotify_playlist_client_secret: '',
+  supabase_url:                   '',
+  supabase_service_key:           '',
 };
 
 const getKeys = (): Promise<KeysData> =>

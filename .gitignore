@@ -27,3 +27,7 @@ src/configuration.json
 /backups
 /rootCloud
 .claude
+
+# ── Sensitive credentials ─────────────────────────────────────────────────────
+# Firebase Admin SDK service account key (backend)
+backend/data/firebase-service-account.json

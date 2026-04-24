@@ -1,6 +1,8 @@
 import { Job, scheduleJob } from 'node-schedule';
 import { parseFromAlertDateStringToDateObject, parseFromDateObjectToAlertDateString, readJSONFile, saveInAFile } from "../utils";
 import { MailService } from './mail.service';
+import { FcmNotificationService } from './fcmNotification.service';
+import { SupabaseNotificationService } from './supabaseNotification.service';
 
 const pathNotesFile = 'data/alerts.json';
 
@@ -69,12 +71,22 @@ export class AlertListService {
 
   private sendEmail = (message: string) => MailService.Instance.sendMessageByEmail(message.substring(0, 50), message);
 
+  private sendToFcm = (message: string): void => {
+    try { FcmNotificationService.Instance?.sendAlert(message); } catch (_) {}
+  };
+
+  private sendToSupabase = (message: string, isRecurring: boolean): void => {
+    try { SupabaseNotificationService.Instance?.insertAlert(message, isRecurring); } catch (_) {}
+  };
+
   private launchOneAlert = (alert: Alert, sendMessage: (message: string) => void) => {
     if (!alert.isHappensEveryweek && !alert.isHappensEverymonth) {
       // alert.timeToLaunch === UK HOUR
       this.scheduleJobs.push(scheduleJob(alert.message, alert.timeToLaunch, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);
+        this.sendToFcm(alert.message);
+        this.sendToSupabase(alert.message, false);
       }));
     } else if (alert.isHappensEveryweek) {
       this.scheduleJobs.push(scheduleJob(alert.message, {
@@ -84,6 +96,8 @@ export class AlertListService {
       }, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);
+        this.sendToFcm(alert.message);
+        this.sendToSupabase(alert.message, true);
       }));
     } else if (alert.isHappensEverymonth) {
       this.scheduleJobs.push(scheduleJob(alert.message, `${
@@ -95,6 +109,8 @@ export class AlertListService {
       } * *`, () => {
         sendMessage(alert.message);
         this.sendEmail(alert.message);
+        this.sendToFcm(alert.message);
+        this.sendToSupabase(alert.message, true);
       }));
     }
   };

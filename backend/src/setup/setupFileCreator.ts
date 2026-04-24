@@ -38,6 +38,8 @@ export const createSetupFiles = (data: SetupWizardData): void => {
     youtube_playlist_client_secret: '',
     spotify_playlist_client_id:   '',
     spotify_playlist_client_secret: '',
+    supabase_url:                 '',
+    supabase_service_key:         '',
   });
 
   // ── configuration.json ──────────────────────────────────────────────────────

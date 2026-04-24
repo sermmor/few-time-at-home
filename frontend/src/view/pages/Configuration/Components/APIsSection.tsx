@@ -21,6 +21,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { KeysActions, KeysData } from '../../../../core/actions/keys';
 import { useConfiguredDialogAlphas } from '../../../../core/context/DialogAlphasContext';
 import { useConfigurationSnackbar } from './ConfigurationSnackbarContext';
+import { supabaseClearAlertsEndpoint } from '../../../../core/urls-and-end-points';
 
 const sectionBoxStyle: SxProps<Theme> = {
   display: 'flex',
@@ -90,6 +91,17 @@ export const APIsSection: React.FC = () => {
 
   const [keys, setKeys] = React.useState<KeysData | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [clearingAlerts, setClearingAlerts] = React.useState(false);
+  const [clearAlertsResult, setClearAlertsResult] = React.useState<'ok' | 'error' | null>(null);
+
+  const handleClearAlerts = () => {
+    setClearingAlerts(true);
+    setClearAlertsResult(null);
+    fetch(supabaseClearAlertsEndpoint(), { method: 'DELETE' })
+      .then(res => setClearAlertsResult(res.ok ? 'ok' : 'error'))
+      .catch(() => setClearAlertsResult('error'))
+      .finally(() => setClearingAlerts(false));
+  };
 
   React.useEffect(() => {
     KeysActions.getKeys().then(setKeys);
@@ -249,6 +261,53 @@ export const APIsSection: React.FC = () => {
               value={keys.spotify_playlist_client_secret}
               onChange={set('spotify_playlist_client_secret') as (v: string) => void}
             />
+          </Box>
+
+          {/* ── Supabase (notificationsApp) ──────────────────────────── */}
+          <Typography variant="h6" sx={groupTitleStyle}>Supabase — Notifications App</Typography>
+
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>Project URL</Typography>
+            <TextField
+              label="https://xxxx.supabase.co"
+              variant="standard"
+              value={keys.supabase_url}
+              sx={fieldStyle}
+              onChange={e => set('supabase_url')(e.target.value)}
+            />
+          </Box>
+
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>Service role key</Typography>
+            <PasswordField
+              label="service_role key (backend only)"
+              value={keys.supabase_service_key}
+              onChange={set('supabase_service_key') as (v: string) => void}
+            />
+          </Box>
+
+          <Box sx={{ ...rowStyle, alignItems: 'center', gap: '1rem' }}>
+            <Typography variant="body1" sx={labelStyle}>Alerts table</Typography>
+            <Button
+              variant="outlined"
+              disabled={clearingAlerts}
+              onClick={handleClearAlerts}
+              sx={{
+                borderColor: '#ff00cc',
+                color:       '#ff00cc',
+                fontFamily:  '"Courier New", monospace',
+                fontSize:    '0.75rem',
+                letterSpacing: '0.05em',
+                '&:hover': { borderColor: '#ff00cc', backgroundColor: 'rgba(255,0,204,0.08)' },
+                '&.Mui-disabled': { borderColor: 'rgba(255,0,204,0.3)', color: 'rgba(255,0,204,0.3)' },
+              }}
+            >
+              {clearingAlerts
+                ? <CircularProgress size={16} sx={{ color: '#ff00cc' }} />
+                : 'Clean All Alerts'}
+            </Button>
+            {clearAlertsResult === 'ok'    && <Typography sx={{ color: '#00ffe7', fontFamily: 'monospace', fontSize: '0.8rem' }}>✓ tabla limpia</Typography>}
+            {clearAlertsResult === 'error' && <Typography sx={{ color: '#ff00cc', fontFamily: 'monospace', fontSize: '0.8rem' }}>✗ error al limpiar</Typography>}
           </Box>
 
           {/* ── App ──────────────────────────────────────────────────── */}

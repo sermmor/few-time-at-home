@@ -22,6 +22,7 @@ import { PlaylistExportService } from './playlistExport.service';
 import { BirthdayService } from './birthdayNotification.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
+import { SupabaseNotificationService } from './supabaseNotification.service';
 import * as http from 'http';
 import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
@@ -117,6 +118,7 @@ export class APIService {
     browse:   '/network/upnp-browse',
     stream:   '/network/upnp-stream',
   };
+  static supabaseClearAlertsEndpoint = '/supabase/clear-alerts';
   static authEndpoint = {
     status:  '/auth/status',
     login:   '/auth/login',
@@ -169,6 +171,7 @@ export class APIService {
     this.birthdaysService();
     this.upnpNetworkService();
     this.authService();
+    this.supabaseClearAlertsService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1176,6 +1179,19 @@ export class APIService {
       const token = req.headers['x-auth-token'] as string | undefined;
       if (token) this.activeSessions.delete(token);
       res.json({ success: true });
+    });
+  }
+
+  // ── Supabase utilities ────────────────────────────────────────────────────
+  private supabaseClearAlertsService(): void {
+    this.app.delete(APIService.supabaseClearAlertsEndpoint, (_req: Request, res: Response) => {
+      const svc = SupabaseNotificationService.Instance;
+      if (!svc?.isConfigured()) {
+        return res.status(503).json({ success: false, error: 'Supabase not configured' });
+      }
+      svc.clearAlerts()
+        .then(() => res.json({ success: true }))
+        .catch((err: Error) => res.status(500).json({ success: false, error: err.message }));
     });
   }
 }

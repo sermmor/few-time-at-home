@@ -90,3 +90,5 @@ export const networkUpnpStreamProxyBase = (): string => `${getUrlApi()}/network/
 export const authStatusEndpoint  = (): string => `${getUrlApi()}/auth/status`;
 export const authLoginEndpoint   = (): string => `${getUrlApi()}/auth/login`;
 export const authLogoutEndpoint  = (): string => `${getUrlApi()}/auth/logout`;
+
+export const supabaseClearAlertsEndpoint = (): string => `${getUrlApi()}/supabase/clear-alerts`;
