@@ -17,7 +17,9 @@ import { RSSConfigurationSection } from "./Components/RSSConfigurationSection";
 import { OthersSection } from "./Components/OthersSection";
 import { CommandLineSection } from "./Components/CommandLineSection";
 import { APIsSection } from "./Components/APIsSection";
+import { LoginSection } from "./Components/LoginSection";
 import { ConfigurationSnackbarProvider } from "./Components/ConfigurationSnackbarContext";
+import { AuthActions } from "../../../core/actions/auth";
 
 const formStyle: SxProps<Theme> = {
   display:        'flex',
@@ -48,6 +50,10 @@ export const ConfigurationComponent = () => {
   const [snackBarMessage, setSnackBarMessage] = React.useState<string>('');
   
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
+
+  const handleLogout = () => {
+    AuthActions.logout().then(() => window.location.reload());
+  };
   
   React.useEffect(() => {
     ConfigurationActions.getConfigurationType().then(types => ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data))));
@@ -152,6 +158,7 @@ export const ConfigurationComponent = () => {
             <RSSConfigurationSection config={config} setConfig={setConfig} />
             <OthersSection config={config} setConfig={setConfig} />
             <APIsSection />
+            <LoginSection config={config} setConfig={setConfig} onLogout={handleLogout} />
             <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />
           </Box>}
         </ConfigurationSnackbarProvider>

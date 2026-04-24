@@ -90,6 +90,9 @@ export class ConfigurationService {
     pomodoroEditorConfig: number;
     configurationCards: number;
   };
+  user: string;
+  password: string;
+  loginEnabled: boolean;
 
   private configTypes;
   
@@ -114,6 +117,9 @@ export class ConfigurationService {
       configurationCards: 0.5,
       ...(configurationData.dialogAlphas || {}),
     };
+    this.user         = configurationData.user         ?? 'admin';
+    this.password     = configurationData.password     ?? 'admin';
+    this.loginEnabled = configurationData.loginEnabled ?? false;
 
     ConfigurationService.Instance = this;
   }
@@ -156,6 +162,9 @@ export class ConfigurationService {
         webSocketPort: this.webSocketPort,
         rssConfig: this.rssConfig,
         dialogAlphas: this.dialogAlphas,
+        user: this.user,
+        password: this.password,
+        loginEnabled: this.loginEnabled,
       }
     }
     return (<any> this)[typeConfig];

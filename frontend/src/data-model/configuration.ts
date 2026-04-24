@@ -36,6 +36,9 @@ interface ConfigurationGeneral {
   webSocketPort: number;
   rssConfig: RssConfiguration;
   dialogAlphas: DialogAlphas;
+  user: string;
+  password: string;
+  loginEnabled: boolean;
 }
 
 export interface ConfigurationDataModel {
@@ -57,10 +60,13 @@ export interface ConfigurationDataZipped {
   webSocketPort: number;
   rssConfig: RssConfiguration;
   dialogAlphas: DialogAlphas;
+  user: string;
+  password: string;
+  loginEnabled: boolean;
 }
 
 export const parseToZippedConfig = (configList: ConfigurationDataModel[]): ConfigurationDataZipped => {
-  const {windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
+  const {windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas, user, password, loginEnabled} = getContentConfigurationByType(configList, 'configuration') as ConfigurationGeneral;
   return ({
     mastodonRssUsersList: getContentConfigurationByType(configList, 'mastodonRssUsersList') as { instance: string; user: string; }[],
     blogRssList: getContentConfigurationByType(configList, 'blogRssList') as string[],
@@ -75,6 +81,9 @@ export const parseToZippedConfig = (configList: ConfigurationDataModel[]): Confi
     webSocketPort,
     rssConfig,
     dialogAlphas,
+    user:         user         ?? 'admin',
+    password:     password     ?? 'admin',
+    loginEnabled: loginEnabled ?? false,
   });
 }
 
@@ -102,8 +111,8 @@ export const getContentConfigurationByType = (configList: ConfigurationDataModel
 
 export const getContentConfigurationZippedByType = (configZipped: ConfigurationDataZipped, type: string): ConfigurationList | MastodonConfigurationList | QuoteList | ConfigurationGeneral | YoutubeConfigurationList => {
   if (type === 'configuration') {
-    const {windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas} = configZipped;
-    return {windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas};
+    const {windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas, user, password, loginEnabled} = configZipped;
+    return {windowsFFMPEGPath, backupUrls, cloudRootPath, numberOfWorkers, apiPort, webSocketPort, rssConfig, dialogAlphas, user, password, loginEnabled};
   } else {
     return (configZipped as any)[type];
   }

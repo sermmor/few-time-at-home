@@ -10,6 +10,8 @@ import { BackgroundActions } from '../core/actions/background';
 import { CyberpunkLoadingScreen } from './CyberpunkLoadingScreen';
 import { SetupWizard } from './pages/Setup/SetupWizard';
 import { SetupActions } from '../core/actions/setup';
+import { LoginPage } from './pages/Login/LoginPage';
+import { AuthActions } from '../core/actions/auth';
 import ConfigData from '../configuration.json';
 
 // ── Cyberpunk ServerInfoBar ────────────────────────────────────────────────
@@ -163,6 +165,10 @@ const AllRoutes = () => {
   </BrowserRouter>;
 }
 
+// Initialise the singleton at module level so ConfigurationService.Instance
+// is always available before any action (auth, background, etc.) is called.
+new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);
+
 const READY_URL = `http://${ConfigData.ip}:${ConfigData.port}/ready`;
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS  = 3000;
@@ -172,6 +178,7 @@ export const App = () => {
     const [doPoll, setDoPoll]               = React.useState<boolean>(false);
     const [backgroundImage, setBackgroundImage] = React.useState<string | null>(null);
     const [backendReady, setBackendReady]   = React.useState<boolean>(false);
+    const [authState, setAuthState]         = React.useState<'checking' | 'login' | 'ok'>('checking');
 
     // Step 1: check whether this is a fresh install that needs the wizard
     React.useEffect(() => {
@@ -216,6 +223,9 @@ export const App = () => {
       BackgroundActions.getBackgroundImage().then(imageUrl => {
         if (imageUrl) setBackgroundImage(imageUrl);
       });
+      AuthActions.getStatus().then(({ loginEnabled, authenticated }) => {
+        setAuthState(!loginEnabled || authenticated ? 'ok' : 'login');
+      }).catch(() => setAuthState('ok'));
     }, [backendReady]);
 
     const appContainerStyle: SxProps<Theme> = {
@@ -247,6 +257,16 @@ export const App = () => {
     // Backend not yet ready: cyberpunk loading screen
     if (!backendReady) {
       return <CyberpunkLoadingScreen />;
+    }
+
+    // Auth check in progress
+    if (authState === 'checking') {
+      return <CyberpunkLoadingScreen />;
+    }
+
+    // Login required
+    if (authState === 'login') {
+      return <LoginPage onLoginSuccess={() => setAuthState('ok')} />;
     }
 
     return (<>

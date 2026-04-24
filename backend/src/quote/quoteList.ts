@@ -4,9 +4,10 @@ export interface Quote {
 }
 
 export class QuoteListUtilities {
-  static getAInspirationalQuote = (quoteList: Quote[]): Quote => {
-    const randomIndex = Math.round(Math.random() * quoteList.length); 
-    return (randomIndex >= quoteList.length) ? quoteList[quoteList.length - 1] : quoteList[randomIndex];
+  static getAInspirationalQuote = (quoteList: Quote[]): Quote | null => {
+    if (quoteList.length === 0) return null;
+    const randomIndex = Math.round(Math.random() * (quoteList.length - 1));
+    return quoteList[randomIndex] ?? null;
   }
 
 }

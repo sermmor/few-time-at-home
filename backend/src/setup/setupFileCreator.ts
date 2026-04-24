@@ -47,6 +47,9 @@ export const createSetupFiles = (data: SetupWizardData): void => {
     cloudRootPath:     data.cloudRootPath,
     showNitterRSSInAll: false,
     numberOfWorkers:   4,
+    user:              'admin',
+    password:          'admin',
+    loginEnabled:      false,
     apiPort:           3001,
     webSocketPort:     3002,
     dialogAlphas: {

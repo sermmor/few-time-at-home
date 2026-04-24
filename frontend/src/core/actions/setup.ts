@@ -15,7 +15,7 @@ export const SetupActions = {
     fetch(`${BASE_URL}/setup/status`, {
       signal: AbortSignal.timeout(3000),
     })
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : { needsSetup: false })
       .catch(() => ({ needsSetup: false })),
 
   complete: (data: SetupWizardData): Promise<{ success: boolean; error?: string }> =>

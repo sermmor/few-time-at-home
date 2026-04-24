@@ -117,8 +117,14 @@ export class APIService {
     browse:   '/network/upnp-browse',
     stream:   '/network/upnp-stream',
   };
+  static authEndpoint = {
+    status:  '/auth/status',
+    login:   '/auth/login',
+    logout:  '/auth/logout',
+  };
 
   app: Express;
+  private activeSessions = new Set<string>();
 
   constructor(
     private keyData: any,
@@ -131,6 +137,11 @@ export class APIService {
 
     this.app.get('/ready', (_req: Request, res: Response) => {
       res.status(200).json({ ready: true, timestamp: new Date().toISOString() });
+    });
+
+    // If the main app is running, setup is already complete.
+    this.app.get('/setup/status', (_req: Request, res: Response) => {
+      res.json({ needsSetup: false });
     });
 
     this.getRSS(APIService.getRssMastoEndpoint, 'mastodon');
@@ -157,6 +168,7 @@ export class APIService {
     this.playlistExportService();
     this.birthdaysService();
     this.upnpNetworkService();
+    this.authService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -582,8 +594,13 @@ export class APIService {
   }
 
   private getRandomQuoteService() {
-    this.app.get(APIService.quoteEndpoint, (req, res) => {
-      res.send(QuoteListUtilities.getAInspirationalQuote(ConfigurationService.Instance.quoteList));
+    this.app.get(APIService.quoteEndpoint, (_req, res) => {
+      const quote = QuoteListUtilities.getAInspirationalQuote(ConfigurationService.Instance.quoteList);
+      if (quote === null) {
+        res.status(204).end();
+      } else {
+        res.json(quote);
+      }
     });
   }
 
@@ -1121,6 +1138,44 @@ export class APIService {
       req.on('close', () => upstreamReq.destroy());
 
       upstreamReq.end();
+    });
+  }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  private generateToken(): string {
+    const rand = () => Math.random().toString(36).substr(2, 10);
+    return `${rand()}${rand()}${Date.now().toString(36)}`;
+  }
+
+  private authService(): void {
+    // GET /auth/status — public endpoint, no credentials required
+    this.app.get(APIService.authEndpoint.status, (req: Request, res: Response) => {
+      const cfg   = ConfigurationService.Instance;
+      const token = req.headers['x-auth-token'] as string | undefined;
+      res.json({
+        loginEnabled:  cfg.loginEnabled,
+        authenticated: !cfg.loginEnabled || (!!token && this.activeSessions.has(token)),
+      });
+    });
+
+    // POST /auth/login — validate credentials, return session token
+    this.app.post(APIService.authEndpoint.login, (req: Request, res: Response) => {
+      const { user, password } = req.body ?? {};
+      const cfg = ConfigurationService.Instance;
+      if (user === cfg.user && password === cfg.password) {
+        const token = this.generateToken();
+        this.activeSessions.add(token);
+        res.json({ success: true, token });
+      } else {
+        res.status(401).json({ success: false });
+      }
+    });
+
+    // POST /auth/logout — invalidate session token
+    this.app.post(APIService.authEndpoint.logout, (req: Request, res: Response) => {
+      const token = req.headers['x-auth-token'] as string | undefined;
+      if (token) this.activeSessions.delete(token);
+      res.json({ success: true });
     });
   }
 }

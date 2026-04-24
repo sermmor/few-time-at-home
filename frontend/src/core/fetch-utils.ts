@@ -6,8 +6,9 @@ export const fetchJsonReceive = <T>(url: string, mock: T): Promise<T> => new Pro
     resolve(mock);
   } else {
     fetch(url)
-      .then(res => res.json())
-      .then(json => resolve({...json}));
+      .then(res => (res.ok && res.status !== 204) ? res.json() : mock)
+      .then(json => resolve(json ?? mock))
+      .catch(() => resolve(mock));
   }
 });
 
