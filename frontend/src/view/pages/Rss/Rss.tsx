@@ -254,10 +254,11 @@ export const Rss = () => {
             setSnackBarMessage("Bookmark saved!");
             setErrorSnackbar(false);
             setOpenSnackbar(true);
-            const newData = [{ id: data.id, message: data.message }, ...(readLaterData || [])];
-            setReadLaterData(newData);
+            // Fetch the unfurl first, then update both arrays atomically so their
+            // indices always stay in sync (avoids the thumbnail-never-appears bug).
             const newUrl = getUrlMessage(data.message);
             UnfurlActions.getUnfurl({ urlList: [newUrl], loadTime: LOADING_CARD_TIME }).then(newUnfurl => {
+              setReadLaterData(prev => [{ id: data.id, message: data.message }, ...(prev || [])]);
               setUnfurlData(prev => [newUnfurl[0], ...(prev || [])]);
               resolve();
             });
@@ -280,16 +281,17 @@ export const Rss = () => {
             })}><BookmarkIcon /></Button>
           </Box>
         </Box>) 
-      : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
+      : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={msg.id}>
+          <RssMessage key={msg.id} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
           <Box sx={getButtonCardStyles(alphas.general)}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
-              console.log("Bookmark removed!");
               setSnackBarMessage("Bookmark removed!");
               setErrorSnackbar(false);
               setOpenSnackbar(true);
-              const newData = readLaterData.filter(rss => rss.id !== msg.id);
-              setReadLaterData(newData);
+              // Remove both the message and its corresponding unfurl entry so the
+              // parallel arrays stay in sync (avoids thumbnails shifting one slot down).
+              setReadLaterData(prev => prev ? prev.filter(rss => rss.id !== msg.id) : prev);
+              setUnfurlData(prev => prev ? prev.filter((_, idx) => idx !== index) : prev);
             })}><DeleteIcon /></Button>
           </Box>
       </Box>) 

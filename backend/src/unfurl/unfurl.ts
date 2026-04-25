@@ -2,6 +2,7 @@ import { unfurl } from 'unfurl.js';
 import { Metadata } from 'unfurl.js/dist/types';
 import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from '../utils';
 import { UnfurlCacheData, UnfurlCacheService } from './unfurlCache.service';
+export { UnfurlCacheData };
 // import { ExtractorUtilities } from "../utils";
 
 // const fetch = require("node-fetch");
@@ -102,7 +103,10 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
   }];
   if (urlList.length === 1) {
     const data = await getUnfurl(urlList[0]);
-    return [data];
+    // Include `url` and `date` so the frontend's RssMessage component can
+    // display the thumbnail (it gates on `dataToShowInCard.url` being truthy).
+    const result: UnfurlCacheData = { ...data, url: urlList[0], date: new Date() };
+    return [result];
   }
 
   const urlListNotCached: string[] = [];
