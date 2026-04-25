@@ -86,16 +86,27 @@ export class CastService {
       this.currentDevice = device;
       this.client = new CastClient();
 
+      // Capture the client reference so that every async callback below can
+      // verify it is still the *current* connection.  If startCast() is called
+      // again before a callback fires (e.g. two rapid auto-advance events in
+      // React StrictMode dev), the stale callbacks simply bail out rather than
+      // tearing down or polluting the new session.
+      const capturedClient = this.client;
+      const isStale = () => this.client !== capturedClient;
+
       this.client.on('error', (err: any) => {
+        if (isStale()) return;
         console.error('[Cast] Client error:', err?.message ?? err);
         this._broadcastStatus({ playerState: 'IDLE', currentTime: 0, duration: 0, castingTo: null });
         this._cleanup();
       });
 
       this.client.connect({ host: device.ip, port: device.port }, () => {
+        if (isStale()) return;
         console.log(`[Cast] Connected to "${device.name}" (${device.ip}:${device.port})`);
 
         this.client.launch(DefaultMediaReceiver, (launchErr: any, player: any) => {
+          if (isStale()) return;
           if (launchErr) {
             console.error('[Cast] Launch error:', launchErr?.message ?? launchErr);
             this._cleanup();
@@ -116,6 +127,7 @@ export class CastService {
           };
 
           player.load(media, { autoplay: true }, (loadErr: any, _status: any) => {
+            if (isStale()) return;
             if (loadErr) {
               console.error('[Cast] Load error:', loadErr?.message ?? loadErr);
               this._cleanup();
@@ -138,22 +150,43 @@ export class CastService {
   }
 
   // ── Playback commands ───────────────────────────────────────────────────────
+  /**
+   * play / pause / seek are wrapped in try-catch because castv2-client throws
+   * synchronously (not via the callback) when called before the media session
+   * is established — e.g. if the UI sends a play request during the brief IDLE
+   * window between tracks while auto-advance is loading the next item.
+   */
   play(): void {
-    this.player?.play((err: any) => {
-      if (err) console.error('[Cast] play error:', err?.message ?? err);
-    });
+    if (!this.player) return;
+    try {
+      this.player.play((err: any) => {
+        if (err) console.error('[Cast] play error:', err?.message ?? err);
+      });
+    } catch (err: any) {
+      console.warn('[Cast] play ignored — no active media session yet');
+    }
   }
 
   pause(): void {
-    this.player?.pause((err: any) => {
-      if (err) console.error('[Cast] pause error:', err?.message ?? err);
-    });
+    if (!this.player) return;
+    try {
+      this.player.pause((err: any) => {
+        if (err) console.error('[Cast] pause error:', err?.message ?? err);
+      });
+    } catch (err: any) {
+      console.warn('[Cast] pause ignored — no active media session yet');
+    }
   }
 
   seek(seconds: number): void {
-    this.player?.seek(seconds, (err: any) => {
-      if (err) console.error('[Cast] seek error:', err?.message ?? err);
-    });
+    if (!this.player) return;
+    try {
+      this.player.seek(seconds, (err: any) => {
+        if (err) console.error('[Cast] seek error:', err?.message ?? err);
+      });
+    } catch (err: any) {
+      console.warn('[Cast] seek ignored — no active media session yet');
+    }
   }
 
   stop(): void {

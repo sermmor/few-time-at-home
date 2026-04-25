@@ -177,7 +177,10 @@ export const VideoPlayerBar = ({
 
   // ── WebSocket: listen for cast status from the backend ────────────────────
   React.useEffect(() => {
-    WebSocketClientService.Instance?.subscribeToUpdates((data: any) => {
+    const ws = WebSocketClientService.Instance;
+    if (!ws) return;
+
+    const castWsCallback = (data: any) => {
       if (!data?.cast) return;
       const c: CastState = data.cast;
 
@@ -218,9 +221,22 @@ export const VideoPlayerBar = ({
       }
 
       setCastState(c);
-      setIsCastStarting(false);
-    });
-  // subscribeToUpdates pushes into an array — no cleanup needed
+      // Keep the loading spinner while the player is still IDLE (e.g. the
+      // brief "IDLE without idleReason" frame that arrives just before the
+      // FINISHED message during auto-advance).  Only clear it once the
+      // Chromecast is actually playing / paused / buffering.
+      if (c.playerState !== 'IDLE') {
+        setIsCastStarting(false);
+      }
+    };
+
+    ws.subscribeToUpdates(castWsCallback);
+    // Cleanup: remove this specific callback so React StrictMode's double-mount
+    // in dev doesn't leave two copies registered (which would fire two
+    // /cast/start requests on auto-advance).
+    return () => {
+      ws.onUpdateData = ws.onUpdateData.filter(cb => cb !== castWsCallback);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
