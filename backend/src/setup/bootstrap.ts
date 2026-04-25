@@ -23,6 +23,7 @@ import { Logger }                 from '../logger';
 import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate';
 import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { AemetService }           from '../API/aemet.service';
+import { GoogleDriveService }     from '../API/googleDrive.service';
 
 export const bootstrapApp = (): void => {
   readFile('keys.json', (err, data) => {
@@ -42,6 +43,12 @@ export const bootstrapApp = (): void => {
 
       BookmarkService.parseFromOldBookmarks().then(() => {
         if (!keyData.is_backup_disabled) {
+          new GoogleDriveService(
+            keyData.google_drive_client_id      || '',
+            keyData.google_drive_client_secret  || '',
+            keyData.google_drive_refresh_token  || '',
+            keyData.google_drive_folder_id,
+          );
           startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
         } else {
           Logger.logInDevMode('BACKUP DISABLED!!');

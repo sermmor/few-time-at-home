@@ -2,7 +2,7 @@ import { writeFile, stat, mkdir, readFile, copyFile } from 'fs';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { COMPRESSION_LEVEL, zip } from 'zip-a-folder';
-import { MailService } from './API/mail.service';
+import { GoogleDriveService } from './API/googleDrive.service';
 import { getBookmarksFilesPathList, getBookmarksNameFilesPathList } from './API/bookmarks/bookmarks-utils';
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
@@ -207,9 +207,14 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
   const allPathToCopyList = [...pathToCopyList, ...bookmarksPaths];
   const allPathToPasteList = [...pathToPasteList, ...getBookmarksNameFilesPathList(bookmarksPaths)];
 
-  scheduleJob('do a backup once a week', { hour: 12, minute: 0, dayOfWeek: 1}, () => {
-    runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
+  const uploadBackup = (pathZipped: string) => {
+    GoogleDriveService.Instance?.uploadBackup(pathZipped);
+    // MailService.Instance.sendBackupZipFile(pathZipped);
+  };
+
+  scheduleJob('do a backup once a week', { hour: 12, minute: 0, dayOfWeek: 1 }, () => {
+    runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, uploadBackup);
     TelegramBot.Instance().sendNotepadTextToTelegram('Backup created today!');
   });
-  runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, (pathZipped) => MailService.Instance.sendBackupZipFile(pathZipped));
+  runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, uploadBackup);
 }

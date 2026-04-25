@@ -18,6 +18,10 @@ export interface KeysData {
   spotify_playlist_client_secret: string;
   supabase_url:                   string;
   supabase_service_key:           string;
+  google_drive_client_id:         string;
+  google_drive_client_secret:     string;
+  google_drive_refresh_token:     string;
+  google_drive_folder_id:         string;
 }
 
 const emptyKeys: KeysData = {
@@ -37,6 +41,10 @@ const emptyKeys: KeysData = {
   spotify_playlist_client_secret: '',
   supabase_url:                   '',
   supabase_service_key:           '',
+  google_drive_client_id:         '',
+  google_drive_client_secret:     '',
+  google_drive_refresh_token:     '',
+  google_drive_folder_id:         '',
 };
 
 const getKeys = (): Promise<KeysData> =>

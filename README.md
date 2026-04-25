@@ -265,3 +265,92 @@ notificationsApp/build/app/outputs/flutter-apk/app-release.apk
 ```
 
 Copy it to your Android device and install it (you may need to allow *Install from unknown sources* in Android settings).
+
+---
+
+## Google Drive backups
+
+The backend creates a `.zip` of all data files every Monday at 12:00 and uploads it automatically to a `Few_time_at_home_backups` folder in your personal Google Drive.  The local `.zip` is also kept on disk at the path configured in `backupUrls` (`configuration.json`).
+
+> Only runs when `is_backup_disabled` is `false` in `keys.json`.
+
+### Prerequisites
+
+The `googleapis` npm package is already listed as a dependency and installed automatically with `npm install`.
+
+### Setup (one time)
+
+#### 1. Enable the Google Drive API
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and open your project (you can reuse an existing one).
+2. **APIs & Services → Library** → search for **Google Drive API** → **Enable**.
+
+#### 2. Create an OAuth 2.0 Desktop credential
+
+1. **APIs & Services → Credentials → Create credentials → OAuth 2.0 Client ID**.
+2. **Application type: Desktop app** — give it any name and save.
+3. Copy the **Client ID** and **Client secret** shown in the dialog.
+
+> ⚠️ If this is the first time you create OAuth credentials in this project you will be asked to configure the **OAuth consent screen** first. Choose *External*, fill in the app name (anything works, e.g. `FewTimeAtHome`), add your Google account as a **Test user**, and save. You do not need to publish the app.
+
+#### 3. Run the authorisation script (once)
+
+From the `backend/` directory:
+
+```bash
+node setup-google-drive.js YOUR_CLIENT_ID YOUR_CLIENT_SECRET
+```
+
+The script prints a URL. Open it in your browser, sign in with the Google account whose Drive you want to use, and grant access.  
+The script then outputs three values:
+
+```json
+{
+  "google_drive_client_id":     "...",
+  "google_drive_client_secret": "...",
+  "google_drive_refresh_token": "1//0g..."
+}
+```
+
+#### 4. Save the credentials
+
+**Option A — edit `keys.json` manually:**
+
+```json
+{
+  "google_drive_client_id":     "YOUR_CLIENT_ID",
+  "google_drive_client_secret": "YOUR_CLIENT_SECRET",
+  "google_drive_refresh_token": "YOUR_REFRESH_TOKEN",
+  "google_drive_folder_id":     ""
+}
+```
+
+**Option B — use the web UI:**  
+Open **Configuration → APIs → Google Drive — Backups** and paste the three values there, then click **Save**.
+
+`google_drive_folder_id` is optional. If left empty the service automatically creates the `Few_time_at_home_backups` folder in your Drive on the first backup. If you want to upload into a specific existing folder, paste its ID (the last segment of the folder URL in Google Drive).
+
+#### 5. (Optional) See the folder in your personal Drive
+
+Backups land in the service's own Drive space by default. To see them directly in your Google Drive:
+
+1. Create a folder called `Few_time_at_home_backups` in your Google Drive.
+2. Share it with the Google account you authorised in step 3.
+3. Copy the folder ID from its URL and set `google_drive_folder_id` in `keys.json` (or the web UI).
+
+### Files
+
+| File | Purpose |
+|---|---|
+| `backend/setup-google-drive.js` | One-time authorisation script — run it once to obtain the refresh token |
+| `backend/src/API/googleDrive.service.ts` | Upload service — initialised at startup, called after each backup |
+
+### How it works
+
+```
+Every Monday 12:00 (+ once on startup)
+  └─ runBackup() creates a .zip in backupUrls/
+       └─ GoogleDriveService.uploadBackup(zipPath)
+            ├─ Finds or creates "Few_time_at_home_backups" folder
+            └─ Uploads the .zip via Google Drive API v3 (OAuth 2.0)
+```

@@ -310,6 +310,55 @@ export const APIsSection: React.FC = () => {
             {clearAlertsResult === 'error' && <Typography sx={{ color: '#ff00cc', fontFamily: 'monospace', fontSize: '0.8rem' }}>✗ error al limpiar</Typography>}
           </Box>
 
+          {/* ── Google Drive (backups) ───────────────────────────────── */}
+          <Typography variant="h6" sx={groupTitleStyle}>Google Drive — Backups</Typography>
+
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>Client ID</Typography>
+            <TextField
+              label="OAuth client ID"
+              variant="standard"
+              value={keys.google_drive_client_id}
+              sx={fieldStyle}
+              onChange={e => set('google_drive_client_id')(e.target.value)}
+            />
+          </Box>
+
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>Client secret</Typography>
+            <PasswordField
+              label="OAuth client secret"
+              value={keys.google_drive_client_secret}
+              onChange={set('google_drive_client_secret') as (v: string) => void}
+            />
+          </Box>
+
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>Refresh token</Typography>
+            <PasswordField
+              label="Refresh token (from setup-google-drive.js)"
+              value={keys.google_drive_refresh_token}
+              onChange={set('google_drive_refresh_token') as (v: string) => void}
+            />
+          </Box>
+
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>
+              Folder ID
+              <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>
+                Opcional — si está vacío se crea automáticamente la carpeta
+                "Few_time_at_home_backups"
+              </Typography>
+            </Typography>
+            <TextField
+              label="Drive folder ID (opcional)"
+              variant="standard"
+              value={keys.google_drive_folder_id}
+              sx={fieldStyle}
+              onChange={e => set('google_drive_folder_id')(e.target.value)}
+            />
+          </Box>
+
           {/* ── App ──────────────────────────────────────────────────── */}
           <Typography variant="h6" sx={groupTitleStyle}>App</Typography>
 

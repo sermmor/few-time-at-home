@@ -12,5 +12,9 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": [
+    "build",
+    "setup-google-drive.js"
+  ]
 }
