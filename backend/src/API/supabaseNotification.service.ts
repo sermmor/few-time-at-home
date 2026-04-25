@@ -96,6 +96,70 @@ export class SupabaseNotificationService {
     }
   });
 
+  /**
+   * Upserts the daily weather forecast into the single-row `weather` table
+   * (id = 1).  The Flutter app subscribes via Supabase Realtime and updates
+   * the Tiempo screen automatically when this fires each morning.
+   */
+  upsertWeather = (data: {
+    dateStr:         string;
+    skyMorning:      string;
+    skyAfternoon:    string;
+    skyNight:        string;
+    tempMin:         number | null;
+    tempMax:         number | null;
+    rainProbability: number;
+    rainPeriods:     { label: string; probability: number }[];
+    willRain:        boolean;
+  }): void => {
+    if (!this.isConfigured()) return;
+
+    const body = JSON.stringify({
+      id:               1,
+      date_str:         data.dateStr,
+      sky_morning:      data.skyMorning,
+      sky_afternoon:    data.skyAfternoon,
+      sky_night:        data.skyNight,
+      temp_min:         data.tempMin,
+      temp_max:         data.tempMax,
+      rain_probability: data.rainProbability,
+      rain_periods:     data.rainPeriods,
+      will_rain:        data.willRain,
+      updated_at:       new Date().toISOString(),
+    });
+
+    try {
+      const url = new URL(`${this.supabaseUrl}/rest/v1/weather`);
+      const req = https.request(
+        {
+          hostname: url.hostname,
+          port:     url.port ? Number(url.port) : 443,
+          path:     url.pathname,
+          method:   'POST',
+          headers: {
+            'Content-Type':   'application/json',
+            'Content-Length': Buffer.byteLength(body),
+            'apikey':         this.serviceKey,
+            'Authorization':  `Bearer ${this.serviceKey}`,
+            'Prefer':         'resolution=merge-duplicates,return=minimal',
+          },
+        },
+        (res) => {
+          if (res.statusCode && res.statusCode >= 400) {
+            console.error(`[Supabase] Upsert weather failed — HTTP ${res.statusCode}`);
+          } else {
+            console.log('[Supabase] Weather forecast upserted.');
+          }
+        },
+      );
+      req.on('error', (err) => console.error('[Supabase] Weather upsert error:', err.message));
+      req.write(body);
+      req.end();
+    } catch (err) {
+      console.error('[Supabase] Weather upsert error:', err);
+    }
+  };
+
   insertAlert = (message: string, isRecurring: boolean): void => {
     if (!this.isConfigured()) return;
 

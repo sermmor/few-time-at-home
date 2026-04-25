@@ -1,6 +1,8 @@
 import { scheduleJob } from 'node-schedule';
 import fetch from 'node-fetch';
 import { MailService } from './mail.service';
+import { SupabaseNotificationService } from './supabaseNotification.service';
+import { FcmNotificationService } from './fcmNotification.service';
 
 const AEMET_DAILY_URL = 'https://www.aemet.es/xml/municipios/localidad_29067.xml';
 const AEMET_HOURLY_URL = 'https://www.aemet.es/xml/municipios_h/localidad_h_29067.xml';
@@ -113,11 +115,12 @@ const getRainProbability = (dayXml: string, periodo: string): number => {
   return match ? parseInt(match[1], 10) : 0;
 };
 
-const getTemperature = (dayXml: string, type: 'maxima' | 'minima'): string => {
+/** Returns the temperature value, or null when the XML element is absent. */
+const getTemperature = (dayXml: string, type: 'maxima' | 'minima'): number | null => {
   const tempBlockMatch = dayXml.match(/<temperatura>([\s\S]*?)<\/temperatura>/);
-  if (!tempBlockMatch) return '--';
+  if (!tempBlockMatch) return null;
   const typeMatch = tempBlockMatch[1].match(new RegExp(`<${type}>(\\d+)<\\/${type}>`));
-  return typeMatch ? typeMatch[1] : '--';
+  return typeMatch ? parseInt(typeMatch[1], 10) : null;
 };
 
 const descriptionIndicatesRain = (description: string): boolean => {
@@ -126,9 +129,22 @@ const descriptionIndicatesRain = (description: string): boolean => {
   return rainKeywords.some(keyword => lower.includes(keyword));
 };
 
-interface RainPeriodInfo {
-  label: string;
+export interface RainPeriodInfo {
+  label:       string;
   probability: number;
+}
+
+/** Structured weather data — shared with Supabase and FCM. */
+export interface WeatherData {
+  dateStr:         string;
+  skyMorning:      string;
+  skyAfternoon:    string;
+  skyNight:        string;
+  tempMin:         number | null;
+  tempMax:         number | null;
+  rainProbability: number;
+  rainPeriods:     RainPeriodInfo[];
+  willRain:        boolean;
 }
 
 const extractRainPeriods = (hourlyDayXml: string | null, dailyDayXml: string): RainPeriodInfo[] => {
@@ -147,41 +163,29 @@ const extractRainPeriods = (hourlyDayXml: string | null, dailyDayXml: string): R
     .filter(({ probability }) => probability >= RAIN_PROBABILITY_THRESHOLD);
 };
 
-const formatWeatherMessage = (
-  skyMorning: string,
-  skyAfternoon: string,
-  skyNight: string,
-  tempMax: string,
-  tempMin: string,
-  rainProb: number,
-  rainPeriods: RainPeriodInfo[],
-  dateStr: string,
-): string => {
-  const willRain =
-    rainProb >= RAIN_PROBABILITY_THRESHOLD ||
-    descriptionIndicatesRain(skyMorning) ||
-    descriptionIndicatesRain(skyAfternoon) ||
-    descriptionIndicatesRain(skyNight);
+const formatWeatherMessage = (data: WeatherData): string => {
+  const tempMinStr = data.tempMin !== null ? `${data.tempMin}` : '--';
+  const tempMaxStr = data.tempMax !== null ? `${data.tempMax}` : '--';
 
   const lines: string[] = [
-    `Tiempo en ${CITY_NAME} - ${dateStr}`,
+    `Tiempo en ${CITY_NAME} - ${data.dateStr}`,
     '',
-    `Mañana: ${skyMorning}`,
-    `Tarde: ${skyAfternoon}`,
-    `Noche: ${skyNight}`,
+    `Mañana: ${data.skyMorning}`,
+    `Tarde: ${data.skyAfternoon}`,
+    `Noche: ${data.skyNight}`,
     '',
-    `Temperatura: min. ${tempMin} grados / max. ${tempMax} grados`,
+    `Temperatura: min. ${tempMinStr} grados / max. ${tempMaxStr} grados`,
   ];
 
-  if (willRain) {
+  if (data.willRain) {
     lines.push('');
-    if (rainPeriods.length > 0) {
+    if (data.rainPeriods.length > 0) {
       lines.push('Lluvia prevista en las siguientes franjas horarias:');
-      for (const { label, probability } of rainPeriods) {
+      for (const { label, probability } of data.rainPeriods) {
         lines.push(`  - ${label} (${probability}%)`);
       }
     } else {
-      lines.push(`Probabilidad de lluvia: ${rainProb}%`);
+      lines.push(`Probabilidad de lluvia: ${data.rainProbability}%`);
     }
   } else {
     lines.push('');
@@ -201,17 +205,34 @@ export class AemetService {
 
   sendWeatherNotification = async (): Promise<void> => {
     try {
-      const message = await this.buildWeatherMessage();
-      if (message) {
-        this.sendMessageToTelegram(message);
-        MailService.Instance.sendMessageByEmail(`Tiempo en ${CITY_NAME}`, message);
-      }
+      const data = await this.buildWeatherData();
+      if (!data) return;
+
+      const message = formatWeatherMessage(data);
+
+      // Telegram + email (existing channels)
+      this.sendMessageToTelegram(message);
+      // MailService.Instance.sendMessageByEmail(`Tiempo en ${CITY_NAME}`, message);
+
+      // Supabase: upsert structured forecast so the Flutter app can display it
+      SupabaseNotificationService.Instance?.upsertWeather(data);
+
+      // FCM: push a brief summary notification to the 'ftah_weather' topic
+      const tempStr = data.tempMin !== null && data.tempMax !== null
+        ? `${data.tempMin}-${data.tempMax}°C`
+        : 'temp. no disponible';
+      const rainStr = data.willRain
+        ? `Lluvia ${data.rainProbability}%`
+        : 'Sin lluvia';
+      const fcmSummary = `${data.skyMorning} · ${tempStr} · ${rainStr}`;
+      FcmNotificationService.Instance?.sendWeatherNotification(fcmSummary);
+
     } catch (error) {
       console.error(`> AEMET: Error sending weather notification: ${error}`);
     }
   };
 
-  private buildWeatherMessage = async (): Promise<string | null> => {
+  private buildWeatherData = async (): Promise<WeatherData | null> => {
     const [dailyXml, hourlyXml] = await Promise.all([
       this.fetchXml(AEMET_DAILY_URL),
       this.fetchXml(AEMET_HOURLY_URL),
@@ -230,21 +251,27 @@ export class AemetService {
 
     const { morning: skyMorning, afternoon: skyAfternoon, night: skyNight } =
       getDailySkyDescriptions(todayDailyXml);
-    const tempMax = getTemperature(todayDailyXml, 'maxima');
-    const tempMin = getTemperature(todayDailyXml, 'minima');
-    const rainProb = getRainProbability(todayDailyXml, '00-24');
+    const tempMax    = getTemperature(todayDailyXml, 'maxima');
+    const tempMin    = getTemperature(todayDailyXml, 'minima');
+    const rainProb   = getRainProbability(todayDailyXml, '00-24');
     const rainPeriods = extractRainPeriods(todayHourlyXml, todayDailyXml);
+    const willRain   =
+      rainProb >= RAIN_PROBABILITY_THRESHOLD ||
+      descriptionIndicatesRain(skyMorning) ||
+      descriptionIndicatesRain(skyAfternoon) ||
+      descriptionIndicatesRain(skyNight);
 
-    return formatWeatherMessage(
+    return {
+      dateStr:         getSpanishDateString(),
       skyMorning,
       skyAfternoon,
       skyNight,
-      tempMax,
       tempMin,
-      rainProb,
+      tempMax,
+      rainProbability: rainProb,
       rainPeriods,
-      getSpanishDateString(),
-    );
+      willRain,
+    };
   };
 
   private fetchXml = async (url: string): Promise<string | null> => {

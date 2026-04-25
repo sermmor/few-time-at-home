@@ -49,3 +49,33 @@ GRANT SELECT ON TABLE public.pomodoro_config TO authenticated;
 
 ALTER TABLE public.pomodoro_config ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "anon_read_pomodoro" ON public.pomodoro_config FOR SELECT USING (true);
+
+-- ============================================================
+-- Weather forecast (updated daily at 07:00 by the backend)
+-- Single-row table: id is always 1. The backend upserts it.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.weather (
+  id               INTEGER     PRIMARY KEY DEFAULT 1,
+  date_str         TEXT        NOT NULL DEFAULT '',
+  sky_morning      TEXT        NOT NULL DEFAULT '',
+  sky_afternoon    TEXT        NOT NULL DEFAULT '',
+  sky_night        TEXT        NOT NULL DEFAULT '',
+  temp_min         INTEGER,
+  temp_max         INTEGER,
+  rain_probability INTEGER     NOT NULL DEFAULT 0,
+  rain_periods     JSONB       NOT NULL DEFAULT '[]',
+  will_rain        BOOLEAN     NOT NULL DEFAULT FALSE,
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+GRANT ALL    ON TABLE public.weather TO service_role;
+GRANT SELECT ON TABLE public.weather TO anon;
+GRANT SELECT ON TABLE public.weather TO authenticated;
+
+ALTER TABLE public.weather ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_read_weather" ON public.weather FOR SELECT USING (true);
+
+-- Enable Realtime so the Flutter app gets instant updates when the
+-- backend upserts the daily forecast.
+ALTER PUBLICATION supabase_realtime ADD TABLE public.weather;

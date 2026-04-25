@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'screens/alerts_screen.dart';
 import 'screens/pomodoro_screen.dart';
+import 'screens/weather_screen.dart';
 import 'services/notification_service.dart';
 
 /// Called by Firebase when a push arrives and the app is BACKGROUND or KILLED.
@@ -32,8 +33,9 @@ Future<void> main() async {
   // Local notifications channel + permission request.
   await NotificationService.instance.initialize();
 
-  // Subscribe to the FCM topic the backend publishes to.
+  // Subscribe to FCM topics.
   await FirebaseMessaging.instance.subscribeToTopic('ftah_alerts');
+  await FirebaseMessaging.instance.subscribeToTopic('ftah_weather');
 
   runApp(const FtahNotificationsApp());
 }
@@ -69,16 +71,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   static const _cyan    = Color(0xFF00FFE7);
   static const _magenta = Color(0xFFFF00CC);
+  static const _amber   = Color(0xFFFFBB00);
   static const _bg      = Color(0xFF020C18);
   static const _bgPanel = Color(0xFF071526);
 
   int _tabIndex = 0;
 
-  // Keep both screens alive with IndexedStack so the Pomodoro timer
+  // Keep all screens alive with IndexedStack so the Pomodoro timer
   // is not reset when switching tabs.
   static const _screens = [
     AlertsScreen(),
     PomodoroScreen(),
+    WeatherScreen(),
   ];
 
   @override
@@ -110,10 +114,13 @@ class _MainScreenState extends State<MainScreen> {
       child: BottomNavigationBar(
         currentIndex:            _tabIndex,
         onTap:                   (i) => setState(() => _tabIndex = i),
+        type:                    BottomNavigationBarType.fixed,
         backgroundColor:         Colors.transparent,
         elevation:               0,
-        selectedItemColor:       _cyan,
-        unselectedItemColor:     _cyan.withOpacity(0.28),
+        // Label colours are tab-specific via the icon widgets;
+        // the bar-level colours are a neutral fallback.
+        selectedItemColor:   const Color(0xFFE0E0E0),
+        unselectedItemColor: const Color(0xFF2A4A6A),
         selectedLabelStyle: const TextStyle(
           fontFamily:    'monospace',
           fontSize:      9,
@@ -128,9 +135,9 @@ class _MainScreenState extends State<MainScreen> {
         items: [
           BottomNavigationBarItem(
             icon: _NavIcon(
-              icon:     Icons.notifications_outlined,
-              active:   _tabIndex == 0,
-              color:    _cyan,
+              icon:   Icons.notifications_outlined,
+              active: _tabIndex == 0,
+              color:  _cyan,
             ),
             activeIcon: _NavIcon(
               icon:   Icons.notifications,
@@ -151,6 +158,19 @@ class _MainScreenState extends State<MainScreen> {
               color:  _magenta,
             ),
             label: 'POMODORO',
+          ),
+          BottomNavigationBarItem(
+            icon: _NavIcon(
+              icon:   Icons.wb_cloudy_outlined,
+              active: _tabIndex == 2,
+              color:  _amber,
+            ),
+            activeIcon: _NavIcon(
+              icon:   Icons.wb_cloudy,
+              active: true,
+              color:  _amber,
+            ),
+            label: 'TIEMPO',
           ),
         ],
       ),
