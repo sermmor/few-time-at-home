@@ -1,6 +1,8 @@
 import { Job, scheduleJob } from 'node-schedule';
 import { readJSONFile, saveInAFile } from '../utils';
 import { MailService } from './mail.service';
+import { FcmNotificationService } from './fcmNotification.service';
+import { SupabaseNotificationService } from './supabaseNotification.service';
 
 const pathBirthdaysFile = 'data/birthdays.json';
 
@@ -28,6 +30,14 @@ export class BirthdayService {
     MailService.Instance?.sendMessageByEmail(message.substring(0, 50), message);
   };
 
+  private sendToFcm = (message: string): void => {
+    try { FcmNotificationService.Instance?.sendAlert(message); } catch (_) {}
+  };
+
+  private sendToSupabase = (message: string): void => {
+    try { SupabaseNotificationService.Instance?.insertAlert(message, false); } catch (_) {}
+  };
+
   private buildMessage = (birthday: Birthday): string => {
     if (birthday.year) {
       const age = new Date().getFullYear() - birthday.year;
@@ -48,7 +58,9 @@ export class BirthdayService {
     const job = scheduleJob(jobName, cronExpr, () => {
       const msg = this.buildMessage(birthday);
       sendMessage(msg);
-      this.sendEmail(msg);
+      // this.sendEmail(msg);
+      this.sendToFcm(msg);
+      this.sendToSupabase(msg);
     });
     if (job) this.scheduleJobs.push(job);
   };
