@@ -93,6 +93,17 @@ export const authLogoutEndpoint  = (): string => `${getUrlApi()}/auth/logout`;
 
 export const supabaseClearAlertsEndpoint = (): string => `${getUrlApi()}/supabase/clear-alerts`;
 
+export type GoogleDriveEndpointType = 'list' | 'upload' | 'createFolder' | 'deleteItem' | 'download';
+const googleDriveEndpointList: Record<GoogleDriveEndpointType, string> = {
+  list:         '/google-drive/list',
+  upload:       '/google-drive/upload',
+  createFolder: '/google-drive/create-folder',
+  deleteItem:   '/google-drive/delete',
+  download:     '/google-drive/download',
+};
+export const getGoogleDriveEndpoint = (type: GoogleDriveEndpointType): string =>
+  `${getUrlApi()}${googleDriveEndpointList[type]}`;
+
 // ── Chromecast cast endpoints ────────────────────────────────────────────────
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;

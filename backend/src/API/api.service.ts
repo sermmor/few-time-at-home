@@ -24,6 +24,7 @@ import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
 import { SupabaseNotificationService } from './supabaseNotification.service';
 import { CastService } from './cast.service';
+import { GoogleDriveService } from './googleDrive.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -33,6 +34,8 @@ import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAuto
 const cors = require('cors');
 // const multer = require("multer");
 const upload: Multer.Multer = Multer({ dest: 'data/uploads/' });
+// Memory-storage Multer for Google Drive uploads (no temp file on disk).
+const driveUpload: Multer.Multer = Multer({ storage: Multer.memoryStorage() });
 
 export interface DataToSendInPieces {
   data: Bookmark[];
@@ -134,6 +137,13 @@ export class APIService {
     login:   '/auth/login',
     logout:  '/auth/logout',
   };
+  static googleDriveEndpoint = {
+    list:         '/google-drive/list',
+    upload:       '/google-drive/upload',
+    createFolder: '/google-drive/create-folder',
+    deleteItem:   '/google-drive/delete',
+    download:     '/google-drive/download',
+  };
 
   app: Express;
   private activeSessions = new Set<string>();
@@ -183,6 +193,7 @@ export class APIService {
     this.authService();
     this.supabaseClearAlertsService();
     this.castService();
+    this.googleDriveService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1304,6 +1315,93 @@ export class APIService {
       svc.clearAlerts()
         .then(() => res.json({ success: true }))
         .catch((err: Error) => res.status(500).json({ success: false, error: err.message }));
+    });
+  }
+
+  // ── Google Drive browser ──────────────────────────────────────────────────
+  private googleDriveService(): void {
+    const ep = APIService.googleDriveEndpoint;
+
+    const notConfigured = (res: Response) =>
+      res.status(503).json({ error: 'Google Drive not configured' });
+
+    // GET /google-drive/list?folderId=<id>  (absent = Drive root)
+    this.app.get(ep.list, async (_req: Request, res: Response) => {
+      const svc = GoogleDriveService.Instance;
+      if (!svc?.isConfigured()) return notConfigured(res);
+      try {
+        const folderId = (_req.query.folderId as string) || undefined;
+        const items = await svc.listFolder(folderId);
+        res.json({ items });
+      } catch (err: any) {
+        console.error('[Drive API] list error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Unknown error' });
+      }
+    });
+
+    // POST /google-drive/upload  multipart: field "file" + optional field "folderId"
+    this.app.post(ep.upload, driveUpload.single('file'), async (req: Request, res: Response) => {
+      const svc = GoogleDriveService.Instance;
+      if (!svc?.isConfigured()) return notConfigured(res);
+      const file = (req as any).file as Express.Multer.File | undefined;
+      if (!file) return res.status(400).json({ error: 'No file provided' });
+      try {
+        const folderId: string | undefined = req.body.folderId || undefined;
+        const result = await svc.uploadFileBuffer(
+          Buffer.from(file.originalname, 'latin1').toString('utf8'),
+          file.mimetype,
+          file.buffer,
+          folderId,
+        );
+        res.json({ success: true, item: result });
+      } catch (err: any) {
+        console.error('[Drive API] upload error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Upload failed' });
+      }
+    });
+
+    // POST /google-drive/create-folder  body: { name, parentFolderId? }
+    this.app.post(ep.createFolder, async (req: Request, res: Response) => {
+      const svc = GoogleDriveService.Instance;
+      if (!svc?.isConfigured()) return notConfigured(res);
+      const { name, parentFolderId } = req.body ?? {};
+      if (!name) return res.status(400).json({ error: 'Missing name' });
+      try {
+        const result = await svc.createDriveFolder(name, parentFolderId || undefined);
+        res.json({ success: true, item: result });
+      } catch (err: any) {
+        console.error('[Drive API] create-folder error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Create folder failed' });
+      }
+    });
+
+    // DELETE /google-drive/delete/:fileId
+    this.app.delete(`${ep.deleteItem}/:fileId`, async (req: Request, res: Response) => {
+      const svc = GoogleDriveService.Instance;
+      if (!svc?.isConfigured()) return notConfigured(res);
+      try {
+        await svc.deleteItem(req.params.fileId);
+        res.json({ success: true });
+      } catch (err: any) {
+        console.error('[Drive API] delete error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Delete failed' });
+      }
+    });
+
+    // GET /google-drive/download/:fileId — streams the file with Content-Disposition: attachment
+    this.app.get(`${ep.download}/:fileId`, async (req: Request, res: Response) => {
+      const svc = GoogleDriveService.Instance;
+      if (!svc?.isConfigured()) return notConfigured(res);
+      try {
+        const { stream, name, mimeType, size } = await svc.getDownloadStream(req.params.fileId);
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(name)}`);
+        res.setHeader('Content-Type', mimeType);
+        if (size) res.setHeader('Content-Length', size);
+        stream.pipe(res);
+      } catch (err: any) {
+        console.error('[Drive API] download error:', err?.message);
+        if (!res.headersSent) res.status(500).json({ error: err?.message ?? 'Download failed' });
+      }
     });
   }
 }

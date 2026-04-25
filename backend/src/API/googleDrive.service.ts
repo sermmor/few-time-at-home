@@ -1,8 +1,18 @@
 import { google } from 'googleapis';
 import { createReadStream } from 'fs';
 import { basename } from 'path';
+import { Readable } from 'stream';
 
 const BACKUP_FOLDER_NAME = 'Few_time_at_home_backups';
+
+export interface DriveItem {
+  id:            string;
+  name:          string;
+  isFolder:      boolean;
+  mimeType:      string;
+  size?:         number;
+  modifiedTime?: string;
+}
 
 /**
  * Uploads weekly backup .zip files to a folder in your personal Google Drive
@@ -75,6 +85,98 @@ export class GoogleDriveService {
     } catch (err: any) {
       console.error('[Drive] Upload error:', err?.message ?? err);
     }
+  };
+
+  // ── Browse ────────────────────────────────────────────────────────────────
+  listFolder = async (folderId?: string): Promise<DriveItem[]> => {
+    if (!this.drive) return [];
+    try {
+      const q = folderId
+        ? `'${folderId}' in parents and trashed=false`
+        : `'root' in parents and trashed=false`;
+      const res = await this.drive.files.list({
+        q,
+        fields: 'files(id,name,mimeType,size,modifiedTime)',
+        orderBy: 'folder,name',
+        pageSize: 1000,
+      });
+      return (res.data.files ?? []).map(f => ({
+        id:           f.id!,
+        name:         f.name!,
+        isFolder:     f.mimeType === 'application/vnd.google-apps.folder',
+        mimeType:     f.mimeType ?? '',
+        size:         f.size !== undefined && f.size !== null ? Number(f.size) : undefined,
+        modifiedTime: f.modifiedTime ?? undefined,
+      }));
+    } catch (err: any) {
+      console.error('[Drive] listFolder error:', err?.message ?? err);
+      return [];
+    }
+  };
+
+  // ── Upload file (from in-memory buffer) ───────────────────────────────────
+  uploadFileBuffer = async (
+    name:            string,
+    mimeType:        string,
+    buffer:          Buffer,
+    parentFolderId?: string,
+  ): Promise<{ id: string; name: string }> => {
+    if (!this.drive) throw new Error('Drive not configured');
+    const body = Readable.from(buffer);
+    const res = await this.drive.files.create({
+      requestBody: {
+        name,
+        parents: parentFolderId ? [parentFolderId] : undefined,
+      },
+      media: { mimeType, body },
+      fields: 'id,name',
+    });
+    return { id: res.data.id!, name: res.data.name! };
+  };
+
+  // ── Create folder ──────────────────────────────────────────────────────────
+  createDriveFolder = async (
+    name:            string,
+    parentFolderId?: string,
+  ): Promise<{ id: string; name: string }> => {
+    if (!this.drive) throw new Error('Drive not configured');
+    const res = await this.drive.files.create({
+      requestBody: {
+        name,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents:  parentFolderId ? [parentFolderId] : undefined,
+      },
+      fields: 'id,name',
+    });
+    return { id: res.data.id!, name: res.data.name! };
+  };
+
+  // ── Delete ─────────────────────────────────────────────────────────────────
+  deleteItem = async (fileId: string): Promise<void> => {
+    if (!this.drive) throw new Error('Drive not configured');
+    await this.drive.files.delete({ fileId });
+  };
+
+  // ── Download stream ────────────────────────────────────────────────────────
+  getDownloadStream = async (fileId: string): Promise<{
+    stream:    NodeJS.ReadableStream;
+    name:      string;
+    mimeType:  string;
+    size?:     string;
+  }> => {
+    if (!this.drive) throw new Error('Drive not configured');
+    const meta = await this.drive.files.get({ fileId, fields: 'name,mimeType,size' });
+    // responseType: 'stream' makes googleapis return the raw HTTP response body.
+    const res = await (this.drive as any).files.get(
+      { fileId, alt: 'media' },
+      { responseType: 'stream' },
+    );
+    return {
+      stream:   res.data as NodeJS.ReadableStream,
+      name:     meta.data.name!,
+      mimeType: meta.data.mimeType ?? 'application/octet-stream',
+      size:     meta.data.size ?? undefined,
+    };
   };
 
   // ── Internals ──────────────────────────────────────────────────────────────

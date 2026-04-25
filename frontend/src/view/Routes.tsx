@@ -11,6 +11,7 @@ import { Pomodoro } from "./pages/Pomodoro/Pomodoro";
 import { Rss } from "./pages/Rss/Rss";
 import { TextEditor } from "./pages/TextEditor/TextEditor";
 import { TrashBookmarks } from "./pages/TrashBookmarks/TrashBookmarks";
+import { GoogleDrive } from "./pages/GoogleDrive/GoogleDrive";
 
 export interface RouteFTAHElement {
   name: string;
@@ -74,6 +75,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/Telegram',
     group: 'Internet',
     element: <Telegram/>,
+  },
+  {
+    name: 'Google Drive',
+    path: '/google-drive',
+    group: 'Internet',
+    element: <GoogleDrive/>,
   },
   {
     name: 'Text Editor',

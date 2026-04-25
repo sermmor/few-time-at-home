@@ -24,7 +24,7 @@ if (!clientId || !clientSecret) {
 
 const REDIRECT_PORT = 9876;
 const REDIRECT_URI  = `http://localhost:${REDIRECT_PORT}/oauth2callback`;
-const SCOPES        = ['https://www.googleapis.com/auth/drive.file'];
+const SCOPES        = ['https://www.googleapis.com/auth/drive'];
 
 const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, REDIRECT_URI);
 
