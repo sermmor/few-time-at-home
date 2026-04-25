@@ -40,6 +40,10 @@ export const createSetupFiles = (data: SetupWizardData): void => {
     spotify_playlist_client_secret: '',
     supabase_url:                 '',
     supabase_service_key:         '',
+    google_drive_client_id:       '',
+    google_drive_client_secret:   '',
+    google_drive_refresh_token:   '',
+    google_drive_folder_id:       '',
   });
 
   // ── configuration.json ──────────────────────────────────────────────────────

@@ -93,6 +93,7 @@ export const APIsSection: React.FC = () => {
   const [saving, setSaving] = React.useState(false);
   const [clearingAlerts, setClearingAlerts] = React.useState(false);
   const [clearAlertsResult, setClearAlertsResult] = React.useState<'ok' | 'error' | null>(null);
+  const [backupWarning, setBackupWarning] = React.useState(false);
 
   const handleClearAlerts = () => {
     setClearingAlerts(true);
@@ -109,6 +110,32 @@ export const APIsSection: React.FC = () => {
 
   const set = (field: keyof KeysData) => (value: string | boolean) =>
     setKeys(prev => prev ? { ...prev, [field]: value } : prev);
+
+  // Clears the Drive warning as soon as the user fills any credential field.
+  const setDriveField = (field: keyof KeysData) => (value: string) => {
+    setBackupWarning(false);
+    set(field)(value);
+  };
+
+  /**
+   * Handles the "Deshabilitar backup automático" toggle.
+   * Enabling backup (is_backup_disabled → false) requires the three Google
+   * Drive credential fields to be filled; if any is missing the toggle is
+   * blocked and a warning is shown instead.
+   */
+  const handleBackupToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isDisabling = e.target.checked; // checked = disabled
+    if (!isDisabling && keys) {
+      // User is trying to ENABLE backup — validate Drive credentials first.
+      const { google_drive_client_id, google_drive_client_secret, google_drive_refresh_token } = keys;
+      if (!google_drive_client_id || !google_drive_client_secret || !google_drive_refresh_token) {
+        setBackupWarning(true);
+        return; // block the change
+      }
+    }
+    setBackupWarning(false);
+    set('is_backup_disabled')(e.target.checked);
+  };
 
   const handleSave = () => {
     if (!keys) return;
@@ -362,16 +389,33 @@ export const APIsSection: React.FC = () => {
           {/* ── App ──────────────────────────────────────────────────── */}
           <Typography variant="h6" sx={groupTitleStyle}>App</Typography>
 
-          <Box sx={rowStyle}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <FormControlLabel
               label="Deshabilitar backup automático"
               control={
                 <Switch
                   checked={keys.is_backup_disabled}
-                  onChange={e => set('is_backup_disabled')(e.target.checked)}
+                  onChange={handleBackupToggle}
                 />
               }
             />
+            {backupWarning && (
+              <Box sx={{
+                padding:      '0.6rem 0.9rem',
+                border:       '1px solid #ff00cc',
+                borderRadius: '4px',
+                background:   'rgba(255,0,204,0.06)',
+                maxWidth:     '36rem',
+              }}>
+                <Typography variant="body2" sx={{ color: '#ff00cc', fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.6 }}>
+                  ⚠ Para activar el backup automático debes rellenar primero los campos
+                  {' '}<strong>Client ID</strong>, <strong>Client secret</strong> y <strong>Refresh token</strong>{' '}
+                  de la sección <em>Google Drive — Backups</em> justo arriba.
+                  Consulta las instrucciones detalladas en el <strong>README.md</strong> del proyecto
+                  (sección <em>Google Drive backups</em>).
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           <Box sx={rowStyle}>
