@@ -92,3 +92,11 @@ export const authLoginEndpoint   = (): string => `${getUrlApi()}/auth/login`;
 export const authLogoutEndpoint  = (): string => `${getUrlApi()}/auth/logout`;
 
 export const supabaseClearAlertsEndpoint = (): string => `${getUrlApi()}/supabase/clear-alerts`;
+
+// ── Chromecast cast endpoints ────────────────────────────────────────────────
+export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
+export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;
+export const castPlayEndpoint    = (): string => `${getUrlApi()}/cast/play`;
+export const castPauseEndpoint   = (): string => `${getUrlApi()}/cast/pause`;
+export const castSeekEndpoint    = (): string => `${getUrlApi()}/cast/seek`;
+export const castStopEndpoint    = (): string => `${getUrlApi()}/cast/stop`;

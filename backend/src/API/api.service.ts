@@ -23,6 +23,8 @@ import { BirthdayService } from './birthdayNotification.service';
 import { ReadLaterMessagesRSS } from './readLaterMessagesRSS.service';
 import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
 import { SupabaseNotificationService } from './supabaseNotification.service';
+import { CastService } from './cast.service';
+import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
@@ -119,6 +121,14 @@ export class APIService {
     stream:   '/network/upnp-stream',
   };
   static supabaseClearAlertsEndpoint = '/supabase/clear-alerts';
+  static castEndpoint = {
+    devices:  '/cast/devices',
+    start:    '/cast/start',
+    play:     '/cast/play',
+    pause:    '/cast/pause',
+    seek:     '/cast/seek',
+    stop:     '/cast/stop',
+  };
   static authEndpoint = {
     status:  '/auth/status',
     login:   '/auth/login',
@@ -172,6 +182,7 @@ export class APIService {
     this.upnpNetworkService();
     this.authService();
     this.supabaseClearAlertsService();
+    this.castService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1181,6 +1192,104 @@ export class APIService {
     this.app.post(APIService.authEndpoint.logout, (req: Request, res: Response) => {
       const token = req.headers['x-auth-token'] as string | undefined;
       if (token) this.activeSessions.delete(token);
+      res.json({ success: true });
+    });
+  }
+
+  // ── Chromecast ────────────────────────────────────────────────────────────
+
+  /**
+   * Returns the first non-internal IPv4 address of this machine.
+   * Used to rewrite "localhost" URLs so Chromecast devices on the LAN can
+   * reach the video stream served by this Node.js process.
+   */
+  private getLanIp(): string {
+    for (const ifaces of Object.values(os.networkInterfaces())) {
+      for (const iface of ifaces ?? []) {
+        if (iface.family === 'IPv4' && !iface.internal) return iface.address;
+      }
+    }
+    return '127.0.0.1';
+  }
+
+  /**
+   * If [url] points to localhost / 127.0.0.1 (i.e. what the browser sends
+   * when the backend is configured as "localhost"), replace the host with the
+   * Pi's actual LAN IP so Chromecast devices on the same network can reach it.
+   */
+  private resolveVideoUrlForChromecast(url: string): string {
+    const lanIp = this.getLanIp();
+    return url.replace(
+      /^(https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/,
+      (_match, scheme, _host, port) => `${scheme}${lanIp}${port ?? ''}`,
+    );
+  }
+
+  private castService(): void {
+    const cast = new CastService();
+
+    // GET /cast/devices — discovers Chromecast devices on the LAN (~5 s scan)
+    this.app.get(APIService.castEndpoint.devices, async (_req: Request, res: Response) => {
+      try {
+        const devices = await cast.discoverDevices(5000);
+        res.json(devices);
+      } catch (err: any) {
+        console.error('[Cast] Discovery error:', err?.message);
+        res.status(500).json({ error: 'Discovery failed' });
+      }
+    });
+
+    // POST /cast/start — body: { deviceIp, devicePort, deviceName, videoUrl, contentType?, startTime? }
+    this.app.post(APIService.castEndpoint.start, async (req: Request, res: Response) => {
+      const { deviceIp, devicePort, deviceName, videoUrl, contentType, startTime } = req.body ?? {};
+      if (!deviceIp || !videoUrl) {
+        return res.status(400).json({ error: 'Missing deviceIp or videoUrl' });
+      }
+      // The browser may send a "localhost" URL; rewrite it to the Pi's LAN IP
+      // so the Chromecast (on the same subnet) can actually reach the stream.
+      const resolvedUrl = this.resolveVideoUrlForChromecast(videoUrl);
+      if (resolvedUrl !== videoUrl) {
+        console.log(`[Cast] Rewrote URL: ${videoUrl} → ${resolvedUrl}`);
+      }
+      try {
+        await cast.startCast(
+          { name: deviceName ?? deviceIp, ip: deviceIp, port: devicePort ?? 8009 },
+          resolvedUrl,
+          contentType ?? 'video/mp4',
+          startTime   ?? 0,
+        );
+        res.json({ success: true });
+      } catch (err: any) {
+        console.error('[Cast] Start error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Cast failed' });
+      }
+    });
+
+    // POST /cast/play
+    this.app.post(APIService.castEndpoint.play, (_req: Request, res: Response) => {
+      cast.play();
+      res.json({ success: true });
+    });
+
+    // POST /cast/pause
+    this.app.post(APIService.castEndpoint.pause, (_req: Request, res: Response) => {
+      cast.pause();
+      res.json({ success: true });
+    });
+
+    // POST /cast/seek — body: { seconds }
+    this.app.post(APIService.castEndpoint.seek, (req: Request, res: Response) => {
+      const seconds = Number(req.body?.seconds);
+      if (!isFinite(seconds)) {
+        return res.status(400).json({ error: 'Missing or invalid seconds' });
+      }
+      cast.seek(seconds);
+      res.json({ success: true });
+    });
+
+    // POST /cast/stop
+    this.app.post(APIService.castEndpoint.stop, (_req: Request, res: Response) => {
+      cast.stop();
       res.json({ success: true });
     });
   }

@@ -11,8 +11,6 @@ export class WebSocketsServerService {
 
   wss: WebSocketServer;
 
-  ws: WebSocket | undefined;
-  
   webSocketData: WebSocketData = {
     rssAutoUpdateMessage: '',
     rssSaveMessage: '',
@@ -23,34 +21,39 @@ export class WebSocketsServerService {
     this.wss = new WebSocketServer({ port: ConfigurationService.Instance.webSocketPort });
 
     this.wss.on('connection', (ws) => {
-      this.ws = ws;
-
+      // Send the current data snapshot to the newly connected client.
       if (this.webSocketData) {
         ws.send(JSON.stringify(this.webSocketData));
       }
 
       ws.on('close', () => {
-        console.log('Client disconnected');
+        console.log('WebSocket client disconnected');
       });
     });
   }
 
+  /** Sends newData to every currently-open client. */
   updateData = (newData: WebSocketData): void => {
     this.webSocketData = newData;
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(this.webSocketData));
-    } else {
-      console.warn('WebSocket is not open. Cannot send data.');
-    }
+    this._sendToAll(JSON.stringify(newData));
   };
 
   /**
-   * Send an arbitrary JSON payload to the active client.
-   * Uses the same `this.ws` reference as updateData(), which is proven to work.
+   * Send an arbitrary JSON payload to every connected client.
+   * Replaces the old single-client `this.ws` approach so that the UI
+   * receives messages even when the browser has opened more than one
+   * WebSocket connection (e.g. after a React re-render creates a second
+   * WebSocketClientService instance).
    */
   broadcast = (data: object): void => {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(data));
-    }
+    this._sendToAll(JSON.stringify(data));
   };
+
+  private _sendToAll(json: string): void {
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(json);
+      }
+    });
+  }
 }

@@ -145,8 +145,17 @@ const EnvelopComponent = ({element}: {element: JSX.Element}) => {
 };
 
 const AllRoutes = () => {
-  const config = new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);
-  const webSocket = new WebSocketClientService(`ws://${ConfigData.ip}:${ConfigData.webSocketPort}/ws`, () => undefined);
+  // Re-create ConfigurationService on each render to pick up any config changes.
+  new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);
+
+  // WebSocketClientService must only be created ONCE — each call opens a new
+  // browser WebSocket connection.  If AllRoutes re-renders (e.g. because App
+  // sets backgroundImage state) a second connection was previously opened and
+  // the server switched to broadcasting on it, leaving VideoPlayerBar's
+  // subscription stranded on the original (now-silent) connection.
+  if (!WebSocketClientService.Instance) {
+    new WebSocketClientService(`ws://${ConfigData.ip}:${ConfigData.webSocketPort}/ws`, () => undefined);
+  }
 
   return <BrowserRouter>
     <Routes>

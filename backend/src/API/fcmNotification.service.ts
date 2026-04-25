@@ -54,7 +54,7 @@ export class FcmNotificationService {
         },
       },
     })
-    .then(msgId => console.log(`> FCM: alert sent (${msgId})`))
-    .catch(err  => console.error('> FCM: send error:', err));
+    .then((msgId: string) => console.log(`> FCM: alert sent (${msgId})`))
+    .catch((err: unknown)  => console.error('> FCM: send error:', err));
   }
 }
