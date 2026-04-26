@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Box, CssBaseline, SxProps, Theme } from '@mui/material';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
@@ -123,11 +123,39 @@ const ServerInfoBar = () => {
   );
 };
 
+// Minimal inline fallback shown while a lazy page chunk is loading.
+// Deliberately lightweight so it doesn't cover the AppMenubar.
+const PageTransitionLoader = () => (
+  <Box sx={{
+    display:         'flex',
+    justifyContent:  'center',
+    alignItems:      'center',
+    minHeight:       '40vh',
+  }}>
+    <Box sx={{
+      color:         '#00ffe7',
+      fontFamily:    '"Courier New", Courier, monospace',
+      fontSize:      '0.7rem',
+      letterSpacing: '0.3em',
+      opacity:       0.45,
+      '@keyframes cy-pulse': {
+        '0%,100%': { opacity: 0.2 },
+        '50%':     { opacity: 0.7 },
+      },
+      animation: 'cy-pulse 1.2s ease-in-out infinite',
+    }}>
+      ▌▌▌ CARGANDO ▌▌▌
+    </Box>
+  </Box>
+);
+
 const EnvelopComponent = ({element}: {element: JSX.Element}) => {
   const { pathname } = useLocation();
   const isConfigPage = pathname === '/configuration';
 
   return <>
+    {/* AppMenubar lives OUTSIDE the Suspense boundary so it is never
+        unmounted or suspended during lazy-page transitions. */}
     <Box sx={{position: 'fixed', width:'100%', zIndex: 100}}>
       <AppMenubar />
       {isConfigPage && <ServerInfoBar />}
@@ -139,7 +167,10 @@ const EnvelopComponent = ({element}: {element: JSX.Element}) => {
       position: 'relative',
       zIndex: 1,
     }}>
-      {element}
+      {/* Only the page content goes through Suspense, not the chrome. */}
+      <Suspense fallback={<PageTransitionLoader />}>
+        {element}
+      </Suspense>
     </Box>
   </>;
 };

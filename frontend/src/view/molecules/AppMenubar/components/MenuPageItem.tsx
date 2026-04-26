@@ -3,15 +3,25 @@ import { RouteFTAHElement } from '../../../Routes';
 import { Button, Menu, MenuItem } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon   from '@mui/icons-material/ArrowDropUp';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CY, navBtnSx } from '../AppMenubar';
 
 type PageData = { name: string; pages: RouteFTAHElement[] };
 
 export const MenuPageItem = ({ page }: { page: PageData }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [anchor, setAnchor] = React.useState<null | HTMLElement>(null);
   const open = !!anchor;
+
+  // Close the submenu whenever the active route changes.
+  // With React Router's startTransition + lazy loading, the navigate() call
+  // defers its batch (including setAnchor(null)) so the menu can stay open
+  // while the lazy chunk loads. Watching location.pathname guarantees the
+  // menu closes as soon as the new route is committed.
+  React.useEffect(() => {
+    setAnchor(null);
+  }, [location.pathname]);
 
   return (
     <>
@@ -36,7 +46,6 @@ export const MenuPageItem = ({ page }: { page: PageData }) => {
       <Menu
         anchorEl={anchor}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        keepMounted
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         open={open}
         onClose={() => setAnchor(null)}
