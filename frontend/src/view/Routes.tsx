@@ -9,6 +9,7 @@ import { NotFound } from "./pages/NotFound/NotFound";
 import { Notifications } from "./pages/Notifications/Notifications";
 import { Pomodoro } from "./pages/Pomodoro/Pomodoro";
 import { Rss } from "./pages/Rss/Rss";
+import { Weather } from "./pages/Weather/Weather";
 import { TextEditor } from "./pages/TextEditor/TextEditor";
 import { TrashBookmarks } from "./pages/TrashBookmarks/TrashBookmarks";
 import { GoogleDrive } from "./pages/GoogleDrive/GoogleDrive";
@@ -69,6 +70,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/Pomodoro',
     group: '',
     element: <Pomodoro/>,
+  },
+  {
+    name: 'Weather',
+    path: '/weather',
+    group: '',
+    element: <Weather/>,
   },
   {
     name: 'Telegram',

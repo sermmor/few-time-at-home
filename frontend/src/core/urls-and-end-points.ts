@@ -104,6 +104,9 @@ const googleDriveEndpointList: Record<GoogleDriveEndpointType, string> = {
 export const getGoogleDriveEndpoint = (type: GoogleDriveEndpointType): string =>
   `${getUrlApi()}${googleDriveEndpointList[type]}`;
 
+export const weatherDailyEndpoint  = (): string => `${getUrlApi()}/weather/daily`;
+export const weatherHourlyEndpoint = (): string => `${getUrlApi()}/weather/hourly`;
+
 // ── Chromecast cast endpoints ────────────────────────────────────────────────
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;

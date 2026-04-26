@@ -25,6 +25,7 @@ import { discoverUpnpServers, browseUpnpServer } from './upnp.service';
 import { SupabaseNotificationService } from './supabaseNotification.service';
 import { CastService } from './cast.service';
 import { GoogleDriveService } from './googleDrive.service';
+import { AemetService } from './aemet.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -144,6 +145,10 @@ export class APIService {
     deleteItem:   '/google-drive/delete',
     download:     '/google-drive/download',
   };
+  static weatherEndpoint = {
+    daily:  '/weather/daily',
+    hourly: '/weather/hourly',
+  };
 
   app: Express;
   private activeSessions = new Set<string>();
@@ -194,6 +199,7 @@ export class APIService {
     this.supabaseClearAlertsService();
     this.castService();
     this.googleDriveService();
+    this.weatherService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1401,6 +1407,37 @@ export class APIService {
       } catch (err: any) {
         console.error('[Drive API] download error:', err?.message);
         if (!res.headersSent) res.status(500).json({ error: err?.message ?? 'Download failed' });
+      }
+    });
+  }
+
+  // ── AEMET weather browser ─────────────────────────────────────────────────
+  private weatherService(): void {
+    const ep = APIService.weatherEndpoint;
+
+    // GET /weather/daily — full daily forecast for all available days
+    this.app.get(ep.daily, async (_req: Request, res: Response) => {
+      try {
+        const svc = AemetService.Instance;
+        if (!svc) return res.status(503).json({ error: 'AEMET service not initialised' });
+        const rows = await svc.getWeatherAllDays();
+        res.json({ rows });
+      } catch (err: any) {
+        console.error('[Weather API] daily error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Failed to fetch daily weather' });
+      }
+    });
+
+    // GET /weather/hourly — full hourly forecast for all available hours
+    this.app.get(ep.hourly, async (_req: Request, res: Response) => {
+      try {
+        const svc = AemetService.Instance;
+        if (!svc) return res.status(503).json({ error: 'AEMET service not initialised' });
+        const rows = await svc.getWeatherAllHours();
+        res.json({ rows });
+      } catch (err: any) {
+        console.error('[Weather API] hourly error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Failed to fetch hourly weather' });
       }
     });
   }

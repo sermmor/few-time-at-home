@@ -73,9 +73,8 @@ export const bootstrapApp = (): void => {
         new MediaRSSAutoupdate(commands);
         new APIService(keyData, channelMediaCollection, commands);
 
-        if (keyData?.connect_to_telegram) {
-          new AemetService(bot.sendMessageToTelegram);
-        }
+        // Always instantiate so weather browser endpoints work even without Telegram.
+        new AemetService(keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined);
 
         console.log('> The bot is ready.');
       });
