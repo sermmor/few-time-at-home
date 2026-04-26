@@ -54,6 +54,9 @@ dependencies:
   # Pomodoro: play alarm.mp3 through any audio output (headphones, speaker)
   audioplayers: ^6.1.0
 
+  # AEMET weather XML: HTTP fetch (weather tab fetches directly from AEMET)
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

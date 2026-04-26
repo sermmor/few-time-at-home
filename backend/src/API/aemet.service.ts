@@ -417,18 +417,11 @@ export class AemetService {
 
       const message = formatWeatherMessage(data);
 
+      // Daily weather summary → Telegram only.
+      // The APK fetches weather directly from AEMET XML; no push needed here.
       if (this.sendMessageToTelegram) {
         this.sendMessageToTelegram(message);
       }
-
-      SupabaseNotificationService.Instance?.upsertWeather(data);
-
-      const tempStr = data.tempMin !== null && data.tempMax !== null
-        ? `${data.tempMin}-${data.tempMax}°C`
-        : 'temp. no disponible';
-      const rainStr = data.willRain ? `Lluvia ${data.rainProbability}%` : 'Sin lluvia';
-      const fcmSummary = `${data.skyMorning} · ${tempStr} · ${rainStr}`;
-      FcmNotificationService.Instance?.sendWeatherNotification(fcmSummary);
 
     } catch (error) {
       console.error(`> AEMET: Error sending weather notification: ${error}`);
