@@ -1,0 +1,1 @@
+import{z as i,A as v,C as n,D as s}from"./index-CubTHBiH.js";var e={},r;function f(){if(r)return e;r=1;var t=i();Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0;var a=t(v()),o=n(),u=(0,a.default)((0,o.jsx)("path",{d:"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"}),"Home");return e.default=u,e}var m=f();const l=s(m);export{l as H};
