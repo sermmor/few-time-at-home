@@ -109,46 +109,43 @@ export const getUnfurlWithCache = async (urlList: string[], loadTime: number): P
     return [result];
   }
 
-  const urlListNotCached: string[] = [];
-  const allData: UnfurlData[] = [];
-  let dataCache: UnfurlData | undefined;
-  let i = 0;
-  let currentUrl;
+  // Pre-allocate result slots so each URL keeps its original index regardless
+  // of whether it is served from cache or fetched live.  The old approach
+  // (push cached first, push uncached after, then sort) broke whenever a URL
+  // was not found in the cache AND its indexOf in the url list differed from
+  // its position in the two-block array — causing a systematic +1 shift from
+  // the first non-cached item onwards.
+  const results: Array<UnfurlCacheData | null> = new Array(urlList.length).fill(null);
+  const toFetch:  Array<{ index: number; url: string }> = [];
 
-  for (i = 0; i < urlList.length; i++) {
-    currentUrl = urlList[i];
-    dataCache = await UnfurlCacheService.getInstance().getDataFromUnfurlCache(currentUrl);
-    if (!!dataCache) {
-      allData.push(dataCache);
+  // Pass 1 – fill positions that are already in cache.
+  for (let i = 0; i < urlList.length; i++) {
+    const cached = await UnfurlCacheService.getInstance().getDataFromUnfurlCache(urlList[i]);
+    if (cached) {
+      results[i] = cached;
     } else {
-      urlListNotCached.push(currentUrl);
+      toFetch.push({ index: i, url: urlList[i] });
     }
   }
 
-  let data: UnfurlData;
-  let dataToSend: UnfurlCacheData;
-  
-  for (i = 0; i < urlListNotCached.length; i++) {
-    currentUrl = urlListNotCached[i];
-    if (!isUrlAFile(currentUrl)) {
-      console.log(`> Url to unfurl ${currentUrl}`);
-      data = await getUnfurl(currentUrl);
+  // Pass 2 – fetch missing URLs and place them at their original index.
+  for (const { index, url } of toFetch) {
+    let data: UnfurlData;
+    if (!isUrlAFile(url)) {
+      console.log(`> Url to unfurl ${url}`);
+      data = await getUnfurl(url);
     } else {
-      data = {
-        title: '',
-        urlImage: '',
-        description: '',
-      };
+      data = { title: '', urlImage: '', description: '' };
     }
-    console.log(`> Is youtube link? ${isYoutubeUrl(currentUrl)} (time = ${isYoutubeUrl(currentUrl) ? loadTime : 100})`);
-    await awaitMilliseconds(isYoutubeUrl(currentUrl) ? loadTime : 100);
-    dataToSend = {...data, date: new Date(), url: currentUrl};
+    console.log(`> Is youtube link? ${isYoutubeUrl(url)} (time = ${isYoutubeUrl(url) ? loadTime : 100})`);
+    await awaitMilliseconds(isYoutubeUrl(url) ? loadTime : 100);
+    const dataToSend: UnfurlCacheData = { ...data, date: new Date(), url };
     UnfurlCacheService.getInstance().addDataToCache(dataToSend);
-    allData.push(dataToSend);
+    results[index] = dataToSend;
     console.log("Unfurled!");
   }
 
-  return allData;
+  return results.map(r => r ?? { title: '', urlImage: '', description: '' });
 };
 
 export const getUnfurlYoutubeImage = async (youtubeUrl: string, indexItem: number): Promise<string | undefined> => {

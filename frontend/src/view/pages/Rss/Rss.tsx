@@ -113,8 +113,7 @@ export const Rss = () => {
       return data.map(({ message }) => getUrlMessage(message));
     }).then(urls => {
       UnfurlActions.getUnfurl({ urlList: urls, loadTime: LOADING_CARD_TIME }).then(data => {
-        const sorted = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-        setUnfurlData(sorted);
+        setUnfurlData(data);
       });
     });
   };
@@ -158,8 +157,7 @@ export const Rss = () => {
               return data.messages.map(msg => getUrlMessage(msg));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
-                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                setUnfurlData(sortedData);
+                setUnfurlData(data);
               });
             });
           } else if (rssType !== 'saved' && rssType !== 'random') {
@@ -170,8 +168,7 @@ export const Rss = () => {
               return data.messages.map(msg => getUrlMessage(msg));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: rssType === 'favorites' ? LOADING_CARD_TIME : 10}).then(data => {
-                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                setUnfurlData(sortedData);
+                setUnfurlData(data);
               });
             });
           } else if (rssType === 'saved') {
@@ -182,8 +179,7 @@ export const Rss = () => {
               return data.map(({ message }) => getUrlMessage(message));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
-                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                setUnfurlData(sortedData);
+                setUnfurlData(data);
               });
             });
           } else {
@@ -194,8 +190,7 @@ export const Rss = () => {
               return data.map(({ message }) => getUrlMessage(message));
             }).then(urls => {
               UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
-                const sortedData = data.sort((a, b) => urls.indexOf(a.url ?? '0') - urls.indexOf(b.url ?? '0'));
-                setUnfurlData(sortedData);
+                setUnfurlData(data);
               });
             });
           }
