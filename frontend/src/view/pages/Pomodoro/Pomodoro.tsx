@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Button, CircularProgress, MenuItem, Select, SxProps, Theme, Typography } from "@mui/material";
+import { useTranslation } from 'react-i18next';
 import { TemporalData } from "../../../service/temporalData.service";
 import { formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, parseFromTimeFieldToTimeToShow, showTimerChain } from "./TimerMode";
 import { TimerMode } from "../../../data-model/pomodoro";
@@ -69,6 +70,7 @@ const countDownTime = () => {
 
 export const Pomodoro = (): JSX.Element => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   // MM:SS
   const [listModes, setListModes] = React.useState<TimerMode[]>();
   const [fetchError, setFetchError] = React.useState<string | null>(null);
@@ -86,8 +88,8 @@ export const Pomodoro = (): JSX.Element => {
         setCurrentMode(data[0].name);
         setCurrentChain(data[0].chain);
       })
-      .catch(() => setFetchError('No se pudieron cargar los modos del temporizador.'));
-  }, []);
+      .catch(() => setFetchError(t('common.error.loadPomodoroModes')));
+  }, [t]);
 
   const runTimer = (chainIndex: number) => {
     const realTime = getCurrentChainItem(currentChain, chainIndex, time);
@@ -152,7 +154,7 @@ export const Pomodoro = (): JSX.Element => {
     <Box sx={getFormStyle(alphas.general)}>
       <Box sx={{...getFormStyle(alphas.general), zIndex: 300}}>
         <Box sx={{...rowFormStyle(), justifyContent: 'left', marginLeft: '17.75rem'}}>
-          <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Mode:</Typography>
+          <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{t('pomodoro.mode')}</Typography>
           <Select
             value={currentMode}
             onChange={evt => { setCurrentMode(evt.target.value); setCurrentChainIndex(0); setCurrentChain(getCurrentChainFromModeName(listModes, evt.target.value)) }}
@@ -165,7 +167,7 @@ export const Pomodoro = (): JSX.Element => {
           <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{showTimerChain(listModes, currentChainIndex, currentMode, time)}</Typography>
         </Box>
         <Box sx={rowFormStyle()}>
-          <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Time to countdown:</Typography>
+          <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{t('pomodoro.timeToCountdown')}</Typography>
           <input
             id="appt-time"
             type="time"
@@ -196,7 +198,7 @@ export const Pomodoro = (): JSX.Element => {
               }
             }}
             >
-            {isTimeRunning ? 'Stop' : 'Start'}
+            {isTimeRunning ? t('pomodoro.stop') : t('pomodoro.start')}
           </Button>
         </Box>
       </Box>

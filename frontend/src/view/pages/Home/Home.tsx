@@ -1,5 +1,6 @@
 import { Box, Button, SxProps, Theme, Typography } from "@mui/material";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { NotesActions } from "../../../core/actions/notes";
 import { QuotesActions } from "../../../core/actions/quote";
 import { NotesDataModel } from "../../../data-model/notes";
@@ -18,6 +19,7 @@ const formStyle: SxProps<Theme> = {
 };
 
 const SaveNotesComponent = ({notes}: {notes: NotesDataModel}) => {
+  const { t } = useTranslation();
   const [isSave, setSave] = React.useState<boolean>(false);
   const setConfiguration = () => {
     NotesActions.sendNotes(notes);
@@ -32,9 +34,9 @@ const SaveNotesComponent = ({notes}: {notes: NotesDataModel}) => {
         sx={{minWidth: '15.5rem'}}
         onClick={() => setConfiguration()}
         >
-        Save
+        {t('home.save')}
         </Button>
-        {isSave && <Box sx={{paddingLeft: '1rem'}}>Saved!</Box>}
+        {isSave && <Box sx={{paddingLeft: '1rem'}}>{t('home.saved')}</Box>}
     </Box>
 };
 
@@ -49,6 +51,7 @@ const InspirationalQuote = ({quote, author}: {quote: string, author: string}) =>
 let indexNewNoteAdded = 0;
 
 export const Home = () => {
+  const { t } = useTranslation();
   const [randomQuote, setRandomQuote] = React.useState<QuoteDataModel>();
   const [notes, setNotes] = React.useState<NotesDataModel>();
   const [fetchError, setFetchError] = React.useState<string | null>(null);
@@ -57,14 +60,14 @@ export const Home = () => {
   React.useEffect(() => {
     QuotesActions.getRandomQuote()
       .then(data => setRandomQuote(data))
-      .catch(() => setFetchError('No se pudo cargar la cita inspiracional.'));
-  }, [retryCount]);
+      .catch(() => setFetchError(t('common.error.loadQuote')));
+  }, [retryCount, t]);
 
   React.useEffect(() => {
     NotesActions.getNotes()
       .then(data => setNotes(data))
-      .catch(() => setFetchError('No se pudieron cargar las notas.'));
-  }, [retryCount]);
+      .catch(() => setFetchError(t('common.error.loadNotes')));
+  }, [retryCount, t]);
 
   const deleteActionList = (id: string) => {
     if (!notes) return;
@@ -100,7 +103,7 @@ export const Home = () => {
     { randomQuote && <InspirationalQuote quote={randomQuote.quote} author={randomQuote.author}/> }
     {notes && <>
       <TitleAndList
-        title='Notes'
+        title={t('home.notes')}
         deleteAction={deleteActionList}
         addAction={() => addActionList(`new note ${indexNewNoteAdded}`) }
         list={notes.data.map((item) => ({id:`${item}`, item: <LabelAndTextField text={item} onChange={editActionList(`${item}`)}/> }))}

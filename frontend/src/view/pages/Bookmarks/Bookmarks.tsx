@@ -1,5 +1,6 @@
 import { Box, SxProps, Theme } from "@mui/material";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { BookmarksActions } from "../../../core/actions/bookmarks";
 import { FetchErrorBanner } from "../../molecules/FetchErrorBanner/FetchErrorBanner";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
@@ -35,6 +36,7 @@ const getNameFolder = (completePath: string): string => {
 }
 
 export const Bookmarks = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const decodedPathname = decodeURIComponent(pathname);
@@ -55,7 +57,7 @@ export const Bookmarks = () => {
     setFetchError(null);
     BookmarksActions.getPathList({ path: currentPath })
       .then(({data}) => { setBookmarks(data); })
-      .catch(() => setFetchError('No se pudieron cargar los marcadores.'));
+      .catch(() => setFetchError(t('common.error.loadBookmarks')));
   }, [currentPath, theRealPath]);
 
   const setCurrentPath = (newPath: string) => {
@@ -69,9 +71,9 @@ export const Bookmarks = () => {
     {fetchError && <FetchErrorBanner message={fetchError} />}
     {bookmarks && <>
         <TitleAndListWithFolders
-          title='Bookmarks'
+          title={t('bookmarks.title')}
           id='Bookmarks_0'
-          helpSearchLabel='Search bookmark'
+          helpSearchLabel={t('bookmarks.searchLabel')}
           path={`${currentPath}`}
           onSelectItem={(id, checked) => onSelectedItemList(action, id, checked)}
           onInSelectionMode={(isInSelected) => setSelectionModeFlag(isInSelected)}
@@ -105,8 +107,8 @@ export const Bookmarks = () => {
         <ModalNewName
           handleCloseDialog={() => setOpenNameFolderDialog(false)}
           isOpenDialog={isOpenNameFolderDialog}
-          title='New Folder'
-          description='Write new folder name'
+          title={t('bookmarks.newFolder')}
+          description={t('bookmarks.newFolderDescription')}
           defaultName={`new folder ${indexNewBookmarkAdded}`}
           onAcceptNewName={(newName) => { indexNewBookmarkAdded++; addFolderActionItemList(action, {
             pathInBookmark: cleanLabelFolder(`${currentPath}/${newName}`),
@@ -116,8 +118,8 @@ export const Bookmarks = () => {
         <ModalNewName
           handleCloseDialog={() => setOpenNameBookmarkDialog(false)}
           isOpenDialog={isOpenNameBookmarkDialog}
-          title='New Bookmark'
-          description='Write new url bookmark'
+          title={t('bookmarks.newBookmark')}
+          description={t('bookmarks.newBookmarkDescription')}
           defaultName={`http://www...${indexNewBookmarkAdded}`}
           onAcceptNewName={(newName) => { indexNewBookmarkAdded++; addActionItemList(action, {
             title: '',

@@ -5,6 +5,7 @@ import { Bitrate, BitrateWithK, ConverterDataModel, bitrateList, bitrateWithKLis
 import { Mp3ConverterActions } from "../../../core/actions/mp3Converter";
 import { ModalCloudBrowser } from "../../molecules/ModalCloudBrowser/ModalCloudBrowser";
 import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 import { WebSocketClientService } from "../../../service/webSocketService/webSocketClient.service";
 
 const getFormStyle = (alpha: number): SxProps<Theme> => ({
@@ -43,6 +44,7 @@ const stillConvertingProcess = (data: ConverterDataModel, addResultLine: (line: 
 
 export const Mp3Converter = () => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   const [lineToSendResult, setLineToSendResult] = React.useState<string>('');
   const [folderFrom, setFolderFrom] = React.useState<string>('');
   const [folderTo, setFolderTo]     = React.useState<string>('');
@@ -134,46 +136,46 @@ export const Mp3Converter = () => {
 
   return <Box sx={getFormStyle(alphas.general)}>
     <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>
-      Video/Audio To Mp3
+      {t('mp3.title')}
     </Typography>
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       {/* From path */}
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
         <TextField
-          label="From convert path" variant="standard" value={folderFrom}
+          label={t('mp3.fromPath')} variant="standard" value={folderFrom}
           sx={{ minWidth: { xs: '15.5rem', sm: '5rem', md: '5rem' } }}
           onChange={evt => setFolderFrom(evt.target.value)}
         />
         <Button variant="outlined" size="small" startIcon={<FolderOpenIcon />}
           onClick={() => setIsBrowserFromOpen(true)}
           sx={{ whiteSpace: 'nowrap', textTransform: 'none' }}>
-          Examinar
+          {t('mp3.browse')}
         </Button>
       </Box>
 
       {/* To path */}
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '0.5rem' }}>
         <TextField
-          label="To convert path" variant="standard" value={folderTo}
+          label={t('mp3.toPath')} variant="standard" value={folderTo}
           sx={{ minWidth: { xs: '15.5rem', sm: '5rem', md: '5rem' } }}
           onChange={evt => setFolderTo(evt.target.value)}
         />
         <Button variant="outlined" size="small" startIcon={<FolderOpenIcon />}
           onClick={() => setIsBrowserToOpen(true)}
           sx={{ whiteSpace: 'nowrap', textTransform: 'none' }}>
-          Examinar
+          {t('mp3.browse')}
         </Button>
       </Box>
 
       <ModalCloudBrowser isOpen={isBrowserFromOpen} onClose={() => setIsBrowserFromOpen(false)}
-        onAccept={path => setFolderFrom(path)} title="Seleccionar carpeta de origen" />
+        onAccept={path => setFolderFrom(path)} title={t('mp3.selectSource')} />
       <ModalCloudBrowser isOpen={isBrowserToOpen}   onClose={() => setIsBrowserToOpen(false)}
-        onAccept={path => setFolderTo(path)}   title="Seleccionar carpeta de destino" />
+        onAccept={path => setFolderTo(path)}   title={t('mp3.selectDest')} />
 
       {/* Bitrate */}
       <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center' }}>
-        <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>Bitrate: </Typography>
+        <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>{t('mp3.bitrate')}</Typography>
         <Select value={bitrateK}
           onChange={evt => {
             const nb = evt.target.value as BitrateWithK;
@@ -188,7 +190,7 @@ export const Mp3Converter = () => {
       {/* Video checkbox */}
       <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center' }}>
         <Checkbox checked={isVideo} onChange={evt => setIsVideo(evt.target.checked)} />
-        <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>Convert video to MP3</Typography>
+        <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>{t('mp3.convertTitle')}</Typography>
       </Box>
 
       {/* Convert button */}
@@ -207,7 +209,7 @@ export const Mp3Converter = () => {
               .then(data => stillConvertingProcess(data, addResultLine));
           }
         }}>
-        Convert
+        {t('mp3.convert')}
       </Button>
 
       {/* ── Progress bar ─────────────────────────────────────────────────── */}
@@ -217,7 +219,7 @@ export const Mp3Converter = () => {
           {/* Header row */}
           {progress.isFinished ? (
             <Typography variant="body2" sx={{ mb: 0.5, color: 'success.main', fontWeight: 600 }}>
-              ✅ Conversión completada ({progress.totalFiles} fichero{progress.totalFiles !== 1 ? 's' : ''})
+              {t('mp3.done')} ({progress.totalFiles} {progress.totalFiles !== 1 ? t('mp3.files') : t('mp3.file')})
             </Typography>
           ) : (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.5 }}>
@@ -230,7 +232,7 @@ export const Mp3Converter = () => {
               {/* Right: time + file counter */}
               <Typography variant="caption" sx={{ ml: 1, whiteSpace: 'nowrap', color: 'text.secondary' }}>
                 {timeDisplay && `${timeDisplay}  `}
-                fichero {currentFileNum}/{progress.totalFiles}
+                {t('mp3.file')} {currentFileNum}/{progress.totalFiles}
               </Typography>
             </Box>
           )}
@@ -247,7 +249,7 @@ export const Mp3Converter = () => {
           {!progress.isFinished && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.25 }}>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {perFileMode ? 'progreso del fichero' : 'progreso total'}
+                {perFileMode ? t('mp3.fileProgress') : t('mp3.totalProgress')}
               </Typography>
               <Typography variant="caption">
                 {barValue}%
@@ -258,7 +260,7 @@ export const Mp3Converter = () => {
       )}
 
       {/* Log */}
-      <TextField id="outlined-multiline-static" label="Result"
+      <TextField id="outlined-multiline-static" label={t('mp3.result')}
         multiline rows={6} sx={{ width: '40rem' }} value={lineToSendResult} />
     </Box>
   </Box>;

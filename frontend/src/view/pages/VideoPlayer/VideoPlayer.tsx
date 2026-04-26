@@ -5,6 +5,7 @@ import { CloudItem } from '../../../data-model/cloud';
 import { CloudActions } from '../../../core/actions/cloud';
 import { VideoPlayerBar, VIDEO_PLAYER_BAR_HEIGHT } from '../../molecules/VideoPlayerBar/VideoPlayerBar';
 import { NETWORK_DRIVE } from '../../molecules/VideoPlayerBar/ModalNetworkBrowser';
+import { useTranslation } from 'react-i18next';
 
 // EnvelopComponent in App.tsx applies paddingTop: '5.5rem' to non-config pages.
 // The actual AppMenubar alone occupies ~4rem, leaving ~1.5rem of breathing room.
@@ -14,6 +15,7 @@ const VIDEO_TOP_OFFSET = '4rem';     // real AppMenubar-only height
 const VIDEO_TOP_MARGIN = '-1.5rem';  // 4rem − 5.5rem padding = −1.5rem
 
 export const VideoPlayer = (): JSX.Element => {
+  const { t } = useTranslation();
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const [playlist, setPlaylist] = React.useState<CloudItem[]>([]);
@@ -140,10 +142,10 @@ export const VideoPlayer = (): JSX.Element => {
           }}>
             <PlayCircleOutlineIcon sx={{ fontSize: '5rem' }} />
             <Typography variant="h6" sx={{ color: 'inherit', fontWeight: 300 }}>
-              Sin vídeo
+              {t('videoPlayer.noVideo')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'inherit', textAlign: 'center', maxWidth: '22rem', lineHeight: 1.6 }}>
-              Usa el botón de la barra inferior para añadir vídeos desde la Cloud
+              {t('videoPlayer.addFromCloud')}
             </Typography>
           </Box>
         ) : (

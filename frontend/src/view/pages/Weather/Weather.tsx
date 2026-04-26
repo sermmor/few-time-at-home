@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Box, CircularProgress, Tab, Tabs, Tooltip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { WeatherActions, DailyWeatherRow, HourlyWeatherRow } from '../../../core/actions/weather';
 
 // ── Cyberpunk palette ─────────────────────────────────────────────────────────
@@ -182,25 +183,26 @@ const SkyCell: React.FC<{ desc: string }> = ({ desc }) => {
 // DAILY TABLE
 // ─────────────────────────────────────────────────────────────────────────────
 const DailyTable: React.FC<{ rows: DailyWeatherRow[] }> = ({ rows }) => {
+  const { t } = useTranslation();
   if (rows.length === 0)
-    return <p style={{ color: C.textDim, fontFamily: C.font, textAlign: 'center', padding: '2rem' }}>Sin datos disponibles</p>;
+    return <p style={{ color: C.textDim, fontFamily: C.font, textAlign: 'center', padding: '2rem' }}>{t('weather.noData')}</p>;
 
   return (
     <Box sx={{ overflowX: 'auto' }}>
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th style={thStyle}>Fecha</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌡️ Temp</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌡️ S.Tér.</th>
-            <th style={thStyle}>☀️ Mañana</th>
-            <th style={thStyle}>🌤️ Tarde</th>
-            <th style={thStyle}>🌙 Noche</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌧️ Lluvia</th>
-            <th style={thStyle}>💨 Viento mañana</th>
-            <th style={thStyle}>💨 Viento tarde</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>💧 Humedad</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>☀️ UV</th>
+            <th style={thStyle}>{t('weather.colDate')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colTemp')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colThermal')}</th>
+            <th style={thStyle}>{t('weather.colMorning')}</th>
+            <th style={thStyle}>{t('weather.colAfternoon')}</th>
+            <th style={thStyle}>{t('weather.colNight')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colRain')}</th>
+            <th style={thStyle}>{t('weather.colWindMorning')}</th>
+            <th style={thStyle}>{t('weather.colWindAfternoon')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colHumidity')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colUv')}</th>
           </tr>
         </thead>
         <tbody>
@@ -218,20 +220,20 @@ const DailyTable: React.FC<{ rows: DailyWeatherRow[] }> = ({ rows }) => {
 
                 {/* Temperatura */}
                 <td style={{ ...tdStyle, textAlign: 'center' }}>
-                  <span style={subLabel}>mín / máx</span>
+                  <span style={subLabel}>{t('weather.minMax')}</span>
                   <NeonBadge color={tempColor(row.tempMin)}>{row.tempMin ?? '--'}</NeonBadge>
                   <span style={{ color: C.textDim }}> / </span>
                   <NeonBadge color={tempColor(row.tempMax)}>{row.tempMax ?? '--'}</NeonBadge>
-                  <span style={{ color: C.textDim }}> °C</span>
+                  <span style={{ color: C.textDim }}> {t('weather.celsius')}</span>
                 </td>
 
                 {/* Sens. térmica */}
                 <td style={{ ...tdStyle, textAlign: 'center' }}>
-                  <span style={subLabel}>mín / máx</span>
+                  <span style={subLabel}>{t('weather.minMax')}</span>
                   <span style={{ color: tempColor(row.thermalSensMin) }}>{row.thermalSensMin ?? '--'}</span>
                   <span style={{ color: C.textDim }}> / </span>
                   <span style={{ color: tempColor(row.thermalSensMax) }}>{row.thermalSensMax ?? '--'}</span>
-                  <span style={{ color: C.textDim }}> °C</span>
+                  <span style={{ color: C.textDim }}> {t('weather.celsius')}</span>
                 </td>
 
                 {/* Cielo mañana */}
@@ -245,7 +247,7 @@ const DailyTable: React.FC<{ rows: DailyWeatherRow[] }> = ({ rows }) => {
 
                 {/* Lluvia */}
                 <td style={{ ...tdStyle, textAlign: 'center' }}>
-                  <span style={subLabel}>total / mañana / tarde / noche</span>
+                  <span style={subLabel}>{t('weather.rainSubLabel')}</span>
                   <NeonBadge color={rainColor(row.rainProb)}>{row.rainProb}%</NeonBadge>
                   <span style={{ color: C.textDim, fontSize: '0.65rem', marginLeft: '0.2rem' }}>
                     ({row.rainProbMorning}/{row.rainProbAfternoon}/{row.rainProbNight})
@@ -288,8 +290,9 @@ const DailyTable: React.FC<{ rows: DailyWeatherRow[] }> = ({ rows }) => {
 // HOURLY TABLE
 // ─────────────────────────────────────────────────────────────────────────────
 const HourlyTable: React.FC<{ rows: HourlyWeatherRow[] }> = ({ rows }) => {
+  const { t } = useTranslation();
   if (rows.length === 0)
-    return <p style={{ color: C.textDim, fontFamily: C.font, textAlign: 'center', padding: '2rem' }}>Sin datos disponibles</p>;
+    return <p style={{ color: C.textDim, fontFamily: C.font, textAlign: 'center', padding: '2rem' }}>{t('weather.noData')}</p>;
 
   // Group by date so we can show date headers
   const grouped: { date: string; hours: HourlyWeatherRow[] }[] = [];
@@ -309,14 +312,14 @@ const HourlyTable: React.FC<{ rows: HourlyWeatherRow[] }> = ({ rows }) => {
       <table style={tableStyle}>
         <thead>
           <tr>
-            <th style={thStyle}>Hora</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌡️ Temp</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌡️ S.Tér.</th>
-            <th style={thStyle}>Cielo</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌧️ Precip.</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>🌧️ Prob.</th>
-            <th style={thStyle}>💨 Viento</th>
-            <th style={{ ...thStyle, textAlign: 'center' }}>💧 Humedad</th>
+            <th style={thStyle}>{t('weather.colHour')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colTemp')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colThermal')}</th>
+            <th style={thStyle}>{t('weather.colSky')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colPrecip')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colProb')}</th>
+            <th style={thStyle}>{t('weather.colWind')}</th>
+            <th style={{ ...thStyle, textAlign: 'center' }}>{t('weather.colHumidity')}</th>
           </tr>
         </thead>
         <tbody>
@@ -340,7 +343,7 @@ const HourlyTable: React.FC<{ rows: HourlyWeatherRow[] }> = ({ rows }) => {
                   )}
                   {formatDate(date)}
                   {isToday(date) && (
-                    <span style={{ color: C.magenta, marginLeft: '0.6rem', fontSize: '0.7rem' }}>HOY</span>
+                    <span style={{ color: C.magenta, marginLeft: '0.6rem', fontSize: '0.7rem' }}>{t('weather.today')}</span>
                   )}
                 </td>
               </tr>
@@ -411,6 +414,7 @@ const HourlyTable: React.FC<{ rows: HourlyWeatherRow[] }> = ({ rows }) => {
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export const Weather: React.FC = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = React.useState<0 | 1>(0);
   const [dailyRows,  setDailyRows]  = React.useState<DailyWeatherRow[]>([]);
   const [hourlyRows, setHourlyRows] = React.useState<HourlyWeatherRow[]>([]);
@@ -473,16 +477,16 @@ export const Weather: React.FC = () => {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
             }}>
-              ◈ TIEMPO — MÁLAGA
+              {t('weather.title')}
             </h1>
             {updatedAt && (
               <span style={{ color: C.textDim, fontSize: '0.7rem', letterSpacing: '0.05em' }}>
-                actualizado a las {updatedAt}
+                {t('weather.updatedAt')} {updatedAt}
               </span>
             )}
           </Box>
           <p style={{ margin: '0.4rem 0 0', color: C.textDim, fontSize: '0.72rem', letterSpacing: '0.04em' }}>
-            Fuente: AEMET · Agencia Estatal de Meteorología
+            {t('weather.source')}
           </p>
         </Box>
 
@@ -493,7 +497,7 @@ export const Weather: React.FC = () => {
           TabIndicatorProps={{ style: { background: C.magenta, boxShadow: glowMagenta, height: '3px' } }}
           sx={{ mb: '1.5rem', minHeight: 'unset' }}
         >
-          {(['📅  POR DÍAS', '🕐  POR HORAS'] as const).map((label, idx) => (
+          {([t('weather.tabDaily'), t('weather.tabHourly')] as const).map((label, idx) => (
             <Tab
               key={label}
               label={label}
@@ -526,7 +530,7 @@ export const Weather: React.FC = () => {
                 </Box>
               : errorDaily
                 ? <p style={{ color: C.red, fontFamily: C.font, textAlign: 'center', padding: '2rem', margin: 0 }}>
-                    ⚠ Error al cargar los datos meteorológicos diarios.
+                    {t('weather.errorDaily')}
                   </p>
                 : <DailyTable rows={dailyRows} />
             }
@@ -548,7 +552,7 @@ export const Weather: React.FC = () => {
                 </Box>
               : errorHourly
                 ? <p style={{ color: C.red, fontFamily: C.font, textAlign: 'center', padding: '2rem', margin: 0 }}>
-                    ⚠ Error al cargar los datos meteorológicos por horas.
+                    {t('weather.errorHourly')}
                   </p>
                 : <HourlyTable rows={hourlyRows} />
             }
@@ -568,10 +572,10 @@ export const Weather: React.FC = () => {
           fontFamily: C.font,
           letterSpacing: '0.03em',
         }}>
-          <span><span style={{ color: C.magenta }}>▶</span> Momento actual</span>
-          <span>S.Tér. = Sensación térmica</span>
-          <span>↑ = Racha máxima km/h</span>
-          <span><span style={{ color: C.textDim }}>—</span> = sin datos · <span style={{ color: C.textDim, fontSize: '0.65rem' }}>0 mm</span> = sin precipitación</span>
+          <span><span style={{ color: C.magenta }}>▶</span> {t('weather.legendCurrent')}</span>
+          <span>{t('weather.legendThermal')}</span>
+          <span>{t('weather.legendGust')}</span>
+          <span>{t('weather.legendNoData')}</span>
           <LegendTemp />
           <LegendRain />
           <LegendUV />
@@ -582,34 +586,43 @@ export const Weather: React.FC = () => {
 };
 
 // ── Inline legend helpers ─────────────────────────────────────────────────────
-const LegendTemp: React.FC = () => (
-  <span>
-    Temp:{' '}
-    <span style={{ color: '#8888ff' }}>{'<0'}</span>{' '}
-    <span style={{ color: C.cyan }}>0-10</span>{' '}
-    <span style={{ color: C.green }}>10-20</span>{' '}
-    <span style={{ color: C.yellow }}>20-28</span>{' '}
-    <span style={{ color: C.orange }}>28-35</span>{' '}
-    <span style={{ color: '#ff2200' }}>{'>35 °C'}</span>
-  </span>
-);
+const LegendTemp: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <span>
+      {t('weather.legendTempLabel')}{' '}
+      <span style={{ color: '#8888ff' }}>{'<0'}</span>{' '}
+      <span style={{ color: C.cyan }}>0-10</span>{' '}
+      <span style={{ color: C.green }}>10-20</span>{' '}
+      <span style={{ color: C.yellow }}>20-28</span>{' '}
+      <span style={{ color: C.orange }}>28-35</span>{' '}
+      <span style={{ color: '#ff2200' }}>{'>35 °C'}</span>
+    </span>
+  );
+};
 
-const LegendRain: React.FC = () => (
-  <span>
-    Lluvia:{' '}
-    <span style={{ color: C.textDim }}>0-20%</span>{' '}
-    <span style={{ color: C.yellow }}>20-40%</span>{' '}
-    <span style={{ color: C.orange }}>40-70%</span>{' '}
-    <span style={{ color: C.red }}>{'>70%'}</span>
-  </span>
-);
+const LegendRain: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <span>
+      {t('weather.legendRainLabel')}{' '}
+      <span style={{ color: C.textDim }}>0-20%</span>{' '}
+      <span style={{ color: C.yellow }}>20-40%</span>{' '}
+      <span style={{ color: C.orange }}>40-70%</span>{' '}
+      <span style={{ color: C.red }}>{'>70%'}</span>
+    </span>
+  );
+};
 
-const LegendUV: React.FC = () => (
-  <span>
-    UV:{' '}
-    <span style={{ color: C.green }}>0-3 bajo</span>{' '}
-    <span style={{ color: C.yellow }}>3-6 mod.</span>{' '}
-    <span style={{ color: C.orange }}>6-8 alto</span>{' '}
-    <span style={{ color: C.red }}>{'>8 muy alto'}</span>
-  </span>
-);
+const LegendUV: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <span>
+      {t('weather.legendUvLabel')}{' '}
+      <span style={{ color: C.green }}>{t('weather.legendUvLow')}</span>{' '}
+      <span style={{ color: C.yellow }}>{t('weather.legendUvMid')}</span>{' '}
+      <span style={{ color: C.orange }}>{t('weather.legendUvHigh')}</span>{' '}
+      <span style={{ color: C.red }}>{t('weather.legendUvVeryHigh')}</span>
+    </span>
+  );
+};

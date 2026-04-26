@@ -25,18 +25,11 @@ import { useConfiguredDialogAlphas } from '../../../core/context/DialogAlphasCon
 import { NotificationsActions }      from '../../../core/actions/notifications';
 import { AlertData, BirthdayData }   from '../../../data-model/notifications';
 import { FetchErrorBanner }          from '../../molecules/FetchErrorBanner/FetchErrorBanner';
+import { useTranslation }            from 'react-i18next';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DAYS_OF_WEEK = [
-  { value: 1, label: 'Lunes'     },
-  { value: 2, label: 'Martes'    },
-  { value: 3, label: 'Miércoles' },
-  { value: 4, label: 'Jueves'    },
-  { value: 5, label: 'Viernes'   },
-  { value: 6, label: 'Sábado'    },
-  { value: 7, label: 'Domingo'   },
-];
+const DAY_VALUES = [1, 2, 3, 4, 5, 6, 7] as const;
 
 type RecurrenceType = 'once' | 'weekly' | 'monthly';
 
@@ -104,6 +97,7 @@ interface AlertCardProps {
 }
 
 const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDelete }) => {
+  const { t } = useTranslation();
   const recurrenceType = getRecurrenceType(item);
 
   const handleRecurrenceChange = (_: React.MouseEvent<HTMLElement>, value: RecurrenceType | null) => {
@@ -120,7 +114,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDel
     <Paper elevation={2} sx={{ p: 2, borderRadius: 2, opacity: alpha }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
         <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'text.secondary' }}>
-          Alerta {index + 1}
+          {t('notifications.alertTitle', { number: index + 1 })}
         </Typography>
         <IconButton size="small" onClick={() => onDelete(index)} color="error" aria-label="eliminar alerta">
           <DeleteIcon fontSize="small" />
@@ -128,7 +122,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDel
       </Box>
 
       <TextField
-        label="Mensaje"
+        label={t('notifications.alertMessage')}
         size="small"
         fullWidth
         value={item.message}
@@ -136,7 +130,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDel
       />
 
       <TextField
-        label="Fecha y hora"
+        label={t('notifications.alertDateTime')}
         type="datetime-local"
         size="small"
         fullWidth
@@ -150,7 +144,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDel
 
       <Box sx={{ mt: 1.5 }}>
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-          Repetición
+          {t('notifications.alertRecurrence')}
         </Typography>
         <ToggleButtonGroup
           exclusive
@@ -159,22 +153,22 @@ const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDel
           size="small"
           sx={{ width: '100%' }}
         >
-          <ToggleButton value="once"    sx={{ flex: 1, textTransform: 'none' }}>Una vez</ToggleButton>
-          <ToggleButton value="weekly"  sx={{ flex: 1, textTransform: 'none' }}>Semanal</ToggleButton>
-          <ToggleButton value="monthly" sx={{ flex: 1, textTransform: 'none' }}>Mensual</ToggleButton>
+          <ToggleButton value="once"    sx={{ flex: 1, textTransform: 'none' }}>{t('notifications.alertOnce')}</ToggleButton>
+          <ToggleButton value="weekly"  sx={{ flex: 1, textTransform: 'none' }}>{t('notifications.alertWeekly')}</ToggleButton>
+          <ToggleButton value="monthly" sx={{ flex: 1, textTransform: 'none' }}>{t('notifications.alertMonthly')}</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
       {recurrenceType === 'weekly' && (
         <FormControl fullWidth size="small" sx={{ mt: 1.5 }}>
-          <InputLabel>Día de la semana</InputLabel>
+          <InputLabel>{t('notifications.alertDayOfWeek')}</InputLabel>
           <Select
-            label="Día de la semana"
+            label={t('notifications.alertDayOfWeek')}
             value={item.dayOfWeek ?? 1}
             onChange={e => onEdit(index, { dayOfWeek: e.target.value as number })}
           >
-            {DAYS_OF_WEEK.map(d => (
-              <MenuItem key={d.value} value={d.value}>{d.label}</MenuItem>
+            {DAY_VALUES.map(v => (
+              <MenuItem key={v} value={v}>{t(`notifications.days.${v}`)}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -182,7 +176,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ item, index, alpha, onEdit, onDel
 
       {recurrenceType === 'monthly' && (
         <TextField
-          label="Día del mes (1 – 28)"
+          label={t('notifications.alertDayOfMonth')}
           type="number"
           size="small"
           fullWidth
@@ -206,13 +200,15 @@ interface BirthdayCardProps {
   onDelete: (index: number) => void;
 }
 
-const BirthdayCard: React.FC<BirthdayCardProps> = ({ item, index, alpha, onEdit, onDelete }) => (
+const BirthdayCard: React.FC<BirthdayCardProps> = ({ item, index, alpha, onEdit, onDelete }) => {
+  const { t } = useTranslation();
+  return (
   <Paper elevation={2} sx={{ p: 2, borderRadius: 2, opacity: alpha }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
         <CakeIcon fontSize="small" color="primary" />
         <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'text.secondary' }}>
-          Cumpleaños {index + 1}
+          {t('notifications.birthdayTitle', { number: index + 1 })}
         </Typography>
       </Box>
       <IconButton size="small" onClick={() => onDelete(index)} color="error" aria-label="eliminar cumpleaños">
@@ -222,16 +218,16 @@ const BirthdayCard: React.FC<BirthdayCardProps> = ({ item, index, alpha, onEdit,
 
     {/* Name */}
     <TextField
-      label="Nombre"
+      label={t('notifications.birthdayName')}
       size="small"
       fullWidth
       value={item.name}
       onChange={e => onEdit(index, { name: e.target.value })}
     />
 
-    {/* Date — uses type="date" for a native calendar picker */}
+    {/* Date */}
     <TextField
-      label="Fecha de cumpleaños"
+      label={t('notifications.birthdayDate')}
       type="date"
       size="small"
       fullWidth
@@ -241,14 +237,14 @@ const BirthdayCard: React.FC<BirthdayCardProps> = ({ item, index, alpha, onEdit,
       onChange={e => {
         if (e.target.value) onEdit(index, fromBirthdayDate(e.target.value));
       }}
-      helperText="Si el año es 2000 se ignora. Cualquier otro año se usa para calcular la edad."
+      helperText={t('notifications.birthdayDateHelper')}
     />
 
     {/* Reminder hour */}
     <FormControl fullWidth size="small" sx={{ mt: 1.5 }}>
-      <InputLabel>Hora del recordatorio</InputLabel>
+      <InputLabel>{t('notifications.birthdayReminderHour')}</InputLabel>
       <Select
-        label="Hora del recordatorio"
+        label={t('notifications.birthdayReminderHour')}
         value={item.reminderHour}
         onChange={e => onEdit(index, { reminderHour: e.target.value as number })}
       >
@@ -258,11 +254,13 @@ const BirthdayCard: React.FC<BirthdayCardProps> = ({ item, index, alpha, onEdit,
       </Select>
     </FormControl>
   </Paper>
-);
+  );
+};
 
 // ─── Save Button ──────────────────────────────────────────────────────────────
 
 const SaveButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const { t } = useTranslation();
   const [saved, setSaved] = React.useState(false);
   const handleClick = () => {
     onClick();
@@ -277,7 +275,7 @@ const SaveButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       color={saved ? 'success' : 'primary'}
       sx={{ minWidth: '10rem', textTransform: 'none' }}
     >
-      {saved ? '¡Guardado!' : 'Guardar'}
+      {saved ? t('notifications.saved') : t('notifications.save')}
     </Button>
   );
 };
@@ -286,6 +284,7 @@ const SaveButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
 
 export const Notifications = () => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
 
   const [tab,                    setTab]                    = React.useState(0);
   const [alerts,                 setAlerts]                 = React.useState<AlertData[]>([]);
@@ -310,10 +309,10 @@ export const Notifications = () => {
         setLoading(false);
       })
       .catch(() => {
-        setFetchError('No se pudieron cargar las notificaciones.');
+        setFetchError(t('common.error.loadNotifications'));
         setLoading(false);
       });
-  }, [retryCount]);
+  }, [retryCount, t]);
 
   // ── Alerts ────────────────────────────────────────────────────────────────
 
@@ -361,7 +360,7 @@ export const Notifications = () => {
   if (loading) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography color="text.secondary">Cargando…</Typography>
+        <Typography color="text.secondary">{t('common.loading')}</Typography>
       </Box>
     );
   }
@@ -370,7 +369,7 @@ export const Notifications = () => {
     <Box sx={{ maxWidth: 640, mx: 'auto', px: { xs: 1.5, sm: 3 }, py: 3 }}>
       {/* Title — same style as Cloud / TitleAndList */}
       <Typography variant="h5" sx={{ ...titleSx, mb: 2 }}>
-        Notificaciones
+        {t('notifications.title')}
       </Typography>
 
       {fetchError && (
@@ -382,7 +381,7 @@ export const Notifications = () => {
 
       {!isNotificationsEnabled && (
         <MuiAlert severity="warning" sx={{ mb: 2 }}>
-          Las notificaciones están desactivadas (el bot de Telegram no está disponible).
+          {t('notifications.disabledWarning')}
         </MuiAlert>
       )}
 
@@ -396,13 +395,13 @@ export const Notifications = () => {
           <Tab
             icon={<NotificationsNoneIcon fontSize="small" />}
             iconPosition="start"
-            label="Alertas"
+            label={t('notifications.tabAlerts')}
             sx={{ textTransform: 'none', fontWeight: 600, minHeight: 44 }}
           />
           <Tab
             icon={<CakeIcon fontSize="small" />}
             iconPosition="start"
-            label="Cumpleaños"
+            label={t('notifications.tabBirthdays')}
             sx={{ textTransform: 'none', fontWeight: 600, minHeight: 44 }}
           />
         </Tabs>
@@ -413,7 +412,7 @@ export const Notifications = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {alerts.length === 0 && (
             <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-              No hay alertas configuradas.
+              {t('notifications.noAlerts')}
             </Typography>
           )}
           {alerts.map((item, index) => (
@@ -430,7 +429,7 @@ export const Notifications = () => {
           {/* Button row — white translucent strip */}
           <Box sx={{ ...toolbarSx, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
             <Button variant="outlined" startIcon={<AddIcon />} onClick={addAlert} sx={{ textTransform: 'none' }}>
-              Añadir alerta
+              {t('notifications.addAlert')}
             </Button>
             <SaveButton onClick={saveAlerts} />
           </Box>
@@ -442,7 +441,7 @@ export const Notifications = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {birthdays.length === 0 && (
             <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-              No hay cumpleaños guardados.
+              {t('notifications.noBirthdays')}
             </Typography>
           )}
           {birthdays.map((item, index) => (
@@ -459,7 +458,7 @@ export const Notifications = () => {
           {/* Button row — white translucent strip */}
           <Box sx={{ ...toolbarSx, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
             <Button variant="outlined" startIcon={<AddIcon />} onClick={addBirthday} sx={{ textTransform: 'none' }}>
-              Añadir cumpleaños
+              {t('notifications.addBirthday')}
             </Button>
             <SaveButton onClick={saveBirthdays} />
           </Box>

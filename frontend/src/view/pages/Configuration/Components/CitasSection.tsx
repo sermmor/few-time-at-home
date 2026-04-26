@@ -6,6 +6,7 @@ import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 interface CitasSectionProps {
   config: ConfigurationDataZipped;
@@ -23,10 +24,11 @@ export const CitasSection: React.FC<CitasSectionProps> = ({
   indexNewItemAdded,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Citas</Typography>
+        <Typography>{t('quotes.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
       <TitleAndList

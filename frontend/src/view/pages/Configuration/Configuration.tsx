@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { Box, SxProps, Theme, Snackbar, GlobalStyles } from "@mui/material";
 import { ThemeProvider } from '@mui/material/styles';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
@@ -40,6 +41,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 let indexNewItemAdded = 0;
 
 export const ConfigurationComponent = () => {
+  const { t } = useTranslation();
   const [config, setConfig] = React.useState<ConfigurationDataZipped>();
   const [lineToSend, setLineToSend] = React.useState<string>('');
   const [synchronizeUrl, setSynchronizeUrl] = React.useState<string>(`http://[host_IP]:3001`);
@@ -61,14 +63,14 @@ export const ConfigurationComponent = () => {
         .then(data => setConfig(parseToZippedConfig(data)))
       )
       .catch(() => {
-        setSnackBarMessage('Error al cargar la configuración.');
+        setSnackBarMessage(t('config.errorLoad'));
         setErrorSnackbar(true);
         setOpenSnackbar(true);
       });
     PomodoroActions.getTimeModeList()
       .then(({data}: any) => setPomodoroTimeMode(JSON.stringify(data, null, 2)))
       .catch(() => {
-        setSnackBarMessage('Error al cargar los modos Pomodoro.');
+        setSnackBarMessage(t('config.errorLoadPomodoro'));
         setErrorSnackbar(true);
         setOpenSnackbar(true);
       });
@@ -117,7 +119,7 @@ export const ConfigurationComponent = () => {
   };
 
   const showSaveNotification = () => {
-    setSnackBarMessage('Cambios guardados correctamente');
+    setSnackBarMessage(t('config.savedOk'));
     setErrorSnackbar(false);
     setOpenSnackbar(true);
   };

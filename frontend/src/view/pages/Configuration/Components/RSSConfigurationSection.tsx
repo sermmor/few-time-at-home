@@ -18,6 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 const CYAN      = '#00ffe7';
 const CYAN_DIM  = 'rgba(0,255,231,0.55)';
@@ -65,6 +66,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
   setConfig,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   const [isUpdateRss, setIsUpdateRss] = React.useState<boolean>(false);
 
   const rss = config.rssConfig;
@@ -89,7 +91,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Configuración RSS</Typography>
+        <Typography>{t('rssConfig.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Box sx={sectionSx}>
@@ -109,7 +111,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
               }
               label={
                 <Typography sx={{ ...labelSx, minWidth: 'unset' }}>
-                  Update at start app
+                  {t('rssConfig.updateAtStart')}
                 </Typography>
               }
             />
@@ -117,7 +119,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
 
           {/* ── autoUpdateTimeInSeconds ── */}
           <Box sx={rowSx}>
-            <Typography sx={labelSx}>Auto update time (seconds):</Typography>
+            <Typography sx={labelSx}>{t('rssConfig.autoUpdateTime')}</Typography>
             <TextField
               variant="standard"
               type="number"
@@ -129,7 +131,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
 
           {/* ── numMaxMessagesToSave ── */}
           <Box sx={rowSx}>
-            <Typography sx={labelSx}>Max messages to save:</Typography>
+            <Typography sx={labelSx}>{t('rssConfig.maxMessages')}</Typography>
             <TextField
               variant="standard"
               type="number"
@@ -141,7 +143,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
 
           {/* ── initialWebNumberOfMessagesWithLinks ── */}
           <Box sx={rowSx}>
-            <Typography sx={labelSx}>Initial web messages with links:</Typography>
+            <Typography sx={labelSx}>{t('rssConfig.initialWebLinks')}</Typography>
             <TextField
               variant="standard"
               type="number"
@@ -153,7 +155,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
 
           {/* ── normalWebNumberOfMessagesWithLinks ── */}
           <Box sx={rowSx}>
-            <Typography sx={labelSx}>Normal web messages with links:</Typography>
+            <Typography sx={labelSx}>{t('rssConfig.normalWebLinks')}</Typography>
             <TextField
               variant="standard"
               type="number"
@@ -166,7 +168,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
           {/* ── optionTagsYoutube ── */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <Typography sx={labelSx}>YouTube tags:</Typography>
+              <Typography sx={labelSx}>{t('rssConfig.youtubeTags')}</Typography>
               <IconButton size="small" onClick={addTag} sx={{ color: CYAN }}>
                 <AddIcon fontSize="small" />
               </IconButton>
@@ -197,7 +199,7 @@ export const RSSConfigurationSection: React.FC<RSSConfigurationSectionProps> = (
               }}
               sx={{ minWidth: { xs: '15.5rem', sm: '10rem' } }}
             >
-              Force Update
+              {t('rssConfig.forceUpdate')}
             </Button>
           </Box>
 

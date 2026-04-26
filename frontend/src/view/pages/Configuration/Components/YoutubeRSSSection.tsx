@@ -7,6 +7,7 @@ import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Box, Checkbox, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 interface YoutubeRSSSectionProps {
   config: ConfigurationDataZipped;
@@ -24,10 +25,11 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
   indexNewItemAdded,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>YouTube RSS</Typography>
+        <Typography>{t('youtubeRss.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
       <TitleAndList
@@ -46,7 +48,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
               <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
                 <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
                   <li style={{ maxWidth: '30rem', width: '100%' }}>
-                    Url: <LabelAndTextField text={item.url} onChange={
+                    {t('youtubeRss.url')} <LabelAndTextField text={item.url} onChange={
                       editActionList(
                         'youtubeRssList',
                         `${item.url}`,
@@ -56,7 +58,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                     }/>
                   </li>
                   <li>
-                    Words to filter:<LabelAndTextField text={item.words_to_filter || ''} onChange={
+                    {t('youtubeRss.wordsToFilter')}<LabelAndTextField text={item.words_to_filter || ''} onChange={
                       editActionList(
                         'youtubeRssList',
                         `${item.url}`,
@@ -66,7 +68,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                     }/>
                   </li>
                   <li>
-                    Mandatory words: <LabelAndTextField text={item.mandatory_words || ''} onChange={
+                    {t('youtubeRss.mandatoryWords')} <LabelAndTextField text={item.mandatory_words || ''} onChange={
                       editActionList(
                         'youtubeRssList',
                         `${item.url}`,
@@ -76,7 +78,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                     }/>
                   </li>
                   <li>
-                    Tags: <LabelAndComboField
+                    {t('youtubeRss.tags')} <LabelAndComboField
                       text={item.tag || config.rssConfig.optionTagsYoutube[0]}
                       options={config.rssConfig.optionTagsYoutube}
                       onChange={
@@ -105,7 +107,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                     }}
                   />
                   <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                    Not filter youtube shorts
+                    {t('youtubeRss.notFilterShorts')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -121,7 +123,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                     }}
                   />
                   <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                    Show "Proximamente" videos
+                    {t('youtubeRss.showProximamente')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -137,7 +139,7 @@ export const YoutubeRSSSection: React.FC<YoutubeRSSSectionProps> = ({
                     }}
                   />
                   <Typography variant='subtitle2' sx={{textTransform: 'uppercase'}}>
-                    Is favorite?
+                    {t('youtubeRss.isFavorite')}
                   </Typography>
                 </Box>
               </Box>

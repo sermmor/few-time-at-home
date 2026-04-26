@@ -22,6 +22,7 @@ import { KeysActions, KeysData } from '../../../../core/actions/keys';
 import { useConfiguredDialogAlphas } from '../../../../core/context/DialogAlphasContext';
 import { useConfigurationSnackbar } from './ConfigurationSnackbarContext';
 import { supabaseClearAlertsEndpoint } from '../../../../core/urls-and-end-points';
+import { useTranslation } from 'react-i18next';
 
 const sectionBoxStyle: SxProps<Theme> = {
   display: 'flex',
@@ -88,6 +89,7 @@ const PasswordField: React.FC<{
 export const APIsSection: React.FC = () => {
   const alphas = useConfiguredDialogAlphas();
   const showSaveNotification = useConfigurationSnackbar();
+  const { t } = useTranslation();
 
   const [keys, setKeys] = React.useState<KeysData | null>(null);
   const [saving, setSaving] = React.useState(false);
@@ -150,17 +152,17 @@ export const APIsSection: React.FC = () => {
   return (
     <Accordion sx={{ opacity: alphas.configurationCards, width: '100%' }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>APIs</Typography>
+        <Typography>{t('apis.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Box sx={{ ...sectionBoxStyle, background: `rgba(255,255,255,${alphas.general})` }}>
 
           {/* ── Telegram ─────────────────────────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>Telegram</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.telegram')}</Typography>
 
           <Box sx={rowStyle}>
             <FormControlLabel
-              label="Conectar con Telegram"
+              label={t('apis.connectTelegram')}
               control={
                 <Switch
                   checked={keys.connect_to_telegram}
@@ -171,18 +173,18 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Bot token</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.botToken')}</Typography>
             <PasswordField
-              label="Telegram bot token"
+              label={t('apis.botTokenLabel')}
               value={keys.telegram_bot_token}
               onChange={set('telegram_bot_token') as (v: string) => void}
             />
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Usuario (username_client)</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.telegramUser')}</Typography>
             <TextField
-              label="Username"
+              label={t('apis.usernameLabel')}
               variant="standard"
               value={keys.username_client}
               sx={fieldStyle}
@@ -191,21 +193,21 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Contraseña de sesión (token_pass)</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.sessionPassword')}</Typography>
             <PasswordField
-              label="Token pass"
+              label={t('apis.tokenPassLabel')}
               value={keys.token_pass}
               onChange={set('token_pass') as (v: string) => void}
             />
           </Box>
 
           {/* ── Email ────────────────────────────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>Email</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.email')}</Typography>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Servicio</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.emailService')}</Typography>
             <TextField
-              label="Email service (e.g. Gmail)"
+              label={t('apis.emailServiceLabel')}
               variant="standard"
               value={keys.email_service}
               sx={fieldStyle}
@@ -214,9 +216,9 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Usuario</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.emailUser')}</Typography>
             <TextField
-              label="Email user"
+              label={t('apis.emailUserLabel')}
               variant="standard"
               value={keys.email_user}
               sx={fieldStyle}
@@ -225,18 +227,18 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Contraseña</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.emailPassword')}</Typography>
             <PasswordField
-              label="Email password"
+              label={t('apis.emailPasswordLabel')}
               value={keys.email_pass}
               onChange={set('email_pass') as (v: string) => void}
             />
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Preámbulo (email_prelude)</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.emailPrelude')}</Typography>
             <TextField
-              label="Email prelude"
+              label={t('apis.emailPreludeLabel')}
               variant="standard"
               value={keys.email_prelude}
               sx={fieldStyle}
@@ -245,12 +247,12 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           {/* ── YouTube playlist ─────────────────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>YouTube Playlist</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.youtubePlaylist')}</Typography>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Client ID</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.clientId')}</Typography>
             <TextField
-              label="YouTube client ID"
+              label={t('apis.youtubeClientIdLabel')}
               variant="standard"
               value={keys.youtube_playlist_client_id}
               sx={fieldStyle}
@@ -259,21 +261,21 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Client secret</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.clientSecret')}</Typography>
             <PasswordField
-              label="YouTube client secret"
+              label={t('apis.youtubeClientSecretLabel')}
               value={keys.youtube_playlist_client_secret}
               onChange={set('youtube_playlist_client_secret') as (v: string) => void}
             />
           </Box>
 
           {/* ── Spotify playlist ─────────────────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>Spotify Playlist</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.spotifyPlaylist')}</Typography>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Client ID</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.clientId')}</Typography>
             <TextField
-              label="Spotify client ID"
+              label={t('apis.spotifyClientIdLabel')}
               variant="standard"
               value={keys.spotify_playlist_client_id}
               sx={fieldStyle}
@@ -282,19 +284,19 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Client secret</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.clientSecret')}</Typography>
             <PasswordField
-              label="Spotify client secret"
+              label={t('apis.spotifyClientSecretLabel')}
               value={keys.spotify_playlist_client_secret}
               onChange={set('spotify_playlist_client_secret') as (v: string) => void}
             />
           </Box>
 
           {/* ── Supabase (notificationsApp) ──────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>Supabase — Notifications App</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.supabase')}</Typography>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Project URL</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.projectUrl')}</Typography>
             <TextField
               label="https://xxxx.supabase.co"
               variant="standard"
@@ -305,16 +307,16 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Service role key</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.serviceRoleKey')}</Typography>
             <PasswordField
-              label="service_role key (backend only)"
+              label={t('apis.serviceRoleKeyLabel')}
               value={keys.supabase_service_key}
               onChange={set('supabase_service_key') as (v: string) => void}
             />
           </Box>
 
           <Box sx={{ ...rowStyle, alignItems: 'center', gap: '1rem' }}>
-            <Typography variant="body1" sx={labelStyle}>Alerts table</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.alertsTable')}</Typography>
             <Button
               variant="outlined"
               disabled={clearingAlerts}
@@ -331,54 +333,53 @@ export const APIsSection: React.FC = () => {
             >
               {clearingAlerts
                 ? <CircularProgress size={16} sx={{ color: '#ff00cc' }} />
-                : 'Clean All Alerts'}
+                : t('apis.cleanAlerts')}
             </Button>
-            {clearAlertsResult === 'ok'    && <Typography sx={{ color: '#00ffe7', fontFamily: 'monospace', fontSize: '0.8rem' }}>✓ tabla limpia</Typography>}
-            {clearAlertsResult === 'error' && <Typography sx={{ color: '#ff00cc', fontFamily: 'monospace', fontSize: '0.8rem' }}>✗ error al limpiar</Typography>}
+            {clearAlertsResult === 'ok'    && <Typography sx={{ color: '#00ffe7', fontFamily: 'monospace', fontSize: '0.8rem' }}>{t('apis.cleanOk')}</Typography>}
+            {clearAlertsResult === 'error' && <Typography sx={{ color: '#ff00cc', fontFamily: 'monospace', fontSize: '0.8rem' }}>{t('apis.cleanError')}</Typography>}
           </Box>
 
           {/* ── Google Drive (backups) ───────────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>Google Drive — Backups</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.googleDrive')}</Typography>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Client ID</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.clientId')}</Typography>
             <TextField
-              label="OAuth client ID"
+              label={t('apis.oauthClientId')}
               variant="standard"
               value={keys.google_drive_client_id}
               sx={fieldStyle}
-              onChange={e => set('google_drive_client_id')(e.target.value)}
+              onChange={e => setDriveField('google_drive_client_id')(e.target.value)}
             />
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Client secret</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.clientSecret')}</Typography>
             <PasswordField
-              label="OAuth client secret"
+              label={t('apis.oauthClientSecret')}
               value={keys.google_drive_client_secret}
-              onChange={set('google_drive_client_secret') as (v: string) => void}
+              onChange={setDriveField('google_drive_client_secret')}
             />
           </Box>
 
           <Box sx={rowStyle}>
-            <Typography variant="body1" sx={labelStyle}>Refresh token</Typography>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.refreshToken')}</Typography>
             <PasswordField
-              label="Refresh token (from setup-google-drive.js)"
+              label={t('apis.refreshTokenLabel')}
               value={keys.google_drive_refresh_token}
-              onChange={set('google_drive_refresh_token') as (v: string) => void}
+              onChange={setDriveField('google_drive_refresh_token')}
             />
           </Box>
 
           <Box sx={rowStyle}>
             <Typography variant="body1" sx={labelStyle}>
-              Folder ID
+              {t('apis.folderId')}
               <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>
-                Opcional — si está vacío se crea automáticamente la carpeta
-                "Few_time_at_home_backups"
+                {t('apis.folderIdHelper')}
               </Typography>
             </Typography>
             <TextField
-              label="Drive folder ID (opcional)"
+              label={t('apis.folderIdLabel')}
               variant="standard"
               value={keys.google_drive_folder_id}
               sx={fieldStyle}
@@ -387,11 +388,11 @@ export const APIsSection: React.FC = () => {
           </Box>
 
           {/* ── App ──────────────────────────────────────────────────── */}
-          <Typography variant="h6" sx={groupTitleStyle}>App</Typography>
+          <Typography variant="h6" sx={groupTitleStyle}>{t('apis.app')}</Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <FormControlLabel
-              label="Deshabilitar backup automático"
+              label={t('apis.disableAutoBackup')}
               control={
                 <Switch
                   checked={keys.is_backup_disabled}
@@ -408,11 +409,7 @@ export const APIsSection: React.FC = () => {
                 maxWidth:     '36rem',
               }}>
                 <Typography variant="body2" sx={{ color: '#ff00cc', fontFamily: 'monospace', fontSize: '0.78rem', lineHeight: 1.6 }}>
-                  ⚠ Para activar el backup automático debes rellenar primero los campos
-                  {' '}<strong>Client ID</strong>, <strong>Client secret</strong> y <strong>Refresh token</strong>{' '}
-                  de la sección <em>Google Drive — Backups</em> justo arriba.
-                  Consulta las instrucciones detalladas en el <strong>README.md</strong> del proyecto
-                  (sección <em>Google Drive backups</em>).
+                  {t('apis.autoBackupWarning')}
                 </Typography>
               </Box>
             )}
@@ -420,7 +417,7 @@ export const APIsSection: React.FC = () => {
 
           <Box sx={rowStyle}>
             <FormControlLabel
-              label="Modo desarrollo (logs extra)"
+              label={t('apis.devMode')}
               control={
                 <Switch
                   checked={keys.is_dev_mode_enabled}
@@ -439,7 +436,7 @@ export const APIsSection: React.FC = () => {
               onClick={handleSave}
               startIcon={saving ? <CircularProgress size={18} color="inherit" /> : undefined}
             >
-              {saving ? 'Guardando…' : 'Save'}
+              {saving ? t('apis.saving') : t('apis.save')}
             </Button>
           </Box>
 

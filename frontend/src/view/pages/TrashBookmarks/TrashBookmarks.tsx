@@ -1,5 +1,6 @@
 import { Box, Button, SxProps, Theme } from "@mui/material";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { BookmarksActions } from "../../../core/actions/bookmarks";
 import { FetchErrorBanner } from "../../molecules/FetchErrorBanner/FetchErrorBanner";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
@@ -21,6 +22,7 @@ const formStyle: SxProps<Theme> = {
 };
 
 export const TrashBookmarks = () => {
+  const { t } = useTranslation();
   const [bookmarks, setBookmarks] = React.useState<Bookmark[]>([]);
 
   const [bookmarksByPage, setBookmarksByPage] = React.useState<number>(50);
@@ -37,8 +39,8 @@ export const TrashBookmarks = () => {
         setNumberOfPages(numberOfPages);
         setTotalOfBookmarks(totalOfBookmarks);
       })
-      .catch(() => setFetchError('No se pudo cargar la papelera de marcadores.'));
-  }, [bookmarksByPage, currentPage]);
+      .catch(() => setFetchError(t('common.error.loadTrashBookmarks')));
+  }, [bookmarksByPage, currentPage, t]);
 
   const action: ActionsProps = { bookmarks, bookmarksByPage, currentPage, numberOfPages, totalOfBookmarks,
     setBookmarks, setBookmarksByPage, setCurrentPage, setNumberOfPages, setTotalOfBookmarks };
@@ -47,9 +49,9 @@ export const TrashBookmarks = () => {
     {fetchError && <FetchErrorBanner message={fetchError} />}
     {bookmarks && <>
         <TitleAndListWithFolders
-          title='Trash Bookmarks'
+          title={t('trashBookmarks.title')}
           id='Trash_bookmarks_0'
-          helpSearchLabel='Search in trash bookmarks'
+          helpSearchLabel={t('trashBookmarks.searchLabel')}
           noActionsMode={true}
           deleteAction={(id) => deleteActionList(action, id)}
           onSearch={onSearchItem}
@@ -64,7 +66,7 @@ export const TrashBookmarks = () => {
         <Box sx={{ backgroundColor: '#ccd9ff',  width: widthBoxes }}>
           <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
             <Button disabled={currentPage === 0} onClick={() => goToPage(action, currentPage - 1)}><ArrowBackIcon /></Button>
-            <Box>Page {currentPage + 1} of {numberOfPages}</Box>
+            <Box>{t('trashBookmarks.page')} {currentPage + 1} {t('trashBookmarks.of')} {numberOfPages}</Box>
             <Button disabled={currentPage === numberOfPages - 1} onClick={() => goToPage(action, currentPage + 1)}><ArrowForwardIcon /></Button>
           </Box>
         </Box>
@@ -77,7 +79,7 @@ export const TrashBookmarks = () => {
           backgroundColor: '#D3D3D3',
           marginBottom: '3rem',
         }}>
-          Total Bookmarks in trash: {totalOfBookmarks} (showing {bookmarksByPage} bookmarks per page)
+          {t('trashBookmarks.total')} {totalOfBookmarks} {t('trashBookmarks.showing')} {bookmarksByPage} {t('trashBookmarks.perPage')}
         </Box>
       </>
     }

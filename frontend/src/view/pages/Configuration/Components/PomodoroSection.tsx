@@ -4,6 +4,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { PomodoroActions } from "../../../../core/actions/pomodoro";
 import { PomodoroTimeModesEditor } from "./PomodoroTimeModesEditor/PomodoroTimeModesEditor";
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 const getPomodoroSectionStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
@@ -30,15 +31,16 @@ export const PomodoroSection: React.FC<PomodoroSectionProps> = ({
   onShowSnackbar,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Pomodoro</Typography>
+        <Typography>{t('pomodoroConfig.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
     <Box sx={getPomodoroSectionStyle(alphas.general)}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'space-between', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}, marginBottom: '1.5rem'}}>
-        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Pomodoro Time Modes:</Typography>
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{t('pomodoroConfig.timeModes')}</Typography>
         <Button
           variant='contained'
           sx={{minWidth: '15.5rem'}}
@@ -46,18 +48,18 @@ export const PomodoroSection: React.FC<PomodoroSectionProps> = ({
             try {
               const allTimeMode = JSON.parse(pomodoroTimeMode);
               PomodoroActions.sendNewTimeMode(allTimeMode).then(() => {
-                onShowSnackbar('Pomodoro configuration saved successfully!', false);
+                onShowSnackbar(t('pomodoroConfig.savedOk'), false);
               }).catch((error) => {
-                onShowSnackbar('Error saving Pomodoro configuration', true);
+                onShowSnackbar(t('pomodoroConfig.errorSave'), true);
                 console.error('Error saving Pomodoro configuration:', error);
               });
             } catch (error) {
-              onShowSnackbar('Invalid JSON format', true);
+              onShowSnackbar(t('pomodoroConfig.invalidJson'), true);
               console.error('Invalid JSON format:', error);
             }
           }}
           >
-          Send Configuration
+          {t('pomodoroConfig.send')}
         </Button>
       </Box>
       <PomodoroTimeModesEditor 

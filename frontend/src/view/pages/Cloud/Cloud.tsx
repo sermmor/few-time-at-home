@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, SxProps, Theme } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
@@ -53,6 +54,7 @@ const sortFileList = (fileList: CloudItem[]) => fileList.sort(compareByName).sor
 let indexNewCloudItemAdded = 0;
 
 export const Cloud = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const decodedPathname = decodeURIComponent(pathname);
@@ -98,13 +100,13 @@ export const Cloud = () => {
         CloudActions.getAllFolderItems({ drive: defaultDrive, folderPath: nextCloudPathUpdated })
           .then(data => { setFileList(data.data); })
           .catch(() => {
-            setSnackBarMessage('Error al cargar el contenido de la carpeta.');
+            setSnackBarMessage(t('common.error.loadCloudFolder'));
             setErrorSnackbar(true);
             setOpenSnackbar(true);
           });
       })
       .catch(() => {
-        setSnackBarMessage('Error al cargar las unidades de almacenamiento.');
+        setSnackBarMessage(t('common.error.loadCloud'));
         setErrorSnackbar(true);
         setOpenSnackbar(true);
       });
@@ -200,9 +202,9 @@ export const Cloud = () => {
         }}
       >
       <TitleAndListWithFolders
-        title='Cloud'
+        title={t('cloud.title')}
         id='cloud_0'
-        helpSearchLabel='Search cloud'
+        helpSearchLabel={t('cloud.searchLabel')}
         path={currentPathFolder}
         onUploadItem={handleUploadButton}
         // duplicateItem={() => undefined}
@@ -296,16 +298,16 @@ export const Cloud = () => {
     <ModalNewName
       handleCloseDialog={() => setOpenNameFileDialog(false)}
       isOpenDialog={isOpenNameFileDialog}
-      title='New File'
-      description='Write new file name'
+      title={t('cloud.newFile')}
+      description={t('cloud.newFileDescription')}
       defaultName={`new file ${indexNewCloudItemAdded}.txt`}
       onAcceptNewName={(newName) => {indexNewCloudItemAdded++; createBlankFile(action, newName);}}
     />
     <ModalNewName
       handleCloseDialog={() => setOpenNameFolderDialog(false)}
       isOpenDialog={isOpenNameFolderDialog}
-      title='New Folder'
-      description='Write new folder name'
+      title={t('cloud.newFolder')}
+      description={t('cloud.newFolderDescription')}
       defaultName={`new folder ${indexNewCloudItemAdded}`}
       onAcceptNewName={(newName) => { indexNewCloudItemAdded++; addFolderActionItemList(action, {
         driveName: currentDrive || '/',

@@ -4,6 +4,7 @@ import { NotepadActions } from "../../../core/actions/notepad";
 import { NotificationsActions } from "../../../core/actions/notifications";
 import { TemporalData } from "../../../service/temporalData.service";
 import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 /** True on phones and tablets (Android, iPhone, iPad…), false on desktop OSes. */
 const useIsMobileOrTablet = (): boolean => {
@@ -57,6 +58,7 @@ const downloadText = (text: string) => {
 
 export const Telegram = () => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   const isMobileOrTablet = useIsMobileOrTablet();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -113,16 +115,16 @@ export const Telegram = () => {
 
   return <Box sx={formStyle}>
     <Typography variant='h6' sx={titleStyle()}>
-      Notepad {isNotificationsEnabled ? undefined : <span>(<span style={{color: 'red'}}>No context in Telegram</span>)</span>}
+      {t('telegram.title')} {isNotificationsEnabled ? undefined : <span style={{color: 'red'}}>{t('telegram.noContext')}</span>}
     </Typography>
     <TextField
       id="outlined-multiline-static"
-      label="Mi bloc de notas"
+      label={t('telegram.myNotepad')}
       multiline
       autoFocus
       rows={12}
       sx={getTextAreaStyle(alphas.general)}
-      placeholder="Write what you want"
+      placeholder={t('telegram.placeholder')}
       value={textData}
       inputProps={{ maxLength: TELEGRAM_MAX_CHARS }}
       helperText={
@@ -159,11 +161,11 @@ export const Telegram = () => {
           sx={{ width: '100%', height: '3.5rem' }}
           onClick={() => fileInputRef.current?.click()}
         >
-          {uploadStatus === 'uploading' ? '⏳ Enviando...' : '📎 Subir fichero a Telegram'}
+          {uploadStatus === 'uploading' ? t('telegram.sending') : t('telegram.uploadFile')}
         </Button>
         {uploadStatus !== 'idle' && uploadStatus !== 'uploading' && (
           <Typography variant='caption' sx={{ color: uploadStatus === 'ok' ? 'success.main' : 'error.main' }}>
-            {uploadStatus === 'ok' ? '✓ Fichero enviado a Telegram' : '✗ Error al enviar (¿bot sin contexto?)'}
+            {uploadStatus === 'ok' ? t('telegram.fileSent') : t('telegram.fileError')}
           </Typography>
         )}
       </Box>
@@ -195,10 +197,10 @@ export const Telegram = () => {
         }}
       >
         <Typography variant='body2' sx={{ color: uploadStatus === 'ok' ? 'success.main' : uploadStatus === 'error' ? 'error.main' : uploadStatus === 'uploading' ? 'primary.main' : 'text.secondary', textAlign: 'center' }}>
-          {uploadStatus === 'uploading' && '⏳ Enviando a Telegram...'}
-          {uploadStatus === 'ok' && '✓ Fichero enviado a Telegram'}
-          {uploadStatus === 'error' && '✗ Error al enviar (¿bot sin contexto?)'}
-          {uploadStatus === 'idle' && (isDraggingOver ? '📎 Suelta el fichero aquí' : 'Arrastrar aquí para subir a Telegram')}
+          {uploadStatus === 'uploading' && t('telegram.sendingFile')}
+          {uploadStatus === 'ok' && t('telegram.fileSent')}
+          {uploadStatus === 'error' && t('telegram.fileError')}
+          {uploadStatus === 'idle' && (isDraggingOver ? t('telegram.dropHere') : t('telegram.dragHere'))}
         </Typography>
       </Box>
     )}
@@ -208,28 +210,28 @@ export const Telegram = () => {
         sx={{minWidth: '15.5rem'}}
         onClick={() => navigator.clipboard.writeText(textData)}
         >
-        Copy text
+        {t('telegram.copyText')}
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => setTextNotepad('')}
         >
-        Clear text
+        {t('telegram.clearText')}
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => downloadText(textData)}
         >
-        Download text
+        {t('telegram.downloadText')}
       </Button>
       <Button
         variant='outlined'
         sx={{minWidth: '15.5rem'}}
         onClick={() => NotepadActions.sendTextToTelegram(textData)}
         >
-        Send text to Telegram
+        {t('telegram.sendText')}
       </Button>
     </Box>
   </Box>;

@@ -6,6 +6,7 @@ import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 interface MastodonUsersSectionProps {
   config: ConfigurationDataZipped;
@@ -23,10 +24,11 @@ export const MastodonUsersSection: React.FC<MastodonUsersSectionProps> = ({
   indexNewItemAdded,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Usuarios Mastodon</Typography>
+        <Typography>{t('mastodon.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
       <TitleAndList

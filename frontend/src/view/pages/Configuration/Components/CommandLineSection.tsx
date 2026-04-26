@@ -3,6 +3,7 @@ import { Box, Button, SxProps, TextField, Theme, Typography, Accordion, Accordio
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { ConfigurationActions } from "../../../../core/actions/configuration";
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 const getCommandLineStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
@@ -31,17 +32,18 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
   setLineToSendResult,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Línea de Comandos</Typography>
+        <Typography>{t('commandLine.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
     <Box sx={getCommandLineStyle(alphas.general)}>
       <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '2rem', alignItems: 'center', justifyContent: 'left', minWidth: {xs: '15.5rem', sm: '27rem', md: '50rem'}}}>
-        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>Command line to send:</Typography>
+        <Typography variant='h6' sx={{textTransform: 'uppercase'}}>{t('commandLine.commandLabel')}</Typography>
         <TextField
-          label="line to send"
+          label={t('commandLine.inputLabel')}
           variant="standard"
           value={lineToSend}
           sx={{minWidth: {xs: '15.5rem', sm: '5rem', md: '30rem'}}}
@@ -58,18 +60,18 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
             } else if (result.stderr) {
               setLineToSendResult(result.stderr);
             } else if (result.stdout === '' && result.stderr === '') {
-              setLineToSendResult('FINISHED');
+              setLineToSendResult(t('commandLine.finished'));
             } else {
               console.log(result);
             }
           })}
           >
-          Send command line
+          {t('commandLine.sendButton')}
         </Button>
       </Box>
       <TextField
         id="outlined-multiline-static"
-        label="Resultado"
+        label={t('commandLine.result')}
         multiline
         rows={5}
         sx={{width: '100%'}}

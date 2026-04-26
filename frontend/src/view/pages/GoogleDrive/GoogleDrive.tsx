@@ -29,6 +29,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 import { useNavigate } from 'react-router-dom';
 import { DriveItem, GoogleDriveActions } from '../../../core/actions/googleDrive';
+import { useTranslation } from 'react-i18next';
 
 // ── Cyberpunk palette ────────────────────────────────────────────────────────
 const C = {
@@ -137,6 +138,7 @@ interface FolderCrumb { id: string; name: string; }
 
 export const GoogleDrive: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [items,          setItems]          = React.useState<DriveItem[]>([]);
   const [folderStack,    setFolderStack]    = React.useState<FolderCrumb[]>([]);
@@ -306,7 +308,7 @@ export const GoogleDrive: React.FC = () => {
             fontSize: { xs: '1.1rem', sm: '1.35rem' },
           }}
         >
-          // GOOGLE DRIVE //
+          {t('googleDrive.title')}
         </Typography>
         <Box sx={{ height: '1px', background: `linear-gradient(90deg, ${C.cyan}, transparent)`, mt: '0.5rem' }} />
       </Box>
@@ -325,17 +327,15 @@ export const GoogleDrive: React.FC = () => {
         }}
       >
         <DialogTitle sx={{ ...neonText(C.magenta), fontWeight: 700, letterSpacing: '0.1em', fontSize: '0.95rem', pb: 1 }}>
-          // GOOGLE DRIVE SIN CONFIGURAR //
+          {t('googleDrive.notConfigured')}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: C.textPri, fontFamily: MONO, fontSize: '0.85rem', lineHeight: 1.7 }}>
-            Las credenciales OAuth de Google Drive no están completas o son inválidas.
+            {t('googleDrive.credentialsError')}
           </Typography>
           <Box sx={{ mt: '1rem', padding: '0.65rem 0.9rem', borderRadius: '4px', background: 'rgba(255,0,204,0.07)', border: `1px solid ${C.magenta}55` }}>
             <Typography sx={{ color: C.magenta, fontFamily: MONO, fontSize: '0.78rem', lineHeight: 1.7 }}>
-              Ve a <strong>Configuración → APIs → Google Drive — Backups</strong>{' '}
-              y rellena los campos <strong>Client ID</strong>,{' '}
-              <strong>Client secret</strong> y <strong>Refresh token</strong>.
+              {t('googleDrive.credentialsHelp')}
             </Typography>
           </Box>
         </DialogContent>
@@ -345,7 +345,7 @@ export const GoogleDrive: React.FC = () => {
             onClick={() => setShowNoCfgDlg(false)}
             sx={{ color: C.textSec, fontFamily: MONO, fontSize: '0.78rem', letterSpacing: '0.08em' }}
           >
-            CERRAR
+            {t('googleDrive.close')}
           </Button>
           <Button
             size="small"
@@ -360,7 +360,7 @@ export const GoogleDrive: React.FC = () => {
               '&:hover': { borderColor: C.magenta, background: `${C.magenta}18` },
             }}
           >
-            IR A CONFIGURACIÓN
+            {t('googleDrive.goToConfig')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -378,7 +378,7 @@ export const GoogleDrive: React.FC = () => {
         ...neonBorder(C.border, false),
       }}>
         {folderStack.length > 0 && (
-          <Tooltip title="Atrás">
+          <Tooltip title={t('googleDrive.back')}>
             <IconButton
               size="small"
               onClick={goBack}
@@ -405,7 +405,7 @@ export const GoogleDrive: React.FC = () => {
           }}
         >
           <HomeIcon sx={{ fontSize: '0.95rem' }} />
-          <span>root</span>
+          <span>{t('googleDrive.root')}</span>
         </Box>
 
         {folderStack.map((crumb, i) => (
@@ -441,7 +441,7 @@ export const GoogleDrive: React.FC = () => {
           onClick={() => { setFolderName(''); setShowFolderDlg(true); }}
           sx={toolbarBtnSx(C.cyan)}
         >
-          Nueva carpeta
+          {t('googleDrive.newFolder')}
         </Button>
 
         <Button
@@ -451,7 +451,7 @@ export const GoogleDrive: React.FC = () => {
           onClick={() => inputRef.current?.click()}
           sx={toolbarBtnSx(C.cyan)}
         >
-          Subir archivo
+          {t('googleDrive.uploadFile')}
         </Button>
         <input
           ref={inputRef}
@@ -465,7 +465,7 @@ export const GoogleDrive: React.FC = () => {
           onClick={() => loadFolder(currentFolderId)}
           sx={{ color: C.textSec, '&:hover': { color: C.cyan, background: `${C.cyan}18` } }}
         >
-          <Tooltip title="Actualizar">
+          <Tooltip title={t('googleDrive.refresh')}>
             <RefreshIcon fontSize="small" />
           </Tooltip>
         </IconButton>
@@ -496,7 +496,7 @@ export const GoogleDrive: React.FC = () => {
             letterSpacing: '0.12em',
             pointerEvents: 'none',
           }}>
-            ↓ SOLTAR AQUÍ ↓
+            {t('googleDrive.dropHere')}
           </Box>
         )}
 
@@ -509,7 +509,7 @@ export const GoogleDrive: React.FC = () => {
           }}>
             <CircularProgress size={16} sx={{ color: C.cyan }} />
             <Typography sx={{ ...neonText(C.cyan), fontSize: '0.8rem' }}>
-              {uploadMsg || 'Subiendo…'}
+              {uploadMsg || t('googleDrive.uploading')}
             </Typography>
           </Box>
         )}
@@ -525,10 +525,10 @@ export const GoogleDrive: React.FC = () => {
         {!loading && !uploading && items.length === 0 && !notConfigured && (
           <Box sx={{ textAlign: 'center', padding: '3rem' }}>
             <Typography sx={{ color: C.textMuted, fontFamily: MONO, fontSize: '0.82rem', letterSpacing: '0.08em' }}>
-              — CARPETA VACÍA —
+              {t('googleDrive.emptyFolder')}
             </Typography>
             <Typography sx={{ color: C.textMuted, fontFamily: MONO, fontSize: '0.75rem', mt: '0.5rem' }}>
-              arrastra ficheros o carpetas aquí para subirlos
+              {t('googleDrive.dragToUpload')}
             </Typography>
           </Box>
         )}
@@ -539,10 +539,10 @@ export const GoogleDrive: React.FC = () => {
             {/* Table header */}
             <Box sx={tableHeaderSx}>
               <Box sx={{ flex: '0 0 2rem' }} />
-              <Typography sx={{ ...colHeaderSx, flex: 4 }}>nombre</Typography>
-              <Typography sx={{ ...colHeaderSx, flex: 1.5, display: { xs: 'none', sm: 'block' } }}>tipo</Typography>
-              <Typography sx={{ ...colHeaderSx, flex: 1.2, display: { xs: 'none', md: 'block' } }}>tamaño</Typography>
-              <Typography sx={{ ...colHeaderSx, flex: 1.5, display: { xs: 'none', md: 'block' } }}>modificado</Typography>
+              <Typography sx={{ ...colHeaderSx, flex: 4 }}>{t('googleDrive.colName')}</Typography>
+              <Typography sx={{ ...colHeaderSx, flex: 1.5, display: { xs: 'none', sm: 'block' } }}>{t('googleDrive.colType')}</Typography>
+              <Typography sx={{ ...colHeaderSx, flex: 1.2, display: { xs: 'none', md: 'block' } }}>{t('googleDrive.colSize')}</Typography>
+              <Typography sx={{ ...colHeaderSx, flex: 1.5, display: { xs: 'none', md: 'block' } }}>{t('googleDrive.colModified')}</Typography>
               <Box sx={{ flex: '0 0 5rem' }} />
             </Box>
 
@@ -564,10 +564,10 @@ export const GoogleDrive: React.FC = () => {
       {/* ── New folder dialog ─────────────────────────────────────────────── */}
       <CyberpunkDialog
         open={showFolderDlg}
-        title="// NUEVA CARPETA //"
+        title={t('googleDrive.newFolderTitle')}
         onClose={() => setShowFolderDlg(false)}
         onConfirm={handleCreateFolder}
-        confirmLabel="CREAR"
+        confirmLabel={t('googleDrive.createLabel')}
         confirming={creatingFolder}
       >
         <TextField
@@ -586,18 +586,18 @@ export const GoogleDrive: React.FC = () => {
       {/* ── Delete confirm dialog ─────────────────────────────────────────── */}
       <CyberpunkDialog
         open={!!deleteTarget}
-        title="// CONFIRMAR BORRADO //"
+        title={t('googleDrive.confirmDelete')}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        confirmLabel="ELIMINAR"
+        confirmLabel={t('googleDrive.deleteLabel')}
         confirmColor={C.magenta}
         confirming={deleting}
       >
         <Typography sx={{ color: C.textPri, fontFamily: MONO, fontSize: '0.85rem' }}>
-          ¿Eliminar permanentemente{' '}
+          {t('googleDrive.deleteQuestion')}{' '}
           <strong style={{ color: C.cyan }}>{deleteTarget?.name}</strong>?
           {deleteTarget?.isFolder && (
-            <span style={{ color: C.magenta }}> Esta acción borra la carpeta y todo su contenido.</span>
+            <span style={{ color: C.magenta }}> {t('googleDrive.deleteWarning')}</span>
           )}
         </Typography>
       </CyberpunkDialog>
@@ -639,6 +639,7 @@ interface DriveRowProps {
 }
 
 const DriveRow: React.FC<DriveRowProps> = ({ item, odd, onOpen, onDownload, onDelete }) => {
+  const { t } = useTranslation();
   const [hovered, setHovered] = React.useState(false);
 
   return (
@@ -713,7 +714,7 @@ const DriveRow: React.FC<DriveRowProps> = ({ item, odd, onOpen, onDownload, onDe
         onClick={e => e.stopPropagation()}
       >
         {!item.isFolder && (
-          <Tooltip title="Descargar">
+          <Tooltip title={t('googleDrive.download')}>
             <IconButton
               size="small"
               onClick={onDownload}
@@ -723,7 +724,7 @@ const DriveRow: React.FC<DriveRowProps> = ({ item, odd, onOpen, onDownload, onDe
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip title="Eliminar">
+        <Tooltip title={t('googleDrive.delete')}>
           <IconButton
             size="small"
             onClick={onDelete}
@@ -751,7 +752,9 @@ interface CyberpunkDialogProps {
 
 const CyberpunkDialog: React.FC<CyberpunkDialogProps> = ({
   open, title, onClose, onConfirm, confirmLabel, confirmColor = C.cyan, confirming, children,
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <Dialog
     open={open}
     onClose={onClose}
@@ -774,7 +777,7 @@ const CyberpunkDialog: React.FC<CyberpunkDialogProps> = ({
         onClick={onClose}
         sx={{ color: C.textSec, fontFamily: MONO, fontSize: '0.78rem', letterSpacing: '0.08em' }}
       >
-        CANCELAR
+        {t('common.cancel')}
       </Button>
       <Button
         size="small"
@@ -796,7 +799,8 @@ const CyberpunkDialog: React.FC<CyberpunkDialogProps> = ({
       </Button>
     </DialogActions>
   </Dialog>
-);
+  );
+};
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 const toolbarBtnSx = (color: string): SxProps<Theme> => ({

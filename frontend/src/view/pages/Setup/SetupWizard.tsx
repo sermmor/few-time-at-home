@@ -1,5 +1,6 @@
 import React from 'react';
 import { SetupActions, SetupWizardData } from '../../../core/actions/setup';
+import { useTranslation } from 'react-i18next';
 
 // ── Paleta cyberpunk (igual que CyberpunkLoadingScreen) ──────────────────────
 const neon    = '#00ffe7';
@@ -57,6 +58,7 @@ interface FieldErrors { cloudRootPath?: string; telegramBotToken?: string; teleg
 
 // ── Componente principal ─────────────────────────────────────────────────────
 export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+  const { t } = useTranslation();
   const [step,    setStep]    = React.useState(0);   // 0=bienvenida 1=cloud 2=telegram 3=confirmar
   const [installing, setInstalling] = React.useState(false);
   const [installError, setInstallError] = React.useState('');
@@ -76,12 +78,12 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
   const validate = (): boolean => {
     const e: FieldErrors = {};
     if (step === 1 && !form.cloudRootPath.trim()) {
-      e.cloudRootPath = 'La ruta es obligatoria.';
+      e.cloudRootPath = t('setup.errorCloudRequired');
     }
     if (step === 2 && form.connectToTelegram) {
-      if (!form.telegramBotToken.trim())  e.telegramBotToken  = 'Introduce el token del bot.';
-      if (!form.telegramUsername.trim())  e.telegramUsername  = 'Introduce tu usuario de Telegram.';
-      if (!form.telegramTokenPass.trim()) e.telegramTokenPass = 'Introduce una contraseña de acceso.';
+      if (!form.telegramBotToken.trim())  e.telegramBotToken  = t('setup.errorBotToken');
+      if (!form.telegramUsername.trim())  e.telegramUsername  = t('setup.errorTelegramUser');
+      if (!form.telegramTokenPass.trim()) e.telegramTokenPass = t('setup.errorSessionPass');
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -105,11 +107,11 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
       if (result.success) {
         onComplete();
       } else {
-        setInstallError(result.error ?? 'Error desconocido.');
+        setInstallError(result.error ?? t('setup.errorUnknown'));
         setInstalling(false);
       }
     } catch {
-      setInstallError('No se pudo conectar con el backend.');
+      setInstallError(t('setup.errorConnect'));
       setInstalling(false);
     }
   };
@@ -165,9 +167,9 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
               color: neon, letterSpacing: '0.2em', textTransform: 'uppercase',
               textShadow: `0 0 10px ${neon}`,
               animation: 'flicker 6s step-start infinite',
-            }}>FEW_TIME@HOME</h1>
+            }}>{t('setup.appTitle')}</h1>
             <div style={{ color: magenta, fontSize: '0.68rem', letterSpacing: '0.4em', marginTop: '0.3rem' }}>
-              ASISTENTE DE CONFIGURACIÓN INICIAL
+              {t('setup.wizardTitle')}
             </div>
           </div>
 
@@ -191,37 +193,35 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
           {step === 0 && (
             <div style={{ animation: 'fadeIn .4s ease' }}>
               <p style={{ color: `${neon}cc`, fontSize: '0.85rem', lineHeight: 1.7, margin: '0 0 1rem' }}>
-                Es la primera vez que arrancas <span style={{ color: neon }}>Few_Time@Home</span>.
-                Este asistente creará todos los ficheros de configuración necesarios
-                en <span style={{ color: yellow }}>3 pasos</span>.
+                {t('setup.intro')}
               </p>
               <p style={{ color: `${neon}80`, fontSize: '0.78rem', lineHeight: 1.6, margin: '0 0 1.5rem' }}>
-                Una vez completado, la aplicación arrancará automáticamente sin necesidad de reiniciar nada.
+                {t('setup.intro2')}
               </p>
-              <CyberButton onClick={() => setStep(1)} fullWidth>INICIAR CONFIGURACIÓN</CyberButton>
+              <CyberButton onClick={() => setStep(1)} fullWidth>{t('setup.startButton')}</CyberButton>
             </div>
           )}
 
           {/* ── PASO 1: Almacenamiento ────────────────────────────────────── */}
           {step === 1 && (
             <div style={{ animation: 'fadeIn .4s ease' }}>
-              <StepTitle icon="☁️" title="ALMACENAMIENTO" subtitle="Carpeta raíz de la Cloud" />
-              <Field label="Ruta de la carpeta Cloud *"
-                hint="Ej: /home/sergio/cloud  |  C:\Users\sergio\cloud"
+              <StepTitle icon={t('setup.storageIcon')} title={t('setup.storageTitle')} subtitle={t('setup.cloudFolder')} />
+              <Field label={t('setup.cloudFolderLabel')}
+                hint={t('setup.cloudFolderHelper')}
                 error={errors.cloudRootPath}>
                 <input style={inputStyle} value={form.cloudRootPath} autoFocus
-                  placeholder="/home/usuario/cloud"
+                  placeholder={t('setup.cloudFolderPlaceholder')}
                   onChange={e => set('cloudRootPath', e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && next()} />
               </Field>
-              <Nav onBack={back} onNext={next} />
+              <Nav onBack={back} onNext={next} backLabel={t('setup.backButton')} nextLabel={t('setup.nextButton')} />
             </div>
           )}
 
           {/* ── PASO 2: Telegram ─────────────────────────────────────────── */}
           {step === 2 && (
             <div style={{ animation: 'fadeIn .4s ease' }}>
-              <StepTitle icon="🤖" title="TELEGRAM BOT" subtitle="Opcional — control remoto vía Telegram" />
+              <StepTitle icon={t('setup.telegramIcon')} title={t('setup.telegramTitle')} subtitle={t('setup.telegramOptional')} />
 
               {/* Toggle */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -239,27 +239,27 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
                   }} />
                 </button>
                 <span style={{ color: neon, fontSize: '0.82rem', letterSpacing: '0.1em' }}>
-                  {form.connectToTelegram ? 'Bot de Telegram activado' : 'Bot de Telegram desactivado'}
+                  {form.connectToTelegram ? t('setup.telegramEnabled') : t('setup.telegramDisabled')}
                 </span>
               </div>
 
               {form.connectToTelegram && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  <Field label="Token del bot (de @BotFather) *" error={errors.telegramBotToken}>
+                  <Field label={t('setup.botTokenLabel')} error={errors.telegramBotToken}>
                     <input style={inputStyle} value={form.telegramBotToken}
-                      placeholder="123456789:AAF..."
+                      placeholder={t('setup.botTokenPlaceholder')}
                       onChange={e => set('telegramBotToken', e.target.value)} />
                   </Field>
-                  <Field label="Tu usuario de Telegram (sin @) *" error={errors.telegramUsername}>
+                  <Field label={t('setup.telegramUserLabel')} error={errors.telegramUsername}>
                     <input style={inputStyle} value={form.telegramUsername}
-                      placeholder="mi_usuario"
+                      placeholder={t('setup.telegramUserPlaceholder')}
                       onChange={e => set('telegramUsername', e.target.value)} />
                   </Field>
-                  <Field label="Contraseña de acceso al bot *"
-                    hint="La usarás con /login <contraseña> en el chat del bot"
+                  <Field label={t('setup.sessionPassLabel')}
+                    hint={t('setup.sessionPassHelper')}
                     error={errors.telegramTokenPass}>
                     <input style={inputStyle} type="password" value={form.telegramTokenPass}
-                      placeholder="••••••••"
+                      placeholder={t('setup.sessionPassPlaceholder')}
                       onChange={e => set('telegramTokenPass', e.target.value)} />
                   </Field>
                 </div>
@@ -267,33 +267,33 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
 
               {!form.connectToTelegram && (
                 <p style={{ color: `${neon}60`, fontSize: '0.78rem', lineHeight: 1.6 }}>
-                  Puedes activarlo más adelante desde la sección de Configuración de la app.
+                  {t('setup.telegramLaterNote')}
                 </p>
               )}
-              <Nav onBack={back} onNext={next} />
+              <Nav onBack={back} onNext={next} backLabel={t('setup.backButton')} nextLabel={t('setup.nextButton')} />
             </div>
           )}
 
           {/* ── PASO 3: Resumen + instalar ────────────────────────────────── */}
           {step === 3 && !installing && (
             <div style={{ animation: 'fadeIn .4s ease' }}>
-              <StepTitle icon="✅" title="RESUMEN" subtitle="Revisa y confirma" />
+              <StepTitle icon={t('setup.summaryIcon')} title={t('setup.summaryTitle')} subtitle={t('setup.summarySubtitle')} />
               <div style={{
                 border: `1px solid ${neonDim}`, borderRadius: 4,
                 padding: '0.75rem 1rem', marginBottom: '1.25rem',
                 fontSize: '0.8rem', lineHeight: 1.9, color: `${neon}cc`,
               }}>
-                <Row label="Cloud"    value={form.cloudRootPath} />
-                <Row label="Telegram" value={form.connectToTelegram
+                <Row label={t('setup.summaryCloud')} value={form.cloudRootPath} />
+                <Row label={t('setup.summaryTelegram')} value={form.connectToTelegram
                   ? `@${form.telegramUsername}`
-                  : 'Desactivado'} />
+                  : t('setup.summaryDisabled')} />
               </div>
               {installError && (
                 <p style={{ ...errorStyle, marginBottom: '0.75rem' }}>❌ {installError}</p>
               )}
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <CyberButton onClick={back} secondary>← VOLVER</CyberButton>
-                <CyberButton onClick={install} fullWidth>INSTALAR ⚡</CyberButton>
+                <CyberButton onClick={back} secondary>{t('setup.backButton')}</CyberButton>
+                <CyberButton onClick={install} fullWidth>{t('setup.installButton')}</CyberButton>
               </div>
             </div>
           )}
@@ -301,12 +301,12 @@ export const SetupWizard: React.FC<{ onComplete: () => void }> = ({ onComplete }
           {/* ── Estado: instalando ────────────────────────────────────────── */}
           {installing && (
             <div style={{ textAlign: 'center', padding: '1rem 0', animation: 'fadeIn .4s ease' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚙️</div>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>{t('setup.installingIcon')}</div>
               <p style={{ color: neon, fontSize: '0.9rem', letterSpacing: '0.15em' }}>
-                CREANDO FICHEROS<span style={{ animation: 'blink 1s step-start infinite' }}>…</span>
+                {t('setup.installingTitle')}<span style={{ animation: 'blink 1s step-start infinite' }}>…</span>
               </p>
               <p style={{ color: `${neon}70`, fontSize: '0.75rem', marginTop: '0.5rem' }}>
-                La aplicación arrancará automáticamente en unos segundos.
+                {t('setup.installingNote')}
               </p>
             </div>
           )}
@@ -347,10 +347,10 @@ const Row: React.FC<{ label: string; value: string }> = ({ label, value }) => (
   </div>
 );
 
-const Nav: React.FC<{ onBack: () => void; onNext: () => void }> = ({ onBack, onNext }) => (
+const Nav: React.FC<{ onBack: () => void; onNext: () => void; backLabel?: string; nextLabel?: string }> = ({ onBack, onNext, backLabel = '← VOLVER', nextLabel = 'SIGUIENTE →' }) => (
   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-    <CyberButton onClick={onBack} secondary>← VOLVER</CyberButton>
-    <CyberButton onClick={onNext} fullWidth>SIGUIENTE →</CyberButton>
+    <CyberButton onClick={onBack} secondary>{backLabel}</CyberButton>
+    <CyberButton onClick={onNext} fullWidth>{nextLabel}</CyberButton>
   </div>
 );
 

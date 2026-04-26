@@ -18,6 +18,7 @@ import { ConfigurationDataZipped } from '../../../../data-model/configuration';
 import { ConfigurationSaveButton } from './ConfigurationSaveButton';
 import { useConfiguredDialogAlphas } from '../../../../core/context/DialogAlphasContext';
 import { AuthActions } from '../../../../core/actions/auth';
+import { useTranslation } from 'react-i18next';
 
 const CYAN      = '#00ffe7';
 const CYAN_DIM  = 'rgba(0,255,231,0.55)';
@@ -62,6 +63,7 @@ interface LoginSectionProps {
 
 export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, onLogout }) => {
   const alphas       = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   const [showPass, setShowPass] = React.useState(false);
 
   const set = (field: 'user' | 'password' | 'loginEnabled') => (value: string | boolean) =>
@@ -70,7 +72,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, o
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Login</Typography>
+        <Typography>{t('loginSection.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Box sx={sectionSx}>
@@ -86,7 +88,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, o
               }
               label={
                 <Typography sx={{ ...labelSx, minWidth: 'unset' }}>
-                  Activar formulario de login
+                  {t('loginSection.enableLogin')}
                 </Typography>
               }
             />
@@ -94,7 +96,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, o
 
           {/* ── user ── */}
           <Box sx={rowSx}>
-            <Typography sx={labelSx}>Usuario:</Typography>
+            <Typography sx={labelSx}>{t('loginSection.userLabel')}</Typography>
             <TextField
               variant="standard"
               value={config.user}
@@ -105,7 +107,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, o
 
           {/* ── password ── */}
           <Box sx={rowSx}>
-            <Typography sx={labelSx}>Contraseña:</Typography>
+            <Typography sx={labelSx}>{t('loginSection.passwordLabel')}</Typography>
             <TextField
               variant="standard"
               type={showPass ? 'text' : 'password'}
@@ -139,7 +141,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, o
               borderLeft:    `2px solid ${CYAN_BORD}`,
               paddingLeft:   '0.75rem',
             }}>
-              El formulario de login está desactivado. Cualquier usuario puede acceder a la aplicación sin autenticarse.
+              {t('loginSection.loginDisabled')}
             </Typography>
           )}
 
@@ -165,7 +167,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ config, setConfig, o
                 },
               }}
             >
-              // CERRAR SESIÓN //
+              {t('loginSection.logout')}
             </Button>
           </Box>
 

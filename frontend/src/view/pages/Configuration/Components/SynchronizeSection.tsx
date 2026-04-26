@@ -5,6 +5,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useTranslation } from 'react-i18next';
 import { synchronizeActions } from "../../../../core/actions/synchronize";
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 
@@ -33,6 +34,7 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
   setSynchronizeUrl,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   const [status,  setStatus]  = useState<SyncStatus>('idle');
   const [message, setMessage] = useState('');
 
@@ -42,11 +44,11 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
     synchronizeActions.downloadData(synchronizeUrl)
       .then(res => {
         setStatus('done');
-        setMessage(res.message ?? '✅ Sincronización completada.');
+        setMessage(res.message ?? t('sync.success'));
       })
       .catch(() => {
         setStatus('done');
-        setMessage('❌ Error al conectar con el servidor remoto.');
+        setMessage(t('sync.error'));
       });
   };
 
@@ -56,21 +58,18 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>Sincronizar</Typography>
+        <Typography>{t('sync.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <Box sx={getSynchronizeSectionStyle(alphas.general)}>
           <Typography variant='h6' sx={{ textTransform: 'uppercase' }}>
-            Synchronize all data:
+            {t('sync.syncAllData')}
           </Typography>
           <Typography variant='body2' sx={{ color: 'rgb(80, 80, 80)' }}>
-            Introduce la URL base del backend remoto. Al pulsar Download, esta instancia
-            descargará los datos de esa instancia (notas, alertas, marcadores, RSS…) y
-            reemplazará los suyos propios. <strong>No</strong> se transferirán
-            configuration.json ni keys.json.
+            {t('sync.description')}
           </Typography>
           <TextField
-            label="URL del backend remoto"
+            label={t('sync.urlLabel')}
             variant="standard"
             value={synchronizeUrl}
             sx={{ minWidth: { xs: '15.5rem', sm: '5rem', md: '30rem' } }}
@@ -84,7 +83,7 @@ export const SynchronizeSection: React.FC<SynchronizeSectionProps> = ({
             disabled={isLoading || !synchronizeUrl}
             startIcon={isLoading ? <CircularProgress size={18} color="inherit" /> : undefined}
           >
-            {isLoading ? 'Sincronizando…' : 'Download'}
+            {isLoading ? t('sync.syncing') : t('sync.download')}
           </Button>
           {status === 'done' && (
             <Typography

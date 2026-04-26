@@ -6,6 +6,7 @@ import { TitleAndList } from "../../../organism/TitleAndList/TitleAndList";
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { useTranslation } from 'react-i18next';
 
 interface NewsRSSSectionProps {
   config: ConfigurationDataZipped;
@@ -23,10 +24,11 @@ export const NewsRSSSection: React.FC<NewsRSSSectionProps> = ({
   indexNewItemAdded,
 }) => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>RSS de Noticias</Typography>
+        <Typography>{t('newsRss.sectionTitle')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
       <TitleAndList

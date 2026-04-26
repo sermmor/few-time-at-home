@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, IconButton, InputAdornment, TextField, Typography, GlobalStyles } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { AuthActions } from '../../../core/actions/auth';
+import { useTranslation } from 'react-i18next';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const CY = {
@@ -20,6 +21,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+  const { t } = useTranslation();
   const [user,        setUser]        = React.useState('');
   const [password,    setPassword]    = React.useState('');
   const [showPass,    setShowPass]    = React.useState(false);
@@ -28,7 +30,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   const handleLogin = () => {
     if (!user || !password) {
-      setError('INTRODUCE USUARIO Y CONTRASEÑA');
+      setError(t('loginPage.enterCredentials'));
       return;
     }
     setLoading(true);
@@ -38,7 +40,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       if (success) {
         onLoginSuccess();
       } else {
-        setError('CREDENCIALES INCORRECTAS');
+        setError(t('loginPage.wrongCredentials'));
         setPassword('');
       }
     });
@@ -150,7 +152,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               textTransform: 'uppercase',
               marginTop:     '0.3rem',
             }}>
-              ACCESO AL SISTEMA
+              {t('loginPage.accessTitle')}
             </Typography>
             <Box sx={{
               width:        '100%',
@@ -164,7 +166,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           {/* User field */}
           <TextField
             fullWidth
-            label="USUARIO"
+            label={t('loginPage.userLabel')}
             variant="outlined"
             value={user}
             onChange={e => setUser(e.target.value)}
@@ -185,7 +187,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           {/* Password field */}
           <TextField
             fullWidth
-            label="CONTRASEÑA"
+            label={t('loginPage.passwordLabel')}
             variant="outlined"
             type={showPass ? 'text' : 'password'}
             value={password}
@@ -255,7 +257,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               } : {},
             }}
           >
-            {loading ? '// VERIFICANDO //' : '// ACCEDER //'}
+            {loading ? t('loginPage.verifying') : t('loginPage.access')}
           </Box>
 
           {/* Footer */}
@@ -266,7 +268,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             color:         'rgba(0,255,231,0.25)',
             textAlign:     'center',
           }}>
-            SISTEMA PRIVADO — ACCESO NO AUTORIZADO PROHIBIDO
+            {t('loginPage.privateSystem')}
           </Typography>
         </Box>
       </Box>

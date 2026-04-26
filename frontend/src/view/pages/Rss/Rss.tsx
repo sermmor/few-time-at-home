@@ -17,6 +17,7 @@ import { ConfigurationActions } from '../../../core/actions/configuration';
 import { UnfurlActions } from '../../../core/actions/unfurl';
 import { UnfurlDataModel } from '../../../data-model/unfurl';
 import { useConfiguredDialogAlphas } from '../../../core/context/DialogAlphasContext';
+import { useTranslation } from 'react-i18next';
 
 const LOADING_CARD_TIME = 5000;
 
@@ -71,6 +72,7 @@ const getUrlMessage = (message: string): string => {
 
 export const Rss = () => {
   const alphas = useConfiguredDialogAlphas();
+  const { t } = useTranslation();
   const [rssType, setRssType] = React.useState<RSSType>('favorites');
   const [tagType, setTagType] = React.useState<string>('null');
   const [optionsTagsYoutube, setOptionsTagsYoutube] = React.useState<string[]>([]);
@@ -132,10 +134,10 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          ['FAVORITES', 'MASTODON', 'YOUTUBE', 'BLOG', 'NEWS', 'SAVED', 'RANDOM'].map(type => <MenuItem value={type.toLowerCase()} key={type} sx={{textTransform: 'uppercase'}}>{type}</MenuItem>)
+          (['favorites', 'mastodon', 'youtube', 'blog', 'news', 'saved', 'random'] as const).map(type => <MenuItem value={type} key={type} sx={{textTransform: 'uppercase'}}>{t(`rss.${type}`)}</MenuItem>)
         }
       </Select>
-      <TextField label="Amount" variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
+      <TextField label={t('rss.amount')} variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
       {
       rssType === 'youtube' && <Select value={tagType} onChange={evt => setTagType(evt.target.value)}>{
         optionsTagsYoutube.map(type => <MenuItem value={type} key={type}>{type}</MenuItem>)
@@ -196,7 +198,7 @@ export const Rss = () => {
           }
         }}
       >
-        GO
+        {t('rss.go')}
       </Button>
     </Box>
     {rssType === 'saved' && (
@@ -209,7 +211,7 @@ export const Rss = () => {
         {/* Search bar */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '0.5rem', alignItems: 'center' }}>
           <TextField
-            label="Buscar en Saved"
+            label={t('rss.searchSaved')}
             variant="outlined"
             size="small"
             fullWidth
@@ -237,7 +239,7 @@ export const Rss = () => {
             disabled={!searchQuery.trim()}
             sx={{ whiteSpace: 'nowrap', textTransform: 'none', minWidth: '90px' }}
           >
-            Buscar
+            {t('rss.search')}
           </Button>
         </Box>
 
@@ -246,7 +248,7 @@ export const Rss = () => {
           ReadLaterRSSActions.add({
             message: `${title}\nAutomatico - ${date}\n\n${url}`,
           }).then(({ data }) => {
-            setSnackBarMessage("Bookmark saved!");
+            setSnackBarMessage(t('rss.bookmarkSaved'));
             setErrorSnackbar(false);
             setOpenSnackbar(true);
             // Fetch the unfurl first, then update both arrays atomically so their
@@ -270,7 +272,7 @@ export const Rss = () => {
           <Box sx={getButtonCardStyles(alphas.general)}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
-              setSnackBarMessage("Bookmark saved!");
+              setSnackBarMessage(t('rss.bookmarkSaved'));
               setErrorSnackbar(false);
               setOpenSnackbar(true);
             })}><BookmarkIcon /></Button>
@@ -280,7 +282,7 @@ export const Rss = () => {
           <RssMessage key={msg.id} message={msg.message} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={index} />
           <Box sx={getButtonCardStyles(alphas.general)}>
             <Button onClick={() => ReadLaterRSSActions.remove({id: msg.id}).then(() => {
-              setSnackBarMessage("Bookmark removed!");
+              setSnackBarMessage(t('rss.bookmarkRemoved'));
               setErrorSnackbar(false);
               setOpenSnackbar(true);
               // Remove both the message and its corresponding unfurl entry so the
@@ -302,7 +304,7 @@ export const Rss = () => {
       <Fab
         size="medium"
         color="primary"
-        aria-label="Volver arriba"
+        aria-label={t('rss.scrollTop')}
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
       >
@@ -314,7 +316,7 @@ export const Rss = () => {
       <Fab
         size="medium"
         color="primary"
-        aria-label="Ir abajo"
+        aria-label={t('rss.scrollBottom')}
         onClick={() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })}
         sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
       >
