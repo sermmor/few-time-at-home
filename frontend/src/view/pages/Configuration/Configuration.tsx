@@ -56,8 +56,22 @@ export const ConfigurationComponent = () => {
   };
   
   React.useEffect(() => {
-    ConfigurationActions.getConfigurationType().then(types => ConfigurationActions.getConfiguration(types.data).then(data => setConfig(parseToZippedConfig(data))));
-    PomodoroActions.getTimeModeList().then(({data}: any) => setPomodoroTimeMode(JSON.stringify(data, null, 2)));
+    ConfigurationActions.getConfigurationType()
+      .then(types => ConfigurationActions.getConfiguration(types.data)
+        .then(data => setConfig(parseToZippedConfig(data)))
+      )
+      .catch(() => {
+        setSnackBarMessage('Error al cargar la configuración.');
+        setErrorSnackbar(true);
+        setOpenSnackbar(true);
+      });
+    PomodoroActions.getTimeModeList()
+      .then(({data}: any) => setPomodoroTimeMode(JSON.stringify(data, null, 2)))
+      .catch(() => {
+        setSnackBarMessage('Error al cargar los modos Pomodoro.');
+        setErrorSnackbar(true);
+        setOpenSnackbar(true);
+      });
   }, []);
 
   const deleteActionList = (keyList: string, equals: (item: any, idToDelete: string) => boolean) => (id: string) => {

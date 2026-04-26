@@ -416,20 +416,33 @@ export const Weather: React.FC = () => {
   const [hourlyRows, setHourlyRows] = React.useState<HourlyWeatherRow[]>([]);
   const [loadingDaily,  setLoadingDaily]  = React.useState(true);
   const [loadingHourly, setLoadingHourly] = React.useState(true);
+  const [errorDaily,  setErrorDaily]  = React.useState(false);
+  const [errorHourly, setErrorHourly] = React.useState(false);
   const [updatedAt, setUpdatedAt] = React.useState<string>('');
 
   React.useEffect(() => {
     const ts = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     setUpdatedAt(ts);
 
-    WeatherActions.getDaily().then(rows => {
-      setDailyRows(rows);
-      setLoadingDaily(false);
-    });
-    WeatherActions.getHourly().then(rows => {
-      setHourlyRows(rows);
-      setLoadingHourly(false);
-    });
+    WeatherActions.getDaily()
+      .then(rows => {
+        setDailyRows(rows);
+        setLoadingDaily(false);
+      })
+      .catch(() => {
+        setErrorDaily(true);
+        setLoadingDaily(false);
+      });
+
+    WeatherActions.getHourly()
+      .then(rows => {
+        setHourlyRows(rows);
+        setLoadingHourly(false);
+      })
+      .catch(() => {
+        setErrorHourly(true);
+        setLoadingHourly(false);
+      });
   }, []);
 
   const glowCyan    = `0 0 10px ${C.cyan}, 0 0 20px ${C.cyan}44`;
@@ -511,7 +524,11 @@ export const Weather: React.FC = () => {
               ? <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '12rem' }}>
                   <CircularProgress sx={{ color: C.cyan }} />
                 </Box>
-              : <DailyTable rows={dailyRows} />
+              : errorDaily
+                ? <p style={{ color: C.red, fontFamily: C.font, textAlign: 'center', padding: '2rem', margin: 0 }}>
+                    ⚠ Error al cargar los datos meteorológicos diarios.
+                  </p>
+                : <DailyTable rows={dailyRows} />
             }
           </Box>
         )}
@@ -529,7 +546,11 @@ export const Weather: React.FC = () => {
               ? <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '12rem' }}>
                   <CircularProgress sx={{ color: C.cyan }} />
                 </Box>
-              : <HourlyTable rows={hourlyRows} />
+              : errorHourly
+                ? <p style={{ color: C.red, fontFamily: C.font, textAlign: 'center', padding: '2rem', margin: 0 }}>
+                    ⚠ Error al cargar los datos meteorológicos por horas.
+                  </p>
+                : <HourlyTable rows={hourlyRows} />
             }
           </Box>
         )}

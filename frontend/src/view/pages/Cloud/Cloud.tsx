@@ -82,21 +82,33 @@ export const Cloud = () => {
   const [pathToReturn, setPathToReturn] = React.useState<CloudItem[]>([]);
   const onCloseSnackBar = (event?: React.SyntheticEvent | Event, reason?: string) => reason === 'clickaway' || setOpenSnackbar(false);
 
-  React.useEffect(() => { CloudActions.getDrivesList().then(({ driveList }) => {
-    // For now, I'll choose the cloud drive.
-    setDriveList(driveList);
-    const indexCloudDrive = (indexCurrentDrive === -1) ? driveList.indexOf(cloudDriveName) : indexCurrentDrive;
-    setIndexCurrentDrive(indexCloudDrive);
-    const defaultDrive = driveList[indexCloudDrive];
-    setCurrentDrive(defaultDrive);
-    
-    const nextCloudPathUpdated = `${defaultDrive}${decodedPathname.split(cloudRootPath)[1]}`;
-    setCurrentCloudPath(nextCloudPathUpdated)
-    setCurrentPathFolder(nextCloudPathUpdated);
-    CloudActions.getAllFolderItems({ drive: defaultDrive, folderPath: nextCloudPathUpdated }).then(data => {
-      setFileList(data.data);
-    });
-  })}, [indexCurrentDrive, setCurrentCloudPath, decodedPathname, cloudRootPath]);
+  React.useEffect(() => {
+    CloudActions.getDrivesList()
+      .then(({ driveList }) => {
+        // For now, I'll choose the cloud drive.
+        setDriveList(driveList);
+        const indexCloudDrive = (indexCurrentDrive === -1) ? driveList.indexOf(cloudDriveName) : indexCurrentDrive;
+        setIndexCurrentDrive(indexCloudDrive);
+        const defaultDrive = driveList[indexCloudDrive];
+        setCurrentDrive(defaultDrive);
+
+        const nextCloudPathUpdated = `${defaultDrive}${decodedPathname.split(cloudRootPath)[1]}`;
+        setCurrentCloudPath(nextCloudPathUpdated);
+        setCurrentPathFolder(nextCloudPathUpdated);
+        CloudActions.getAllFolderItems({ drive: defaultDrive, folderPath: nextCloudPathUpdated })
+          .then(data => { setFileList(data.data); })
+          .catch(() => {
+            setSnackBarMessage('Error al cargar el contenido de la carpeta.');
+            setErrorSnackbar(true);
+            setOpenSnackbar(true);
+          });
+      })
+      .catch(() => {
+        setSnackBarMessage('Error al cargar las unidades de almacenamiento.');
+        setErrorSnackbar(true);
+        setOpenSnackbar(true);
+      });
+  }, [indexCurrentDrive, setCurrentCloudPath, decodedPathname, cloudRootPath]);
 
   const action: ActionsProps = { cloudState, setCloudState, currentPathFolder, setCurrentPathFolder, fileList, setFileList, currentDrive, selectedNodes,
     setSelectedNodes, setOpenSnackbar, setSnackBarMessage, setErrorSnackbar, isMarkToReturnToPath, setMarkToReturnToPath, pathToReturn, setPathToReturn,

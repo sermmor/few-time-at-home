@@ -5,6 +5,7 @@ import { formatToTwoDigits, getCurrentChainFromModeName, getCurrentChainItem, pa
 import { TimerMode } from "../../../data-model/pomodoro";
 import { PomodoroActions } from "../../../core/actions/pomodoro";
 import { useConfiguredDialogAlphas } from "../../../core/context/DialogAlphasContext";
+import { FetchErrorBanner } from "../../molecules/FetchErrorBanner/FetchErrorBanner";
 
 const getFormStyle = (alpha: number): SxProps<Theme> => ({
   display: 'flex',
@@ -70,6 +71,7 @@ export const Pomodoro = (): JSX.Element => {
   const alphas = useConfiguredDialogAlphas();
   // MM:SS
   const [listModes, setListModes] = React.useState<TimerMode[]>();
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
   const [isTimeRunning, setTimeRunning] = React.useState<boolean>(false);
   const [time, setTime] = React.useState<string>(TemporalData.getFormatTimeLeftPomodoro());
   const [timeToShow, setTimeToShow] = React.useState<string>(TemporalData.getFormatTimeLeftPomodoro());
@@ -77,11 +79,15 @@ export const Pomodoro = (): JSX.Element => {
   const [currentChain, setCurrentChain] = React.useState<string[]>(listModes ? listModes[0].chain : []);
   const [currentChainIndex, setCurrentChainIndex] = React.useState<number>(0);
 
-  React.useEffect(() => { PomodoroActions.getTimeModeList().then(({data}) => {
-    setListModes(data);
-    setCurrentMode(data[0].name);
-    setCurrentChain(data[0].chain);
-  } ) }, []);
+  React.useEffect(() => {
+    PomodoroActions.getTimeModeList()
+      .then(({data}) => {
+        setListModes(data);
+        setCurrentMode(data[0].name);
+        setCurrentChain(data[0].chain);
+      })
+      .catch(() => setFetchError('No se pudieron cargar los modos del temporizador.'));
+  }, []);
 
   const runTimer = (chainIndex: number) => {
     const realTime = getCurrentChainItem(currentChain, chainIndex, time);
@@ -118,11 +124,16 @@ export const Pomodoro = (): JSX.Element => {
   };
 
   if (!listModes) {
-    return <Box sx={getFormStyle(alphas.general)}>
-    <Box sx={rowFormStyle()}>
-      <CircularProgress />
-    </Box>
-  </Box>;
+    return (
+      <Box sx={getFormStyle(alphas.general)}>
+        <Box sx={rowFormStyle()}>
+          {fetchError
+            ? <FetchErrorBanner message={fetchError} />
+            : <CircularProgress />
+          }
+        </Box>
+      </Box>
+    );
   }
 
   return <>

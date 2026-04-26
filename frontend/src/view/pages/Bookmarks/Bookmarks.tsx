@@ -1,6 +1,7 @@
 import { Box, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
+import { FetchErrorBanner } from "../../molecules/FetchErrorBanner/FetchErrorBanner";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
@@ -47,12 +48,15 @@ export const Bookmarks = () => {
   const [bookmarks, setBookmarks] = React.useState<BookmarkItem[]>([]);
   const [selectedNodes, setSelectedNodes] = React.useState<BookmarkItem[]>([]);
   const [pathFromCopy, setPathFromCopy] = React.useState<string | undefined>();
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setShadowPath(!!theRealPath ? theRealPath : '/');
-    BookmarksActions.getPathList({ path: currentPath }).then(({data}) => {
-      setBookmarks(data);
-    })}, [currentPath, theRealPath]);
+    setFetchError(null);
+    BookmarksActions.getPathList({ path: currentPath })
+      .then(({data}) => { setBookmarks(data); })
+      .catch(() => setFetchError('No se pudieron cargar los marcadores.'));
+  }, [currentPath, theRealPath]);
 
   const setCurrentPath = (newPath: string) => {
     setShadowPath(newPath);
@@ -61,7 +65,8 @@ export const Bookmarks = () => {
 
   const action: ActionsProps = { currentPath, setCurrentPath, bookmarks, setBookmarks, selectedNodes, setSelectedNodes, pathFromCopy, setPathFromCopy };
   
-  return <Box sx={formStyle}> 
+  return <Box sx={formStyle}>
+    {fetchError && <FetchErrorBanner message={fetchError} />}
     {bookmarks && <>
         <TitleAndListWithFolders
           title='Bookmarks'

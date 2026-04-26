@@ -24,6 +24,7 @@ import SaveIcon              from '@mui/icons-material/Save';
 import { useConfiguredDialogAlphas } from '../../../core/context/DialogAlphasContext';
 import { NotificationsActions }      from '../../../core/actions/notifications';
 import { AlertData, BirthdayData }   from '../../../data-model/notifications';
+import { FetchErrorBanner }          from '../../molecules/FetchErrorBanner/FetchErrorBanner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -291,19 +292,28 @@ export const Notifications = () => {
   const [birthdays,              setBirthdays]              = React.useState<BirthdayData[]>([]);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState(true);
   const [loading,                setLoading]                = React.useState(true);
+  const [fetchError,             setFetchError]             = React.useState<string | null>(null);
+  const [retryCount,             setRetryCount]             = React.useState(0);
 
   React.useEffect(() => {
+    setLoading(true);
+    setFetchError(null);
     Promise.all([
       NotificationsActions.getNotifications(),
       NotificationsActions.getBirthdays(),
       NotificationsActions.getAreNotificationsEnabled(),
-    ]).then(([notifData, birthdayData, enabled]) => {
-      setAlerts(notifData.alerts ?? []);
-      setBirthdays((birthdayData as any).birthdays ?? []);
-      setIsNotificationsEnabled(enabled);
-      setLoading(false);
-    });
-  }, []);
+    ])
+      .then(([notifData, birthdayData, enabled]) => {
+        setAlerts(notifData.alerts ?? []);
+        setBirthdays((birthdayData as any).birthdays ?? []);
+        setIsNotificationsEnabled(enabled);
+        setLoading(false);
+      })
+      .catch(() => {
+        setFetchError('No se pudieron cargar las notificaciones.');
+        setLoading(false);
+      });
+  }, [retryCount]);
 
   // ── Alerts ────────────────────────────────────────────────────────────────
 
@@ -362,6 +372,13 @@ export const Notifications = () => {
       <Typography variant="h5" sx={{ ...titleSx, mb: 2 }}>
         Notificaciones
       </Typography>
+
+      {fetchError && (
+        <FetchErrorBanner
+          message={fetchError}
+          onRetry={() => setRetryCount(c => c + 1)}
+        />
+      )}
 
       {!isNotificationsEnabled && (
         <MuiAlert severity="warning" sx={{ mb: 2 }}>

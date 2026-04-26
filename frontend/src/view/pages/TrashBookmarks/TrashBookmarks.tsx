@@ -1,6 +1,7 @@
 import { Box, Button, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { BookmarksActions } from "../../../core/actions/bookmarks";
+import { FetchErrorBanner } from "../../molecules/FetchErrorBanner/FetchErrorBanner";
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { ActionsProps, deleteActionList, goToPage, onSearchItem,} from "./ActionsTrashBookmarksList";
@@ -26,20 +27,24 @@ export const TrashBookmarks = () => {
   const [currentPage, setCurrentPage] = React.useState<number>(0);
   const [numberOfPages, setNumberOfPages] = React.useState<number>(0);
   const [totalOfBookmarks, setTotalOfBookmarks] = React.useState<number>(0);
-  
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    BookmarksActions.getTrashList({ bookmarksByPage, currentPage}).then(({ bookmarks, numberOfPages, totalOfBookmarks }) => {
-      setBookmarks(bookmarks);
-      setNumberOfPages(numberOfPages);
-      setTotalOfBookmarks(totalOfBookmarks);
-    });
+    setFetchError(null);
+    BookmarksActions.getTrashList({ bookmarksByPage, currentPage })
+      .then(({ bookmarks, numberOfPages, totalOfBookmarks }) => {
+        setBookmarks(bookmarks);
+        setNumberOfPages(numberOfPages);
+        setTotalOfBookmarks(totalOfBookmarks);
+      })
+      .catch(() => setFetchError('No se pudo cargar la papelera de marcadores.'));
   }, [bookmarksByPage, currentPage]);
 
   const action: ActionsProps = { bookmarks, bookmarksByPage, currentPage, numberOfPages, totalOfBookmarks,
     setBookmarks, setBookmarksByPage, setCurrentPage, setNumberOfPages, setTotalOfBookmarks };
 
-  return <Box sx={formStyle}> 
+  return <Box sx={formStyle}>
+    {fetchError && <FetchErrorBanner message={fetchError} />}
     {bookmarks && <>
         <TitleAndListWithFolders
           title='Trash Bookmarks'

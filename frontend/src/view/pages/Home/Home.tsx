@@ -6,6 +6,7 @@ import { NotesDataModel } from "../../../data-model/notes";
 import { QuoteDataModel } from "../../../data-model/quote";
 import { LabelAndTextField } from "../../molecules/LabelAndTextField/LabelAndTextField";
 import { TitleAndList } from "../../organism/TitleAndList/TitleAndList";
+import { FetchErrorBanner } from "../../molecules/FetchErrorBanner/FetchErrorBanner";
 
 const formStyle: SxProps<Theme> = {
   display: 'flex',
@@ -50,8 +51,20 @@ let indexNewNoteAdded = 0;
 export const Home = () => {
   const [randomQuote, setRandomQuote] = React.useState<QuoteDataModel>();
   const [notes, setNotes] = React.useState<NotesDataModel>();
-  React.useEffect(() => { QuotesActions.getRandomQuote().then(data => setRandomQuote(data)) }, []);
-  React.useEffect(() => { NotesActions.getNotes().then(data => setNotes(data)) }, []);
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
+  const [retryCount, setRetryCount] = React.useState(0);
+
+  React.useEffect(() => {
+    QuotesActions.getRandomQuote()
+      .then(data => setRandomQuote(data))
+      .catch(() => setFetchError('No se pudo cargar la cita inspiracional.'));
+  }, [retryCount]);
+
+  React.useEffect(() => {
+    NotesActions.getNotes()
+      .then(data => setNotes(data))
+      .catch(() => setFetchError('No se pudieron cargar las notas.'));
+  }, [retryCount]);
 
   const deleteActionList = (id: string) => {
     if (!notes) return;
@@ -78,6 +91,12 @@ export const Home = () => {
   };
   
   return <Box sx={formStyle}>
+    {fetchError && (
+      <FetchErrorBanner
+        message={fetchError}
+        onRetry={() => { setFetchError(null); setRetryCount(c => c + 1); }}
+      />
+    )}
     { randomQuote && <InspirationalQuote quote={randomQuote.quote} author={randomQuote.author}/> }
     {notes && <>
       <TitleAndList
