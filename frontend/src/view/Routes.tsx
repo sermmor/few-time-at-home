@@ -16,6 +16,7 @@ const Rss                   = lazy(() => import('./pages/Rss/Rss').then(m => ({ 
 const Weather               = lazy(() => import('./pages/Weather/Weather').then(m => ({ default: m.Weather })));
 const TextEditor            = lazy(() => import('./pages/TextEditor/TextEditor').then(m => ({ default: m.TextEditor })));
 const TrashBookmarks        = lazy(() => import('./pages/TrashBookmarks/TrashBookmarks').then(m => ({ default: m.TrashBookmarks })));
+const Desktop               = lazy(() => import('./pages/Desktop/Desktop').then(m => ({ default: m.Desktop })));
 const GoogleDrive           = lazy(() => import('./pages/GoogleDrive/GoogleDrive').then(m => ({ default: m.GoogleDrive })));
 
 export interface RouteFTAHElement {
@@ -36,6 +37,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/',
     group: '',
     element: <Home/>,
+  },
+  {
+    name: 'Desktop',
+    path: '/desktop',
+    group: '',
+    element: <Desktop/>,
   },
   {
     name: cloudFilesName,
