@@ -174,6 +174,8 @@ export const Alexa = (): JSX.Element => {
       {/* ── Video element (always in DOM so the ref is always available) ── */}
       <video
         ref={videoRef}
+        preload="metadata"
+        playsInline
         style={{
           position:   'absolute',
           inset:      0,
