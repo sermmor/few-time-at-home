@@ -287,7 +287,7 @@ The `googleapis` npm package is already listed as a dependency and installed aut
 |---|---|
 | **Linux Server** | `sudo apt install p7zip-full` |
 | **macOS** | `brew install p7zip` |
-| **Windows** | Install [7-Zip](https://www.7-zip.org) and add `7z.exe` to the system `PATH` |
+| **Windows** | Install [7-Zip](https://www.7-zip.org) using the default path (`C:\Program Files\7-Zip\`) — no PATH setup needed |
 
 ### Setup (one time)
 

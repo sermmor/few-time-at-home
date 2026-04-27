@@ -136,17 +136,23 @@ const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promi
 
 /**
  * Creates a password-protected .7z archive from a folder.
- * Requires 7-Zip installed and in PATH:
- *   Linux/Raspberry Pi → sudo apt install p7zip-full
- *   Windows            → install 7-Zip from https://www.7-zip.org and add to PATH
+ * Requires 7-Zip:
+ *   Windows  → installed at the default path "C:\Program Files\7-Zip\7z.exe" (no PATH setup needed)
+ *   Linux    → sudo apt install p7zip-full
+ *   macOS    → brew install p7zip
  *
  * -mhe=on also encrypts file headers (filenames are hidden without the password).
  */
+const get7zBin = (): string =>
+  process.platform === 'win32'
+    ? '"C:\\Program Files\\7-Zip\\7z.exe"'
+    : '7z';
+
 const create7zArchive = (folderPath: string, outputPath: string, password: string): Promise<void> =>
   new Promise((resolve, reject) => {
     // Strip characters that could break the shell command (basic sanitisation)
     const safePass = password.replace(/["\\`$]/g, '');
-    const cmd = `7z a -p"${safePass}" -mhe=on "${outputPath}" "${folderPath}"`;
+    const cmd = `${get7zBin()} a -p"${safePass}" -mhe=on "${outputPath}" "${folderPath}"`;
     exec(cmd, (err, _stdout, stderr) => {
       if (err) {
         console.error('[Backup] 7z compression error:', stderr || err.message);
