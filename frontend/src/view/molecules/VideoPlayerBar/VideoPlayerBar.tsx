@@ -15,6 +15,8 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import LanIcon from '@mui/icons-material/Lan';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
+import WifiTetheringOffIcon from '@mui/icons-material/WifiTetheringOff';
 import CastIcon from '@mui/icons-material/Cast';
 import CastConnectedIcon from '@mui/icons-material/CastConnected';
 import { CloudItem } from '../../../data-model/cloud';
@@ -27,6 +29,9 @@ import {
   castPauseEndpoint,
   castSeekEndpoint,
   castStopEndpoint,
+  alexaStateEndpoint,
+  alexaSyncEndpoint,
+  alexaStopEndpoint,
 } from '../../../core/urls-and-end-points';
 import { ModalVideoCloudBrowser } from './ModalVideoCloudBrowser';
 import { ModalNetworkBrowser, NETWORK_DRIVE } from './ModalNetworkBrowser';
@@ -98,6 +103,80 @@ export const VideoPlayerBar = ({
   const [isCastStarting,    setIsCastStarting   ] = React.useState(false);
 
   const isCasting = castState !== null;
+
+  // ── Live / Alexa state ────────────────────────────────────────────────────
+  const [isLive,    setIsLive   ] = React.useState(false);
+  const isLiveRef                 = React.useRef(false);
+  const liveIntervalRef           = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  React.useEffect(() => { isLiveRef.current = isLive; }, [isLive]);
+
+  // Stop live: clear interval, unmute local, notify backend
+  const stopLive = React.useCallback(() => {
+    if (liveIntervalRef.current) {
+      clearInterval(liveIntervalRef.current);
+      liveIntervalRef.current = null;
+    }
+    const v = videoRef.current;
+    if (v) { v.muted = false; }
+    fetch(alexaStopEndpoint(), { method: 'POST' }).catch(console.error);
+    setIsLive(false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Send full state to /alexa/state and start/restart the 5s sync interval.
+  const startLive = React.useCallback((item: CloudItem, url: string, currentTime: number, isPlaying: boolean) => {
+    fetch(alexaStateEndpoint(), {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'video',
+        url,
+        title:       item.name,
+        currentTime,
+        isPlaying,
+      }),
+    }).catch(console.error);
+
+    if (liveIntervalRef.current) clearInterval(liveIntervalRef.current);
+    liveIntervalRef.current = setInterval(() => {
+      const v = videoRef.current;
+      if (!v) return;
+      // Always sync position so Alexa stays in lockstep, even when paused.
+      fetch(alexaSyncEndpoint(), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentTime: v.currentTime }),
+      }).catch(console.error);
+    }, 5000);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleLiveButtonClick = () => {
+    if (isLive) {
+      stopLive();
+      return;
+    }
+    if (!currentItem) return;
+    const video = videoRef.current;
+    const currentTime = video?.currentTime ?? 0;
+    const isPlaying   = video ? !video.paused : false;
+    // Mute local — Alexa becomes the audio output. Keep playing so controls work.
+    if (video) { video.muted = true; setIsMuted(true); }
+    setIsLive(true);
+    startLive(currentItem, getVideoUrlForItem(currentItem), currentTime, isPlaying);
+  };
+
+  // When the track changes while Live is active, re-broadcast the new state.
+  // Always start from 0 and treat the new track as playing (auto-advance).
+  React.useEffect(() => {
+    if (!isLive || !currentItem) return;
+    startLive(currentItem, getVideoUrlForItem(currentItem), 0, true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTrackPath, isLive]);
+
+  // Stop live on unmount
+  React.useEffect(() => () => {
+    if (liveIntervalRef.current) clearInterval(liveIntervalRef.current);
+  }, []);
 
   // ── Derived display values (cast mode overrides local) ────────────────────
   const displayTime      = isCasting ? castState.currentTime : currentTime;
@@ -343,6 +422,14 @@ export const VideoPlayerBar = ({
     if (!video || !isFinite(video.duration)) return;
     video.currentTime = newTime;
     setCurrentTime(newTime);
+    // Immediately sync seek position to Alexa
+    if (isLiveRef.current) {
+      fetch(alexaSyncEndpoint(), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ currentTime: newTime }),
+      }).catch(console.error);
+    }
   };
 
   const handleMuteToggle = () => {
@@ -364,9 +451,27 @@ export const VideoPlayerBar = ({
     if (!video) return;
     const onTimeUpdate = () => setCurrentTime(video.currentTime);
     const onDuration   = () => setDuration(video.duration ?? 0);
-    const onPlay       = () => setIsPlaying(true);
-    const onPause      = () => setIsPlaying(false);
-    const onEnded      = () => handleNextRef.current();
+    const onPlay       = () => {
+      setIsPlaying(true);
+      if (isLiveRef.current) {
+        fetch(alexaSyncEndpoint(), {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ currentTime: video.currentTime, isPlaying: true }),
+        }).catch(console.error);
+      }
+    };
+    const onPause = () => {
+      setIsPlaying(false);
+      if (isLiveRef.current) {
+        fetch(alexaSyncEndpoint(), {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ currentTime: video.currentTime, isPlaying: false }),
+        }).catch(console.error);
+      }
+    };
+    const onEnded = () => handleNextRef.current();
     video.addEventListener('timeupdate',     onTimeUpdate);
     video.addEventListener('durationchange', onDuration);
     video.addEventListener('play',           onPlay);
@@ -731,6 +836,29 @@ export const VideoPlayerBar = ({
             title="Pantalla completa">
             <FullscreenIcon sx={{ fontSize: '1.1rem' }} />
           </IconButton>
+
+          {/* Live / Alexa button */}
+          <Tooltip title={isLive ? 'Emitiendo en /alexa — clic para detener' : currentItem ? 'Emitir en vivo a /alexa' : 'Carga un vídeo para emitir en vivo'}>
+            <span>
+              <IconButton
+                onClick={handleLiveButtonClick}
+                disabled={!currentItem && !isLive}
+                sx={{
+                  padding: '5px',
+                  color: isLive ? '#ff4444' : currentItem ? '#7070a0' : '#363660',
+                  '&:hover':    { color: isLive ? '#ff6666' : '#eee' },
+                  '&:disabled': { color: '#363660' },
+                  filter:     isLive ? 'drop-shadow(0 0 4px #ff4444)' : 'none',
+                  transition: 'filter 0.3s, color 0.2s',
+                }}
+              >
+                {isLive
+                  ? <WifiTetheringOffIcon sx={{ fontSize: '1.1rem' }} />
+                  : <WifiTetheringIcon    sx={{ fontSize: '1.1rem' }} />
+                }
+              </IconButton>
+            </span>
+          </Tooltip>
 
           {/* Cast button */}
           <Tooltip title={

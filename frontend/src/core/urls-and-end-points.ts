@@ -107,6 +107,11 @@ export const getGoogleDriveEndpoint = (type: GoogleDriveEndpointType): string =>
 export const weatherDailyEndpoint  = (): string => `${getUrlApi()}/weather/daily`;
 export const weatherHourlyEndpoint = (): string => `${getUrlApi()}/weather/hourly`;
 
+// ── Alexa live-streaming endpoints ──────────────────────────────────────────
+export const alexaStateEndpoint = (): string => `${getUrlApi()}/alexa/state`;
+export const alexaSyncEndpoint  = (): string => `${getUrlApi()}/alexa/sync`;
+export const alexaStopEndpoint  = (): string => `${getUrlApi()}/alexa/stop`;
+
 // ── Chromecast cast endpoints ────────────────────────────────────────────────
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;

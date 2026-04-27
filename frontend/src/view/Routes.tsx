@@ -16,6 +16,7 @@ const Rss                   = lazy(() => import('./pages/Rss/Rss').then(m => ({ 
 const Weather               = lazy(() => import('./pages/Weather/Weather').then(m => ({ default: m.Weather })));
 const TextEditor            = lazy(() => import('./pages/TextEditor/TextEditor').then(m => ({ default: m.TextEditor })));
 const TrashBookmarks        = lazy(() => import('./pages/TrashBookmarks/TrashBookmarks').then(m => ({ default: m.TrashBookmarks })));
+const Alexa                 = lazy(() => import('./pages/Alexa/Alexa').then(m => ({ default: m.Alexa })));
 const Desktop               = lazy(() => import('./pages/Desktop/Desktop').then(m => ({ default: m.Desktop })));
 const GoogleDrive           = lazy(() => import('./pages/GoogleDrive/GoogleDrive').then(m => ({ default: m.GoogleDrive })));
 
@@ -26,6 +27,8 @@ export interface RouteFTAHElement {
   element: JSX.Element;
   isHiddenInMenuBar?: boolean;
   includeSubroutes?: boolean;
+  /** Render without EnvelopComponent (no menu, no padding) — used for full-screen pages. */
+  isFullscreen?: boolean;
 }
 
 export const cloudFilesName = 'Cloud files';
@@ -38,12 +41,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     group: '',
     element: <Home/>,
   },
-  {
-    name: 'Desktop',
-    path: '/desktop',
-    group: '',
-    element: <Desktop/>,
-  },
+  // {
+  //   name: 'Desktop',
+  //   path: '/desktop',
+  //   group: '',
+  //   element: <Desktop/>,
+  // },
   {
     name: cloudFilesName,
     path: '/cloud/files',
@@ -123,6 +126,14 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/configuration',
     group: '',
     element: <ConfigurationComponent/>,
+  },
+  {
+    name: 'Alexa',
+    path: '/alexa',
+    group: '',
+    element: <Alexa />,
+    isHiddenInMenuBar: true,
+    isFullscreen: true,
   },
   {
     name: 'Error',

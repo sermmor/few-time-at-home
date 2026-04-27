@@ -191,11 +191,15 @@ const AllRoutes = () => {
   return <BrowserRouter>
     <Routes>
       {
-        routesFTAH.map(({name: nameRoute, path, element, includeSubroutes}) =>
+        routesFTAH.map(({name: nameRoute, path, element, includeSubroutes, isFullscreen}) =>
           <Route
             key={nameRoute}
             path={path}
-            element={<EnvelopComponent element={element} />}
+            element={
+              isFullscreen
+                ? <Suspense fallback={<PageTransitionLoader />}>{element}</Suspense>
+                : <EnvelopComponent element={element} />
+            }
           >
             {includeSubroutes && <Route path="*" element={<EnvelopComponent element={element} />}/>}
           </Route>

@@ -10,6 +10,8 @@ import DragHandleIcon from '@mui/icons-material/DragHandle';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import IosShareIcon from '@mui/icons-material/IosShare';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
+import WifiTetheringOffIcon from '@mui/icons-material/WifiTetheringOff';
 import CastIcon from '@mui/icons-material/Cast';
 import CastConnectedIcon from '@mui/icons-material/CastConnected';
 import { CloudItem } from '../../../data-model/cloud';
@@ -22,6 +24,9 @@ import {
   castPauseEndpoint,
   castSeekEndpoint,
   castStopEndpoint,
+  alexaStateEndpoint,
+  alexaSyncEndpoint,
+  alexaStopEndpoint,
 } from '../../../core/urls-and-end-points';
 import { CastDevice, ModalCastDevicePicker } from '../VideoPlayerBar/ModalCastDevicePicker';
 
@@ -87,6 +92,76 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
   const [isCastStarting,     setIsCastStarting    ] = React.useState(false);
 
   const isCasting = castState !== null;
+
+  // ── Live / Alexa state ────────────────────────────────────────────────────
+  const [isLive,  setIsLive ] = React.useState(false);
+  const isLiveRef             = React.useRef(false);
+  const liveIntervalRef       = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  React.useEffect(() => { isLiveRef.current = isLive; }, [isLive]);
+
+  // Stop live: clear interval, unmute local, notify backend
+  const stopLive = React.useCallback(() => {
+    if (liveIntervalRef.current) {
+      clearInterval(liveIntervalRef.current);
+      liveIntervalRef.current = null;
+    }
+    const a = audioRef.current;
+    if (a) { a.muted = false; }
+    fetch(alexaStopEndpoint(), { method: 'POST' }).catch(console.error);
+    setIsLive(false);
+  }, []);
+
+  // Send full state to /alexa/state and start/restart the 5s sync interval.
+  const startLive = React.useCallback((item: CloudItem, url: string, currentTime: number, isPlaying: boolean) => {
+    fetch(alexaStateEndpoint(), {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'audio',
+        url,
+        title:       item.name,
+        currentTime,
+        isPlaying,
+      }),
+    }).catch(console.error);
+
+    if (liveIntervalRef.current) clearInterval(liveIntervalRef.current);
+    liveIntervalRef.current = setInterval(() => {
+      const a = audioRef.current;
+      if (!a) return;
+      // Always sync position so Alexa stays in lockstep, even when paused.
+      fetch(alexaSyncEndpoint(), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentTime: a.currentTime }),
+      }).catch(console.error);
+    }, 5000);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleLiveButtonClick = () => {
+    if (isLive) { stopLive(); return; }
+    if (!currentItem) return;
+    const audio = audioRef.current;
+    const currentTime = audio?.currentTime ?? 0;
+    const isPlaying   = audio ? !audio.paused : false;
+    // Mute local — Alexa becomes the audio output. Keep playing so controls work.
+    if (audio) { audio.muted = true; }
+    setIsLive(true);
+    startLive(currentItem, getStreamUrlRef.current(currentItem), currentTime, isPlaying);
+  };
+
+  // Re-broadcast when track changes while Live is active. Always start from 0.
+  React.useEffect(() => {
+    if (!isLive || !currentItem) return;
+    startLive(currentItem, getStreamUrlRef.current(currentItem), 0, true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTrackPath, isLive]);
+
+  // Clean up on unmount
+  React.useEffect(() => () => {
+    if (liveIntervalRef.current) clearInterval(liveIntervalRef.current);
+  }, []);
 
   // ── Derived display values (cast overrides local when active) ─────────────
   const displayTime      = isCasting ? castState.currentTime        : currentTime;
@@ -273,6 +348,14 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
     } else {
       audio.pause();
     }
+    // Sync play/pause state to Alexa immediately
+    if (isLiveRef.current) {
+      fetch(alexaSyncEndpoint(), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ currentTime: audio.currentTime, isPlaying }),
+      }).catch(console.error);
+    }
   }, [isPlaying, currentTrackPath, isCasting]);
 
   // ── Controls ──────────────────────────────────────────────────────────────
@@ -346,6 +429,14 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
     if (!audio || !isFinite(audio.duration)) return;
     audio.currentTime = newTime;
     setCurrentTime(newTime);
+    // Immediately sync seek position to Alexa
+    if (isLiveRef.current) {
+      fetch(alexaSyncEndpoint(), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ currentTime: newTime }),
+      }).catch(console.error);
+    }
   };
 
   // ── Cast controls ─────────────────────────────────────────────────────────
@@ -653,8 +744,31 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
           </Typography>
         </Box>
 
-        {/* Extra controls — cast button */}
+        {/* Extra controls — live + cast buttons */}
         <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          {/* Live / Alexa button */}
+          <Tooltip title={isLive ? 'Emitiendo en /alexa — clic para detener' : currentItem ? 'Emitir en vivo a /alexa' : 'Añade canciones para emitir en vivo'}>
+            <span>
+              <IconButton
+                onClick={handleLiveButtonClick}
+                disabled={!currentItem && !isLive}
+                sx={{
+                  padding: '5px',
+                  color: isLive ? '#ff4444' : currentItem ? '#7070a0' : '#363660',
+                  '&:hover':    { color: isLive ? '#ff6666' : '#eee' },
+                  '&:disabled': { color: '#363660' },
+                  filter:     isLive ? 'drop-shadow(0 0 4px #ff4444)' : 'none',
+                  transition: 'filter 0.3s, color 0.2s',
+                }}
+              >
+                {isLive
+                  ? <WifiTetheringOffIcon sx={{ fontSize: '1.1rem' }} />
+                  : <WifiTetheringIcon    sx={{ fontSize: '1.1rem' }} />
+                }
+              </IconButton>
+            </span>
+          </Tooltip>
+
           <Tooltip title={
             isCasting
               ? `Emitiendo en "${castState?.castingTo ?? ''}" — clic para detener`

@@ -26,6 +26,7 @@ import { SupabaseNotificationService } from './supabaseNotification.service';
 import { CastService } from './cast.service';
 import { GoogleDriveService } from './googleDrive.service';
 import { AemetService } from './aemet.service';
+import { AlexaService } from './alexa.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -149,6 +150,11 @@ export class APIService {
     daily:  '/weather/daily',
     hourly: '/weather/hourly',
   };
+  static alexaEndpoint = {
+    state: '/alexa/state',
+    sync:  '/alexa/sync',
+    stop:  '/alexa/stop',
+  };
 
   app: Express;
   private activeSessions = new Set<string>();
@@ -200,6 +206,7 @@ export class APIService {
     this.castService();
     this.googleDriveService();
     this.weatherService();
+    this.alexaService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1408,6 +1415,51 @@ export class APIService {
         console.error('[Drive API] download error:', err?.message);
         if (!res.headersSent) res.status(500).json({ error: err?.message ?? 'Download failed' });
       }
+    });
+  }
+
+  // ── Alexa live streaming ──────────────────────────────────────────────────
+
+  private alexaService(): void {
+    const alexa = new AlexaService();
+    const ep    = APIService.alexaEndpoint;
+
+    // GET /alexa/state — returns the current live-streaming state (used on page load)
+    this.app.get(ep.state, (_req: Request, res: Response) => {
+      res.json(alexa.getState());
+    });
+
+    // POST /alexa/state — sender sets a new live stream (new track or first play)
+    // body: { type, url, title, currentTime, isPlaying }
+    this.app.post(ep.state, (req: Request, res: Response) => {
+      const { type, url, title, currentTime, isPlaying } = req.body ?? {};
+      if (!type || !url) {
+        res.status(400).json({ error: 'Missing type or url' });
+        return;
+      }
+      const state = alexa.setState({ type, url, title: title ?? '', currentTime: currentTime ?? 0, isPlaying: isPlaying ?? false });
+      WebSocketsServerService.Instance?.broadcast({ alexaLive: state });
+      res.json(state);
+    });
+
+    // POST /alexa/sync — sender updates currentTime and optionally isPlaying
+    // body: { currentTime, isPlaying? }
+    this.app.post(ep.sync, (req: Request, res: Response) => {
+      const { currentTime, isPlaying } = req.body ?? {};
+      if (typeof currentTime !== 'number') {
+        res.status(400).json({ error: 'Missing currentTime' });
+        return;
+      }
+      const state = alexa.syncTime(currentTime, typeof isPlaying === 'boolean' ? isPlaying : undefined);
+      WebSocketsServerService.Instance?.broadcast({ alexaLive: state });
+      res.json(state);
+    });
+
+    // POST /alexa/stop — sender stops live streaming
+    this.app.post(ep.stop, (_req: Request, res: Response) => {
+      const state = alexa.stop();
+      WebSocketsServerService.Instance?.broadcast({ alexaLive: state });
+      res.json(state);
     });
   }
 
