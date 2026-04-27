@@ -41,12 +41,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     group: '',
     element: <Home/>,
   },
-  // {
-  //   name: 'Desktop',
-  //   path: '/desktop',
-  //   group: '',
-  //   element: <Desktop/>,
-  // },
+  {
+    name: 'Desktop',
+    path: '/desktop',
+    group: '',
+    element: <Desktop/>,
+  },
   {
     name: cloudFilesName,
     path: '/cloud/files',
