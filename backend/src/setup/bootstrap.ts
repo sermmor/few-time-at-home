@@ -52,7 +52,10 @@ export const bootstrapApp = (): void => {
         );
 
         if (!keyData.is_backup_disabled) {
-          startBackupEveryWeek(ConfigurationService.Instance.backupUrls);
+          startBackupEveryWeek(
+            ConfigurationService.Instance.backupUrls,
+            keyData.backup_password || 'admin',
+          );
         } else {
           Logger.logInDevMode('BACKUP DISABLED!!');
         }

@@ -235,6 +235,8 @@
     "folderId": "Folder ID",
     "folderIdHelper": "Opcional — si está vacío se crea automáticamente la carpeta \"Few_time_at_home_backups\"",
     "folderIdLabel": "Drive folder ID (opcional)",
+    "backupPassword": "Contraseña del archivo .7z",
+    "backupPasswordLabel": "Contraseña (por defecto: admin)",
     "app": "App",
     "disableAutoBackup": "Deshabilitar backup automático",
     "autoBackupWarning": "⚠ Para activar el backup automático debes rellenar primero los campos Client ID, Client secret y Refresh token de la sección Google Drive — Backups justo arriba. Consulta las instrucciones detalladas en el README.md del proyecto (sección Google Drive backups).",

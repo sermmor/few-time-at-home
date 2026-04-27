@@ -75,7 +75,7 @@ export class GoogleDriveService {
           parents: [folderId],
         },
         media: {
-          mimeType: 'application/zip',
+          mimeType: 'application/x-7z-compressed',
           body:     createReadStream(zipPath),
         },
         fields: 'id,name,size',

@@ -1,7 +1,7 @@
 import { writeFile, stat, mkdir, readFile, copyFile } from 'fs';
+import { exec } from 'child_process';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
-import { COMPRESSION_LEVEL, zip } from 'zip-a-folder';
 import { GoogleDriveService } from './API/googleDrive.service';
 import { getBookmarksFilesPathList, getBookmarksNameFilesPathList } from './API/bookmarks/bookmarks-utils';
 
@@ -134,11 +134,35 @@ const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promi
   }));
 }
 
+/**
+ * Creates a password-protected .7z archive from a folder.
+ * Requires 7-Zip installed and in PATH:
+ *   Linux/Raspberry Pi → sudo apt install p7zip-full
+ *   Windows            → install 7-Zip from https://www.7-zip.org and add to PATH
+ *
+ * -mhe=on also encrypts file headers (filenames are hidden without the password).
+ */
+const create7zArchive = (folderPath: string, outputPath: string, password: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    // Strip characters that could break the shell command (basic sanitisation)
+    const safePass = password.replace(/["\\`$]/g, '');
+    const cmd = `7z a -p"${safePass}" -mhe=on "${outputPath}" "${folderPath}"`;
+    exec(cmd, (err, _stdout, stderr) => {
+      if (err) {
+        console.error('[Backup] 7z compression error:', stderr || err.message);
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+
 const runBackup = (
   pathToCopyList: string[],
   pathToPasteList: string[],
   pathRootToPaste: string,
   onFinished: (pathFileZipped: string) => void,
+  password: string,
   indexToCopy = 0,
   nameFolderDate = ''
 ) => {
@@ -150,25 +174,26 @@ const runBackup = (
         copyAFileToBackupFolder(
           pathToCopyList[indexToCopy],
           `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
-        .then(() => runBackup(pathToCopyList, pathToPasteList, pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
+        .then(() => runBackup(pathToCopyList, pathToPasteList, pathRootToPaste, onFinished, password, indexToCopy + 1, nameFolderDate));
       });
     } else {
       copyAFileToBackupFolder(
         pathToCopyList[indexToCopy],
         `${pathRootToPaste}/${nameFolderDate}/${pathToPasteList[indexToCopy]}`)
-      .then(() => runBackup(pathToCopyList, pathToPasteList, pathRootToPaste, onFinished, indexToCopy + 1, nameFolderDate));
+      .then(() => runBackup(pathToCopyList, pathToPasteList, pathRootToPaste, onFinished, password, indexToCopy + 1, nameFolderDate));
     }
   } else {
     console.log('> Backup created!');
-    const pathToZip = `${pathRootToPaste}/${nameFolderDate}`;
-    zip(pathToZip, `${pathToZip}.zip`, { compression: COMPRESSION_LEVEL.uncompressed } ).then(() => {
-      console.log(`backup zip file created in ${pathToZip}.zip`);
-      onFinished(`${pathToZip}.zip`);
-    });
+    const folderPath = `${pathRootToPaste}/${nameFolderDate}`;
+    const archivePath = `${folderPath}.7z`;
+    create7zArchive(folderPath, archivePath, password).then(() => {
+      console.log(`[Backup] .7z archive created: ${archivePath}`);
+      onFinished(archivePath);
+    }).catch(err => console.error('[Backup] Failed to create .7z archive:', err));
   }
 };
 
-export const startBackupEveryWeek = async(pathRootToPaste: string) => {
+export const startBackupEveryWeek = async(pathRootToPaste: string, password: string) => {
   const pathToCopyList = [
     'data/notes.txt',
     'data/alerts.json',
@@ -213,8 +238,8 @@ export const startBackupEveryWeek = async(pathRootToPaste: string) => {
   };
 
   scheduleJob('do a backup once a week', { hour: 12, minute: 0, dayOfWeek: 1 }, () => {
-    runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, uploadBackup);
+    runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, uploadBackup, password);
     TelegramBot.Instance().sendNotepadTextToTelegram('Backup created today!');
   });
-  runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, uploadBackup);
+  runBackup(allPathToCopyList, allPathToPasteList, pathRootToPaste, uploadBackup, password);
 }

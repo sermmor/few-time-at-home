@@ -22,6 +22,7 @@ export interface KeysData {
   google_drive_client_secret:     string;
   google_drive_refresh_token:     string;
   google_drive_folder_id:         string;
+  backup_password:                string;
 }
 
 const emptyKeys: KeysData = {
@@ -45,6 +46,7 @@ const emptyKeys: KeysData = {
   google_drive_client_secret:     '',
   google_drive_refresh_token:     '',
   google_drive_folder_id:         '',
+  backup_password:                'admin',
 };
 
 const getKeys = (): Promise<KeysData> =>

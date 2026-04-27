@@ -387,6 +387,15 @@ export const APIsSection: React.FC = () => {
             />
           </Box>
 
+          <Box sx={rowStyle}>
+            <Typography variant="body1" sx={labelStyle}>{t('apis.backupPassword')}</Typography>
+            <PasswordField
+              label={t('apis.backupPasswordLabel')}
+              value={keys.backup_password}
+              onChange={set('backup_password') as (v: string) => void}
+            />
+          </Box>
+
           {/* ── App ──────────────────────────────────────────────────── */}
           <Typography variant="h6" sx={groupTitleStyle}>{t('apis.app')}</Typography>
 

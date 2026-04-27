@@ -8,6 +8,7 @@ Before you begin, ensure you have met the following requirements:
 * You have installed [Node.js](https://nodejs.org/en/download/).
 * You have installed [FFmpeg](https://ffmpeg.org/download.html).
 * FFmpeg is added to the system PATH.
+* You have installed 7-Zip (see Google Drive backups - Prerequisites section in this Readme).
 
 ### Installing FFmpeg on Windows
 
@@ -270,13 +271,23 @@ Copy it to your Android device and install it (you may need to allow *Install fr
 
 ## Google Drive backups
 
-The backend creates a `.zip` of all data files every Monday at 12:00 and uploads it automatically to a `Few_time_at_home_backups` folder in your personal Google Drive.  The local `.zip` is also kept on disk at the path configured in `backupUrls` (`configuration.json`).
+The backend creates a password-protected `.7z` archive of all data files every Monday at 12:00 and uploads it automatically to a `Few_time_at_home_backups` folder in your personal Google Drive.  The local `.7z` is also kept on disk at the path configured in `backupUrls` (`configuration.json`).
+
+The archive password defaults to `admin` and can be changed at any time from **Configuration → APIs → Google Drive — Backups → `.7z` archive password**. The change takes effect after restarting the server.
 
 > Only runs when `is_backup_disabled` is `false` in `keys.json`.
 
 ### Prerequisites
 
 The `googleapis` npm package is already listed as a dependency and installed automatically with `npm install`.
+
+**`7-Zip` is required on all platforms** and must be available in `PATH`:
+
+| Platform | Installation |
+|---|---|
+| **Linux Server** | `sudo apt install p7zip-full` |
+| **macOS** | `brew install p7zip` |
+| **Windows** | Install [7-Zip](https://www.7-zip.org) and add `7z.exe` to the system `PATH` |
 
 ### Setup (one time)
 
@@ -349,8 +360,8 @@ Backups land in the service's own Drive space by default. To see them directly i
 
 ```
 Every Monday 12:00 (+ once on startup)
-  └─ runBackup() creates a .zip in backupUrls/
-       └─ GoogleDriveService.uploadBackup(zipPath)
+  └─ runBackup() creates a password-protected .7z in backupUrls/
+       └─ GoogleDriveService.uploadBackup(archivePath)
             ├─ Finds or creates "Few_time_at_home_backups" folder
-            └─ Uploads the .zip via Google Drive API v3 (OAuth 2.0)
+            └─ Uploads the .7z via Google Drive API v3 (OAuth 2.0)
 ```
