@@ -113,6 +113,9 @@ export const alexaSyncEndpoint  = (): string => `${getUrlApi()}/alexa/sync`;
 export const alexaStopEndpoint  = (): string => `${getUrlApi()}/alexa/stop`;
 
 // ── Chromecast cast endpoints ────────────────────────────────────────────────
+export const desktopGetFaviconEndpoint    = (): string => `${getUrlApi()}/desktop/get-favicon`;
+export const desktopFaviconImageEndpoint  = (name: string): string => `${getUrlApi()}/desktop/favicon/${encodeURIComponent(name)}`;
+
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;
 export const castPlayEndpoint    = (): string => `${getUrlApi()}/cast/play`;

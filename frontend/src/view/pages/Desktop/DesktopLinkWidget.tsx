@@ -4,6 +4,7 @@ import InsertLinkIcon from '@mui/icons-material/InsertLink';
 import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
 import { DesktopLink } from '../../../core/actions/desktop';
+import { desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
 
 interface Props {
   link:     DesktopLink;
@@ -11,6 +12,26 @@ interface Props {
   onDelete: (id: string) => void;
   onEdit:   (link: DesktopLink) => void;
 }
+
+// ── Subcomponente de favicon con fallback ──────────────────────────────────────
+const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
+  const [failed, setFailed] = React.useState(false);
+  if (failed) {
+    return (
+      <InsertLinkIcon sx={{ fontSize: '2rem', color: '#3b82f6',
+                            filter: 'drop-shadow(0 0 4px rgba(59,130,246,0.5))' }} />
+    );
+  }
+  return (
+    <img
+      src={desktopFaviconImageEndpoint(name)}
+      alt=""
+      draggable={false}
+      onError={() => setFailed(true)}
+      style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+    />
+  );
+};
 
 // Si el mouse se mueve más de este umbral durante el drag, se trata como arrastre
 const DRAG_THRESHOLD = 6;
@@ -117,15 +138,16 @@ export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, o
           backgroundColor: 'rgba(59,130,246,0.18)',
           border:          '1.5px solid rgba(59,130,246,0.45)',
           boxShadow:       '0 2px 8px rgba(0,0,0,0.35)',
-          transition:      'background 0.12s, box-shadow 0.12s',
+          overflow:        'hidden',
         }}>
-          <InsertLinkIcon
-            sx={{
-              fontSize:   '2rem',
-              color:      '#3b82f6',
-              filter:     'drop-shadow(0 0 4px rgba(59,130,246,0.5))',
-            }}
-          />
+          {link.favicon ? (
+            <FaviconImg name={link.favicon} />
+          ) : (
+            <InsertLinkIcon
+              sx={{ fontSize: '2rem', color: '#3b82f6',
+                    filter: 'drop-shadow(0 0 4px rgba(59,130,246,0.5))' }}
+            />
+          )}
         </div>
 
         {/* ── Nombre ──────────────────────────────────────────────────────── */}

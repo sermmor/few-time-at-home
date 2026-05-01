@@ -27,6 +27,7 @@ import { CastService } from './cast.service';
 import { GoogleDriveService } from './googleDrive.service';
 import { AemetService } from './aemet.service';
 import { AlexaService } from './alexa.service';
+import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -207,6 +208,7 @@ export class APIService {
     this.googleDriveService();
     this.weatherService();
     this.alexaService();
+    this.desktopFaviconService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1490,6 +1492,31 @@ export class APIService {
       const state = alexa.stop();
       WebSocketsServerService.Instance?.broadcast({ alexaLive: state });
       res.json(state);
+    });
+  }
+
+  // ── Desktop favicon ───────────────────────────────────────────────────────
+  private desktopFaviconService(): void {
+    // POST /desktop/get-favicon — descarga (o recupera de caché) el favicon de una URL
+    this.app.post('/desktop/get-favicon', async (req: Request, res: Response) => {
+      if (!req.body) return res.status(400).json({ error: 'No body received' });
+      const { url } = req.body as { url?: string };
+      if (!url) return res.status(400).json({ error: 'URL is required' });
+      try {
+        const name = await getOrDownloadFavicon(url);
+        res.json({ name }); // name es string | null
+      } catch (err: any) {
+        console.error('[Favicon API] error:', err?.message);
+        res.status(500).json({ error: err?.message ?? 'Failed to get favicon' });
+      }
+    });
+
+    // GET /desktop/favicon/:name — sirve el fichero de favicon desde data/favicon/
+    this.app.get('/desktop/favicon/:name', (req: Request, res: Response) => {
+      const name     = req.params.name as string;
+      const filePath = getFaviconFilePath(name);
+      if (!filePath) return res.status(404).json({ error: 'Favicon not found' });
+      res.sendFile(path.resolve(filePath));
     });
   }
 

@@ -2,6 +2,7 @@ import { fetchJsonSendAndReceive } from '../fetch-utils';
 import {
   configurationListByTypeEndpoint,
   configurationEndpoint,
+  desktopGetFaviconEndpoint,
 } from '../urls-and-end-points';
 
 const CONFIG_TYPE = 'desktop';
@@ -18,6 +19,8 @@ export interface StickyNote {
   color?:         string;
   /** Tamaño de fuente en px. Omitido = 13. */
   fontSize?:      number;
+  /** Opacidad (0.1 – 1.0). Omitido = 1 (totalmente opaco). */
+  alpha?:         number;
 }
 
 export interface DesktopLink {
@@ -27,6 +30,8 @@ export interface DesktopLink {
   y:              number;
   url:            string;
   name:           string;
+  /** Nombre del fichero de favicon en data/favicon/ (sin extensión). Omitido = icono por defecto. */
+  favicon?:       string;
 }
 
 export interface DesktopConfig {
@@ -71,4 +76,14 @@ const saveDesktopConfig = (config: DesktopConfig): Promise<void> =>
     { response: '' },
   ).then(() => undefined);
 
-export const DesktopActions = { getDesktopConfig, saveDesktopConfig };
+/** Solicita al backend que descargue (o recupere de caché) el favicon de una URL.
+ *  Devuelve el nombre del fichero (sin extensión) o null si no se pudo obtener. */
+const getFavicon = (url: string): Promise<string | null> =>
+  fetchJsonSendAndReceive<{ name?: string | null }>(
+    desktopGetFaviconEndpoint(),
+    { url },
+    {},
+  ).then(res => res.name ?? null)
+  .catch(() => null);
+
+export const DesktopActions = { getDesktopConfig, saveDesktopConfig, getFavicon };

@@ -6,6 +6,7 @@ import {
   MenuItem as MuiMenuItem,
   Popover,
   Select,
+  Slider,
   Typography,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -48,6 +49,9 @@ export const StickyNoteWidget: React.FC<Props> = ({ note, onUpdate, onDelete }) 
   // Color local (preview en tiempo real mientras se usa el color picker)
   const [localColor, setLocalColor] = React.useState(note.color ?? DEFAULT_COLOR);
 
+  // Alpha local (preview en tiempo real mientras se arrastra el slider)
+  const [localAlpha, setLocalAlpha] = React.useState(note.alpha ?? 1.0);
+
   // Anchor del menú de opciones
   const [menuAnchor, setMenuAnchor] = React.useState<HTMLButtonElement | null>(null);
 
@@ -59,6 +63,7 @@ export const StickyNoteWidget: React.FC<Props> = ({ note, onUpdate, onDelete }) 
     setLh(note.height);
     setContent(note.content);
     setLocalColor(note.color ?? DEFAULT_COLOR);
+    setLocalAlpha(note.alpha ?? 1.0);
   }, [note.id]); // Solo al cambiar la identidad de la nota
 
   const fontSize = note.fontSize ?? DEFAULT_FONT_SIZE;
@@ -139,6 +144,7 @@ export const StickyNoteWidget: React.FC<Props> = ({ note, onUpdate, onDelete }) 
           boxShadow:       '3px 6px 18px rgba(0,0,0,0.50)',
           zIndex:          200,
           overflow:        'hidden',
+          opacity:         localAlpha,
         }}
       >
         {/* ── Cabecera / barra de arrastre ─────────────────────────────────── */}
@@ -296,6 +302,37 @@ export const StickyNoteWidget: React.FC<Props> = ({ note, onUpdate, onDelete }) 
               ))}
             </Select>
           </FormControl>
+
+          {/* Transparencia */}
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.68rem',
+                      letterSpacing: '0.05em', color: 'text.secondary' }}
+              >
+                Transparencia
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.72rem' }}>
+                {Math.round(localAlpha * 100)}%
+              </Typography>
+            </Box>
+            <Slider
+              value={Math.round(localAlpha * 100)}
+              min={10}
+              max={100}
+              step={5}
+              size="small"
+              onChange={(_e, v) => setLocalAlpha((v as number) / 100)}
+              onChangeCommitted={(_e, v) => onUpdate(note.id, { alpha: (v as number) / 100 })}
+              marks={[
+                { value: 10,  label: '10%'  },
+                { value: 50,  label: '50%'  },
+                { value: 100, label: '100%' },
+              ]}
+              sx={{ mt: 0.5 }}
+            />
+          </Box>
 
         </Box>
       </Popover>

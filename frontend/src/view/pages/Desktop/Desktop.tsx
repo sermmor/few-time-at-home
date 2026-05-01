@@ -233,6 +233,13 @@ export const Desktop = (): JSX.Element => {
         DesktopActions.saveDesktopConfig(updated);
         return updated;
       });
+
+      // Descargar favicon en segundo plano y actualizar el icono cuando esté listo
+      DesktopActions.getFavicon(url).then(favicon => {
+        if (favicon) {
+          updateLink(newLink.id, { favicon });
+        }
+      });
     }
   };
 
