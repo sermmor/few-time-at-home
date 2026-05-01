@@ -5,9 +5,11 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import { DesktopActions, DesktopConfig, DEFAULT_DESKTOP_CONFIG, StickyNote } from '../../../core/actions/desktop';
+import { DesktopActions, DesktopConfig, DEFAULT_DESKTOP_CONFIG, StickyNote, DesktopLink } from '../../../core/actions/desktop';
 import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
 import { StickyNoteWidget } from './StickyNoteWidget';
+import { AddLinkDialog } from './AddLinkDialog';
+import { DesktopLinkWidget } from './DesktopLinkWidget';
 import { getCloudEndpoint } from '../../../core/urls-and-end-points';
 
 // Build a GET URL for the streamFile endpoint (?drive=...&path=...)
@@ -68,6 +70,8 @@ export const Desktop = (): JSX.Element => {
   const [visible,   setVisible  ] = React.useState(false);
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
   const [propsOpen,   setPropsOpen  ] = React.useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = React.useState(false);
+  const [editingLink,    setEditingLink   ] = React.useState<DesktopLink | undefined>(undefined);
 
   // Ref al div del escritorio para calcular posiciones relativas
   const desktopRef = React.useRef<HTMLDivElement>(null);
@@ -194,6 +198,68 @@ export const Desktop = (): JSX.Element => {
 
   const notesForActiveWs = (config.notes ?? []).filter(n => n.workspaceIndex === activeWs);
 
+  // ── Gestión de links de escritorio ───────────────────────────────────────
+  const openAddLinkDialog = () => {
+    setEditingLink(undefined);
+    setLinkDialogOpen(true);
+    setContextMenu(null);
+  };
+
+  const handleLinkAccept = (url: string, name: string) => {
+    if (editingLink) {
+      // Modo editar nombre
+      setConfig(prev => {
+        const updated = {
+          ...prev,
+          links: (prev.links ?? []).map(l =>
+            l.id === editingLink.id ? { ...l, name } : l,
+          ),
+        };
+        DesktopActions.saveDesktopConfig(updated);
+        return updated;
+      });
+    } else {
+      // Modo añadir nuevo link
+      const rect = desktopRef.current?.getBoundingClientRect();
+      const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 38) : 80;
+      const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 30) : 80;
+      const newLink: DesktopLink = {
+        id:             `link-${Date.now()}`,
+        workspaceIndex: activeWs,
+        x, y, url, name,
+      };
+      setConfig(prev => {
+        const updated = { ...prev, links: [...(prev.links ?? []), newLink] };
+        DesktopActions.saveDesktopConfig(updated);
+        return updated;
+      });
+    }
+  };
+
+  const updateLink = (id: string, changes: Partial<DesktopLink>) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        links: (prev.links ?? []).map(l => l.id === id ? { ...l, ...changes } : l),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  const deleteLink = (id: string) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        links: (prev.links ?? []).filter(l => l.id !== id),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  const linksForActiveWs = (config.links ?? []).filter(l => l.workspaceIndex === activeWs);
+
   // ── Derived display values ───────────────────────────────────────────────
   const COLS  = config.cols;
   const ROWS  = config.rows;
@@ -262,6 +328,17 @@ export const Desktop = (): JSX.Element => {
           />
         ))}
 
+        {/* ── Links del escritorio activo ──────────────────────────────── */}
+        {linksForActiveWs.map(link => (
+          <DesktopLinkWidget
+            key={link.id}
+            link={link}
+            onUpdate={updateLink}
+            onDelete={deleteLink}
+            onEdit={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+          />
+        ))}
+
         {/* ── Workspace switcher overlay (shown while Shift is held) ─── */}
         <div style={{
           position:       'absolute',
@@ -313,7 +390,7 @@ export const Desktop = (): JSX.Element => {
         <MenuItem onClick={addNote}>
           <ListItemText primary="Añadir nota" />
         </MenuItem>
-        <MenuItem disabled>
+        <MenuItem onClick={openAddLinkDialog}>
           <ListItemText primary="Añadir link" />
         </MenuItem>
         <Divider />
@@ -328,6 +405,14 @@ export const Desktop = (): JSX.Element => {
         onClose={() => setPropsOpen(false)}
         config={config}
         onSave={updated => setConfig(updated)}
+      />
+
+      {/* ── Add / Edit link dialog ─────────────────────────────────────── */}
+      <AddLinkDialog
+        isOpen={linkDialogOpen}
+        onClose={() => { setLinkDialogOpen(false); setEditingLink(undefined); }}
+        onAccept={handleLinkAccept}
+        editLink={editingLink}
       />
     </>
   );

@@ -20,12 +20,22 @@ export interface StickyNote {
   fontSize?:      number;
 }
 
+export interface DesktopLink {
+  id:             string;
+  workspaceIndex: number;
+  x:              number;
+  y:              number;
+  url:            string;
+  name:           string;
+}
+
 export interface DesktopConfig {
   rows:       number;
   cols:       number;
   /** One cloud path per workspace (empty string = use default colour). */
   wallpapers: string[];
   notes:      StickyNote[];
+  links:      DesktopLink[];
 }
 
 export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
@@ -33,6 +43,7 @@ export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
   cols:       4,
   wallpapers: Array(16).fill(''),
   notes:      [],
+  links:      [],
 };
 
 const getDesktopConfig = (): Promise<DesktopConfig> =>
@@ -49,6 +60,7 @@ const getDesktopConfig = (): Promise<DesktopConfig> =>
       cols:       d.cols ?? DEFAULT_DESKTOP_CONFIG.cols,
       wallpapers: Array.from({ length: total }, (_, i) => d.wallpapers?.[i] ?? ''),
       notes:      Array.isArray(d.notes) ? d.notes : [],
+      links:      Array.isArray(d.links) ? d.links : [],
     };
   });
 
