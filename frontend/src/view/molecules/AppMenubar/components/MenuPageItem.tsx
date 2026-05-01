@@ -4,7 +4,7 @@ import { Button, Menu, MenuItem } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon   from '@mui/icons-material/ArrowDropUp';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CY, navBtnSx } from '../AppMenubar';
+import { CY, navBtnSx, openRoute } from '../AppMenubar';
 
 type PageData = { name: string; pages: RouteFTAHElement[] };
 
@@ -63,7 +63,8 @@ export const MenuPageItem = ({ page }: { page: PageData }) => {
         {page.pages.map(({ name, path }) => (
           <MenuItem
             key={name}
-            onClick={() => { navigate(path); setAnchor(null); }}
+            onClick={e => { openRoute(path, navigate, e.ctrlKey || e.metaKey); setAnchor(null); }}
+            onMouseDown={e => { if (e.button === 1) { e.preventDefault(); openRoute(path, navigate, true); } }}
             sx={{
               color:          CY.cyanDim,
               fontFamily:     '"Courier New", Courier, monospace',

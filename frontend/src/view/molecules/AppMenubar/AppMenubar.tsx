@@ -36,6 +36,16 @@ export const navBtnSx = {
   },
 };
 
+// ── Shared helper: navigate in same tab or open a new one ─────────────────
+export const openRoute = (
+  path:     string,
+  navigate: ReturnType<typeof useNavigate>,
+  newTab:   boolean,
+) => {
+  if (newTab) window.open(path, '_blank', 'noreferrer');
+  else        navigate(path);
+};
+
 // ── Desktop / tablet toolbar ───────────────────────────────────────────────
 const ToolbarDesktopAndTablet = () => {
   const navigate = useNavigate();
@@ -90,7 +100,8 @@ const ToolbarDesktopAndTablet = () => {
             : (
               <Button
                 key={p.name}
-                onClick={() => navigate(p.path)}
+                onClick={e => openRoute(p.path, navigate, e.ctrlKey || e.metaKey)}
+                onMouseDown={e => { if (e.button === 1) { e.preventDefault(); openRoute(p.path, navigate, true); } }}
                 sx={navBtnSx}
               >
                 {p.name}
@@ -139,7 +150,8 @@ const ToolbarMobile = () => {
           {pages.map(({ name, path }) => (
             <MenuItem
               key={name}
-              onClick={() => { navigate(path); setAnchor(null); }}
+              onClick={e => { openRoute(path, navigate, e.ctrlKey || e.metaKey); setAnchor(null); }}
+              onMouseDown={e => { if (e.button === 1) { e.preventDefault(); openRoute(path, navigate, true); } }}
               sx={{
                 color:          CY.cyanDim,
                 fontFamily:     'monospace',
