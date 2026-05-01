@@ -1,4 +1,4 @@
-import express, {Express, Request, Response} from 'express';
+﻿import express, {Express, Request, Response} from 'express';
 import { readFile, writeFile } from 'fs';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { TelegramBot } from '../telegramBot/telegramBot';
@@ -231,6 +231,7 @@ export class APIService {
     this.app.post(APIService.readLaterRSSEndpoint.getMessages, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         ReadLaterMessagesRSS.getMessagesRSSSaved(req.body.amount).then(data => {
           res.send({ data });
@@ -240,6 +241,7 @@ export class APIService {
     this.app.post(APIService.readLaterRSSEndpoint.getRandomMessages, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         ReadLaterMessagesRSS.getRandomMessagesRSSSaved(req.body.amount).then(data => {
           res.send({ data });
@@ -249,6 +251,7 @@ export class APIService {
     this.app.post(APIService.readLaterRSSEndpoint.addMessages, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         ReadLaterMessagesRSS.addMessageRSSToSavedList(req.body.message).then(data => {
           res.send({ data });
@@ -258,6 +261,7 @@ export class APIService {
     this.app.post(APIService.readLaterRSSEndpoint.removeMessages, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         ReadLaterMessagesRSS.removeMessageRSSFromSavedList(req.body.id).then(() => {
           res.send({ response: 'OK' });
@@ -267,6 +271,7 @@ export class APIService {
     this.app.post(APIService.readLaterRSSEndpoint.searchMessages, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         ReadLaterMessagesRSS.searchMessagesRSSSaved(req.body.query, req.body.amount).then(data => {
           res.send({ data });
@@ -277,13 +282,9 @@ export class APIService {
 
   private getFavoritesRSSService() {
     this.app.get(APIService.getRssFavoritesEndpoint, (req, res) => {
-      if (!req.body) {
-        console.error("Received NO body text");
-      } else {
-        MediaRSSAutoupdate.getFavoritesYoutubeFileContent(req.query.amount ? +req.query.amount : 0).then(data => {
-          res.send({ messages: data });
-        });
-      }
+      MediaRSSAutoupdate.getFavoritesYoutubeFileContent(req.query.amount ? +req.query.amount : 0).then(data => {
+        res.send({ messages: data });
+      });
     });
   }
 
@@ -360,6 +361,7 @@ export class APIService {
     this.app.post(APIService.notesEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
+            return res.status(400).json({ error: 'No body received' });
         } else {
             NotesService.Instance.updateNotes(req.body.data).then(data => res.send({data}));
         }
@@ -377,6 +379,7 @@ export class APIService {
     this.app.post(APIService.pomodoroEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
+            return res.status(400).json({ error: 'No body received' });
         } else {
           PomodoroService.Instance.setTimeModeList(req.body.data).then(data => {
             SupabaseNotificationService.Instance?.syncPomodoroModes(req.body.data);
@@ -420,6 +423,7 @@ export class APIService {
     this.app.post(APIService.videoToMp3ConverterEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
+            return res.status(400).json({ error: 'No body received' });
         } else {
           const data = {
             ...req.body.data,
@@ -455,6 +459,7 @@ export class APIService {
     this.app.post(APIService.audioToMp3ConverterEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
+            return res.status(400).json({ error: 'No body received' });
         } else {
           const data = {
             ...req.body.data,
@@ -494,6 +499,7 @@ export class APIService {
     this.app.post(APIService.alertsEndpoint, (req, res) => {
         if (!req.body) {
             console.error("Received NO body text");
+            return res.status(400).json({ error: 'No body received' });
         } else {
           AlertListService.Instance.updateAlerts(
             AlertListService.Instance.parseStringsListToAlertList(req.body.alerts),
@@ -520,6 +526,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.getPathList, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.getBookmarks(req.body.path).then(data => {
           res.send({ data });
@@ -530,6 +537,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.getTrashList, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.getBookmarkInTrash(req.body.bookmarksByPage, req.body.currentPage).then(data => {
           res.send({ ...data });
@@ -540,6 +548,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.search, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.searchInBookmark(req.body.data).then(data => res.send({ data }));
       }
@@ -548,6 +557,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.searchInTrash, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.searchInTrash(req.body.data).then(data => res.send({ data }));
       }
@@ -556,6 +566,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.addBookmark, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.addBookmark(req.body.url, req.body.path, req.body.title).then(data => {
           res.send({ data });
@@ -566,6 +577,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.addFolder, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.addFolder(req.body.path).then(data => {
           res.send({ data });
@@ -576,6 +588,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.removeBookmark, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.removeBookmark(req.body.path, req.body.url).then(data => {
           res.send({ data });
@@ -586,6 +599,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.removeFolder, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.removeFolder(req.body.path).then(data => {
           res.send({ data });
@@ -596,6 +610,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.removeInTrash, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.removeBookmarkInTrash(req.body.url).then(data => {
           res.send({ data });
@@ -606,6 +621,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.editBookmark, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.editBookmark(req.body.path, req.body.oldBookmark, req.body.newBookmark).then(data => {
           res.send({ data });
@@ -616,6 +632,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.editFolder, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.editFolder(req.body.oldPath, req.body.newPath).then(data => {
           res.send({ data });
@@ -626,6 +643,7 @@ export class APIService {
     this.app.post(APIService.bookmarksEndpoint.move, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");
+        return res.status(400).json({ error: 'No body received' });
       } else {
         BookmarkService.Instance.moveBookmarksAndFolders(req.body.toMove, req.body.oldPath, req.body.newPath).then(data => {
           res.send({ data });
@@ -649,6 +667,7 @@ export class APIService {
     this.app.post(APIService.unfurlEndpoint, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
           getUnfurlWithCache(req.body.urlList as string[], +req.body.loadTime).then(content => res.send({data: content}));    
       }
@@ -670,6 +689,7 @@ export class APIService {
     this.app.post(APIService.sendToTelegramEndpoint, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         const success = TelegramBot.Instance().sendNotepadTextToTelegram(req.body.text);
         res.send({isSended: success});
@@ -700,6 +720,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.getFolderContent, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.getFolderContent(req.body.drive, req.body.folderPath).then(cloudItemList => res.send({data: cloudItemList}));
       }
@@ -709,6 +730,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.createFolder, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.createFolder(req.body.path).then((message) => res.send({message}));
       }
@@ -718,6 +740,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.createBlankFile, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.createBlankFile(req.body.path).then(() => res.send({isUpdated: true}));
       }
@@ -727,6 +750,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.saveFile, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.saveInFile(req.body.filePath, req.body.textContent).then(() => res.send({isUpdated: true}));
       }
@@ -736,6 +760,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.moveItem, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.moveFileOrFolder(req.body.oldPathList, req.body.newPathList).then((message) => res.send({ message }));
       }
@@ -745,6 +770,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.renameItem, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.renameFileOrFolder(req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
       }
@@ -774,6 +800,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.searchInFolder, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.searchCloudItemInDirectory(req.body.nameDrive, req.body.folderPath, req.body.searchTokken).then(search => {
           res.send({ search });
@@ -804,6 +831,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.deleteFileOrFolder, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.deleteFileOrFolder(req.body.drive, req.body.path).then((message) => res.send({message}));
       }
@@ -813,6 +841,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.zipFolder, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.zipFolder(req.body.relativePathToZip, req.body.compression).then((message) => res.send({message}));
       }
@@ -822,6 +851,7 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.downloadFile, (req, res) => {
       if (!req.body) {
           console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
       } else {
         const options: {root: undefined | string} = {
           root: undefined
@@ -1393,7 +1423,7 @@ export class APIService {
       const svc = GoogleDriveService.Instance;
       if (!svc?.isConfigured()) return notConfigured(res);
       try {
-        await svc.deleteItem(req.params.fileId);
+        await svc.deleteItem(req.params.fileId as string);
         res.json({ success: true });
       } catch (err: any) {
         console.error('[Drive API] delete error:', err?.message);
@@ -1406,7 +1436,7 @@ export class APIService {
       const svc = GoogleDriveService.Instance;
       if (!svc?.isConfigured()) return notConfigured(res);
       try {
-        const { stream, name, mimeType, size } = await svc.getDownloadStream(req.params.fileId);
+        const { stream, name, mimeType, size } = await svc.getDownloadStream(req.params.fileId as string);
         res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(name)}`);
         res.setHeader('Content-Type', mimeType);
         if (size) res.setHeader('Content-Length', size);
