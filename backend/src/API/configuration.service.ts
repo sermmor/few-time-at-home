@@ -12,6 +12,7 @@ const pathAdditionalConfigFiles: {[key: string]: string} = {
   quoteList: 'data/config/quoteList.json',
   youtubeRssList: 'data/config/youtubeRssList.json',
   rssConfig: 'data/config/rssConfig.json',
+  desktop: 'data/config/desktop.json',
 };
 const listNamesAdditionalConfigFiles = Object.keys(pathAdditionalConfigFiles);
 
@@ -23,9 +24,9 @@ const readAdditionalConfigFile = (
   const nameFile = listNameFiles[index];
   readFile(pathAdditionalConfigFiles[nameFile], (err, data) => { 
     if (err) {
-      // For new config types like listBotCommands and rssConfig, skip if file doesn't exist yet
+      // For new config types like rssConfig and desktop, skip if file doesn't exist yet
       // They will remain in configuration.json until first saved separately
-      if (nameFile !== 'rssConfig') {
+      if (nameFile !== 'rssConfig' && nameFile !== 'desktop') {
         throw err;
       }
     } else {
@@ -121,6 +122,14 @@ export class ConfigurationService {
     this.password     = configurationData.password     ?? 'admin';
     this.loginEnabled = configurationData.loginEnabled ?? false;
 
+    // Dynamic additional configs (e.g. 'desktop') — assign any key that was
+    // read from data/config/ but is not explicitly mapped above.
+    listNamesAdditionalConfigFiles.forEach(key => {
+      if (configurationData[key] !== undefined && !Object.prototype.hasOwnProperty.call(this, key)) {
+        (<any> this)[key] = configurationData[key];
+      }
+    });
+
     ConfigurationService.Instance = this;
   }
 
@@ -139,6 +148,10 @@ export class ConfigurationService {
       if (subConfig.youtubeRssList      !== undefined) this.youtubeRssList       = subConfig.youtubeRssList;
       if (subConfig.quoteList           !== undefined) this.quoteList            = subConfig.quoteList;
       if (subConfig.rssConfig           !== undefined) this.rssConfig            = subConfig.rssConfig;
+      // Dynamic additional configs (e.g. 'desktop')
+      listNamesAdditionalConfigFiles.forEach(key => {
+        if (subConfig[key] !== undefined) (<any> this)[key] = subConfig[key];
+      });
 
       const channelMediaCollection = ChannelMediaRSSCollectionExport.Instance.channelMediaCollection;
       channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();

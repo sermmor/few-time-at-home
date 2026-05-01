@@ -73,6 +73,12 @@ export const createSetupFiles = (data: SetupWizardData): void => {
   writeJson('data/config/mastodonRssUsersList.json',  []);
   writeJson('data/config/youtubeRssList.json',        []);
   writeJson('data/config/quoteList.json',             []);
+  writeJson('data/config/desktop.json', {
+    rows:       4,
+    cols:       4,
+    wallpapers: Array(16).fill(''),
+  });
+
   writeJson('data/config/rssConfig.json', {
     updateAtStartApp:                      false,
     optionTagsYoutube:                     ['null'],
