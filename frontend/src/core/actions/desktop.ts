@@ -6,17 +6,33 @@ import {
 
 const CONFIG_TYPE = 'desktop';
 
+export interface StickyNote {
+  id:             string;
+  workspaceIndex: number;
+  x:              number;
+  y:              number;
+  width:          number;
+  height:         number;
+  content:        string;
+  /** Color de fondo del post-it (hex). Omitido = amarillo por defecto. */
+  color?:         string;
+  /** Tamaño de fuente en px. Omitido = 13. */
+  fontSize?:      number;
+}
+
 export interface DesktopConfig {
   rows:       number;
   cols:       number;
   /** One cloud path per workspace (empty string = use default colour). */
   wallpapers: string[];
+  notes:      StickyNote[];
 }
 
 export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
   rows:       4,
   cols:       4,
   wallpapers: Array(16).fill(''),
+  notes:      [],
 };
 
 const getDesktopConfig = (): Promise<DesktopConfig> =>
@@ -32,6 +48,7 @@ const getDesktopConfig = (): Promise<DesktopConfig> =>
       rows:       d.rows ?? DEFAULT_DESKTOP_CONFIG.rows,
       cols:       d.cols ?? DEFAULT_DESKTOP_CONFIG.cols,
       wallpapers: Array.from({ length: total }, (_, i) => d.wallpapers?.[i] ?? ''),
+      notes:      Array.isArray(d.notes) ? d.notes : [],
     };
   });
 

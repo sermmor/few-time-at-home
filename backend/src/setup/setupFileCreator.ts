@@ -77,6 +77,7 @@ export const createSetupFiles = (data: SetupWizardData): void => {
     rows:       4,
     cols:       4,
     wallpapers: Array(16).fill(''),
+    notes:      [],
   });
 
   writeJson('data/config/rssConfig.json', {

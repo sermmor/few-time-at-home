@@ -5,8 +5,9 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import { DesktopActions, DesktopConfig, DEFAULT_DESKTOP_CONFIG } from '../../../core/actions/desktop';
+import { DesktopActions, DesktopConfig, DEFAULT_DESKTOP_CONFIG, StickyNote } from '../../../core/actions/desktop';
 import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
+import { StickyNoteWidget } from './StickyNoteWidget';
 import { getCloudEndpoint } from '../../../core/urls-and-end-points';
 
 // Build a GET URL for the streamFile endpoint (?drive=...&path=...)
@@ -67,6 +68,9 @@ export const Desktop = (): JSX.Element => {
   const [visible,   setVisible  ] = React.useState(false);
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
   const [propsOpen,   setPropsOpen  ] = React.useState(false);
+
+  // Ref al div del escritorio para calcular posiciones relativas
+  const desktopRef = React.useRef<HTMLDivElement>(null);
 
   // slide: outgoing workspace content; cleared when CSS animation ends
   const [slide, setSlide] = React.useState<{
@@ -144,6 +148,52 @@ export const Desktop = (): JSX.Element => {
     };
   }, []);
 
+  // ── Gestión de notas sticky ──────────────────────────────────────────────
+  const saveConfig = (updated: DesktopConfig) => {
+    setConfig(updated);
+    DesktopActions.saveDesktopConfig(updated);
+  };
+
+  const addNote = () => {
+    const rect = desktopRef.current?.getBoundingClientRect();
+    const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 110) : 60;
+    const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 90)  : 60;
+    const newNote: StickyNote = {
+      id:             `note-${Date.now()}`,
+      workspaceIndex: activeWs,
+      x, y,
+      width:   220,
+      height:  180,
+      content: '',
+    };
+    saveConfig({ ...config, notes: [...(config.notes ?? []), newNote] });
+    setContextMenu(null);
+  };
+
+  const updateNote = (id: string, changes: Partial<StickyNote>) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        notes: (prev.notes ?? []).map(n => n.id === id ? { ...n, ...changes } : n),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  const deleteNote = (id: string) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        notes: (prev.notes ?? []).filter(n => n.id !== id),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  const notesForActiveWs = (config.notes ?? []).filter(n => n.workspaceIndex === activeWs);
+
   // ── Derived display values ───────────────────────────────────────────────
   const COLS  = config.cols;
   const ROWS  = config.rows;
@@ -165,6 +215,7 @@ export const Desktop = (): JSX.Element => {
 
       {/* ── Main desktop area ─────────────────────────────────────────── */}
       <div
+        ref={desktopRef}
         tabIndex={0}
         autoFocus
         onContextMenu={e => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY }); }}
@@ -200,6 +251,16 @@ export const Desktop = (): JSX.Element => {
             onAnimationEnd={() => setSlide(null)}
           />
         )}
+
+        {/* ── Notas sticky del escritorio activo ─────────────────────── */}
+        {notesForActiveWs.map(note => (
+          <StickyNoteWidget
+            key={note.id}
+            note={note}
+            onUpdate={updateNote}
+            onDelete={deleteNote}
+          />
+        ))}
 
         {/* ── Workspace switcher overlay (shown while Shift is held) ─── */}
         <div style={{
@@ -249,8 +310,8 @@ export const Desktop = (): JSX.Element => {
           ? { top: contextMenu.y, left: contextMenu.x }
           : undefined}
       >
-        <MenuItem disabled>
-          <ListItemText primary="Añadir notas" />
+        <MenuItem onClick={addNote}>
+          <ListItemText primary="Añadir nota" />
         </MenuItem>
         <MenuItem disabled>
           <ListItemText primary="Añadir link" />
