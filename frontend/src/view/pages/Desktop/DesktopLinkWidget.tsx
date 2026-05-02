@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import InsertLinkIcon from '@mui/icons-material/InsertLink';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
 import { DesktopLink } from '../../../core/actions/desktop';
@@ -178,6 +179,13 @@ export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, o
         anchorPosition={ctxMenu ? { top: ctxMenu.y, left: ctxMenu.x } : undefined}
         slotProps={{ paper: { sx: { minWidth: '170px' } } }}
       >
+        <MenuItem
+          onClick={() => { closeCtx(); navigator.clipboard.writeText(link.url); }}
+          dense
+        >
+          <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Copiar enlace</ListItemText>
+        </MenuItem>
         <MenuItem
           onClick={() => { closeCtx(); onEdit(link); }}
           dense

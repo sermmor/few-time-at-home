@@ -38,6 +38,10 @@ export class SynchronizeService {
 
   /** Zip data/ with zip-a-folder and stream it to the HTTP response. */
   exportDataAsZip = async (webResponse: any): Promise<void> => {
+    // Asegurar que el config de escritorio está escrito a disco antes de comprimir
+    // (los cambios del frontend se guardan en RAM y sólo se vuelcan al cerrar/navegar).
+    ConfigurationService.Instance.flushDesktopToDisk();
+
     await zip(DATA_DIR, EXPORT_ZIP);
 
     return new Promise<void>((resolve, reject) => {
