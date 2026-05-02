@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, SxProps, Theme } from "@mui/material";
+import { Box, SxProps, Theme, useMediaQuery } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { CloudItem } from "../../../data-model/cloud";
@@ -55,6 +55,7 @@ let indexNewCloudItemAdded = 0;
 
 export const Cloud = () => {
   const { t } = useTranslation();
+  const isMobile = useMediaQuery('(max-width: 600px)');
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const decodedPathname = decodeURIComponent(pathname);
@@ -230,7 +231,7 @@ export const Cloud = () => {
         }}
         addFolder={() => setOpenNameFolderDialog(true)}
         // filterItemPredicate={(id) => id !== nameFileForEmptyFolder}
-        deleteAction={(id) => deleteItemAction(action, id)}
+        deleteAction={isMobile ? undefined : (id) => deleteItemAction(action, id)}
         seeCloudDrive={ () => changeDrive(action, cloudDriveName).then(res => navigate('')) }
         seeTrashDrive={ () => changeDrive(action, trashDriveName).then(res => navigate('')) }
         updateContent={() => synchronizeWithCloud(action)}
@@ -245,7 +246,7 @@ export const Cloud = () => {
                 text={item.name}
                 path={item.path}
                 nameFolder={item.name}
-                zipInFolder={(label) => zipFolder(action, label)}
+                zipInFolder={isMobile ? undefined : (label) => zipFolder(action, label)}
                 onChange={renameCloudFolder(action, `${item.path}`)}
                 setOpenFolder={(label) => setOpenFolder(action, label).then(res => navigate(`${cloudRootPath}${res}`))}
                 />

@@ -1,4 +1,4 @@
-import { Box, SxProps, Theme } from "@mui/material";
+import { Box, SxProps, Theme, useMediaQuery } from "@mui/material";
 import React from "react";
 import { useTranslation } from 'react-i18next';
 import { BookmarksActions } from "../../../core/actions/bookmarks";
@@ -37,6 +37,7 @@ const getNameFolder = (completePath: string): string => {
 
 export const Bookmarks = () => {
   const { t } = useTranslation();
+  const isMobile = useMediaQuery('(max-width: 600px)');
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const decodedPathname = decodeURIComponent(pathname);
@@ -79,7 +80,7 @@ export const Bookmarks = () => {
           onInSelectionMode={(isInSelected) => setSelectionModeFlag(isInSelected)}
           onOutSelectionMode={() => setSelectedNodes([])}
           onMoveItem={(idList) => moveItemListToFolder(action, idList)}
-          deleteAction={(id) => deleteActionList(action, id)}
+          deleteAction={isMobile ? undefined : (id) => deleteActionList(action, id)}
           onSearch={onSearchItem}
           addAction={() => setOpenNameBookmarkDialog(true)}
           addFolder={() => setOpenNameFolderDialog(true)}
