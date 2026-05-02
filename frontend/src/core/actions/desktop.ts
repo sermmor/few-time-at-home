@@ -3,6 +3,7 @@ import {
   configurationListByTypeEndpoint,
   configurationEndpoint,
   desktopGetFaviconEndpoint,
+  desktopFlushEndpoint,
 } from '../urls-and-end-points';
 
 const CONFIG_TYPE = 'desktop';
@@ -86,4 +87,14 @@ const getFavicon = (url: string): Promise<string | null> =>
   ).then(res => res.name ?? null)
   .catch(() => null);
 
-export const DesktopActions = { getDesktopConfig, saveDesktopConfig, getFavicon };
+/** Vuelca el config de escritorio de la RAM del backend al fichero desktop.json.
+ *  Llamar al navegar a otra página (el componente se desmonta) o en beforeunload. */
+const flushDesktopConfig = (): Promise<void> =>
+  fetchJsonSendAndReceive<Record<string, never>>(
+    desktopFlushEndpoint(),
+    {},
+    {},
+  ).then(() => undefined)
+  .catch(() => undefined); // Los errores de flush no son críticos
+
+export const DesktopActions = { getDesktopConfig, saveDesktopConfig, getFavicon, flushDesktopConfig };

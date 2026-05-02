@@ -112,9 +112,12 @@ export const alexaStateEndpoint = (): string => `${getUrlApi()}/alexa/state`;
 export const alexaSyncEndpoint  = (): string => `${getUrlApi()}/alexa/sync`;
 export const alexaStopEndpoint  = (): string => `${getUrlApi()}/alexa/stop`;
 
-// ── Chromecast cast endpoints ────────────────────────────────────────────────
+// ── Desktop endpoints ────────────────────────────────────────────────────────
 export const desktopGetFaviconEndpoint    = (): string => `${getUrlApi()}/desktop/get-favicon`;
 export const desktopFaviconImageEndpoint  = (name: string): string => `${getUrlApi()}/desktop/favicon/${encodeURIComponent(name)}`;
+/** Vuelca el config de escritorio de RAM a disco.
+ *  Usado con sendBeacon (cierre de pestaña) o fetch (navegación interna). */
+export const desktopFlushEndpoint         = (): string => `${getUrlApi()}/desktop/flush`;
 
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;

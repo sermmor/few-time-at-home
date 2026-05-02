@@ -71,7 +71,15 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
 
   const handleSave = () => {
     setSaving(true);
-    const next: DesktopConfig = { rows, cols, wallpapers: adjustedWallpapers };
+    // Preservar notes y links del config actual para no borrarlos al guardar
+    // solo cambios de cuadrícula/fondos de pantalla.
+    const next: DesktopConfig = {
+      rows,
+      cols,
+      wallpapers: adjustedWallpapers,
+      notes: config.notes ?? [],
+      links: config.links ?? [],
+    };
     DesktopActions.saveDesktopConfig(next)
       .then(() => { onSave(next); onClose(); })
       .finally(() => setSaving(false));

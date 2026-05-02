@@ -1497,6 +1497,13 @@ export class APIService {
 
   // ── Desktop favicon ───────────────────────────────────────────────────────
   private desktopFaviconService(): void {
+    // POST /desktop/flush — vuelca el config de escritorio de la RAM al fichero.
+    // El frontend lo llama vía sendBeacon (cierre de pestaña) o fetch (navegación interna).
+    this.app.post('/desktop/flush', (_req: Request, res: Response) => {
+      ConfigurationService.Instance.flushDesktopToDisk();
+      res.status(204).end();
+    });
+
     // POST /desktop/get-favicon — descarga (o recupera de caché) el favicon de una URL
     this.app.post('/desktop/get-favicon', async (req: Request, res: Response) => {
       if (!req.body) return res.status(400).json({ error: 'No body received' });

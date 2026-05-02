@@ -190,7 +190,11 @@ export class ConfigurationService {
       (<any> this)[typeConfig] = content;
     }
 
-    this.saveConfigurationByType(typeConfig);
+    // 'desktop' is written to disk lazily — only when the frontend sends a
+    // /desktop/flush signal (on tab close or in-app navigation).
+    if (typeConfig !== 'desktop') {
+      this.saveConfigurationByType(typeConfig);
+    }
 
     channelMediaCollection.blogRSS.refleshChannelMediaConfiguration();
     channelMediaCollection.mastodonRSS.refleshChannelMediaConfiguration();
@@ -208,6 +212,16 @@ export class ConfigurationService {
   private saveConfigurationByType = (typeConfig: string) => {
     const path = typeConfig === 'configuration' ? pathConfigFile : pathAdditionalConfigFiles[typeConfig];
     saveInAFile(JSON.stringify(this.getConfigurationByType(typeConfig), null, 2), path);
+  }
+
+  /** Vuelca el config de escritorio de la RAM al fichero desktop.json.
+   *  Llamado desde el endpoint /desktop/flush, que el frontend invoca al
+   *  cerrar la pestaña (sendBeacon) o al navegar a otra página. */
+  flushDesktopToDisk = (): void => {
+    if ((<any> this)['desktop'] !== undefined) {
+      this.saveConfigurationByType('desktop');
+      console.log('[Desktop] Flushed to disk.');
+    }
   }
 
   launchCommandLine = (cmd: string): Promise<ExecException | { stdout: string, stderr: string }>=> {

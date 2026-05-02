@@ -10,7 +10,7 @@ import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
 import { StickyNoteWidget } from './StickyNoteWidget';
 import { AddLinkDialog } from './AddLinkDialog';
 import { DesktopLinkWidget } from './DesktopLinkWidget';
-import { getCloudEndpoint } from '../../../core/urls-and-end-points';
+import { getCloudEndpoint, desktopFlushEndpoint } from '../../../core/urls-and-end-points';
 
 // Build a GET URL for the streamFile endpoint (?drive=...&path=...)
 // The endpoint is GET /cloud/stream-file and serves files directly.
@@ -149,6 +149,25 @@ export const Desktop = (): JSX.Element => {
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('keyup',   onKeyUp);
+    };
+  }, []);
+
+  // ── Flush al cerrar la pestaña / recargar (sendBeacon garantiza el envío) ─
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon(
+        desktopFlushEndpoint(),
+        new Blob(['{}'], { type: 'application/json' }),
+      );
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // ── Flush al navegar a otra página (el componente se desmonta) ───────────
+  React.useEffect(() => {
+    return () => {
+      DesktopActions.flushDesktopConfig();
     };
   }, []);
 
