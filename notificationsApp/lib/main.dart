@@ -7,6 +7,7 @@ import 'screens/alerts_screen.dart';
 import 'screens/pomodoro_screen.dart';
 import 'screens/weather_screen.dart';
 import 'services/notification_service.dart';
+import 'notes/notes_home_screen.dart';
 
 /// Called by Firebase when a push arrives and the app is BACKGROUND or KILLED.
 /// Must be a top-level function. Android shows the notification automatically
@@ -72,6 +73,7 @@ class _MainScreenState extends State<MainScreen> {
   static const _cyan    = Color(0xFF00FFE7);
   static const _magenta = Color(0xFFFF00CC);
   static const _amber   = Color(0xFFFFBB00);
+  static const _green   = Color(0xFF00FF88);
   static const _bg      = Color(0xFF020C18);
   static const _bgPanel = Color(0xFF071526);
 
@@ -83,6 +85,7 @@ class _MainScreenState extends State<MainScreen> {
     AlertsScreen(),
     PomodoroScreen(),
     WeatherScreen(),
+    NotesHomeScreen(),
   ];
 
   @override
@@ -171,6 +174,19 @@ class _MainScreenState extends State<MainScreen> {
               color:  _amber,
             ),
             label: 'TIEMPO',
+          ),
+          BottomNavigationBarItem(
+            icon: _NavIcon(
+              icon:   Icons.description_outlined,
+              active: _tabIndex == 3,
+              color:  _green,
+            ),
+            activeIcon: _NavIcon(
+              icon:   Icons.description,
+              active: true,
+              color:  _green,
+            ),
+            label: 'NEO NOTAS',
           ),
         ],
       ),

@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <!-- Keep screen on while Pomodoro timer is running -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Neo Notas: read/write Markdown files to external storage -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- Android 11+ (API 30+): broad external storage access for notes folder -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
 
     <application
         android:label="Few Time @ Home"
