@@ -119,6 +119,10 @@ export const desktopFaviconImageEndpoint  = (name: string): string => `${getUrlA
  *  Usado con sendBeacon (cierre de pestaña) o fetch (navegación interna). */
 export const desktopFlushEndpoint         = (): string => `${getUrlApi()}/desktop/flush`;
 
+// ── Audio Editor endpoints ───────────────────────────────────────────────────
+export const audioEditorUploadTempEndpoint     = (): string => `${getUrlApi()}/audio-editor/upload-temp`;
+export const audioEditorDownloadExportEndpoint = (): string => `${getUrlApi()}/audio-editor/download-export`;
+
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;
 export const castPlayEndpoint    = (): string => `${getUrlApi()}/cast/play`;

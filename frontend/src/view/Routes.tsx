@@ -19,6 +19,7 @@ const TrashBookmarks        = lazy(() => import('./pages/TrashBookmarks/TrashBoo
 const Alexa                 = lazy(() => import('./pages/Alexa/Alexa').then(m => ({ default: m.Alexa })));
 const Desktop               = lazy(() => import('./pages/Desktop/Desktop').then(m => ({ default: m.Desktop })));
 const GoogleDrive           = lazy(() => import('./pages/GoogleDrive/GoogleDrive').then(m => ({ default: m.GoogleDrive })));
+const AudioEditor           = lazy(() => import('./pages/AudioEditor/AudioEditor').then(m => ({ default: m.AudioEditor })));
 
 export interface RouteFTAHElement {
   name: string;
@@ -108,6 +109,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/cloud/text-editor',
     group: 'Cloud',
     element: <TextEditor/>,
+  },
+  {
+    name: 'Audio Editor',
+    path: '/cloud/audio-editor',
+    group: 'Cloud',
+    element: <AudioEditor/>,
   },
   {
     name: 'MP3 Converter',

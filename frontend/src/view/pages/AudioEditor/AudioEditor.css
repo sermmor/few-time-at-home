@@ -1,0 +1,205 @@
+/*
+ * AudioEditor — scoped CSS
+ * All rules are namespaced under .audio-editor-root so they don't bleed
+ * into the rest of the few-time-at-home application.
+ */
+
+.audio-editor-root {
+  /* ── CSS custom properties ── */
+  --ae-bg-main:        #0a0a0f;
+  --ae-bg-panel:       #13131a;
+  --accent-primary:    #6366f1;
+  --accent-secondary:  #8b5cf6;
+  --danger:            #ef4444;
+  --text-main:         #e2e8f0;
+  --text-muted:        #94a3b8;
+  --border-light:      rgba(255, 255, 255, 0.1);
+
+  background: var(--ae-bg-main);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /*
+   * EnvelopComponent adds paddingLeft/Right: 1rem and paddingTop: 5.5rem.
+   * – Negative horizontal margins cancel the side padding → edge-to-edge width.
+   * – Negative top margin cancels the top padding → background starts behind nav.
+   * – padding-top: 5.5rem pushes the editor's own content (toolbar, timeline)
+   *   back below the fixed nav, so nothing overlaps.
+   * – box-sizing: border-box keeps height: 100vh correct with the padding.
+   */
+  margin-left:  -1rem;
+  margin-right: -1rem;
+  margin-top:   -5.5rem;
+  padding-top:   5.5rem;
+  box-sizing:    border-box;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Buttons ── */
+
+.audio-editor-root .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.audio-editor-root .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.audio-editor-root .btn-primary {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.audio-editor-root .btn-primary:hover:not(:disabled) {
+  background: var(--accent-secondary);
+}
+
+.audio-editor-root .btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+}
+
+.audio-editor-root .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.audio-editor-root .btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.audio-editor-root .btn-danger:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.audio-editor-root .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.audio-editor-root .btn-icon:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+}
+
+.audio-editor-root .btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.audio-editor-root .btn-icon.active {
+  background: rgba(99, 102, 241, 0.3);
+  color: var(--accent-primary);
+}
+
+/* ── Glass panel ── */
+
+.audio-editor-root .glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-light);
+  backdrop-filter: blur(10px);
+}
+
+/* ── Modals ── */
+
+.audio-editor-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  backdrop-filter: blur(4px);
+}
+
+.audio-editor-modal-content {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  color: #e2e8f0;
+}
+
+/* ── Snackbar ── */
+
+@keyframes ae-slideUp {
+  from { transform: translate(-50%, 100%); opacity: 0; }
+  to   { transform: translate(-50%, 0);    opacity: 1; }
+}
+
+.audio-editor-snackbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  animation: ae-slideUp 0.3s ease-out;
+  font-weight: 500;
+  font-family: system-ui, sans-serif;
+}
+
+/* ── Modal text inputs ── */
+
+.audio-editor-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.audio-editor-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.audio-editor-select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+  cursor: pointer;
+}

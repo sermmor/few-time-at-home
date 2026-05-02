@@ -28,6 +28,7 @@ import { GoogleDriveService } from './googleDrive.service';
 import { AemetService } from './aemet.service';
 import { AlexaService } from './alexa.service';
 import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
+import { AudioEditorService } from './audioEditor.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -209,6 +210,7 @@ export class APIService {
     this.weatherService();
     this.alexaService();
     this.desktopFaviconService();
+    this.audioEditorService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1524,6 +1526,49 @@ export class APIService {
       const filePath = getFaviconFilePath(name);
       if (!filePath) return res.status(404).json({ error: 'Favicon not found' });
       res.sendFile(path.resolve(filePath));
+    });
+  }
+
+  // ── Audio Editor ─────────────────────────────────────────────────────────
+  private audioEditorService(): void {
+    const svc           = new AudioEditorService();
+    const audioUpload   = Multer({ dest: svc.getUploadDir() });
+
+    // POST /audio-editor/upload-temp — receives WAV blob, stores it, returns { id }
+    this.app.post('/audio-editor/upload-temp', audioUpload.single('audioBlob'), (req: Request, res: Response) => {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No audio file provided' });
+      }
+      res.json({ id: req.file.filename });
+    });
+
+    // GET /audio-editor/download-export?id=&filename=&format=
+    this.app.get('/audio-editor/download-export', async (req: Request, res: Response) => {
+      const { id, filename, format } = req.query as Record<string, string>;
+
+      if (!id || !format || (format !== 'mp3' && format !== 'flac' && format !== 'wav')) {
+        return res.status(400).send('Invalid parameters');
+      }
+
+      if (!svc.fileExists(id)) {
+        return res.status(404).send('Temporary file not found or expired');
+      }
+
+      const baseName      = filename || 'export';
+      const finalFilename = baseName.endsWith(`.${format}`) ? baseName : `${baseName}.${format}`;
+      const tempWavPath   = svc.getTempFilePath(id);
+
+      try {
+        if (format === 'wav') {
+          await svc.sendWavFile(tempWavPath, finalFilename, res);
+        } else {
+          const tempOutputPath = svc.getTempOutputPath(id, format);
+          await svc.convertAndStream(tempWavPath, tempOutputPath, format, finalFilename, res);
+        }
+      } catch (err: any) {
+        console.error('[AudioEditor] Download/convert error:', err.message);
+        if (!res.headersSent) res.status(500).send('Error processing audio file');
+      }
     });
   }
 
