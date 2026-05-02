@@ -426,5 +426,25 @@
     "verifying": "// VERIFYING //",
     "access": "// ACCESS //",
     "privateSystem": "PRIVATE SYSTEM — UNAUTHORIZED ACCESS PROHIBITED"
+  },
+  "youtube": {
+    "urlLabel": "YouTube URL",
+    "urlInvalid": "Enter a valid YouTube URL",
+    "cast": "Cast to TV",
+    "recasting": "Casting…",
+    "stop": "Stop",
+    "resolving": "Resolving…",
+    "devices": "Available devices",
+    "discovering": "Looking for devices on the network…",
+    "noDevices": "No Chromecast devices found on the network.",
+    "refresh": "Refresh",
+    "castingTo": "Casting to",
+    "nowCasting": "Playing on {{device}}",
+    "castStopped": "Cast stopped",
+    "errorDiscovery": "Could not discover devices",
+    "errorCast": "Error starting cast",
+    "libVersion": "Library:",
+    "githubReleasesTitle": "View releases on GitHub",
+    "updateAvailable": "New version available: v{{latest}}"
   }
 }

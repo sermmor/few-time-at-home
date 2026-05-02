@@ -29,6 +29,7 @@ import { AemetService } from './aemet.service';
 import { AlexaService } from './alexa.service';
 import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import { AudioEditorService } from './audioEditor.service';
+import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo } from './youtube.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -157,6 +158,10 @@ export class APIService {
     sync:  '/alexa/sync',
     stop:  '/alexa/stop',
   };
+  static youtubePageEndpoint = {
+    resolve: '/youtube-page/resolve',
+    version: '/youtube-page/version',
+  };
 
   app: Express;
   private activeSessions = new Set<string>();
@@ -211,6 +216,7 @@ export class APIService {
     this.alexaService();
     this.desktopFaviconService();
     this.audioEditorService();
+    this.youtubePageService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1599,6 +1605,33 @@ export class APIService {
       } catch (err: any) {
         console.error('[Weather API] hourly error:', err?.message);
         res.status(500).json({ error: err?.message ?? 'Failed to fetch hourly weather' });
+      }
+    });
+  }
+
+  // ── YouTube page (resolve URL + version info) ─────────────────────────────
+  private youtubePageService(): void {
+    // POST /youtube-page/resolve — returns { streamUrl, title, contentType }
+    this.app.post(APIService.youtubePageEndpoint.resolve, async (req: Request, res: Response) => {
+      const { url } = req.body as { url?: string };
+      if (!url) return res.status(400).json({ error: 'Missing url' });
+      try {
+        const result = await resolveYoutubeStreamUrl(url);
+        res.json(result);
+      } catch (err: any) {
+        console.error('[YouTube page] resolve error:', err?.message ?? err);
+        res.status(500).json({ error: err?.message ?? 'Could not resolve YouTube URL' });
+      }
+    });
+
+    // GET /youtube-page/version — returns { installed, latest, hasUpdate }
+    this.app.get(APIService.youtubePageEndpoint.version, async (_req: Request, res: Response) => {
+      try {
+        const info = await getYoutubeJsVersionInfo();
+        res.json(info);
+      } catch (err: any) {
+        console.error('[YouTube page] version error:', err?.message ?? err);
+        res.status(500).json({ error: err?.message ?? 'Could not retrieve version info' });
       }
     });
   }

@@ -129,3 +129,7 @@ export const castPlayEndpoint    = (): string => `${getUrlApi()}/cast/play`;
 export const castPauseEndpoint   = (): string => `${getUrlApi()}/cast/pause`;
 export const castSeekEndpoint    = (): string => `${getUrlApi()}/cast/seek`;
 export const castStopEndpoint    = (): string => `${getUrlApi()}/cast/stop`;
+
+// ── YouTube page ────────────────────────────────────────────────────────────
+export const youtubePageResolveEndpoint = (): string => `${getUrlApi()}/youtube-page/resolve`;
+export const youtubePageVersionEndpoint = (): string => `${getUrlApi()}/youtube-page/version`;

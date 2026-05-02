@@ -20,6 +20,7 @@ const Alexa                 = lazy(() => import('./pages/Alexa/Alexa').then(m =>
 const Desktop               = lazy(() => import('./pages/Desktop/Desktop').then(m => ({ default: m.Desktop })));
 const GoogleDrive           = lazy(() => import('./pages/GoogleDrive/GoogleDrive').then(m => ({ default: m.GoogleDrive })));
 const AudioEditor           = lazy(() => import('./pages/AudioEditor/AudioEditor').then(m => ({ default: m.AudioEditor })));
+const YouTubePage           = lazy(() => import('./pages/YouTube/YouTube').then(m => ({ default: m.YouTubePage })));
 
 export interface RouteFTAHElement {
   name: string;
@@ -79,6 +80,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/rss',
     group: 'Internet',
     element: <Rss/>,
+  },
+  {
+    name: 'YouTube',
+    path: '/youtube',
+    group: 'Internet',
+    element: <YouTubePage/>,
   },
   {
     name: 'Pomodoro',
