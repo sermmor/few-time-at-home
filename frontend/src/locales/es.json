@@ -445,6 +445,7 @@
     "errorCast": "Error al iniciar el cast",
     "libVersion": "Librería:",
     "githubReleasesTitle": "Ver releases en GitHub",
-    "updateAvailable": "Nueva versión disponible: v{{latest}}"
+    "updateAvailable": "Nueva versión disponible: v{{latest}}",
+    "liveEmbed": "Emitir en vivo"
   }
 }

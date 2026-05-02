@@ -1,5 +1,5 @@
 import { fetchJsonReceive, fetchJsonSendAndReceive } from '../fetch-utils';
-import { youtubePageResolveEndpoint, youtubePageVersionEndpoint } from '../urls-and-end-points';
+import { youtubePageResolveEndpoint, youtubePageVersionEndpoint, youtubePageLiveEndpoint } from '../urls-and-end-points';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,4 +31,17 @@ const getVersionInfo = (): Promise<YoutubeVersionInfo> =>
     { installed: '…', latest: '…', hasUpdate: false },
   );
 
-export const YoutubePageActions = { resolveUrl, getVersionInfo };
+const setLiveVideo = (videoId: string): Promise<{ ok: boolean }> =>
+  fetchJsonSendAndReceive<{ ok: boolean }>(
+    youtubePageLiveEndpoint(),
+    { videoId },
+    { ok: false },
+  );
+
+const getLiveVideo = (): Promise<{ videoId: string }> =>
+  fetchJsonReceive<{ videoId: string }>(
+    youtubePageLiveEndpoint(),
+    { videoId: '' },
+  );
+
+export const YoutubePageActions = { resolveUrl, getVersionInfo, setLiveVideo, getLiveVideo };

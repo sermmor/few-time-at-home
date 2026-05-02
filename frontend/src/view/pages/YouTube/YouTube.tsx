@@ -25,7 +25,9 @@ import StopIcon          from '@mui/icons-material/Stop';
 import ClearIcon         from '@mui/icons-material/Clear';
 import OpenInNewIcon     from '@mui/icons-material/OpenInNew';
 import UpdateIcon        from '@mui/icons-material/Update';
+import LiveTvIcon        from '@mui/icons-material/LiveTv';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { YoutubePageActions, YoutubeVersionInfo } from '../../../core/actions/youtube';
 import {
   castDevicesEndpoint,
@@ -54,6 +56,11 @@ interface CastState {
 const isValidYoutubeUrl = (url: string): boolean =>
   /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/.test(url);
 
+const extractVideoId = (url: string): string | null => {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);
+  return m ? m[1] : null;
+};
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const getPageStyle = (alpha: number): SxProps<Theme> => ({
@@ -72,8 +79,9 @@ const getPageStyle = (alpha: number): SxProps<Theme> => ({
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const YouTubePage = (): JSX.Element => {
-  const { t }  = useTranslation();
-  const alphas = useConfiguredDialogAlphas();
+  const { t }      = useTranslation();
+  const alphas     = useConfiguredDialogAlphas();
+  const navigate   = useNavigate();
 
   // ── URL field ───────────────────────────────────────────────────────────────
   const [url,        setUrl       ] = React.useState('');
@@ -265,6 +273,22 @@ export const YouTubePage = (): JSX.Element => {
           sx={{ whiteSpace: 'nowrap', minWidth: '9rem' }}
         >
           {resolving ? t('youtube.resolving') : isCasting ? t('youtube.recasting') : t('youtube.cast')}
+        </Button>
+
+        {/* Emitir en vivo button */}
+        <Button
+          variant="outlined"
+          color="secondary"
+          startIcon={<LiveTvIcon />}
+          disabled={!urlValid}
+          onClick={() => {
+            const id = extractVideoId(url);
+            if (!id) return;
+            YoutubePageActions.setLiveVideo(id);
+          }}
+          sx={{ whiteSpace: 'nowrap', minWidth: '10rem' }}
+        >
+          {t('youtube.liveEmbed')}
         </Button>
 
         {/* Stop cast button */}

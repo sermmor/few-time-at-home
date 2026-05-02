@@ -29,7 +29,7 @@ import { AemetService } from './aemet.service';
 import { AlexaService } from './alexa.service';
 import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import { AudioEditorService } from './audioEditor.service';
-import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo } from './youtube.service';
+import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -161,6 +161,8 @@ export class APIService {
   static youtubePageEndpoint = {
     resolve: '/youtube-page/resolve',
     version: '/youtube-page/version',
+    liveSet: '/youtube-page/live',
+    liveGet: '/youtube-page/live',
   };
 
   app: Express;
@@ -1633,6 +1635,20 @@ export class APIService {
         console.error('[YouTube page] version error:', err?.message ?? err);
         res.status(500).json({ error: err?.message ?? 'Could not retrieve version info' });
       }
+    });
+
+    // POST /youtube-page/live — body: { videoId }  — stores in memory + broadcasts
+    this.app.post(APIService.youtubePageEndpoint.liveSet, (req: Request, res: Response) => {
+      const { videoId } = req.body as { videoId?: string };
+      if (!videoId) return res.status(400).json({ error: 'Missing videoId' });
+      setLiveVideoId(videoId);
+      WebSocketsServerService.Instance?.broadcast({ youtubeLive: { videoId } });
+      res.json({ ok: true });
+    });
+
+    // GET /youtube-page/live — returns { videoId }
+    this.app.get(APIService.youtubePageEndpoint.liveGet, (_req: Request, res: Response) => {
+      res.json({ videoId: getLiveVideoId() });
     });
   }
 }

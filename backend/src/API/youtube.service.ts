@@ -100,6 +100,13 @@ export const resolveYoutubeStreamUrl = async (
   return { streamUrl, title, contentType };
 };
 
+// ── Live-embed video ID (in-memory, no persistence) ─────────────────────────
+
+let liveVideoId: string = '';
+
+export const setLiveVideoId = (id: string): void => { liveVideoId = id; };
+export const getLiveVideoId = (): string => liveVideoId;
+
 // ── Version info (installed vs. latest GitHub release) ───────────────────────
 
 export interface YoutubeVersionInfo {

@@ -445,6 +445,7 @@
     "errorCast": "Error starting cast",
     "libVersion": "Library:",
     "githubReleasesTitle": "View releases on GitHub",
-    "updateAvailable": "New version available: v{{latest}}"
+    "updateAvailable": "New version available: v{{latest}}",
+    "liveEmbed": "Live embed"
   }
 }

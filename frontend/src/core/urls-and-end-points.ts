@@ -133,3 +133,4 @@ export const castStopEndpoint    = (): string => `${getUrlApi()}/cast/stop`;
 // ── YouTube page ────────────────────────────────────────────────────────────
 export const youtubePageResolveEndpoint = (): string => `${getUrlApi()}/youtube-page/resolve`;
 export const youtubePageVersionEndpoint = (): string => `${getUrlApi()}/youtube-page/version`;
+export const youtubePageLiveEndpoint    = (): string => `${getUrlApi()}/youtube-page/live`;

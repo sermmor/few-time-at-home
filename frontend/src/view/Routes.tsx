@@ -21,6 +21,7 @@ const Desktop               = lazy(() => import('./pages/Desktop/Desktop').then(
 const GoogleDrive           = lazy(() => import('./pages/GoogleDrive/GoogleDrive').then(m => ({ default: m.GoogleDrive })));
 const AudioEditor           = lazy(() => import('./pages/AudioEditor/AudioEditor').then(m => ({ default: m.AudioEditor })));
 const YouTubePage           = lazy(() => import('./pages/YouTube/YouTube').then(m => ({ default: m.YouTubePage })));
+const AlexaYT               = lazy(() => import('./pages/AlexaYT/AlexaYT').then(m => ({ default: m.AlexaYT })));
 
 export interface RouteFTAHElement {
   name: string;
@@ -146,6 +147,14 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/alexa',
     group: '',
     element: <Alexa />,
+    isHiddenInMenuBar: true,
+    isFullscreen: true,
+  },
+  {
+    name: 'AlexaYT',
+    path: '/alexa-yt',
+    group: '',
+    element: <AlexaYT />,
     isHiddenInMenuBar: true,
     isFullscreen: true,
   },
