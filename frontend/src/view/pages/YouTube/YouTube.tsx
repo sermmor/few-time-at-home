@@ -27,7 +27,6 @@ import OpenInNewIcon     from '@mui/icons-material/OpenInNew';
 import UpdateIcon        from '@mui/icons-material/Update';
 import LiveTvIcon        from '@mui/icons-material/LiveTv';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { YoutubePageActions, YoutubeVersionInfo } from '../../../core/actions/youtube';
 import {
   castDevicesEndpoint,
@@ -79,9 +78,8 @@ const getPageStyle = (alpha: number): SxProps<Theme> => ({
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export const YouTubePage = (): JSX.Element => {
-  const { t }      = useTranslation();
-  const alphas     = useConfiguredDialogAlphas();
-  const navigate   = useNavigate();
+  const { t }  = useTranslation();
+  const alphas = useConfiguredDialogAlphas();
 
   // ── URL field ───────────────────────────────────────────────────────────────
   const [url,        setUrl       ] = React.useState('');
