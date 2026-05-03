@@ -72,12 +72,16 @@ dependencies:
   shared_preferences: ^2.2.3
   # Pick images from gallery to embed in notes
   image_picker: ^1.1.2
-  # Export preview as PNG
-  screenshot: ^3.0.0
   # Share exported image via Android share sheet
   share_plus: ^10.0.0
+  # Save exported image directly to device gallery (no share dialog)
+  gal: ^2.3.0
   # Typewriter animation on title / empty-state
   animated_text_kit: ^4.2.2
+  # PDF generation
+  pdf: ^3.10.8
+  # PDF print/share dialog
+  printing: ^5.13.1
 
 dev_dependencies:
   flutter_test:

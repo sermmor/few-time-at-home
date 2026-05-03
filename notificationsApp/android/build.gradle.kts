@@ -8,6 +8,12 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    // Suppress "source/target value 8 is obsolete" warnings that come from
+    // Flutter plugin dependencies still targeting Java 8.
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-Xlint:-options")
+    }
 }
 
 val newBuildDir: Directory =
