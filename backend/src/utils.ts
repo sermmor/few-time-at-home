@@ -1,4 +1,4 @@
-import { writeFile, stat, mkdir, readFile, copyFile } from 'fs';
+import { writeFile, stat, mkdir, readFile, copyFile, readdirSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
@@ -199,6 +199,21 @@ const runBackup = (
   }
 };
 
+/** Returns { src, dst } pairs for all desktop profile files + the meta file. */
+const getDesktopBackupPairs = (): { src: string; dst: string }[] => {
+  const pairs: { src: string; dst: string }[] = [];
+  try {
+    const files = readdirSync('data/config/desktop').filter(f => f.endsWith('.json'));
+    for (const f of files) {
+      pairs.push({ src: `data/config/desktop/${f}`, dst: `desktop/${f}` });
+    }
+  } catch { /* directory may not exist on very first run */ }
+  if (existsSync('data/config/desktopMeta.json')) {
+    pairs.push({ src: 'data/config/desktopMeta.json', dst: 'desktopMeta.json' });
+  }
+  return pairs;
+};
+
 export const startBackupEveryWeek = async(pathRootToPaste: string, password: string) => {
   const pathToCopyList = [
     'data/notes.txt',
@@ -209,7 +224,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string, password: str
     'keys.json',
     'configuration.json',
     'data/config/blogRssList.json',
-    'data/config/desktop.json',
+    // desktop profiles are added dynamically below (one file per profile)
     'data/config/newsRSSList.json',
     'data/config/mastodonRssUsersList.json',
     'data/config/nitterInstancesList.json',
@@ -218,7 +233,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string, password: str
     'data/config/youtubeRssList.json',
     'data/readLaterMessagesRSS.json',
   ];
-  
+
   const pathToPasteList = [
     'notes.txt',
     'alerts.json',
@@ -228,7 +243,7 @@ export const startBackupEveryWeek = async(pathRootToPaste: string, password: str
     'keys.json',
     'configuration.json',
     'blogRssList.json',
-    'desktop.json',
+    // desktop profiles are added dynamically below (one file per profile)
     'newsRSSList.json',
     'mastodonRssUsersList.json',
     'quoteList.json',
@@ -236,9 +251,11 @@ export const startBackupEveryWeek = async(pathRootToPaste: string, password: str
     'readLaterMessagesRSS.json',
   ];
 
+  const desktopPairs = getDesktopBackupPairs();
+
   const bookmarksPaths = await getBookmarksFilesPathList();
-  const allPathToCopyList = [...pathToCopyList, ...bookmarksPaths];
-  const allPathToPasteList = [...pathToPasteList, ...getBookmarksNameFilesPathList(bookmarksPaths)];
+  const allPathToCopyList  = [...pathToCopyList,  ...desktopPairs.map(p => p.src), ...bookmarksPaths];
+  const allPathToPasteList = [...pathToPasteList, ...desktopPairs.map(p => p.dst), ...getBookmarksNameFilesPathList(bookmarksPaths)];
 
   const uploadBackup = (pathZipped: string) => {
     GoogleDriveService.Instance?.uploadBackup(pathZipped);

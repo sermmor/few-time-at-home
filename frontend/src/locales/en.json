@@ -447,5 +447,21 @@
     "githubReleasesTitle": "View releases on GitHub",
     "updateAvailable": "New version available: v{{latest}}",
     "liveEmbed": "Live embed"
+  },
+  "desktopProfiles": {
+    "sectionTitle": "Desktop Profiles",
+    "profiles": "Profiles",
+    "active": "active",
+    "newProfileTitle": "Create new profile",
+    "newProfileName": "Profile name",
+    "addProfile": "Add",
+    "activate": "Activate",
+    "nameHint": "Letters, numbers, hyphens and underscores only. Spaces become «_».",
+    "createSuccess": "Profile created successfully",
+    "createError": "Could not create profile",
+    "alreadyExists": "A profile with that name already exists",
+    "activateSuccess": "Profile activated",
+    "activateError": "Could not activate profile",
+    "errorLoad": "Error loading desktop profiles"
   }
 }

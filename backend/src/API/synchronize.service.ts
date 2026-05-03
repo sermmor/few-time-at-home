@@ -22,9 +22,10 @@ import { writeFile, unlink } from 'fs/promises';
 import { NotesService }         from './notes.service';
 import { AlertListService }     from './alertNotification.service';
 import { PomodoroService }      from './pomodoro.service';
-import { ConfigurationService } from './configuration.service';
-import { MediaRSSAutoupdate }   from '../processAutoupdate/mediaRSSAutoupdate';
-import { UnfurlCacheService }   from '../unfurl/unfurlCache.service';
+import { ConfigurationService }   from './configuration.service';
+import { DesktopProfilesService } from './desktopProfiles.service';
+import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate';
+import { UnfurlCacheService }     from '../unfurl/unfurlCache.service';
 
 const fetch = require('node-fetch');
 
@@ -98,7 +99,7 @@ export class SynchronizeService {
     if (!res.ok) throw new Error(`Remote returned HTTP ${res.status}`);
 
     const buffer: Buffer = await res.buffer();
-    await writeFile(IMPORT_ZIP, buffer);
+    await writeFile(IMPORT_ZIP, new Uint8Array(buffer));
     console.log(`[Sync] Zip downloaded (${buffer.length} bytes). Extracting…`);
 
     await this.importDataFromZip(IMPORT_ZIP);
@@ -127,6 +128,10 @@ export class SynchronizeService {
     // ── Configuration sub-configs (data/config/*.json) ──
     //   Root configuration.json (ports, paths, secrets) is intentionally NOT touched.
     await ConfigurationService.Instance.reloadSubConfigsFromDisk();
+
+    // ── Desktop profiles (data/config/desktop/*.json + desktopMeta.json) ──
+    //   DesktopProfilesService manages these files independently of ConfigurationService.
+    DesktopProfilesService.Instance.reloadFromDisk();
 
     // ── RSS message cache (data/config/media/*.json) ──
     await MediaRSSAutoupdate.instance.reloadFromDisk();

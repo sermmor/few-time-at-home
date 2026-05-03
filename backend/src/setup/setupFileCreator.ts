@@ -19,6 +19,7 @@ export const createSetupFiles = (data: SetupWizardData): void => {
   // ── Carpetas ────────────────────────────────────────────────────────────────
   ensureDir('data');
   ensureDir('data/config');
+  ensureDir('data/config/desktop');
   ensureDir('data/bookmarks');
   ensureDir('data/cache');
 
@@ -73,13 +74,16 @@ export const createSetupFiles = (data: SetupWizardData): void => {
   writeJson('data/config/mastodonRssUsersList.json',  []);
   writeJson('data/config/youtubeRssList.json',        []);
   writeJson('data/config/quoteList.json',             []);
-  writeJson('data/config/desktop.json', {
+  // Desktop: one JSON file per profile inside data/config/desktop/
+  // The meta file stores which profile is currently active.
+  writeJson('data/config/desktop/default.json', {
     rows:       4,
     cols:       4,
     wallpapers: Array(16).fill(''),
     notes:      [],
     links:      [],
   });
+  writeJson('data/config/desktopMeta.json', { activeProfile: 'default' });
 
   writeJson('data/config/rssConfig.json', {
     updateAtStartApp:                      false,

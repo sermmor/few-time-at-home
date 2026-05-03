@@ -118,6 +118,10 @@ export const desktopFaviconImageEndpoint  = (name: string): string => `${getUrlA
 /** Vuelca el config de escritorio de RAM a disco.
  *  Usado con sendBeacon (cierre de pestaña) o fetch (navegación interna). */
 export const desktopFlushEndpoint         = (): string => `${getUrlApi()}/desktop/flush`;
+// Desktop profile management
+export const desktopProfilesEndpoint       = (): string => `${getUrlApi()}/desktop/profiles`;
+export const desktopProfileCreateEndpoint  = (): string => `${getUrlApi()}/desktop/profile/create`;
+export const desktopProfileActivateEndpoint = (): string => `${getUrlApi()}/desktop/profile/activate`;
 
 // ── Audio Editor endpoints ───────────────────────────────────────────────────
 export const audioEditorUploadTempEndpoint     = (): string => `${getUrlApi()}/audio-editor/upload-temp`;

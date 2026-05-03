@@ -2,6 +2,7 @@ import { readFile, writeFileSync } from 'fs';
 import { ExecException, exec } from 'child_process';
 import { Quote } from "../quote/quoteList";
 import { saveInAFile } from "../utils";
+import { DesktopProfilesService } from './desktopProfiles.service';
 import { ChannelMediaRSSCollection, ChannelMediaRSSCollectionExport } from "./messagesRSS.service";
 
 const pathConfigFile = 'configuration.json';
@@ -12,7 +13,7 @@ const pathAdditionalConfigFiles: {[key: string]: string} = {
   quoteList: 'data/config/quoteList.json',
   youtubeRssList: 'data/config/youtubeRssList.json',
   rssConfig: 'data/config/rssConfig.json',
-  desktop: 'data/config/desktop.json',
+  // NOTE: 'desktop' is intentionally absent — managed by DesktopProfilesService
 };
 const listNamesAdditionalConfigFiles = Object.keys(pathAdditionalConfigFiles);
 
@@ -24,9 +25,9 @@ const readAdditionalConfigFile = (
   const nameFile = listNameFiles[index];
   readFile(pathAdditionalConfigFiles[nameFile], (err, data) => { 
     if (err) {
-      // For new config types like rssConfig and desktop, skip if file doesn't exist yet
+      // For new config types like rssConfig, skip if file doesn't exist yet
       // They will remain in configuration.json until first saved separately
-      if (nameFile !== 'rssConfig' && nameFile !== 'desktop') {
+      if (nameFile !== 'rssConfig') {
         throw err;
       }
     } else {
@@ -180,18 +181,26 @@ export class ConfigurationService {
         loginEnabled: this.loginEnabled,
       }
     }
+    // Desktop config is served from the active profile via DesktopProfilesService
+    if (typeConfig === 'desktop') {
+      return DesktopProfilesService.Instance?.getActiveConfig() ?? {
+        rows: 4, cols: 4, wallpapers: Array(16).fill(''), notes: [], links: [],
+      };
+    }
     return (<any> this)[typeConfig];
   }
 
   updateConfigurationByType = (channelMediaCollection: ChannelMediaRSSCollection, typeConfig: string, content: any): Promise<void> => new Promise<void>(resolve => {
     if (typeConfig === 'configuration') {
       Object.keys(content).forEach(keyConfig => (<any> this)[keyConfig] = content[keyConfig]);
+    } else if (typeConfig === 'desktop') {
+      // Desktop config is kept in RAM via DesktopProfilesService and only
+      // flushed to disk on /desktop/flush (tab close or in-app navigation).
+      DesktopProfilesService.Instance?.setActiveConfig(content);
     } else {
       (<any> this)[typeConfig] = content;
     }
 
-    // 'desktop' is written to disk lazily — only when the frontend sends a
-    // /desktop/flush signal (on tab close or in-app navigation).
     if (typeConfig !== 'desktop') {
       this.saveConfigurationByType(typeConfig);
     }
@@ -214,14 +223,10 @@ export class ConfigurationService {
     saveInAFile(JSON.stringify(this.getConfigurationByType(typeConfig), null, 2), path);
   }
 
-  /** Vuelca el config de escritorio de la RAM al fichero desktop.json.
-   *  Llamado desde el endpoint /desktop/flush, que el frontend invoca al
-   *  cerrar la pestaña (sendBeacon) o al navegar a otra página. */
+  /** Vuelca el config de escritorio del perfil activo al disco.
+   *  Delegado a DesktopProfilesService — llamado desde /desktop/flush. */
   flushDesktopToDisk = (): void => {
-    if ((<any> this)['desktop'] !== undefined) {
-      this.saveConfigurationByType('desktop');
-      console.log('[Desktop] Flushed to disk.');
-    }
+    DesktopProfilesService.Instance?.flushActiveToDisk();
   }
 
   launchCommandLine = (cmd: string): Promise<ExecException | { stdout: string, stderr: string }>=> {

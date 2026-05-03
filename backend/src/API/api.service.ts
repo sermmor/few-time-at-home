@@ -28,6 +28,7 @@ import { GoogleDriveService } from './googleDrive.service';
 import { AemetService } from './aemet.service';
 import { AlexaService } from './alexa.service';
 import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
+import { DesktopProfilesService } from './desktopProfiles.service';
 import { AudioEditorService } from './audioEditor.service';
 import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
 import * as os from 'os';
@@ -164,6 +165,11 @@ export class APIService {
     liveSet: '/youtube-page/live',
     liveGet: '/youtube-page/live',
   };
+  static desktopProfilesEndpoint = {
+    list:     '/desktop/profiles',
+    create:   '/desktop/profile/create',
+    activate: '/desktop/profile/activate',
+  };
 
   app: Express;
   private activeSessions = new Set<string>();
@@ -216,6 +222,7 @@ export class APIService {
     this.googleDriveService();
     this.weatherService();
     this.alexaService();
+    new DesktopProfilesService();
     this.desktopFaviconService();
     this.audioEditorService();
     this.youtubePageService();
@@ -1505,13 +1512,49 @@ export class APIService {
     });
   }
 
-  // ── Desktop favicon ───────────────────────────────────────────────────────
+  // ── Desktop (favicon + profiles) ─────────────────────────────────────────
   private desktopFaviconService(): void {
+    const ep = APIService.desktopProfilesEndpoint;
+
     // POST /desktop/flush — vuelca el config de escritorio de la RAM al fichero.
     // El frontend lo llama vía sendBeacon (cierre de pestaña) o fetch (navegación interna).
     this.app.post('/desktop/flush', (_req: Request, res: Response) => {
       ConfigurationService.Instance.flushDesktopToDisk();
       res.status(204).end();
+    });
+
+    // GET /desktop/profiles — returns { profiles: string[], active: string }
+    this.app.get(ep.list, (_req: Request, res: Response) => {
+      const svc = DesktopProfilesService.Instance;
+      res.json({ profiles: svc.listProfiles(), active: svc.getActiveProfileName() });
+    });
+
+    // POST /desktop/profile/create — body: { name } → creates a new profile
+    this.app.post(ep.create, (req: Request, res: Response) => {
+      const { name } = req.body ?? {};
+      if (typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'invalid_name' });
+      }
+      const result = DesktopProfilesService.Instance.createProfile(name);
+      if (!result.ok) {
+        return res.status(409).json({ error: result.error });
+      }
+      const svc = DesktopProfilesService.Instance;
+      res.json({ profiles: svc.listProfiles(), active: svc.getActiveProfileName() });
+    });
+
+    // POST /desktop/profile/activate — body: { name } → sets the active profile
+    this.app.post(ep.activate, (req: Request, res: Response) => {
+      const { name } = req.body ?? {};
+      if (typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'invalid_name' });
+      }
+      const result = DesktopProfilesService.Instance.activateProfile(name);
+      if (!result.ok) {
+        return res.status(404).json({ error: result.error });
+      }
+      const svc = DesktopProfilesService.Instance;
+      res.json({ profiles: svc.listProfiles(), active: svc.getActiveProfileName() });
     });
 
     // POST /desktop/get-favicon — descarga (o recupera de caché) el favicon de una URL

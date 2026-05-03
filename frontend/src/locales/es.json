@@ -447,5 +447,21 @@
     "githubReleasesTitle": "Ver releases en GitHub",
     "updateAvailable": "Nueva versión disponible: v{{latest}}",
     "liveEmbed": "Emitir en vivo"
+  },
+  "desktopProfiles": {
+    "sectionTitle": "Perfiles de Escritorio",
+    "profiles": "Perfiles",
+    "active": "activo",
+    "newProfileTitle": "Crear nuevo perfil",
+    "newProfileName": "Nombre del perfil",
+    "addProfile": "Añadir",
+    "activate": "Activar",
+    "nameHint": "Solo letras, números, guiones y guiones bajos. Los espacios se convierten en «_».",
+    "createSuccess": "Perfil creado correctamente",
+    "createError": "No se pudo crear el perfil",
+    "alreadyExists": "Ya existe un perfil con ese nombre",
+    "activateSuccess": "Perfil activado",
+    "activateError": "No se pudo activar el perfil",
+    "errorLoad": "Error al cargar los perfiles de escritorio"
   }
 }

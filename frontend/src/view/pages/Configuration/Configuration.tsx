@@ -18,6 +18,7 @@ import { RSSConfigurationSection } from "./Components/RSSConfigurationSection";
 import { OthersSection } from "./Components/OthersSection";
 import { CommandLineSection } from "./Components/CommandLineSection";
 import { APIsSection } from "./Components/APIsSection";
+import { DesktopSection } from "./Components/DesktopSection";
 import { LoginSection } from "./Components/LoginSection";
 import { ConfigurationSnackbarProvider } from "./Components/ConfigurationSnackbarContext";
 import { AuthActions } from "../../../core/actions/auth";
@@ -173,6 +174,7 @@ export const ConfigurationComponent = () => {
             <PomodoroSection pomodoroTimeMode={pomodoroTimeMode} setPomodoroTimeMode={setPomodoroTimeMode} onShowSnackbar={(message, isError) => { setSnackBarMessage(message); setErrorSnackbar(isError); setOpenSnackbar(true); }} />
             <RSSConfigurationSection config={config} setConfig={setConfig} />
             <OthersSection config={config} setConfig={setConfig} />
+            <DesktopSection />
             <APIsSection />
             <LoginSection config={config} setConfig={setConfig} onLogout={handleLogout} />
             <CommandLineSection lineToSend={lineToSend} setLineToSend={setLineToSend} lineToSendResult={lineToSendResult} setLineToSendResult={setLineToSendResult} />

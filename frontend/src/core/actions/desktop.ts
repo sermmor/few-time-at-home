@@ -4,6 +4,9 @@ import {
   configurationEndpoint,
   desktopGetFaviconEndpoint,
   desktopFlushEndpoint,
+  desktopProfilesEndpoint,
+  desktopProfileCreateEndpoint,
+  desktopProfileActivateEndpoint,
 } from '../urls-and-end-points';
 
 const CONFIG_TYPE = 'desktop';
@@ -97,4 +100,45 @@ const flushDesktopConfig = (): Promise<void> =>
   ).then(() => undefined)
   .catch(() => undefined); // Los errores de flush no son críticos
 
-export const DesktopActions = { getDesktopConfig, saveDesktopConfig, getFavicon, flushDesktopConfig };
+// ── Desktop profile management ────────────────────────────────────────────────
+
+export interface DesktopProfilesInfo {
+  profiles: string[];
+  active:   string;
+}
+
+const listProfiles = (): Promise<DesktopProfilesInfo> =>
+  fetch(desktopProfilesEndpoint())
+    .then(r => r.json() as Promise<DesktopProfilesInfo>);
+
+const createProfile = (name: string): Promise<DesktopProfilesInfo> =>
+  fetch(desktopProfileCreateEndpoint(), {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ name }),
+  }).then(async r => {
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error ?? 'create_failed');
+    return body as DesktopProfilesInfo;
+  });
+
+const activateProfile = (name: string): Promise<DesktopProfilesInfo> =>
+  fetch(desktopProfileActivateEndpoint(), {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ name }),
+  }).then(async r => {
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error ?? 'activate_failed');
+    return body as DesktopProfilesInfo;
+  });
+
+export const DesktopActions = {
+  getDesktopConfig,
+  saveDesktopConfig,
+  getFavicon,
+  flushDesktopConfig,
+  listProfiles,
+  createProfile,
+  activateProfile,
+};
