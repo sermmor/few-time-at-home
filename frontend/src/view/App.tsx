@@ -149,6 +149,25 @@ const PageTransitionLoader = () => (
   </Box>
 );
 
+// ── Dynamic page title ────────────────────────────────────────────────────
+// Runs inside BrowserRouter so useLocation() is always available.
+// Format: "Desktop — Few_Time@Home" (or just "Few_Time@Home" for Home).
+const TitleUpdater = () => {
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    const exact  = routesFTAH.find(r => r.path === pathname);
+    const prefix = routesFTAH
+      .filter(r => r.path !== '/' && pathname.startsWith(r.path))
+      .sort((a, b) => b.path.length - a.path.length)[0]; // longest prefix wins
+    const route    = exact ?? prefix;
+    const pageName = route?.name;
+    document.title = !pageName || pageName === 'Home'
+      ? 'Few_Time@Home'
+      : `${pageName} — Few_Time@Home`;
+  }, [pathname]);
+  return null;
+};
+
 const EnvelopComponent = ({element}: {element: JSX.Element}) => {
   const { pathname } = useLocation();
   const isConfigPage = pathname === '/configuration';
@@ -189,6 +208,7 @@ const AllRoutes = () => {
   }
 
   return <BrowserRouter>
+    <TitleUpdater />
     <Routes>
       {
         routesFTAH.map(({name: nameRoute, path, element, includeSubroutes, isFullscreen}) =>
