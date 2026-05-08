@@ -58,11 +58,13 @@ export class APIService {
   static getRssFavoritesEndpoint  = "/rss/favorites";
   static getRssForceUpdateEndpoint = "/rss/force-update";
   static readLaterRSSEndpoint = {
-    getMessages: "/readLaterRSS/get-messages",
+    getMessages:       "/readLaterRSS/get-messages",
     getRandomMessages: "/readLaterRSS/get-random-messages",
-    addMessages: "/readLaterRSS/add-messages",
-    removeMessages: "/readLaterRSS/remove-messages",
-    searchMessages: "/readLaterRSS/search-messages",
+    addMessages:       "/readLaterRSS/add-messages",
+    removeMessages:    "/readLaterRSS/remove-messages",
+    searchMessages:    "/readLaterRSS/search-messages",
+    getAllMessages:     "/readLaterRSS/all-messages",
+    updateMessage:     "/readLaterRSS/update-message",
   }
   static keysEndpoint = "/keys";
   static configurationEndpoint = "/configuration";
@@ -296,6 +298,22 @@ export class APIService {
           res.send({ data });
         });
       }
+    });
+    this.app.post(APIService.readLaterRSSEndpoint.getAllMessages, (req, res) => {
+      const page     = req.body?.page     ?? 1;
+      const pageSize = req.body?.pageSize ?? 20;
+      ReadLaterMessagesRSS.getAllMessagesPaginated(page, pageSize).then(result => {
+        res.send(result);
+      }).catch(err => res.status(500).json({ error: String(err) }));
+    });
+    this.app.post(APIService.readLaterRSSEndpoint.updateMessage, (req, res) => {
+      const { id, message } = req.body ?? {};
+      if (id === undefined || message === undefined) {
+        return res.status(400).json({ error: 'id and message are required' });
+      }
+      ReadLaterMessagesRSS.updateMessage(id, message).then(() => {
+        res.send({ response: 'OK' });
+      }).catch(err => res.status(500).json({ error: String(err) }));
     });
   }
 
@@ -1523,24 +1541,24 @@ export class APIService {
       res.status(204).end();
     });
 
-    // GET /desktop/profiles — returns { profiles: string[], active: string }
+    // GET /desktop/profiles — returns { profiles: {name,tabletMode}[], active: string }
     this.app.get(ep.list, (_req: Request, res: Response) => {
       const svc = DesktopProfilesService.Instance;
-      res.json({ profiles: svc.listProfiles(), active: svc.getActiveProfileName() });
+      res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });
 
-    // POST /desktop/profile/create — body: { name } → creates a new profile
+    // POST /desktop/profile/create — body: { name, tabletMode? } → creates a new profile
     this.app.post(ep.create, (req: Request, res: Response) => {
-      const { name } = req.body ?? {};
+      const { name, tabletMode } = req.body ?? {};
       if (typeof name !== 'string' || !name.trim()) {
         return res.status(400).json({ error: 'invalid_name' });
       }
-      const result = DesktopProfilesService.Instance.createProfile(name);
+      const result = DesktopProfilesService.Instance.createProfile(name, !!tabletMode);
       if (!result.ok) {
         return res.status(409).json({ error: result.error });
       }
       const svc = DesktopProfilesService.Instance;
-      res.json({ profiles: svc.listProfiles(), active: svc.getActiveProfileName() });
+      res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });
 
     // POST /desktop/profile/activate — body: { name } → sets the active profile
@@ -1554,7 +1572,7 @@ export class APIService {
         return res.status(404).json({ error: result.error });
       }
       const svc = DesktopProfilesService.Instance;
-      res.json({ profiles: svc.listProfiles(), active: svc.getActiveProfileName() });
+      res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });
 
     // POST /desktop/get-favicon — descarga (o recupera de caché) el favicon de una URL

@@ -95,6 +95,37 @@ export class ReadLaterMessagesRSS {
     await saveInAFilePromise(JSON.stringify(newMessages, null, 2), ReadLaterMessagesRSS.readLaterMessagesRSSPath);
   };
 
+  static getAllMessagesPaginated = async(
+    page: number,
+    pageSize: number,
+  ): Promise<{ data: ReadLaterMessage[]; total: number }> => {
+    let messages: ReadLaterMessage[] = [];
+    try {
+      await stat(ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+      messages = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
+    } catch {
+      await saveInAFilePromise('[]', ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+    }
+    const reversed = [...messages].reverse();
+    const total    = reversed.length;
+    const start    = (page - 1) * pageSize;
+    const data     = reversed.slice(start, start + pageSize);
+    return { data, total };
+  };
+
+  static updateMessage = async(id: number, message: string): Promise<void> => {
+    const messages: ReadLaterMessage[] = await readJSONFile(
+      ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]',
+    );
+    const idx = messages.findIndex(m => m.id === id);
+    if (idx === -1) throw new Error('not_found');
+    messages[idx] = { ...messages[idx], message };
+    await saveInAFilePromise(
+      JSON.stringify(messages, null, 2),
+      ReadLaterMessagesRSS.readLaterMessagesRSSPath,
+    );
+  };
+
   static fileContent = async(): Promise<any> => await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
 
   static setFileContent = async(data: any): Promise<void> => {

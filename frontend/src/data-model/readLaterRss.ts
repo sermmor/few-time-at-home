@@ -32,3 +32,22 @@ export interface ReadLaterSearchMessagesRequest {
 export interface ReadLaterSearchMessagesResponse {
   data: ReadLaterMessage[];
 }
+
+export interface ReadLaterGetAllRequest {
+  page:     number;
+  pageSize: number;
+}
+
+export interface ReadLaterGetAllResponse {
+  data:  ReadLaterMessage[];
+  total: number;
+}
+
+export interface ReadLaterUpdateMessageRequest {
+  id:      number;
+  message: string;
+}
+
+export interface ReadLaterUpdateMessageResponse {
+  response: string;
+}

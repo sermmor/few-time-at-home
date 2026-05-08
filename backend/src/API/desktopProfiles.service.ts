@@ -5,11 +5,12 @@ const META_FILE       = 'data/config/desktopMeta.json';
 const DEFAULT_PROFILE = 'default';
 
 interface DesktopConfig {
-  rows:       number;
-  cols:       number;
-  wallpapers: string[];
-  notes:      any[];
-  links:      any[];
+  rows:        number;
+  cols:        number;
+  wallpapers:  string[];
+  notes:       any[];
+  links:       any[];
+  tabletMode?: boolean;
 }
 
 const EMPTY_CONFIG: DesktopConfig = {
@@ -18,6 +19,7 @@ const EMPTY_CONFIG: DesktopConfig = {
   wallpapers: Array(16).fill(''),
   notes:      [],
   links:      [],
+  tabletMode: false,
 };
 
 // ── DesktopProfilesService ────────────────────────────────────────────────────
@@ -117,6 +119,13 @@ export class DesktopProfilesService {
       return a.localeCompare(b);
     });
 
+  /** Returns profiles with their metadata (name + tabletMode). */
+  listProfilesWithMeta = (): { name: string; tabletMode: boolean }[] =>
+    this.listProfiles().map(name => ({
+      name,
+      tabletMode: this.profiles.get(name)?.tabletMode ?? false,
+    }));
+
   getActiveConfig = (): DesktopConfig =>
     this.profiles.get(this.activeProfile) ?? { ...EMPTY_CONFIG };
 
@@ -136,19 +145,19 @@ export class DesktopProfilesService {
     }
   };
 
-  createProfile = (name: string): { ok: boolean; error?: string } => {
+  createProfile = (name: string, tabletMode = false): { ok: boolean; error?: string } => {
     const safe = name.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
     if (!safe)                      return { ok: false, error: 'invalid_name' };
     if (this.profiles.has(safe))    return { ok: false, error: 'already_exists' };
 
-    const config = { ...EMPTY_CONFIG, wallpapers: Array(16).fill('') };
+    const config: DesktopConfig = { ...EMPTY_CONFIG, wallpapers: Array(16).fill(''), tabletMode };
     this.profiles.set(safe, config);
     writeFileSync(
       `${DESKTOP_DIR}/${safe}.json`,
       JSON.stringify(config, null, 2),
       'utf8',
     );
-    console.log(`[Desktop] Created profile "${safe}".`);
+    console.log(`[Desktop] Created profile "${safe}" (tabletMode=${tabletMode}).`);
     return { ok: true };
   };
 

@@ -299,6 +299,7 @@
     "search": "Buscar",
     "bookmarkSaved": "¡Marcador guardado!",
     "bookmarkRemoved": "¡Marcador eliminado!",
+    "manageSaved": "Gestionar guardados",
     "scrollTop": "Volver arriba",
     "scrollBottom": "Ir abajo"
   },
@@ -462,6 +463,8 @@
     "alreadyExists": "Ya existe un perfil con ese nombre",
     "activateSuccess": "Perfil activado",
     "activateError": "No se pudo activar el perfil",
-    "errorLoad": "Error al cargar los perfiles de escritorio"
+    "errorLoad": "Error al cargar los perfiles de escritorio",
+    "tabletModeLabel": "Modo tablet",
+    "tabletBadge": "tablet"
   }
 }

@@ -299,6 +299,7 @@
     "search": "Search",
     "bookmarkSaved": "Bookmark saved!",
     "bookmarkRemoved": "Bookmark removed!",
+    "manageSaved": "Manage saved",
     "scrollTop": "Scroll to top",
     "scrollBottom": "Scroll to bottom"
   },
@@ -462,6 +463,8 @@
     "alreadyExists": "A profile with that name already exists",
     "activateSuccess": "Profile activated",
     "activateError": "Could not activate profile",
-    "errorLoad": "Error loading desktop profiles"
+    "errorLoad": "Error loading desktop profiles",
+    "tabletModeLabel": "Tablet mode",
+    "tabletBadge": "tablet"
   }
 }

@@ -5,102 +5,67 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import { DesktopActions, DesktopConfig, DEFAULT_DESKTOP_CONFIG, StickyNote, DesktopLink } from '../../../core/actions/desktop';
+import {
+  DesktopActions,
+  DesktopConfig,
+  DEFAULT_DESKTOP_CONFIG,
+  StickyNote,
+  DesktopLink,
+} from '../../../core/actions/desktop';
+import { desktopFlushEndpoint } from '../../../core/urls-and-end-points';
 import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
 import { StickyNoteWidget } from './StickyNoteWidget';
 import { AddLinkDialog } from './AddLinkDialog';
 import { DesktopLinkWidget } from './DesktopLinkWidget';
-import { getCloudEndpoint, desktopFlushEndpoint } from '../../../core/urls-and-end-points';
-
-// Build a GET URL for the streamFile endpoint (?drive=...&path=...)
-// The endpoint is GET /cloud/stream-file and serves files directly.
-const wallpaperUrl = (cloudPath: string): string =>
-  `${getCloudEndpoint('streamFile')}` +
-  `?drive=${encodeURIComponent(cloudPath.split('/')[0])}` +
-  `&path=${encodeURIComponent(cloudPath)}`;
-
-// EnvelopComponent adds paddingTop: 5.5rem and paddingLeft/Right: 1rem.
-// Negative margins cancel that out so the canvas fills the remaining viewport.
-const CANVAS_TOP_OFFSET = '4rem';
-const CANVAS_TOP_MARGIN = '-1.5rem';
-
-// Workspace thumbnail dimensions (px)
-const WS_W       = 112;
-const WS_H       = 72;
-const WS_GAP     = 10;
-const WS_PADDING = 14;
-const WS_RADIUS  = 5;
-
-// Slide animation duration (ms)
-const TRANSITION_MS = 280;
-
-// Default colour palette (cycles for workspaces beyond index 15)
-const BASE_COLORS = [
-  '#1a1a2e', '#16213e', '#0f3460', '#533483',
-  '#2d6a4f', '#1b4332', '#40916c', '#52b788',
-  '#7b2d8b', '#6a0572', '#9b5de5', '#c77dff',
-  '#e63946', '#c1121f', '#fb8500', '#ffb703',
-];
-const wsColor = (i: number) => BASE_COLORS[i % BASE_COLORS.length];
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-type Direction = 'right' | 'left' | 'down' | 'up';
-
-const getDirection = (from: number, to: number, cols: number): Direction => {
-  const fromCol = from % cols, toCol = to % cols;
-  const fromRow = Math.floor(from / cols), toRow = Math.floor(to / cols);
-  if      (toCol > fromCol) return 'right';
-  else if (toCol < fromCol) return 'left';
-  else if (toRow > fromRow) return 'down';
-  else                      return 'up';
-};
-
-const EXIT_ANIM: Record<Direction, string> = {
-  right: 'ws-exit-left',
-  left:  'ws-exit-right',
-  down:  'ws-exit-up',
-  up:    'ws-exit-down',
-};
-
+import { DesktopTablet } from './DesktopTablet';
+import {
+  CANVAS_TOP_OFFSET,
+  CANVAS_TOP_MARGIN,
+  WS_W, WS_H, WS_GAP, WS_PADDING, WS_RADIUS,
+  TRANSITION_MS,
+  wsColor,
+  getDirection,
+  EXIT_ANIM,
+  wallpaperUrl,
+  SLIDE_KEYFRAMES,
+  SlideState,
+} from './DesktopCommons';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export const Desktop = (): JSX.Element => {
-  const [config,   setConfig  ] = React.useState<DesktopConfig>(DEFAULT_DESKTOP_CONFIG);
-  const [activeWs, setActiveWs] = React.useState(0);
-  const [visible,   setVisible  ] = React.useState(false);
-  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null);
-  const [propsOpen,   setPropsOpen  ] = React.useState(false);
-  const [linkDialogOpen, setLinkDialogOpen] = React.useState(false);
-  const [editingLink,    setEditingLink   ] = React.useState<DesktopLink | undefined>(undefined);
 
-  // Ref al div del escritorio para calcular posiciones relativas
+  // ── Shared state ──────────────────────────────────────────────────────────
+  const [config,        setConfig       ] = React.useState<DesktopConfig>(DEFAULT_DESKTOP_CONFIG);
+  const [activeWs,      setActiveWs     ] = React.useState(0);
+  const [visible,       setVisible      ] = React.useState(false);
+  const [slide,         setSlide        ] = React.useState<SlideState | null>(null);
+  const [contextMenu,   setContextMenu  ] = React.useState<{ x: number; y: number } | null>(null);
+  const [propsOpen,     setPropsOpen    ] = React.useState(false);
+  const [linkDialogOpen,setLinkDialogOpen] = React.useState(false);
+  const [editingLink,   setEditingLink  ] = React.useState<DesktopLink | undefined>(undefined);
+
+  // Ref to the normal-mode canvas div (used for context-menu position calc)
   const desktopRef = React.useRef<HTMLDivElement>(null);
 
-  // slide: outgoing workspace content; cleared when CSS animation ends
-  const [slide, setSlide] = React.useState<{
-    key:         number;         // stable per-transition id (set at creation)
-    color:       string;
-    wallpaper:   string | null;  // blob URL or null
-    dir:         Direction;
-  } | null>(null);
-
-  // Refs for reading current values inside effects without re-subscribing
+  // Refs so effects can read current values without re-subscribing
   const configRef   = React.useRef(config);
   configRef.current = config;
   const prevWsRef   = React.useRef(0);
 
-  // ── Load config on mount ─────────────────────────────────────────────────
+  // ── Effects ───────────────────────────────────────────────────────────────
+
+  // Load config on mount
   React.useEffect(() => {
     DesktopActions.getDesktopConfig().then(setConfig);
   }, []);
 
-  // ── Clamp activeWs when grid shrinks ────────────────────────────────────
+  // Clamp activeWs when the grid shrinks
   React.useEffect(() => {
     const max = config.rows * config.cols - 1;
     setActiveWs(prev => Math.min(prev, max));
   }, [config.rows, config.cols]);
 
-  // ── Workspace slide transition ───────────────────────────────────────────
+  // Slide transition: fires whenever activeWs changes
   React.useEffect(() => {
     const from = prevWsRef.current;
     const to   = activeWs;
@@ -111,14 +76,14 @@ export const Desktop = (): JSX.Element => {
 
     const fromPath = configRef.current.wallpapers[from] ?? '';
     setSlide({
-      key:      Date.now(),  // computed once at creation; stable across re-renders
+      key:      Date.now(),
       color:    wsColor(from),
       wallpaper: fromPath ? wallpaperUrl(fromPath) : null,
       dir,
     });
   }, [activeWs]);
 
-  // ── Keyboard: navigate with Shift+arrows, show overlay while Shift held ─
+  // Keyboard navigation (Shift + arrows) + overlay visibility
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!e.shiftKey) return;
@@ -152,31 +117,29 @@ export const Desktop = (): JSX.Element => {
     };
   }, []);
 
-  // ── Flush al cerrar la pestaña / recargar (sendBeacon garantiza el envío) ─
+  // Flush on tab/window close (sendBeacon is reliable here)
   React.useEffect(() => {
-    const handleBeforeUnload = () => {
+    const handler = () =>
       navigator.sendBeacon(
         desktopFlushEndpoint(),
         new Blob(['{}'], { type: 'application/json' }),
       );
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
-  // ── Flush al navegar a otra página (el componente se desmonta) ───────────
+  // Flush when navigating away (component unmount)
   React.useEffect(() => {
-    return () => {
-      DesktopActions.flushDesktopConfig();
-    };
+    return () => { DesktopActions.flushDesktopConfig(); };
   }, []);
 
-  // ── Gestión de notas sticky ──────────────────────────────────────────────
+  // ── Config helpers ────────────────────────────────────────────────────────
   const saveConfig = (updated: DesktopConfig) => {
     setConfig(updated);
     DesktopActions.saveDesktopConfig(updated);
   };
 
+  // ── Note handlers ─────────────────────────────────────────────────────────
   const addNote = () => {
     const rect = desktopRef.current?.getBoundingClientRect();
     const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 110) : 60;
@@ -215,9 +178,7 @@ export const Desktop = (): JSX.Element => {
     });
   };
 
-  const notesForActiveWs = (config.notes ?? []).filter(n => n.workspaceIndex === activeWs);
-
-  // ── Gestión de links de escritorio ───────────────────────────────────────
+  // ── Link handlers ─────────────────────────────────────────────────────────
   const openAddLinkDialog = () => {
     setEditingLink(undefined);
     setLinkDialogOpen(true);
@@ -226,7 +187,6 @@ export const Desktop = (): JSX.Element => {
 
   const handleLinkAccept = (url: string, name: string) => {
     if (editingLink) {
-      // Modo editar nombre
       setConfig(prev => {
         const updated = {
           ...prev,
@@ -238,7 +198,6 @@ export const Desktop = (): JSX.Element => {
         return updated;
       });
     } else {
-      // Modo añadir nuevo link
       const rect = desktopRef.current?.getBoundingClientRect();
       const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 38) : 80;
       const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 30) : 80;
@@ -252,12 +211,8 @@ export const Desktop = (): JSX.Element => {
         DesktopActions.saveDesktopConfig(updated);
         return updated;
       });
-
-      // Descargar favicon en segundo plano y actualizar el icono cuando esté listo
       DesktopActions.getFavicon(url).then(favicon => {
-        if (favicon) {
-          updateLink(newLink.id, { favicon });
-        }
+        if (favicon) updateLink(newLink.id, { favicon });
       });
     }
   };
@@ -284,9 +239,7 @@ export const Desktop = (): JSX.Element => {
     });
   };
 
-  const linksForActiveWs = (config.links ?? []).filter(l => l.workspaceIndex === activeWs);
-
-  // ── Derived display values ───────────────────────────────────────────────
+  // ── Derived values ────────────────────────────────────────────────────────
   const COLS  = config.cols;
   const ROWS  = config.rows;
   const TOTAL = COLS * ROWS;
@@ -294,138 +247,159 @@ export const Desktop = (): JSX.Element => {
   const activeWsPath    = config.wallpapers[activeWs] ?? '';
   const activeWallpaper = activeWsPath ? wallpaperUrl(activeWsPath) : null;
 
+  const linksForActiveWs = (config.links ?? []).filter(l => l.workspaceIndex === activeWs);
+  const notesForActiveWs = (config.notes ?? []).filter(n => n.workspaceIndex === activeWs);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* CSS keyframes for slide-out animations */}
-      <style>{`
-        @keyframes ws-exit-left  { from { transform: translateX(0);    } to { transform: translateX(-100%); } }
-        @keyframes ws-exit-right { from { transform: translateX(0);    } to { transform: translateX(100%);  } }
-        @keyframes ws-exit-up    { from { transform: translateY(0);    } to { transform: translateY(-100%); } }
-        @keyframes ws-exit-down  { from { transform: translateY(0);    } to { transform: translateY(100%);  } }
-      `}</style>
+      {config.tabletMode ? (
+        // ── Tablet mode: delegated to DesktopTablet ──────────────────────
+        <DesktopTablet
+          activeWs={activeWs}
+          setActiveWs={setActiveWs}
+          slide={slide}
+          setSlide={setSlide}
+          activeWallpaper={activeWallpaper}
+          linksForActiveWs={linksForActiveWs}
+          notesForActiveWs={notesForActiveWs}
+          onDeleteLink={deleteLink}
+          onEditLink={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+          onAddLink={openAddLinkDialog}
+          onUpdateNote={updateNote}
+          onDeleteNote={deleteNote}
+          onPropsOpen={() => setPropsOpen(true)}
+          COLS={COLS}
+          ROWS={ROWS}
+          TOTAL={TOTAL}
+          wsOverlayVisible={visible}
+        />
+      ) : (
+        // ── Normal mode: free-floating desktop ───────────────────────────
+        <>
+          <style>{SLIDE_KEYFRAMES}</style>
 
-      {/* ── Main desktop area ─────────────────────────────────────────── */}
-      <div
-        ref={desktopRef}
-        tabIndex={0}
-        autoFocus
-        onContextMenu={e => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY }); }}
-        style={{
-          position:            'relative',
-          marginTop:           CANVAS_TOP_MARGIN,
-          marginLeft:          '-1rem',
-          marginRight:         '-1rem',
-          width:               'calc(100% + 2rem)',
-          height:              `calc(100vh - ${CANVAS_TOP_OFFSET})`,
-          overflow:            'hidden',
-          outline:             'none',
-          // Background: wallpaper image if configured, else workspace colour
-          backgroundColor:     activeWallpaper ? 'transparent' : wsColor(activeWs),
-          backgroundImage:     activeWallpaper ? `url(${activeWallpaper})` : 'none',
-          backgroundSize:      'cover',
-          backgroundPosition:  'center',
-        }}
-      >
-        {/* ── Outgoing workspace layer (CSS slide-out animation) ─────── */}
-        {slide && (
           <div
-            key={slide.key}
+            ref={desktopRef}
+            tabIndex={0}
+            autoFocus
+            onContextMenu={e => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY }); }}
             style={{
-              position:           'absolute',
-              inset:              0,
-              backgroundColor:    slide.wallpaper ? 'transparent' : slide.color,
-              backgroundImage:    slide.wallpaper ? `url(${slide.wallpaper})` : 'none',
+              position:           'relative',
+              marginTop:          CANVAS_TOP_MARGIN,
+              marginLeft:         '-1rem',
+              marginRight:        '-1rem',
+              width:              'calc(100% + 2rem)',
+              height:             `calc(100vh - ${CANVAS_TOP_OFFSET})`,
+              overflow:           'hidden',
+              outline:            'none',
+              backgroundColor:    activeWallpaper ? 'transparent' : wsColor(activeWs),
+              backgroundImage:    activeWallpaper ? `url(${activeWallpaper})` : 'none',
               backgroundSize:     'cover',
               backgroundPosition: 'center',
-              animation:          `${EXIT_ANIM[slide.dir]} ${TRANSITION_MS}ms ease forwards`,
             }}
-            onAnimationEnd={() => setSlide(null)}
-          />
-        )}
-
-        {/* ── Notas sticky del escritorio activo ─────────────────────── */}
-        {notesForActiveWs.map(note => (
-          <StickyNoteWidget
-            key={note.id}
-            note={note}
-            onUpdate={updateNote}
-            onDelete={deleteNote}
-          />
-        ))}
-
-        {/* ── Links del escritorio activo ──────────────────────────────── */}
-        {linksForActiveWs.map(link => (
-          <DesktopLinkWidget
-            key={link.id}
-            link={link}
-            onUpdate={updateLink}
-            onDelete={deleteLink}
-            onEdit={l => { setEditingLink(l); setLinkDialogOpen(true); }}
-          />
-        ))}
-
-        {/* ── Workspace switcher overlay (shown while Shift is held) ─── */}
-        <div style={{
-          position:       'absolute',
-          inset:          0,
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'center',
-          pointerEvents:  'none',
-          opacity:        visible ? 1 : 0,
-          transition:     'opacity 0.15s ease',
-        }}>
-          <div style={{
-            display:             'grid',
-            gridTemplateColumns: `repeat(${COLS}, ${WS_W}px)`,
-            gridTemplateRows:    `repeat(${ROWS}, ${WS_H}px)`,
-            gap:                 `${WS_GAP}px`,
-            padding:             `${WS_PADDING}px`,
-            background:          'rgba(255, 255, 255, 0.1)',
-            border:              '1px solid rgba(255, 255, 255, 0.4)',
-            borderRadius:        '10px',
-            backdropFilter:      'blur(4px)',
-          }}>
-            {Array.from({ length: TOTAL }, (_, i) => (
+          >
+            {/* Outgoing workspace slide-out animation layer */}
+            {slide && (
               <div
-                key={i}
+                key={slide.key}
                 style={{
-                  borderRadius: `${WS_RADIUS}px`,
-                  background:   i === activeWs
-                    ? 'rgba(255, 255, 255, 1.0)'
-                    : 'rgba(255, 255, 255, 0.4)',
-                  transition:   'background 0.12s ease',
+                  position:           'absolute',
+                  inset:              0,
+                  pointerEvents:      'none',   // never intercept clicks during animation
+                  backgroundColor:    slide.wallpaper ? 'transparent' : slide.color,
+                  backgroundImage:    slide.wallpaper ? `url(${slide.wallpaper})` : 'none',
+                  backgroundSize:     'cover',
+                  backgroundPosition: 'center',
+                  animation:          `${EXIT_ANIM[slide.dir]} ${TRANSITION_MS}ms ease forwards`,
                 }}
+                onAnimationEnd={() => setSlide(null)}
+              />
+            )}
+
+            {/* Sticky notes */}
+            {notesForActiveWs.map(note => (
+              <StickyNoteWidget
+                key={note.id}
+                note={note}
+                onUpdate={updateNote}
+                onDelete={deleteNote}
               />
             ))}
+
+            {/* Free-floating link widgets */}
+            {linksForActiveWs.map(link => (
+              <DesktopLinkWidget
+                key={link.id}
+                link={link}
+                onUpdate={updateLink}
+                onDelete={deleteLink}
+                onEdit={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+              />
+            ))}
+
+            {/* Workspace switcher overlay (visible while Shift is held) */}
+            <div style={{
+              position:       'absolute',
+              inset:          0,
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              pointerEvents:  'none',
+              opacity:        visible ? 1 : 0,
+              transition:     'opacity 0.15s ease',
+            }}>
+              <div style={{
+                display:             'grid',
+                gridTemplateColumns: `repeat(${COLS}, ${WS_W}px)`,
+                gridTemplateRows:    `repeat(${ROWS}, ${WS_H}px)`,
+                gap:                 `${WS_GAP}px`,
+                padding:             `${WS_PADDING}px`,
+                background:          'rgba(255,255,255,0.1)',
+                border:              '1px solid rgba(255,255,255,0.4)',
+                borderRadius:        '10px',
+                backdropFilter:      'blur(4px)',
+              }}>
+                {Array.from({ length: TOTAL }, (_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      borderRadius: `${WS_RADIUS}px`,
+                      background:   i === activeWs
+                        ? 'rgba(255,255,255,1.0)'
+                        : 'rgba(255,255,255,0.4)',
+                      transition:   'background 0.12s ease',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-      </div>
+          {/* Right-click context menu */}
+          <Menu
+            open={contextMenu !== null}
+            onClose={() => setContextMenu(null)}
+            anchorReference="anchorPosition"
+            anchorPosition={contextMenu
+              ? { top: contextMenu.y, left: contextMenu.x }
+              : undefined}
+          >
+            <MenuItem onClick={addNote}>
+              <ListItemText primary="Añadir nota" />
+            </MenuItem>
+            <MenuItem onClick={openAddLinkDialog}>
+              <ListItemText primary="Añadir link" />
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => { setContextMenu(null); setPropsOpen(true); }}>
+              <ListItemText primary="Propiedades" />
+            </MenuItem>
+          </Menu>
+        </>
+      )}
 
-      {/* ── Right-click context menu ───────────────────────────────────── */}
-      <Menu
-        open={contextMenu !== null}
-        onClose={() => setContextMenu(null)}
-        anchorReference="anchorPosition"
-        anchorPosition={contextMenu
-          ? { top: contextMenu.y, left: contextMenu.x }
-          : undefined}
-      >
-        <MenuItem onClick={addNote}>
-          <ListItemText primary="Añadir nota" />
-        </MenuItem>
-        <MenuItem onClick={openAddLinkDialog}>
-          <ListItemText primary="Añadir link" />
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={() => { setContextMenu(null); setPropsOpen(true); }}>
-          <ListItemText primary="Propiedades" />
-        </MenuItem>
-      </Menu>
-
-      {/* ── Properties dialog ─────────────────────────────────────────── */}
+      {/* ── Dialogs — rendered regardless of mode ────────────────────────── */}
       <DesktopPropertiesDialog
         isOpen={propsOpen}
         onClose={() => setPropsOpen(false)}
@@ -433,7 +407,6 @@ export const Desktop = (): JSX.Element => {
         onSave={updated => setConfig(updated)}
       />
 
-      {/* ── Add / Edit link dialog ─────────────────────────────────────── */}
       <AddLinkDialog
         isOpen={linkDialogOpen}
         onClose={() => { setLinkDialogOpen(false); setEditingLink(undefined); }}

@@ -39,12 +39,14 @@ export interface DesktopLink {
 }
 
 export interface DesktopConfig {
-  rows:       number;
-  cols:       number;
+  rows:        number;
+  cols:        number;
   /** One cloud path per workspace (empty string = use default colour). */
-  wallpapers: string[];
-  notes:      StickyNote[];
-  links:      DesktopLink[];
+  wallpapers:  string[];
+  notes:       StickyNote[];
+  links:       DesktopLink[];
+  /** When true, links are rendered as a touch-friendly grid instead of free-floating icons. */
+  tabletMode?: boolean;
 }
 
 export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
@@ -53,6 +55,7 @@ export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
   wallpapers: Array(16).fill(''),
   notes:      [],
   links:      [],
+  tabletMode: false,
 };
 
 const getDesktopConfig = (): Promise<DesktopConfig> =>
@@ -70,6 +73,7 @@ const getDesktopConfig = (): Promise<DesktopConfig> =>
       wallpapers: Array.from({ length: total }, (_, i) => d.wallpapers?.[i] ?? ''),
       notes:      Array.isArray(d.notes) ? d.notes : [],
       links:      Array.isArray(d.links) ? d.links : [],
+      tabletMode: d.tabletMode ?? false,
     };
   });
 
@@ -102,8 +106,13 @@ const flushDesktopConfig = (): Promise<void> =>
 
 // ── Desktop profile management ────────────────────────────────────────────────
 
+export interface DesktopProfileMeta {
+  name:       string;
+  tabletMode: boolean;
+}
+
 export interface DesktopProfilesInfo {
-  profiles: string[];
+  profiles: DesktopProfileMeta[];
   active:   string;
 }
 
@@ -111,11 +120,11 @@ const listProfiles = (): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfilesEndpoint())
     .then(r => r.json() as Promise<DesktopProfilesInfo>);
 
-const createProfile = (name: string): Promise<DesktopProfilesInfo> =>
+const createProfile = (name: string, tabletMode = false): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfileCreateEndpoint(), {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ name }),
+    body:    JSON.stringify({ name, tabletMode }),
   }).then(async r => {
     const body = await r.json();
     if (!r.ok) throw new Error(body.error ?? 'create_failed');

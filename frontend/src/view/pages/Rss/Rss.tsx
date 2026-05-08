@@ -13,6 +13,7 @@ import { RssMessage } from './component/RssMessage';
 import { ReadLaterRSSActions } from '../../../core/actions/readLaterRss';
 import { ReadLaterMessage } from '../../../data-model/readLaterRss';
 import { NewMessage } from './component/NewMessage';
+import { SavedRSSManagerDialog } from './component/SavedRSSManagerDialog';
 import { ConfigurationActions } from '../../../core/actions/configuration';
 import { UnfurlActions } from '../../../core/actions/unfurl';
 import { UnfurlDataModel } from '../../../data-model/unfurl';
@@ -100,6 +101,9 @@ export const Rss = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // ── SAVED manager ───────────────────────────────────────────────────────────
+  const [managerOpen, setManagerOpen] = React.useState(false);
 
   // ── SAVED search ────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = React.useState<string>('');
@@ -241,6 +245,13 @@ export const Rss = () => {
           >
             {t('rss.search')}
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setManagerOpen(true)}
+            sx={{ whiteSpace: 'nowrap', textTransform: 'none', minWidth: '140px' }}
+          >
+            {t('rss.manageSaved')}
+          </Button>
         </Box>
 
         {/* Add link (collapsible) */}
@@ -294,6 +305,8 @@ export const Rss = () => {
       </Box>) 
     }
     </Box>
+    <SavedRSSManagerDialog open={managerOpen} onClose={() => setManagerOpen(false)} />
+
     <Snackbar anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} open={openSnackbar} autoHideDuration={3000} onClose={onCloseSnackBar} key={'topcenter'} sx={{ zIndex: 9999 }}>
       <Alert onClose={onCloseSnackBar} severity={isErrorSnackbar ? 'error' : 'success'} sx={{ width: '100%' }}>
         {snackBarMessage}

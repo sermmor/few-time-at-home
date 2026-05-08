@@ -64,13 +64,15 @@ const bookmarkEndpointList = {
 
 export const bookmarksEndpoint = (typeEndpoint: BookmarkEndpointList): string => `${getUrlApi()}${bookmarkEndpointList[typeEndpoint]}`;
 
-export type ReadLaterRSSEndpointList = 'get' | 'getRandom' | 'add' | 'remove' | 'search';
+export type ReadLaterRSSEndpointList = 'get' | 'getRandom' | 'add' | 'remove' | 'search' | 'getAll' | 'update';
 const readLaterRSSEndpointList = {
-  'get': '/readLaterRSS/get-messages',
+  'get':       '/readLaterRSS/get-messages',
   'getRandom': '/readLaterRSS/get-random-messages',
-  'add': '/readLaterRSS/add-messages',
-  'remove': '/readLaterRSS/remove-messages',
-  'search': '/readLaterRSS/search-messages',
+  'add':       '/readLaterRSS/add-messages',
+  'remove':    '/readLaterRSS/remove-messages',
+  'search':    '/readLaterRSS/search-messages',
+  'getAll':    '/readLaterRSS/all-messages',
+  'update':    '/readLaterRSS/update-message',
 };
 
 export const readLaterRSSEndpoint = (typeEndpoint: ReadLaterRSSEndpointList): string => `${getUrlApi()}${readLaterRSSEndpointList[typeEndpoint]}`;

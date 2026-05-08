@@ -1,5 +1,12 @@
 import { readLaterAddMessagesResponseMock, readLaterGetMessagesResponseMock, readLaterRemoveMessagesResponseMock, readLaterSearchMessagesResponseMock } from "../../data-model/mock/readLaterRssMock";
-import { ReadLaterAddMessagesRequest, ReadLaterAddMessagesResponse, ReadLaterGetMessagesRequest, ReadLaterGetMessagesResponse, ReadLaterRemoveMessagesRequest, ReadLaterRemoveMessagesResponse, ReadLaterSearchMessagesRequest, ReadLaterSearchMessagesResponse } from "../../data-model/readLaterRss";
+import {
+  ReadLaterAddMessagesRequest, ReadLaterAddMessagesResponse,
+  ReadLaterGetAllRequest, ReadLaterGetAllResponse,
+  ReadLaterGetMessagesRequest, ReadLaterGetMessagesResponse,
+  ReadLaterRemoveMessagesRequest, ReadLaterRemoveMessagesResponse,
+  ReadLaterSearchMessagesRequest, ReadLaterSearchMessagesResponse,
+  ReadLaterUpdateMessageRequest, ReadLaterUpdateMessageResponse,
+} from "../../data-model/readLaterRss";
 import { fetchJsonSendAndReceive } from "../fetch-utils";
 import { readLaterRSSEndpoint } from "../urls-and-end-points";
 
@@ -18,4 +25,10 @@ const remove = (request: ReadLaterRemoveMessagesRequest): Promise<ReadLaterRemov
 const search = (request: ReadLaterSearchMessagesRequest): Promise<ReadLaterSearchMessagesResponse> =>
   fetchJsonSendAndReceive<ReadLaterSearchMessagesResponse>(readLaterRSSEndpoint('search'), request, readLaterSearchMessagesResponseMock());
 
-export const ReadLaterRSSActions = { getMessage, getMessageRandom, add, remove, search };
+const getAll = (request: ReadLaterGetAllRequest): Promise<ReadLaterGetAllResponse> =>
+  fetchJsonSendAndReceive<ReadLaterGetAllResponse>(readLaterRSSEndpoint('getAll'), request, { data: [], total: 0 });
+
+const update = (request: ReadLaterUpdateMessageRequest): Promise<ReadLaterUpdateMessageResponse> =>
+  fetchJsonSendAndReceive<ReadLaterUpdateMessageResponse>(readLaterRSSEndpoint('update'), request, { response: '' });
+
+export const ReadLaterRSSActions = { getMessage, getMessageRandom, add, remove, search, getAll, update };
