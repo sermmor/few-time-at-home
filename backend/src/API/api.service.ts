@@ -56,6 +56,7 @@ export class APIService {
   static getRssNewsEndpoint  = "/rss/news";
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static getRssFavoritesEndpoint  = "/rss/favorites";
+  static getRssSavedEndpoint      = "/rss/saved";
   static getRssForceUpdateEndpoint = "/rss/force-update";
   static readLaterRSSEndpoint = {
     getMessages:       "/readLaterRSS/get-messages",
@@ -249,6 +250,15 @@ export class APIService {
   }
 
   private getReadLaterRSSService() {
+    // GET /rss/saved?amount=N  → { messages: string[] }  (same shape as other RSS feeds)
+    this.app.get(APIService.getRssSavedEndpoint, (req, res) => {
+      const amount = req.query.amount ? +req.query.amount : 60;
+      ReadLaterMessagesRSS.getMessagesRSSSaved(amount).then(data => {
+        const messages = data.map(item => item.message);
+        res.send({ messages });
+      });
+    });
+
     this.app.post(APIService.readLaterRSSEndpoint.getMessages, (req, res) => {
       if (!req.body) {
         console.error("Received NO body text");

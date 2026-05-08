@@ -10,8 +10,8 @@ class RssService {
   static const _lastSyncPrefix = 'rss_last_sync_';
   static const int fetchAmount = 60;
 
-  /// The non-YouTube feed types (GET /rss/{type}?amount=N  except 'saved').
-  /// 'saved' uses POST /readLaterRSS/get-messages → { data: string[] }.
+  /// The non-YouTube feed types (GET /rss/{type}?amount=N).
+  /// 'saved' uses GET /rss/saved?amount=N → { messages: string[] }.
   static const List<String> baseFeedTypes = [
     'mastodon',
     'blog',
@@ -21,31 +21,30 @@ class RssService {
   ];
 
   /// All YouTube subcategory tag values.
-  /// Empty string = no filter (all YouTube items).
+  /// 'null' = no filter (all YouTube items, matches backend default tag).
   static const List<String> ytTags = [
-    '',
+    'null',
     'sesionesMusica',
     'politica',
     'divulgacion',
     'ingles',
-    'podcast',
+    'podcasts',
     'abandonados',
   ];
 
   /// Display labels for each YouTube tag.
   static const Map<String, String> ytTagLabels = {
-    '':               'Todos',
+    'null':           'null',
     'sesionesMusica': 'Música',
     'politica':       'Política',
     'divulgacion':    'Divulgación',
     'ingles':         'Inglés',
-    'podcast':        'Podcast',
+    'podcasts':       'Podcast',
     'abandonados':    'Abandonados',
   };
 
   /// Returns the local file key (and SharedPreferences key) for a YouTube tag.
-  static String youtubeFileKey(String tag) =>
-      tag.isEmpty ? 'youtube_all' : 'youtube_$tag';
+  static String youtubeFileKey(String tag) => 'youtube_$tag';
 
   // ── Backend URL preference ──────────────────────────────────────────────────
 
@@ -112,8 +111,8 @@ class RssService {
 
   /// Downloads one feed and replaces its local file.
   ///
-  /// For YouTube, pass [ytTag] (empty = no filter / all).
-  /// For other feeds, [feedType] is 'mastodon' | 'blog' | 'news' | 'favorites'.
+  /// For YouTube, pass [ytTag] ('null' = all, other values = subcategory).
+  /// For other feeds, [feedType] is 'mastodon' | 'blog' | 'news' | 'favorites' | 'saved'.
   static Future<List<RssItem>> downloadFeed(
     String backendUrl,
     String feedType, {
@@ -124,14 +123,10 @@ class RssService {
     final String endpoint;
     final String fileKey;
 
-    // ── Saved / read-later (POST, different response key) ──────────────────
+    // ── Saved / read-later (GET /rss/saved, same format as other feeds) ───
     if (feedType == 'saved') {
       final response = await http
-          .post(
-            Uri.parse('$base/readLaterRSS/get-messages'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'amount': fetchAmount}),
-          )
+          .get(Uri.parse('$base/rss/saved?amount=$fetchAmount'))
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode != 200) {
@@ -139,7 +134,7 @@ class RssService {
       }
 
       final data     = jsonDecode(response.body) as Map<String, dynamic>;
-      final messages = (data['data'] as List<dynamic>).cast<String>();
+      final messages = (data['messages'] as List<dynamic>).cast<String>();
       final items    = messages.map((m) => RssItem.fromMessageString(m)).toList();
 
       await _saveLocalItems('saved', items);
@@ -147,10 +142,9 @@ class RssService {
       return items;
     }
 
-    // ── YouTube (GET with optional tag) ────────────────────────────────────
+    // ── YouTube (GET with tag, always required) ────────────────────────────
     if (feedType == 'youtube') {
-      final tagParam = ytTag.isEmpty ? '' : '&tag=$ytTag';
-      endpoint = '$base/rss/youtube?amount=$fetchAmount$tagParam';
+      endpoint = '$base/rss/youtube?amount=$fetchAmount&tag=$ytTag';
       fileKey  = youtubeFileKey(ytTag);
     } else {
       endpoint = '$base/rss/$feedType?amount=$fetchAmount';

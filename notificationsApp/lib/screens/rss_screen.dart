@@ -46,7 +46,7 @@ class _RssScreenState extends State<RssScreen> {
 
   // ── State ──────────────────────────────────────────────────────────────────
   String _selectedFeed = 'mastodon';
-  String _youtubeTag   = '';           // currently selected YouTube subcategory
+  String _youtubeTag   = 'null';       // currently selected YouTube subcategory
 
   /// All item lists keyed by fileKey:
   /// 'mastodon', 'blog', 'news', 'favorites',
