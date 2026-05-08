@@ -504,6 +504,7 @@ export const Desktop = (): JSX.Element => {
               alignItems:     'center',
               justifyContent: 'center',
               pointerEvents:  'none',
+              zIndex:         500,
               opacity:        visible ? 1 : 0,
               transition:     'opacity 0.15s ease',
             }}>

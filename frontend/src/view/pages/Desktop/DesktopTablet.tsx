@@ -310,6 +310,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
           alignItems:     'center',
           justifyContent: 'center',
           pointerEvents:  'none',
+          zIndex:         500,
           opacity:        wsOverlayVisible ? 1 : 0,
           transition:     'opacity 0.15s ease',
         }}>
