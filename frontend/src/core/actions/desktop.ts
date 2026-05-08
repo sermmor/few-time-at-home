@@ -38,6 +38,25 @@ export interface DesktopLink {
   favicon?:       string;
 }
 
+export interface DesktopImage {
+  id:             string;
+  workspaceIndex: number;
+  x:              number;
+  y:              number;
+  width:          number;   // starts at 300, then auto-corrected to aspect ratio
+  height:         number;   // 0 = "not yet measured"
+  cloudPath:      string;
+}
+
+export interface DesktopPanel {
+  id:             string;
+  workspaceIndex: number;
+  x:              number;
+  y:              number;
+  width:          number;
+  height:         number;
+}
+
 export interface DesktopConfig {
   rows:        number;
   cols:        number;
@@ -47,6 +66,8 @@ export interface DesktopConfig {
   links:       DesktopLink[];
   /** When true, links are rendered as a touch-friendly grid instead of free-floating icons. */
   tabletMode?: boolean;
+  images?:     DesktopImage[];
+  panels?:     DesktopPanel[];
 }
 
 export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
@@ -56,6 +77,8 @@ export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
   notes:      [],
   links:      [],
   tabletMode: false,
+  images:     [],
+  panels:     [],
 };
 
 const getDesktopConfig = (): Promise<DesktopConfig> =>
@@ -74,6 +97,8 @@ const getDesktopConfig = (): Promise<DesktopConfig> =>
       notes:      Array.isArray(d.notes) ? d.notes : [],
       links:      Array.isArray(d.links) ? d.links : [],
       tabletMode: d.tabletMode ?? false,
+      images:     Array.isArray(d.images) ? d.images : [],
+      panels:     Array.isArray(d.panels) ? d.panels : [],
     };
   });
 

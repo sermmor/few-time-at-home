@@ -71,14 +71,12 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
 
   const handleSave = () => {
     setSaving(true);
-    // Preservar notes y links del config actual para no borrarlos al guardar
-    // solo cambios de cuadrícula/fondos de pantalla.
+    // Preservar todos los campos del config al guardar cambios de cuadrícula/fondos.
     const next: DesktopConfig = {
+      ...config,
       rows,
       cols,
       wallpapers: adjustedWallpapers,
-      notes: config.notes ?? [],
-      links: config.links ?? [],
     };
     DesktopActions.saveDesktopConfig(next)
       .then(() => { onSave(next); onClose(); })
@@ -146,15 +144,15 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
                   </Typography>
                 </Box>
 
-                {/* Read-only path field */}
+                {/* Editable path field */}
                 <TextField
                   size="small"
                   label={`Escritorio ${i + 1}`}
                   value={adjustedWallpapers[i]}
                   placeholder="Sin fondo (usa color)"
                   fullWidth
+                  onChange={e => setWallpaper(i, e.target.value)}
                   InputProps={{
-                    readOnly: true,
                     sx: { fontFamily: 'monospace', fontSize: '0.78rem' },
                     endAdornment: adjustedWallpapers[i] ? (
                       <InputAdornment position="end">

@@ -11,6 +11,8 @@ import {
   DEFAULT_DESKTOP_CONFIG,
   StickyNote,
   DesktopLink,
+  DesktopImage,
+  DesktopPanel,
 } from '../../../core/actions/desktop';
 import { desktopFlushEndpoint } from '../../../core/urls-and-end-points';
 import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
@@ -29,7 +31,11 @@ import {
   wallpaperUrl,
   SLIDE_KEYFRAMES,
   SlideState,
+  type Direction,
 } from './DesktopCommons';
+import { DesktopImageWidget } from './DesktopImageWidget';
+import { DesktopPanelWidget } from './DesktopPanelWidget';
+import { ModalCloudImagePicker } from '../../molecules/ModalCloudImagePicker/ModalCloudImagePicker';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export const Desktop = (): JSX.Element => {
@@ -43,6 +49,7 @@ export const Desktop = (): JSX.Element => {
   const [propsOpen,     setPropsOpen    ] = React.useState(false);
   const [linkDialogOpen,setLinkDialogOpen] = React.useState(false);
   const [editingLink,   setEditingLink  ] = React.useState<DesktopLink | undefined>(undefined);
+  const [imagePickerOpen, setImagePickerOpen] = React.useState(false);
 
   // Ref to the normal-mode canvas div (used for context-menu position calc)
   const desktopRef = React.useRef<HTMLDivElement>(null);
@@ -51,6 +58,22 @@ export const Desktop = (): JSX.Element => {
   const configRef   = React.useRef(config);
   configRef.current = config;
   const prevWsRef   = React.useRef(0);
+
+  // Refs for dialog-blocking check in keyboard handler
+  const propsOpenRef        = React.useRef(false);
+  const linkDialogOpenRef   = React.useRef(false);
+  const imagePickerOpenRef  = React.useRef(false);
+
+  // For circular navigation direction override
+  const pendingDirRef  = React.useRef<Direction | null>(null);
+  // For reading current activeWs synchronously in event handler
+  const activeWsRef    = React.useRef(0);
+
+  // Update refs on every render
+  propsOpenRef.current       = propsOpen;
+  linkDialogOpenRef.current  = linkDialogOpen;
+  imagePickerOpenRef.current = imagePickerOpen;
+  activeWsRef.current        = activeWs;
 
   // ── Effects ───────────────────────────────────────────────────────────────
 
@@ -71,7 +94,8 @@ export const Desktop = (): JSX.Element => {
     const to   = activeWs;
     if (from === to) return;
 
-    const dir = getDirection(from, to, configRef.current.cols);
+    const dir = pendingDirRef.current ?? getDirection(from, to, configRef.current.cols);
+    pendingDirRef.current = null;
     prevWsRef.current = to;
 
     const fromPath = configRef.current.wallpapers[from] ?? '';
@@ -87,21 +111,55 @@ export const Desktop = (): JSX.Element => {
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!e.shiftKey) return;
+      // Block workspace switching while any dialog is open
+      if (propsOpenRef.current || linkDialogOpenRef.current || imagePickerOpenRef.current) return;
       setVisible(true);
 
       if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
         e.preventDefault();
-        setActiveWs(prev => {
-          const cols = configRef.current.cols;
-          const rows = configRef.current.rows;
-          const col  = prev % cols;
-          const row  = Math.floor(prev / cols);
-          if      (e.key === 'ArrowRight' && col < cols - 1) return prev + 1;
-          else if (e.key === 'ArrowLeft'  && col > 0)        return prev - 1;
-          else if (e.key === 'ArrowDown'  && row < rows - 1) return prev + cols;
-          else if (e.key === 'ArrowUp'    && row > 0)        return prev - cols;
-          return prev;
-        });
+        const cols = configRef.current.cols;
+        const rows = configRef.current.rows;
+        const cur  = activeWsRef.current;
+        const col  = cur % cols;
+        const row  = Math.floor(cur / cols);
+
+        let next: number = cur;
+        let overrideDir: Direction | null = null;
+
+        if (e.key === 'ArrowRight') {
+          if (col < cols - 1) {
+            next = cur + 1;
+          } else {
+            next = cur - (cols - 1);   // wrap to col 0, same row
+            overrideDir = 'right';
+          }
+        } else if (e.key === 'ArrowLeft') {
+          if (col > 0) {
+            next = cur - 1;
+          } else {
+            next = cur + (cols - 1);   // wrap to last col, same row
+            overrideDir = 'left';
+          }
+        } else if (e.key === 'ArrowDown') {
+          if (row < rows - 1) {
+            next = cur + cols;
+          } else {
+            next = cur - cols * (rows - 1);  // wrap to row 0, same col
+            overrideDir = 'down';
+          }
+        } else if (e.key === 'ArrowUp') {
+          if (row > 0) {
+            next = cur - cols;
+          } else {
+            next = cur + cols * (rows - 1);  // wrap to last row, same col
+            overrideDir = 'up';
+          }
+        }
+
+        if (next !== cur) {
+          if (overrideDir !== null) pendingDirRef.current = overrideDir;
+          setActiveWs(next);
+        }
       }
     };
 
@@ -178,6 +236,84 @@ export const Desktop = (): JSX.Element => {
     });
   };
 
+  // ── Image handlers ────────────────────────────────────────────────────────
+  const addImage = (cloudPath: string) => {
+    const rect = desktopRef.current?.getBoundingClientRect();
+    const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 150) : 100;
+    const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 100) : 100;
+    const newImage: DesktopImage = {
+      id:             `img-${Date.now()}`,
+      workspaceIndex: activeWs,
+      x, y,
+      width:  300,
+      height: 0,   // 0 = auto-size after image loads
+      cloudPath,
+    };
+    saveConfig({ ...config, images: [...(config.images ?? []), newImage] });
+    setImagePickerOpen(false);
+    setContextMenu(null);
+  };
+
+  const updateImage = (id: string, changes: Partial<DesktopImage>) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        images: (prev.images ?? []).map(im => im.id === id ? { ...im, ...changes } : im),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  const deleteImage = (id: string) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        images: (prev.images ?? []).filter(im => im.id !== id),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  // ── Panel handlers ────────────────────────────────────────────────────────
+  const addPanel = () => {
+    const rect = desktopRef.current?.getBoundingClientRect();
+    const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 100) : 80;
+    const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 75)  : 80;
+    const newPanel: DesktopPanel = {
+      id:             `panel-${Date.now()}`,
+      workspaceIndex: activeWs,
+      x, y,
+      width:  200,
+      height: 150,
+    };
+    saveConfig({ ...config, panels: [...(config.panels ?? []), newPanel] });
+    setContextMenu(null);
+  };
+
+  const updatePanel = (id: string, changes: Partial<DesktopPanel>) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        panels: (prev.panels ?? []).map(p => p.id === id ? { ...p, ...changes } : p),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
+  const deletePanel = (id: string) => {
+    setConfig(prev => {
+      const updated = {
+        ...prev,
+        panels: (prev.panels ?? []).filter(p => p.id !== id),
+      };
+      DesktopActions.saveDesktopConfig(updated);
+      return updated;
+    });
+  };
+
   // ── Link handlers ─────────────────────────────────────────────────────────
   const openAddLinkDialog = () => {
     setEditingLink(undefined);
@@ -247,8 +383,10 @@ export const Desktop = (): JSX.Element => {
   const activeWsPath    = config.wallpapers[activeWs] ?? '';
   const activeWallpaper = activeWsPath ? wallpaperUrl(activeWsPath) : null;
 
-  const linksForActiveWs = (config.links ?? []).filter(l => l.workspaceIndex === activeWs);
-  const notesForActiveWs = (config.notes ?? []).filter(n => n.workspaceIndex === activeWs);
+  const linksForActiveWs  = (config.links  ?? []).filter(l  => l.workspaceIndex  === activeWs);
+  const notesForActiveWs  = (config.notes  ?? []).filter(n  => n.workspaceIndex  === activeWs);
+  const imagesForActiveWs = (config.images ?? []).filter(im => im.workspaceIndex === activeWs);
+  const panelsForActiveWs = (config.panels ?? []).filter(p  => p.workspaceIndex  === activeWs);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -317,6 +455,16 @@ export const Desktop = (): JSX.Element => {
               />
             )}
 
+            {/* Dark panel widgets (behind links and notes) */}
+            {panelsForActiveWs.map(panel => (
+              <DesktopPanelWidget
+                key={panel.id}
+                panel={panel}
+                onUpdate={updatePanel}
+                onDelete={deletePanel}
+              />
+            ))}
+
             {/* Sticky notes */}
             {notesForActiveWs.map(note => (
               <StickyNoteWidget
@@ -324,6 +472,16 @@ export const Desktop = (): JSX.Element => {
                 note={note}
                 onUpdate={updateNote}
                 onDelete={deleteNote}
+              />
+            ))}
+
+            {/* Image widgets */}
+            {imagesForActiveWs.map(im => (
+              <DesktopImageWidget
+                key={im.id}
+                image={im}
+                onUpdate={updateImage}
+                onDelete={deleteImage}
               />
             ))}
 
@@ -391,6 +549,12 @@ export const Desktop = (): JSX.Element => {
             <MenuItem onClick={openAddLinkDialog}>
               <ListItemText primary="Añadir link" />
             </MenuItem>
+            <MenuItem onClick={() => { setImagePickerOpen(true); setContextMenu(null); }}>
+              <ListItemText primary="Añadir imagen" />
+            </MenuItem>
+            <MenuItem onClick={addPanel}>
+              <ListItemText primary="Añadir panel" />
+            </MenuItem>
             <Divider />
             <MenuItem onClick={() => { setContextMenu(null); setPropsOpen(true); }}>
               <ListItemText primary="Propiedades" />
@@ -412,6 +576,13 @@ export const Desktop = (): JSX.Element => {
         onClose={() => { setLinkDialogOpen(false); setEditingLink(undefined); }}
         onAccept={handleLinkAccept}
         editLink={editingLink}
+      />
+
+      <ModalCloudImagePicker
+        isOpen={imagePickerOpen}
+        title="Añadir imagen al escritorio"
+        onClose={() => { setImagePickerOpen(false); setContextMenu(null); }}
+        onAccept={addImage}
       />
     </>
   );
