@@ -1,4 +1,5 @@
 import { writeFile, stat, mkdir, readFile, copyFile, readdirSync, existsSync } from 'fs';
+import { dirname } from 'path';
 import { exec } from 'child_process';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
@@ -128,10 +129,16 @@ export class ExtractorUtilities {
 // BACKUP -----------------------------------------------------------------------------------------
 
 const copyAFileToBackupFolder = (sourcePath: string, destinyPath: string): Promise<void> => {
-  return new Promise<void>(resolve => copyFile(sourcePath, destinyPath, (err) => {
-    if (err) console.log(`> File ${sourcePath} can't backup (it doesn't exist)!`); //throw err;
-    resolve();
-  }));
+  return new Promise<void>(resolve => {
+    // Ensure the destination directory exists before copying.
+    // This is needed for files whose dst includes a subdirectory (e.g. "desktop/default.json").
+    mkdir(dirname(destinyPath), { recursive: true }, () => {
+      copyFile(sourcePath, destinyPath, (err) => {
+        if (err) console.log(`> File ${sourcePath} can't backup (it doesn't exist)!`);
+        resolve();
+      });
+    });
+  });
 }
 
 /**
