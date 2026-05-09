@@ -5,6 +5,7 @@ import {
   imageEditorMosaicEndpoint,
   imageEditorGrayscaleEndpoint,
   imageEditorA4ExportEndpoint,
+  imageEditorFilterEndpoint,
 } from '../urls-and-end-points';
 import { fetchJsonReceive, fetchJsonSendAndReceive } from '../fetch-utils';
 
@@ -64,5 +65,13 @@ export const ImageEditorActions = {
     outputPath: string; canvasWidth: number; canvasHeight: number;
   }) => fetchJsonSendAndReceive<{ ok: boolean; outputPath: string }>(
     imageEditorA4ExportEndpoint(), params, mock,
+  ),
+
+  filter: (params: {
+    inputPath: string; outputPath: string;
+    grayscale?: boolean; brightness?: number; saturation?: number;
+    hue?: number; linearMul?: number; linearAdd?: number;
+  }) => fetchJsonSendAndReceive<{ ok: boolean; outputPath: string }>(
+    imageEditorFilterEndpoint(), params, mock,
   ),
 };

@@ -1,4 +1,4 @@
-export type ImageTool = 'resize' | 'canvas' | 'mosaic' | 'grayscale' | 'a4';
+export type ImageTool = 'resize' | 'canvas' | 'mosaic' | 'grayscale' | 'a4' | 'filter';
 
 export interface A4CanvasLayer {
   id: string;

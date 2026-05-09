@@ -136,6 +136,7 @@ export const imageEditorCanvasEndpoint    = (): string => `${getUrlApi()}/image-
 export const imageEditorMosaicEndpoint    = (): string => `${getUrlApi()}/image-editor/mosaic`;
 export const imageEditorGrayscaleEndpoint = (): string => `${getUrlApi()}/image-editor/grayscale`;
 export const imageEditorA4ExportEndpoint  = (): string => `${getUrlApi()}/image-editor/a4-export`;
+export const imageEditorFilterEndpoint    = (): string => `${getUrlApi()}/image-editor/filter`;
 
 /** Build a stream-file URL for displaying a cloud image inline. */
 export const cloudImageStreamUrl = (cloudPath: string): string => {

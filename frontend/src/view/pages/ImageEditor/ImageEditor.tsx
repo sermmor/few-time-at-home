@@ -6,6 +6,7 @@ import { CanvasTool    } from './tools/CanvasTool';
 import { MosaicTool    } from './tools/MosaicTool';
 import { GrayscaleTool } from './tools/GrayscaleTool';
 import { A4CanvasTool  } from './tools/A4CanvasTool';
+import { FilterTool    } from './tools/FilterTool';
 
 // ── Tab definitions ────────────────────────────────────────────────────────────
 const TABS: { id: ImageTool; label: string; icon: string; title: string }[] = [
@@ -13,6 +14,7 @@ const TABS: { id: ImageTool; label: string; icon: string; title: string }[] = [
   { id: 'canvas',    label: 'Lienzo',        icon: '▭',  title: 'Ampliar o reducir el lienzo de la imagen' },
   { id: 'mosaic',    label: 'Mosaico',       icon: '⊞',  title: 'Combinar varias imágenes en una cuadrícula de mosaico' },
   { id: 'grayscale', label: 'Grises',        icon: '◑',  title: 'Convertir la imagen a escala de grises' },
+  { id: 'filter',    label: 'Filtros',       icon: '🎨', title: 'Aplicar filtros de estilo Instagram a la imagen' },
   { id: 'a4',        label: 'A4',            icon: '📄', title: 'Lienzo A4 con imágenes arrastrables y exportación a alta resolución' },
 ];
 
@@ -35,7 +37,7 @@ export const ImageEditor: React.FC = () => {
   };
 
   // Tools that manage their own full layout (options + central area).
-  const isFullLayout = tool === 'a4' || tool === 'mosaic';
+  const isFullLayout = tool === 'a4' || tool === 'mosaic' || tool === 'filter';
 
   const snackCallbacks = {
     onDone:  (msg: string) => showSnack(msg, 'ok'),
@@ -70,6 +72,7 @@ export const ImageEditor: React.FC = () => {
         <>
           {tool === 'a4'     && <A4CanvasTool  {...snackCallbacks} />}
           {tool === 'mosaic' && <MosaicTool    {...snackCallbacks} />}
+          {tool === 'filter' && <FilterTool    {...snackCallbacks} />}
         </>
       ) : (
         <div className="ie-body">

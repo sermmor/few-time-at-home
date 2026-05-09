@@ -1749,6 +1749,16 @@ export class APIService {
         res.status(500).json({ error: err?.message ?? 'A4 export failed' });
       }
     });
+
+    // POST /image-editor/filter
+    this.app.post('/image-editor/filter', async (req: Request, res: Response) => {
+      try {
+        await svc.filter(req.body);
+        res.json({ ok: true, outputPath: req.body.outputPath });
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'Filter failed' });
+      }
+    });
   }
 
   // ── YouTube page (resolve URL + version info) ─────────────────────────────

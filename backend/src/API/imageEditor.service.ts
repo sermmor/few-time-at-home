@@ -47,6 +47,17 @@ export interface A4Layer {
   height: number;
 }
 
+export interface FilterParams {
+  inputPath:   string;
+  outputPath:  string;
+  grayscale?:  boolean;  // convert to grayscale first
+  brightness?: number;   // modulate brightness multiplier  (1 = neutral)
+  saturation?: number;   // modulate saturation multiplier  (1 = neutral)
+  hue?:        number;   // modulate hue rotation in degrees
+  linearMul?:  number;   // linear contrast multiplier      (1 = neutral)
+  linearAdd?:  number;   // linear brightness offset, raw 0-255 range
+}
+
 export interface A4ExportParams {
   layers: A4Layer[];
   dpi: 150 | 300;
@@ -197,6 +208,32 @@ export class ImageEditorService {
     const absOut = this.resolve(p.outputPath);
     this.ensureDir(absOut);
     await this.applyFormat(sharp(this.resolve(p.inputPath)).grayscale(), absOut).toFile(absOut);
+  }
+
+  async filter(p: FilterParams): Promise<void> {
+    const absOut = this.resolve(p.outputPath);
+    this.ensureDir(absOut);
+
+    let inst: sharp.Sharp = sharp(this.resolve(p.inputPath));
+
+    if (p.grayscale) {
+      inst = inst.grayscale();
+    }
+
+    const hasMod = p.brightness !== undefined || p.saturation !== undefined || p.hue !== undefined;
+    if (hasMod) {
+      inst = inst.modulate({
+        brightness: p.brightness ?? 1,
+        saturation: p.saturation ?? 1,
+        hue:        p.hue        ?? 0,
+      });
+    }
+
+    if (p.linearMul !== undefined || p.linearAdd !== undefined) {
+      inst = inst.linear(p.linearMul ?? 1, p.linearAdd ?? 0);
+    }
+
+    await this.applyFormat(inst, absOut).toFile(absOut);
   }
 
   async a4Export(p: A4ExportParams): Promise<void> {
