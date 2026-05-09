@@ -144,6 +144,7 @@ export const GoogleDrive: React.FC = () => {
   const [folderStack,    setFolderStack]    = React.useState<FolderCrumb[]>([]);
   const [loading,        setLoading]        = React.useState(true);
   const [notConfigured,  setNotConfigured]  = React.useState(false);
+  const [tokenExpired,   setTokenExpired]   = React.useState(false);
   const [showNoCfgDlg,   setShowNoCfgDlg]  = React.useState(false);
   const [dragOver,       setDragOver]       = React.useState(false);
   const [uploading,      setUploading]      = React.useState(false);
@@ -177,8 +178,15 @@ export const GoogleDrive: React.FC = () => {
       const { items: data } = await GoogleDriveActions.listFolder(folderId);
       setItems(data);
       setNotConfigured(false);
-    } catch {
-      setNotConfigured(true);
+      setTokenExpired(false);
+    } catch (err: any) {
+      if (err?.message === 'invalid_grant') {
+        setTokenExpired(true);
+        setNotConfigured(false);
+      } else {
+        setNotConfigured(true);
+        setTokenExpired(false);
+      }
       setShowNoCfgDlg(true);
     } finally {
       setLoading(false);
@@ -313,7 +321,7 @@ export const GoogleDrive: React.FC = () => {
         <Box sx={{ height: '1px', background: `linear-gradient(90deg, ${C.cyan}, transparent)`, mt: '0.5rem' }} />
       </Box>
 
-      {/* ── Not configured dialog ─────────────────────────────────────────── */}
+      {/* ── Not configured / token expired dialog ────────────────────────── */}
       <Dialog
         open={showNoCfgDlg}
         onClose={() => setShowNoCfgDlg(false)}
@@ -327,15 +335,15 @@ export const GoogleDrive: React.FC = () => {
         }}
       >
         <DialogTitle sx={{ ...neonText(C.magenta), fontWeight: 700, letterSpacing: '0.1em', fontSize: '0.95rem', pb: 1 }}>
-          {t('googleDrive.notConfigured')}
+          {tokenExpired ? t('googleDrive.tokenExpiredTitle') : t('googleDrive.notConfigured')}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: C.textPri, fontFamily: MONO, fontSize: '0.85rem', lineHeight: 1.7 }}>
-            {t('googleDrive.credentialsError')}
+            {tokenExpired ? t('googleDrive.tokenExpiredError') : t('googleDrive.credentialsError')}
           </Typography>
           <Box sx={{ mt: '1rem', padding: '0.65rem 0.9rem', borderRadius: '4px', background: 'rgba(255,0,204,0.07)', border: `1px solid ${C.magenta}55` }}>
             <Typography sx={{ color: C.magenta, fontFamily: MONO, fontSize: '0.78rem', lineHeight: 1.7 }}>
-              {t('googleDrive.credentialsHelp')}
+              {tokenExpired ? t('googleDrive.tokenExpiredHelp') : t('googleDrive.credentialsHelp')}
             </Typography>
           </Box>
         </DialogContent>

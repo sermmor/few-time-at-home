@@ -42,15 +42,6 @@ export const bootstrapApp = (): void => {
       );
 
       BookmarkService.parseFromOldBookmarks().then(() => {
-        // Always initialise the Drive service when credentials are present so the
-        // Google Drive browser screen works regardless of the backup schedule flag.
-        new GoogleDriveService(
-          keyData.google_drive_client_id      || '',
-          keyData.google_drive_client_secret  || '',
-          keyData.google_drive_refresh_token  || '',
-          keyData.google_drive_folder_id,
-        );
-
         if (!keyData.is_backup_disabled) {
           startBackupEveryWeek(
             ConfigurationService.Instance.backupUrls,
@@ -78,6 +69,16 @@ export const bootstrapApp = (): void => {
 
         // Always instantiate so weather browser endpoints work even without Telegram.
         new AemetService(keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined);
+
+        // Initialise the Drive service after TelegramBot so it can send a
+        // notification if the OAuth refresh token has expired (invalid_grant).
+        new GoogleDriveService(
+          keyData.google_drive_client_id      || '',
+          keyData.google_drive_client_secret  || '',
+          keyData.google_drive_refresh_token  || '',
+          keyData.google_drive_folder_id,
+          keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined,
+        );
 
         console.log('> The bot is ready.');
       });

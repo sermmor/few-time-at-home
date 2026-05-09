@@ -1,7 +1,9 @@
 import { google } from 'googleapis';
-import { createReadStream } from 'fs';
+import { createReadStream, stat } from 'fs';
 import { basename } from 'path';
 import { Readable } from 'stream';
+import { SupabaseNotificationService } from './supabaseNotification.service';
+import { FcmNotificationService }      from './fcmNotification.service';
 
 const BACKUP_FOLDER_NAME = 'Few_time_at_home_backups';
 
@@ -39,14 +41,19 @@ export interface DriveItem {
 export class GoogleDriveService {
   static Instance: GoogleDriveService;
 
+  /** Throttle: only send one "token expired" notification per 24 h. */
+  private static _lastTokenExpiredNotifMs = 0;
+  private static readonly _NOTIF_THROTTLE_MS = 24 * 60 * 60 * 1000;
+
   private drive:          ReturnType<typeof google.drive> | null = null;
   private backupFolderId: string | null;
 
   constructor(
-    clientId:          string,
-    clientSecret:      string,
-    refreshToken:      string,
-    explicitFolderId?: string,
+    clientId:                   string,
+    clientSecret:               string,
+    refreshToken:               string,
+    explicitFolderId?:          string,
+    private sendTelegram?:      (msg: string) => void,
   ) {
     GoogleDriveService.Instance = this;
     this.backupFolderId = explicitFolderId ?? null;
@@ -109,7 +116,18 @@ export class GoogleDriveService {
         modifiedTime: f.modifiedTime ?? undefined,
       }));
     } catch (err: any) {
-      console.error('[Drive] listFolder error:', err?.message ?? err);
+      const msg: string = err?.message ?? String(err);
+      const data        = err?.response?.data;
+      const isInvalidGrant =
+        msg === 'invalid_grant' ||
+        data?.error === 'invalid_grant' ||
+        (typeof data === 'string' && data.includes('invalid_grant'));
+      if (isInvalidGrant) {
+        console.error('[Drive] listFolder error: invalid_grant — refresh token expired or revoked. Re-run setup-google-drive.js to obtain a new token.');
+        this._notifyTokenExpired();
+        throw Object.assign(new Error('invalid_grant'), { code: 'invalid_grant' });
+      }
+      console.error('[Drive] listFolder error:', msg);
       return [];
     }
   };
@@ -177,6 +195,48 @@ export class GoogleDriveService {
       mimeType: meta.data.mimeType ?? 'application/octet-stream',
       size:     meta.data.size ?? undefined,
     };
+  };
+
+  // ── Token-expired notification ─────────────────────────────────────────────
+  /**
+   * Sends a one-time (throttled to once per 24 h) alert to Telegram, Supabase
+   * and FCM telling the user that the Google OAuth refresh token has expired and
+   * explaining how to renew it.  The date shown in the message is the mtime of
+   * keys.json — that is when the token was last written/updated.
+   */
+  private _notifyTokenExpired = (): void => {
+    const now = Date.now();
+    if (now - GoogleDriveService._lastTokenExpiredNotifMs < GoogleDriveService._NOTIF_THROTTLE_MS) return;
+    GoogleDriveService._lastTokenExpiredNotifMs = now;
+
+    stat('keys.json', (statErr, stats) => {
+      const dateStr = statErr
+        ? 'desconocida'
+        : stats.mtime.toLocaleDateString('es-ES', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+          });
+
+      const msg = [
+        '⚠️ Google Drive: token OAuth caducado',
+        `El refresh_token ya no es válido (keys.json modificado por última vez: ${dateStr}).`,
+        '',
+        'Para renovarlo, ejecuta desde el directorio backend/:',
+        '  node setup-google-drive.js <CLIENT_ID> <CLIENT_SECRET>',
+        '',
+        'Luego copia el nuevo refresh_token en:',
+        '  Configuración → APIs → Google Drive — Backups',
+        '',
+        'Nota: si tu app OAuth está en modo "Testing" en Google Cloud Console',
+        'los tokens caducan cada 7 días. Para evitarlo ve a:',
+        '  APIs & Services → OAuth consent screen → Publishing status → In production',
+      ].join('\n');
+
+      this.sendTelegram?.(msg);
+      SupabaseNotificationService.Instance?.insertAlert(msg, false);
+      FcmNotificationService.Instance?.sendAlert(msg);
+      console.warn('[Drive] Token expired notification sent.');
+    });
   };
 
   // ── Internals ──────────────────────────────────────────────────────────────

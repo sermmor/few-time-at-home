@@ -1417,6 +1417,15 @@ export class APIService {
     const notConfigured = (res: Response) =>
       res.status(503).json({ error: 'Google Drive not configured' });
 
+    const driveErrResponse = (res: Response, err: any) => {
+      const msg: string = err?.message ?? String(err);
+      if (msg === 'invalid_grant' || err?.code === 'invalid_grant') {
+        return res.status(401).json({ error: 'invalid_grant' });
+      }
+      console.error('[Drive API] error:', msg);
+      return res.status(500).json({ error: msg });
+    };
+
     // GET /google-drive/list?folderId=<id>  (absent = Drive root)
     this.app.get(ep.list, async (_req: Request, res: Response) => {
       const svc = GoogleDriveService.Instance;
@@ -1426,8 +1435,7 @@ export class APIService {
         const items = await svc.listFolder(folderId);
         res.json({ items });
       } catch (err: any) {
-        console.error('[Drive API] list error:', err?.message);
-        res.status(500).json({ error: err?.message ?? 'Unknown error' });
+        return driveErrResponse(res, err);
       }
     });
 

@@ -13,7 +13,8 @@ const listFolder = async (folderId?: string): Promise<{ items: DriveItem[] }> =>
   const url = new URL(getGoogleDriveEndpoint('list'));
   if (folderId) url.searchParams.set('folderId', folderId);
   const res = await fetch(url.toString());
-  if (!res.ok) return { items: [] };
+  if (res.status === 401) throw new Error('invalid_grant');
+  if (!res.ok)            throw new Error('not_configured');
   return res.json();
 };
 

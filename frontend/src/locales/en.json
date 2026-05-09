@@ -368,7 +368,10 @@
     "download": "Download",
     "delete": "Delete",
     "createLabel": "CREATE",
-    "deleteLabel": "DELETE"
+    "deleteLabel": "DELETE",
+    "tokenExpiredTitle": "// GOOGLE TOKEN EXPIRED //",
+    "tokenExpiredError": "The Google OAuth refresh token has expired or been revoked.",
+    "tokenExpiredHelp": "Re-run the authorisation script from the backend/ directory:\n  node setup-google-drive.js <CLIENT_ID> <CLIENT_SECRET>\nThen paste the new refresh_token into Settings → APIs → Google Drive — Backups.\n\nNote: if your OAuth app is in \"Testing\" mode, tokens expire after 7 days. To avoid this, publish the app to \"In production\" in Google Cloud Console → APIs & Services → OAuth consent screen."
   },
   "notFound": {
     "title": "Not Found"

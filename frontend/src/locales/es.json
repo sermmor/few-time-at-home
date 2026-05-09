@@ -368,7 +368,10 @@
     "download": "Descargar",
     "delete": "Eliminar",
     "createLabel": "CREAR",
-    "deleteLabel": "ELIMINAR"
+    "deleteLabel": "ELIMINAR",
+    "tokenExpiredTitle": "// TOKEN DE GOOGLE CADUCADO //",
+    "tokenExpiredError": "El refresh token de Google OAuth ha expirado o ha sido revocado.",
+    "tokenExpiredHelp": "Vuelve a ejecutar el script de autorización desde el directorio backend/:\n  node setup-google-drive.js <CLIENT_ID> <CLIENT_SECRET>\nLuego copia el nuevo refresh_token en Configuración → APIs → Google Drive — Backups.\n\nNota: si el proyecto OAuth está en modo \"Testing\", los tokens caducan a los 7 días. Para evitarlo, pasa la app a estado \"In production\" en Google Cloud Console → APIs & Services → OAuth consent screen."
   },
   "notFound": {
     "title": "No encontrado"
