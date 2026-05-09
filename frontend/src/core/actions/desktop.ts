@@ -134,6 +134,7 @@ const flushDesktopConfig = (): Promise<void> =>
 export interface DesktopProfileMeta {
   name:       string;
   tabletMode: boolean;
+  isRemote:   boolean;
 }
 
 export interface DesktopProfilesInfo {
@@ -145,11 +146,11 @@ const listProfiles = (): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfilesEndpoint())
     .then(r => r.json() as Promise<DesktopProfilesInfo>);
 
-const createProfile = (name: string, tabletMode = false): Promise<DesktopProfilesInfo> =>
+const createProfile = (name: string, tabletMode = false, isRemote = false): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfileCreateEndpoint(), {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ name, tabletMode }),
+    body:    JSON.stringify({ name, tabletMode, isRemote }),
   }).then(async r => {
     const body = await r.json();
     if (!r.ok) throw new Error(body.error ?? 'create_failed');
@@ -176,3 +177,4 @@ export const DesktopActions = {
   createProfile,
   activateProfile,
 };
+

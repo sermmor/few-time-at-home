@@ -27,8 +27,9 @@ const EMPTY_CONFIG: DesktopConfig = {
 export class DesktopProfilesService {
   static Instance: DesktopProfilesService;
 
-  private profiles      = new Map<string, DesktopConfig>();
-  private activeProfile = DEFAULT_PROFILE;
+  private profiles       = new Map<string, DesktopConfig>();
+  private activeProfile  = DEFAULT_PROFILE;
+  private remoteProfiles = new Set<string>();
 
   constructor() {
     DesktopProfilesService.Instance = this;
@@ -68,6 +69,13 @@ export class DesktopProfilesService {
     }
   }
 
+  private _saveMeta(): void {
+    writeFileSync(META_FILE, JSON.stringify({
+      activeProfile:  this.activeProfile,
+      remoteProfiles: Array.from(this.remoteProfiles),
+    }, null, 2), 'utf8');
+  }
+
   private _loadAll(): void {
     // Load meta
     try {
@@ -75,8 +83,10 @@ export class DesktopProfilesService {
       this.activeProfile = (typeof meta.activeProfile === 'string' && meta.activeProfile)
         ? meta.activeProfile
         : DEFAULT_PROFILE;
+      this.remoteProfiles = new Set(Array.isArray(meta.remoteProfiles) ? meta.remoteProfiles : []);
     } catch {
-      this.activeProfile = DEFAULT_PROFILE;
+      this.activeProfile  = DEFAULT_PROFILE;
+      this.remoteProfiles = new Set();
     }
 
     // Load all *.json files from the desktop directory
@@ -119,12 +129,15 @@ export class DesktopProfilesService {
       return a.localeCompare(b);
     });
 
-  /** Returns profiles with their metadata (name + tabletMode). */
-  listProfilesWithMeta = (): { name: string; tabletMode: boolean }[] =>
+  /** Returns profiles with their metadata (name + tabletMode + isRemote). */
+  listProfilesWithMeta = (): { name: string; tabletMode: boolean; isRemote: boolean }[] =>
     this.listProfiles().map(name => ({
       name,
       tabletMode: this.profiles.get(name)?.tabletMode ?? false,
+      isRemote:   this.remoteProfiles.has(name),
     }));
+
+  isProfileRemote = (name: string): boolean => this.remoteProfiles.has(name);
 
   getActiveConfig = (): DesktopConfig =>
     this.profiles.get(this.activeProfile) ?? { ...EMPTY_CONFIG };
@@ -145,20 +158,32 @@ export class DesktopProfilesService {
     }
   };
 
-  createProfile = (name: string, tabletMode = false): { ok: boolean; error?: string } => {
+  createProfile = (name: string, tabletMode = false, isRemote = false): { ok: boolean; error?: string } => {
     const safe = name.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
     if (!safe)                      return { ok: false, error: 'invalid_name' };
     if (this.profiles.has(safe))    return { ok: false, error: 'already_exists' };
 
     const config: DesktopConfig = { ...EMPTY_CONFIG, wallpapers: Array(16).fill(''), tabletMode };
     this.profiles.set(safe, config);
-    writeFileSync(
-      `${DESKTOP_DIR}/${safe}.json`,
-      JSON.stringify(config, null, 2),
-      'utf8',
-    );
-    console.log(`[Desktop] Created profile "${safe}" (tabletMode=${tabletMode}).`);
+    writeFileSync(`${DESKTOP_DIR}/${safe}.json`, JSON.stringify(config, null, 2), 'utf8');
+    if (isRemote) this.remoteProfiles.add(safe);
+    this._saveMeta();
+    console.log(`[Desktop] Created profile "${safe}" (tabletMode=${tabletMode}, isRemote=${isRemote}).`);
     return { ok: true };
+  };
+
+  /**
+   * Imports a profile that was discovered from Google Drive.
+   * Unlike createProfile, it accepts a full config and does NOT reset the active profile.
+   */
+  importProfile = (name: string, config: DesktopConfig): void => {
+    const safe = name.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
+    if (!safe) return;
+    this.profiles.set(safe, config);
+    writeFileSync(`${DESKTOP_DIR}/${safe}.json`, JSON.stringify(config, null, 2), 'utf8');
+    this.remoteProfiles.add(safe);
+    this._saveMeta();
+    console.log(`[Desktop] Imported remote profile "${safe}" from GDrive.`);
   };
 
   activateProfile = (name: string): { ok: boolean; error?: string } => {
@@ -166,7 +191,7 @@ export class DesktopProfilesService {
     // Persist the currently active profile before switching
     this.flushActiveToDisk();
     this.activeProfile = name;
-    writeFileSync(META_FILE, JSON.stringify({ activeProfile: name }, null, 2), 'utf8');
+    this._saveMeta();
     console.log(`[Desktop] Active profile switched to "${name}".`);
     return { ok: true };
   };

@@ -468,6 +468,8 @@
     "activateError": "Could not activate profile",
     "errorLoad": "Error loading desktop profiles",
     "tabletModeLabel": "Tablet mode",
-    "tabletBadge": "tablet"
+    "tabletBadge": "tablet",
+    "remoteLabel": "Remote (Google Drive)",
+    "remoteBadge": "remote"
   }
 }

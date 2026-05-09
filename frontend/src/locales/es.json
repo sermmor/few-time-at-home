@@ -468,6 +468,8 @@
     "activateError": "No se pudo activar el perfil",
     "errorLoad": "Error al cargar los perfiles de escritorio",
     "tabletModeLabel": "Modo tablet",
-    "tabletBadge": "tablet"
+    "tabletBadge": "tablet",
+    "remoteLabel": "Remoto (Google Drive)",
+    "remoteBadge": "remoto"
   }
 }

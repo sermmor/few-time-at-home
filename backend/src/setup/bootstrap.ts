@@ -24,6 +24,7 @@ import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate'
 import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { AemetService }           from '../API/aemet.service';
 import { GoogleDriveService }     from '../API/googleDrive.service';
+import { DesktopRemoteService }   from '../API/desktopRemote.service';
 
 export const bootstrapApp = (): void => {
   readFile('keys.json', (err, data) => {
@@ -79,6 +80,9 @@ export const bootstrapApp = (): void => {
           keyData.google_drive_folder_id,
           keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined,
         );
+
+        // Discover new remote desktop profiles from GDrive (async, non-blocking)
+        setTimeout(() => DesktopRemoteService.discoverNewProfiles(), 0);
 
         console.log('> The bot is ready.');
       });

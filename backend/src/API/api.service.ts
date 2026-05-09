@@ -29,6 +29,7 @@ import { AemetService } from './aemet.service';
 import { AlexaService } from './alexa.service';
 import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import { DesktopProfilesService } from './desktopProfiles.service';
+import { DesktopRemoteService }   from './desktopRemote.service';
 import { AudioEditorService } from './audioEditor.service';
 import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
 import { ImageEditorService } from './imageEditor.service';
@@ -376,14 +377,36 @@ export class APIService {
             console.error("Received NO body JSON");
             res.send({response: 'OK'});
         } else {
-            ConfigurationService.Instance.updateConfigurationByType(this.channelMediaCollection, req.body.type, req.body.content).then(() => {
+            let content = req.body.content;
+            const type  = req.body.type;
+
+            // For remote desktop profiles, copy any new asset that is not yet
+            // in cloud/desktop-remote/ and rewrite its path before storing.
+            if (type === 'desktop') {
+              const profileSvc = DesktopProfilesService.Instance;
+              if (profileSvc?.isProfileRemote(profileSvc.getActiveProfileName())) {
+                content = DesktopRemoteService.normalizeRemoteAssetPaths(content);
+              }
+            }
+
+            ConfigurationService.Instance.updateConfigurationByType(this.channelMediaCollection, type, content).then(() => {
               res.send({response: 'OK'});
             });
         }
     });
     
     // { type: string }, RETURNS Configuration list type in {data: }.
-    this.app.post(APIService.configurationListByTypeEndpoint, (req, res) => {
+    // When type === 'desktop' and the active profile is remote, pull from GDrive first.
+    this.app.post(APIService.configurationListByTypeEndpoint, async (req: Request, res: Response) => {
+      if (req.body.type === 'desktop') {
+        const profileSvc = DesktopProfilesService.Instance;
+        if (profileSvc?.isProfileRemote(profileSvc.getActiveProfileName())) {
+          try {
+            const fresh = await DesktopRemoteService.pullProfile(profileSvc.getActiveProfileName());
+            if (fresh) profileSvc.setActiveConfig(fresh as any);
+          } catch { /* fall through with cached config on error */ }
+        }
+      }
       res.send({data: ConfigurationService.Instance.getConfigurationByType(req.body.type)});
     });
 
@@ -1556,8 +1579,18 @@ export class APIService {
 
     // POST /desktop/flush — vuelca el config de escritorio de la RAM al fichero.
     // El frontend lo llama vía sendBeacon (cierre de pestaña) o fetch (navegación interna).
+    // Si el perfil activo es remoto, también sube los cambios a Google Drive.
     this.app.post('/desktop/flush', (_req: Request, res: Response) => {
       ConfigurationService.Instance.flushDesktopToDisk();
+      const profileSvc = DesktopProfilesService.Instance;
+      const activeName = profileSvc?.getActiveProfileName() ?? '';
+      if (profileSvc?.isProfileRemote(activeName)) {
+        const config = profileSvc.getActiveConfig();
+        // Fire-and-forget — don't block the flush response
+        DesktopRemoteService.pushProfile(activeName, config).catch(e =>
+          console.error('[Desktop] Remote push after flush failed:', e?.message),
+        );
+      }
       res.status(204).end();
     });
 
@@ -1567,15 +1600,22 @@ export class APIService {
       res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });
 
-    // POST /desktop/profile/create — body: { name, tabletMode? } → creates a new profile
-    this.app.post(ep.create, (req: Request, res: Response) => {
-      const { name, tabletMode } = req.body ?? {};
+    // POST /desktop/profile/create — body: { name, tabletMode?, isRemote? } → creates a new profile
+    // When isRemote=true the Few_Time_at_home_desktop folder is created in GDrive if absent.
+    this.app.post(ep.create, async (req: Request, res: Response) => {
+      const { name, tabletMode, isRemote } = req.body ?? {};
       if (typeof name !== 'string' || !name.trim()) {
         return res.status(400).json({ error: 'invalid_name' });
       }
-      const result = DesktopProfilesService.Instance.createProfile(name, !!tabletMode);
+      const result = DesktopProfilesService.Instance.createProfile(name, !!tabletMode, !!isRemote);
       if (!result.ok) {
         return res.status(409).json({ error: result.error });
+      }
+      if (isRemote) {
+        // Ensure the GDrive desktop folder exists (fire-and-forget)
+        DesktopRemoteService.ensureMainFolder().catch(e =>
+          console.error('[Desktop] GDrive folder creation failed:', e?.message),
+        );
       }
       const svc = DesktopProfilesService.Instance;
       res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });

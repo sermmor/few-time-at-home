@@ -22,6 +22,7 @@ import ExpandMoreIcon  from '@mui/icons-material/ExpandMore';
 import DashboardIcon   from '@mui/icons-material/Dashboard';
 import TabletIcon      from '@mui/icons-material/Tablet';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloudSyncIcon   from '@mui/icons-material/CloudSync';
 import { useTranslation } from 'react-i18next';
 import { DesktopActions, DesktopProfileMeta, DesktopProfilesInfo } from '../../../../core/actions/desktop';
 import { useConfiguredDialogAlphas } from '../../../../core/context/DialogAlphasContext';
@@ -53,6 +54,7 @@ export const DesktopSection: React.FC = () => {
   const [loading,    setLoading   ] = React.useState(true);
   const [newName,    setNewName   ] = React.useState('');
   const [newTablet,  setNewTablet ] = React.useState(false);
+  const [newRemote,  setNewRemote ] = React.useState(false);
   const [creating,   setCreating  ] = React.useState(false);
   const [activating, setActivating] = React.useState<string | null>(null);
   const [feedback,   setFeedback  ] = React.useState<{ msg: string; ok: boolean } | null>(null);
@@ -76,11 +78,12 @@ export const DesktopSection: React.FC = () => {
   const handleCreate = () => {
     if (!newName.trim()) return;
     setCreating(true);
-    DesktopActions.createProfile(newName.trim(), newTablet)
+    DesktopActions.createProfile(newName.trim(), newTablet, newRemote)
       .then(updated => {
         setInfo(updated);
         setNewName('');
         setNewTablet(false);
+        setNewRemote(false);
         setFeedback({ msg: t('desktopProfiles.createSuccess'), ok: true });
       })
       .catch((err: Error) => {
@@ -165,6 +168,14 @@ export const DesktopSection: React.FC = () => {
                                   sx={{ height: '1.3rem', fontSize: '0.65rem' }}
                                 />
                               )}
+                              {profile.isRemote && (
+                                <Chip
+                                  icon={<CloudSyncIcon sx={{ fontSize: '0.9rem !important' }} />}
+                                  label={t('desktopProfiles.remoteBadge')}
+                                  size="small" color="secondary" variant="outlined"
+                                  sx={{ height: '1.3rem', fontSize: '0.65rem' }}
+                                />
+                              )}
                             </Box>
                           }
                         />
@@ -223,6 +234,25 @@ export const DesktopSection: React.FC = () => {
                         <TabletIcon sx={{ fontSize: '1rem', color: newTablet ? 'info.main' : 'text.disabled' }} />
                         <Typography variant="body2" sx={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                           {t('desktopProfiles.tabletModeLabel')}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newRemote}
+                        onChange={e => setNewRemote(e.target.checked)}
+                        disabled={creating}
+                        size="small"
+                        color="secondary"
+                      />
+                    }
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <CloudSyncIcon sx={{ fontSize: '1rem', color: newRemote ? 'secondary.main' : 'text.disabled' }} />
+                        <Typography variant="body2" sx={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                          {t('desktopProfiles.remoteLabel')}
                         </Typography>
                       </Box>
                     }

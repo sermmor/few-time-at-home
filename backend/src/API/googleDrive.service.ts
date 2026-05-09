@@ -132,6 +132,37 @@ export class GoogleDriveService {
     }
   };
 
+  // ── Upsert file (update if exists, create otherwise) ──────────────────────
+  /**
+   * Uploads a file to a specific folder.  If a file with the same name already
+   * exists in that folder, its content is replaced; otherwise a new file is
+   * created.  This prevents duplicate files accumulating on repeated saves.
+   */
+  upsertFile = async (
+    name:           string,
+    mimeType:       string,
+    buffer:         Buffer,
+    parentFolderId: string,
+  ): Promise<{ id: string; name: string }> => {
+    if (!this.drive) throw new Error('Drive not configured');
+    const listRes = await this.drive.files.list({
+      q:        `'${parentFolderId}' in parents and name='${name}' and trashed=false`,
+      fields:   'files(id,name)',
+      pageSize: 1,
+    });
+    const found = listRes.data.files?.[0];
+    if (found?.id) {
+      const body = Readable.from(buffer);
+      const res  = await this.drive.files.update({
+        fileId: found.id,
+        media:  { mimeType, body },
+        fields: 'id,name',
+      });
+      return { id: res.data.id!, name: res.data.name! };
+    }
+    return this.uploadFileBuffer(name, mimeType, buffer, parentFolderId);
+  };
+
   // ── Upload file (from in-memory buffer) ───────────────────────────────────
   uploadFileBuffer = async (
     name:            string,
