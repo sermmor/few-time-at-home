@@ -30,7 +30,21 @@ remote desktop profiles directly from Google Drive — no backend required.
 
 ---
 
-## 2 — Running / building
+## 2 — Windows prerequisites (one-time)
+
+The `flutter_secure_storage` plugin requires the **ATL (Active Template Library)**,
+which is not included in the basic Visual Studio Build Tools installation.
+
+1. Open the **Visual Studio Installer** (search for it in the Start menu).
+2. Click **Modify** on your Visual Studio / Build Tools installation.
+3. Go to the **Individual components** tab.
+4. Search for `ATL` and tick:
+   - ✅ **C++ ATL for latest v142 build tools (x86 & x64)**
+5. Click **Modify** and wait for the installation to finish.
+
+---
+
+## 3 — Running / building (all platforms)
 
 ### Prerequisites
 
@@ -77,7 +91,7 @@ flutter build linux --release
 
 ---
 
-## 3 — First launch
+## 4 — First launch
 
 1. The app opens the **Setup** screen.
 2. Enter your Google OAuth2 **Client ID** and **Client Secret** (from step 1).
@@ -89,7 +103,7 @@ flutter build linux --release
 
 ---
 
-## 4 — Usage
+## 5 — Usage
 
 - **Profile selection** — shows all remote profiles found in the
   `Few_Time_at_home_desktop` Google Drive folder.
@@ -106,7 +120,7 @@ flutter build linux --release
 
 ---
 
-## 5 — Project structure
+## 6 — Project structure
 
 ```
 desktopApp/
@@ -137,7 +151,7 @@ desktopApp/
 
 ---
 
-## 6 — Notes
+## 7 — Notes
 
 - Wallpapers, image widgets, and favicons are **cached locally** in the app's
   documents directory under `ftah_cache/<profileName>/`.

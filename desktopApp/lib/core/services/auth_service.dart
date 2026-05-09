@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../constants.dart';
 
@@ -78,7 +79,7 @@ class AuthService {
     final saved = await _loadTokens(creds.clientId, creds.clientSecret);
     if (saved != null && saved.refreshToken != null) {
       try {
-        final client = autoRefreshingClient(clientId, saved, httpClient());
+        final client = autoRefreshingClient(clientId, saved, http.Client());
         await _saveTokens(await client.credentials); // persist refreshed tokens
         return client;
       } catch (_) {
