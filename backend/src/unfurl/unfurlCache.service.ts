@@ -47,12 +47,12 @@ export class UnfurlCacheService {
     });
     console.log(`Unfurl cache save scheduled for every 24h at ${rule.hour}:${String(rule.minute).padStart(2, '0')}`);
 
-    // Clean expired images on the 1st of each month at 00:00
-    scheduleJob('unfurl-image-cleanup', { date: 1, hour: 0, minute: 0 }, () => {
+    // Clean expired images every Monday at 11:00
+    scheduleJob('unfurl-image-cleanup', { dayOfWeek: 1, hour: 11, minute: 0 }, () => {
       UnfurlCacheService.getInstance().cleanExpiredImages();
       console.log("[UNFURL] Cleaned unfurl image caché!");
     });
-    console.log("Unfurl image cleanup scheduled for the 1st day of each month at 00:00");
+    console.log("Unfurl image cleanup scheduled for every Monday at 11:00");
   }
 
   // ── Unfurl metadata ────────────────────────────────────────────────────────
