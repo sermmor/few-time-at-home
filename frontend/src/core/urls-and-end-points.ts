@@ -129,6 +129,20 @@ export const desktopProfileActivateEndpoint = (): string => `${getUrlApi()}/desk
 export const audioEditorUploadTempEndpoint     = (): string => `${getUrlApi()}/audio-editor/upload-temp`;
 export const audioEditorDownloadExportEndpoint = (): string => `${getUrlApi()}/audio-editor/download-export`;
 
+// ── Image Editor endpoints ───────────────────────────────────────────────────
+export const imageEditorMetadataEndpoint  = (): string => `${getUrlApi()}/image-editor/metadata`;
+export const imageEditorResizeEndpoint    = (): string => `${getUrlApi()}/image-editor/resize`;
+export const imageEditorCanvasEndpoint    = (): string => `${getUrlApi()}/image-editor/canvas`;
+export const imageEditorMosaicEndpoint    = (): string => `${getUrlApi()}/image-editor/mosaic`;
+export const imageEditorGrayscaleEndpoint = (): string => `${getUrlApi()}/image-editor/grayscale`;
+export const imageEditorA4ExportEndpoint  = (): string => `${getUrlApi()}/image-editor/a4-export`;
+
+/** Build a stream-file URL for displaying a cloud image inline. */
+export const cloudImageStreamUrl = (cloudPath: string): string => {
+  const drive = cloudPath.split('/')[0];
+  return `${getUrlApi()}/cloud/stream-file?drive=${encodeURIComponent(drive)}&path=${encodeURIComponent(cloudPath)}`;
+};
+
 export const castDevicesEndpoint = (): string => `${getUrlApi()}/cast/devices`;
 export const castStartEndpoint   = (): string => `${getUrlApi()}/cast/start`;
 export const castPlayEndpoint    = (): string => `${getUrlApi()}/cast/play`;

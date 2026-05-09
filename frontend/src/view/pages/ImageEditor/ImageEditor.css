@@ -1,0 +1,371 @@
+/* ── Root layout ──────────────────────────────────────────────────────────── */
+.ie-root {
+  display: flex;
+  flex-direction: column;
+  /* Escape the 1rem left/right padding of EnvelopComponent */
+  margin-left:  -1rem;
+  margin-right: -1rem;
+  margin-top:   -1.5rem;   /* neutralise any top gap added by EnvelopComponent */
+  width: calc(100% + 2rem);
+  /* Fill remaining viewport below the fixed AppMenubar (5.5rem paddingTop) */
+  height: calc(100vh - 5.5rem);
+  background: #0a0f1a;
+  color: #d0e4f7;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+/* ── Tab toolbar ─────────────────────────────────────────────────────────── */
+.ie-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #040d18;
+  border-bottom: 1px solid #1a3a5c;
+  flex-shrink: 0;
+}
+
+.ie-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #00ffe7;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px #00ffe788;
+  margin-right: 12px;
+  white-space: nowrap;
+}
+
+.ie-tab {
+  padding: 5px 14px;
+  border-radius: 4px;
+  border: 1px solid #1a3a5c;
+  background: transparent;
+  color: #4a7a9b;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.ie-tab:hover  { border-color: #00ffe755; color: #a0c8e8; }
+.ie-tab.active { border-color: #00ffe7aa; color: #00ffe7; background: #00ffe718; }
+
+/* ── Body (options | preview) ────────────────────────────────────────────── */
+.ie-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Options panel (left) ────────────────────────────────────────────────── */
+.ie-options {
+  width: 280px;
+  flex-shrink: 0;
+  background: #071526;
+  border-right: 1px solid #1a3a5c;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ie-section-label {
+  font-size: 10px;
+  color: #4a7a9b;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.ie-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ie-field label {
+  font-size: 11px;
+  color: #7a9bb8;
+}
+
+.ie-input {
+  background: #040d18;
+  border: 1px solid #1a3a5c;
+  border-radius: 4px;
+  color: #d0e4f7;
+  font-family: monospace;
+  font-size: 13px;
+  padding: 6px 10px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ie-input:focus { border-color: #00ffe755; }
+.ie-input[type="color"] { padding: 2px 4px; height: 34px; cursor: pointer; }
+
+.ie-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ie-input-row .ie-input { flex: 1; }
+
+.ie-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #7a9bb8;
+  cursor: pointer;
+  user-select: none;
+}
+.ie-checkbox-row input[type="checkbox"] { accent-color: #00ffe7; width: 14px; height: 14px; }
+
+/* ── Source image strip ──────────────────────────────────────────────────── */
+.ie-source-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #040d18;
+  border: 1px solid #1a3a5c;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.ie-source-strip:hover { border-color: #00ffe755; }
+.ie-source-strip .path {
+  font-size: 11px;
+  color: #7a9bb8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.ie-source-strip .path.set { color: #a0d8c8; }
+
+.ie-meta {
+  font-size: 10px;
+  color: #4a7a9b;
+  font-family: monospace;
+}
+
+/* ── Action button ───────────────────────────────────────────────────────── */
+.ie-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #00ffe755;
+  background: #00ffe718;
+  color: #00ffe7;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s ease;
+}
+.ie-btn:hover:not(:disabled)  { background: #00ffe730; }
+.ie-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ie-btn-secondary {
+  border-color: #1a3a5c;
+  background: transparent;
+  color: #4a7a9b;
+}
+.ie-btn-secondary:hover:not(:disabled) { border-color: #00ffe733; color: #7a9bb8; background: #00ffe708; }
+
+/* ── Output section ──────────────────────────────────────────────────────── */
+.ie-output-section {
+  border-top: 1px solid #1a3a5c;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ie-folder-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #040d18;
+  border: 1px solid #1a3a5c;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.ie-folder-strip:hover { border-color: #00ffe755; }
+.ie-folder-strip span  { color: #7a9bb8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.ie-folder-strip span.set { color: #a0d8c8; }
+
+/* ── Feedback snackbar ───────────────────────────────────────────────────── */
+.ie-snack {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #071526;
+  border: 1px solid #00ffe755;
+  color: #00ffe7;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px 22px;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px #00ffe720;
+  z-index: 9999;
+  pointer-events: none;
+}
+.ie-snack.error { border-color: #ff4444aa; color: #ff8888; }
+
+/* ── Preview panel (right) ───────────────────────────────────────────────── */
+.ie-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background: #060e1a;
+  padding: 20px;
+}
+
+.ie-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border: 1px solid #1a3a5c;
+  border-radius: 4px;
+  box-shadow: 0 0 20px #00000066;
+}
+
+.ie-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #2a4a6a;
+  font-size: 13px;
+}
+.ie-preview-empty svg { opacity: 0.3; }
+
+/* ── Mosaic list ─────────────────────────────────────────────────────────── */
+.ie-mosaic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.ie-mosaic-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #7a9bb8;
+  background: #040d18;
+  border: 1px solid #1a3a5c;
+  border-radius: 3px;
+  padding: 4px 8px;
+}
+.ie-mosaic-item .name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ie-mosaic-item button {
+  background: none;
+  border: none;
+  color: #ff4444aa;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.ie-mosaic-item button:hover { color: #ff4444; }
+
+/* ── A4 canvas tool ──────────────────────────────────────────────────────── */
+.ie-a4-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: auto;
+  background: #060e1a;
+  padding: 20px;
+  gap: 0;
+}
+
+.ie-a4-sheet {
+  position: relative;
+  background: #fff;
+  box-shadow: 0 4px 32px #00000099;
+  border: 1px solid #334;
+  flex-shrink: 0;
+  overflow: hidden;
+  cursor: default;
+}
+
+.ie-a4-layer {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+  box-sizing: border-box;
+}
+.ie-a4-layer:hover { outline: 1px solid #00ffe7aa; }
+.ie-a4-layer.selected { outline: 2px solid #00ffe7; }
+
+.ie-a4-layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  pointer-events: none;
+}
+
+.ie-a4-layer .ie-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  background: #00ffe7;
+  cursor: se-resize;
+  opacity: 0.8;
+}
+
+.ie-a4-layer .ie-delete-handle {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ff3344;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.ie-a4-layer.selected .ie-delete-handle { display: flex; }
+
+.ie-a4-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 11px;
+  color: #4a7a9b;
+  flex-shrink: 0;
+}

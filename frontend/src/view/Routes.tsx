@@ -20,6 +20,7 @@ const Alexa                 = lazy(() => import('./pages/Alexa/Alexa').then(m =>
 const Desktop               = lazy(() => import('./pages/Desktop/Desktop').then(m => ({ default: m.Desktop })));
 const GoogleDrive           = lazy(() => import('./pages/GoogleDrive/GoogleDrive').then(m => ({ default: m.GoogleDrive })));
 const AudioEditor           = lazy(() => import('./pages/AudioEditor/AudioEditor').then(m => ({ default: m.AudioEditor })));
+const ImageEditor           = lazy(() => import('./pages/ImageEditor/ImageEditor').then(m => ({ default: m.ImageEditor })));
 const YouTubePage           = lazy(() => import('./pages/YouTube/YouTube').then(m => ({ default: m.YouTubePage })));
 const AlexaYT               = lazy(() => import('./pages/AlexaYT/AlexaYT').then(m => ({ default: m.AlexaYT })));
 
@@ -123,6 +124,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/cloud/audio-editor',
     group: 'Cloud',
     element: <AudioEditor/>,
+  },
+  {
+    name: 'Image Editor',
+    path: '/cloud/image-editor',
+    group: 'Cloud',
+    element: <ImageEditor/>,
   },
   {
     name: 'MP3 Converter',

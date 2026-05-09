@@ -31,6 +31,7 @@ import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import { DesktopProfilesService } from './desktopProfiles.service';
 import { AudioEditorService } from './audioEditor.service';
 import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
+import { ImageEditorService } from './imageEditor.service';
 import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
@@ -228,6 +229,7 @@ export class APIService {
     new DesktopProfilesService();
     this.desktopFaviconService();
     this.audioEditorService();
+    this.imageEditorService();
     this.youtubePageService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
@@ -1678,6 +1680,73 @@ export class APIService {
       } catch (err: any) {
         console.error('[Weather API] hourly error:', err?.message);
         res.status(500).json({ error: err?.message ?? 'Failed to fetch hourly weather' });
+      }
+    });
+  }
+
+  // ── Image Editor ─────────────────────────────────────────────────────────
+  private imageEditorService(): void {
+    const svc = new ImageEditorService();
+
+    // GET /image-editor/metadata?path=<cloudPath>
+    this.app.get('/image-editor/metadata', async (req: Request, res: Response) => {
+      const cloudPath = req.query.path as string;
+      if (!cloudPath) return res.status(400).json({ error: 'Missing path' });
+      try {
+        const meta = await svc.getMetadata(cloudPath);
+        res.json(meta);
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'Failed to read metadata' });
+      }
+    });
+
+    // POST /image-editor/resize
+    this.app.post('/image-editor/resize', async (req: Request, res: Response) => {
+      try {
+        await svc.resize(req.body);
+        res.json({ ok: true, outputPath: req.body.outputPath });
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'Resize failed' });
+      }
+    });
+
+    // POST /image-editor/canvas
+    this.app.post('/image-editor/canvas', async (req: Request, res: Response) => {
+      try {
+        await svc.extendCanvas(req.body);
+        res.json({ ok: true, outputPath: req.body.outputPath });
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'Canvas extend failed' });
+      }
+    });
+
+    // POST /image-editor/mosaic
+    this.app.post('/image-editor/mosaic', async (req: Request, res: Response) => {
+      try {
+        await svc.mosaic(req.body);
+        res.json({ ok: true, outputPath: req.body.outputPath });
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'Mosaic failed' });
+      }
+    });
+
+    // POST /image-editor/grayscale
+    this.app.post('/image-editor/grayscale', async (req: Request, res: Response) => {
+      try {
+        await svc.grayscale(req.body);
+        res.json({ ok: true, outputPath: req.body.outputPath });
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'Grayscale failed' });
+      }
+    });
+
+    // POST /image-editor/a4-export
+    this.app.post('/image-editor/a4-export', async (req: Request, res: Response) => {
+      try {
+        await svc.a4Export(req.body);
+        res.json({ ok: true, outputPath: req.body.outputPath });
+      } catch (err: any) {
+        res.status(500).json({ error: err?.message ?? 'A4 export failed' });
       }
     });
   }
