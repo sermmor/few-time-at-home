@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 
 const DESKTOP_DIR     = 'data/config/desktop';
 const META_FILE       = 'data/config/desktopMeta.json';
@@ -146,6 +146,18 @@ export class DesktopProfilesService {
     this.profiles.set(this.activeProfile, config);
   };
 
+  /** Returns the config of any profile by name, or undefined if not found. */
+  getProfileConfig = (name: string): DesktopConfig | undefined =>
+    this.profiles.get(name);
+
+  /** Overwrites the in-memory config for a profile and immediately flushes it to disk. */
+  saveProfileConfig = (name: string, config: DesktopConfig): void => {
+    if (!this.profiles.has(name)) return;
+    this.profiles.set(name, config);
+    writeFileSync(`${DESKTOP_DIR}/${name}.json`, JSON.stringify(config, null, 2), 'utf8');
+    console.log(`[Desktop] Saved updated config for profile "${name}" to disk.`);
+  };
+
   flushActiveToDisk = (): void => {
     const config = this.profiles.get(this.activeProfile);
     if (config !== undefined) {
@@ -184,6 +196,47 @@ export class DesktopProfilesService {
     this.remoteProfiles.add(safe);
     this._saveMeta();
     console.log(`[Desktop] Imported remote profile "${safe}" from GDrive.`);
+  };
+
+  /**
+   * Converts an existing local profile to a remote profile.
+   * Returns an error if the profile does not exist or is already remote.
+   * This operation cannot be undone from the app.
+   */
+  makeProfileRemote = (name: string): { ok: boolean; error?: string } => {
+    if (!this.profiles.has(name))      return { ok: false, error: 'not_found' };
+    if (this.remoteProfiles.has(name)) return { ok: false, error: 'already_remote' };
+    this.remoteProfiles.add(name);
+    this._saveMeta();
+    console.log(`[Desktop] Profile "${name}" converted to remote.`);
+    return { ok: true };
+  };
+
+  /**
+   * Deletes a profile: removes it from memory, deletes its JSON file from disk
+   * and strips it from remoteProfiles if needed.
+   * The active profile and the "default" profile cannot be deleted.
+   * Returns wasRemote=true when callers must also clean up GDrive.
+   */
+  deleteProfile = (name: string): { ok: boolean; error?: string; wasRemote?: boolean } => {
+    if (name === DEFAULT_PROFILE)      return { ok: false, error: 'cannot_delete_default' };
+    if (name === this.activeProfile)   return { ok: false, error: 'cannot_delete_active' };
+    if (!this.profiles.has(name))      return { ok: false, error: 'not_found' };
+
+    const wasRemote = this.remoteProfiles.has(name);
+    this.profiles.delete(name);
+    this.remoteProfiles.delete(name);
+
+    const filePath = `${DESKTOP_DIR}/${name}.json`;
+    if (existsSync(filePath)) {
+      try { unlinkSync(filePath); } catch (e) {
+        console.error(`[Desktop] Failed to delete profile file "${filePath}":`, e);
+      }
+    }
+
+    this._saveMeta();
+    console.log(`[Desktop] Deleted profile "${name}" (wasRemote=${wasRemote}).`);
+    return { ok: true, wasRemote };
   };
 
   activateProfile = (name: string): { ok: boolean; error?: string } => {

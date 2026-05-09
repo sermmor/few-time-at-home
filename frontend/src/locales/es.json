@@ -470,6 +470,23 @@
     "tabletModeLabel": "Modo tablet",
     "tabletBadge": "tablet",
     "remoteLabel": "Remoto (Google Drive)",
-    "remoteBadge": "remoto"
+    "remoteBadge": "remoto",
+    "makeRemoteBtn": "Hacer remoto",
+    "makeRemoteConfirmTitle": "¿Convertir a perfil remoto?",
+    "makeRemoteConfirmText": "El perfil \"{{name}}\" se vinculará a Google Drive. Sus assets se subirán en el próximo guardado.",
+    "makeRemoteConfirmWarning": "Esta operación no se puede deshacer.",
+    "makeRemoteConfirm": "Convertir a remoto",
+    "makeRemoteCancel": "Cancelar",
+    "makeRemoteSuccess": "Perfil convertido a remoto",
+    "makeRemoteError": "Error al convertir el perfil a remoto",
+    "deleteBtn": "Borrar",
+    "deleteConfirmTitle": "¿Borrar perfil?",
+    "deleteConfirmText": "El perfil \"{{name}}\" se eliminará permanentemente. Los ficheros de imagen no se borrarán.",
+    "deleteConfirmRemoteNote": "Este es un perfil remoto. Su JSON y carpeta de assets también se eliminarán de Google Drive.",
+    "deleteConfirmWarning": "Esta operación no se puede deshacer.",
+    "deleteConfirm": "Borrar",
+    "deleteCancel": "Cancelar",
+    "deleteSuccess": "Perfil eliminado",
+    "deleteError": "Error al eliminar el perfil"
   }
 }

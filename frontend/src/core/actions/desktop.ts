@@ -7,6 +7,8 @@ import {
   desktopProfilesEndpoint,
   desktopProfileCreateEndpoint,
   desktopProfileActivateEndpoint,
+  desktopProfileMakeRemoteEndpoint,
+  desktopProfileDeleteEndpoint,
 } from '../urls-and-end-points';
 
 const CONFIG_TYPE = 'desktop';
@@ -168,6 +170,26 @@ const activateProfile = (name: string): Promise<DesktopProfilesInfo> =>
     return body as DesktopProfilesInfo;
   });
 
+const deleteProfile = (name: string): Promise<DesktopProfilesInfo> =>
+  fetch(desktopProfileDeleteEndpoint(name), {
+    method: 'DELETE',
+  }).then(async r => {
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error ?? 'delete_failed');
+    return body as DesktopProfilesInfo;
+  });
+
+const makeProfileRemote = (name: string): Promise<DesktopProfilesInfo> =>
+  fetch(desktopProfileMakeRemoteEndpoint(), {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ name }),
+  }).then(async r => {
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error ?? 'make_remote_failed');
+    return body as DesktopProfilesInfo;
+  });
+
 export const DesktopActions = {
   getDesktopConfig,
   saveDesktopConfig,
@@ -176,5 +198,7 @@ export const DesktopActions = {
   listProfiles,
   createProfile,
   activateProfile,
+  makeProfileRemote,
+  deleteProfile,
 };
 

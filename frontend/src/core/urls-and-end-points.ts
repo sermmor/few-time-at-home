@@ -121,9 +121,11 @@ export const desktopFaviconImageEndpoint  = (name: string): string => `${getUrlA
  *  Usado con sendBeacon (cierre de pestaña) o fetch (navegación interna). */
 export const desktopFlushEndpoint         = (): string => `${getUrlApi()}/desktop/flush`;
 // Desktop profile management
-export const desktopProfilesEndpoint       = (): string => `${getUrlApi()}/desktop/profiles`;
-export const desktopProfileCreateEndpoint  = (): string => `${getUrlApi()}/desktop/profile/create`;
-export const desktopProfileActivateEndpoint = (): string => `${getUrlApi()}/desktop/profile/activate`;
+export const desktopProfilesEndpoint            = (): string => `${getUrlApi()}/desktop/profiles`;
+export const desktopProfileCreateEndpoint       = (): string => `${getUrlApi()}/desktop/profile/create`;
+export const desktopProfileActivateEndpoint     = (): string => `${getUrlApi()}/desktop/profile/activate`;
+export const desktopProfileMakeRemoteEndpoint   = (): string => `${getUrlApi()}/desktop/profile/make-remote`;
+export const desktopProfileDeleteEndpoint       = (name: string): string => `${getUrlApi()}/desktop/profile/${encodeURIComponent(name)}`;
 
 // ── Audio Editor endpoints ───────────────────────────────────────────────────
 export const audioEditorUploadTempEndpoint     = (): string => `${getUrlApi()}/audio-editor/upload-temp`;

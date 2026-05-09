@@ -470,6 +470,23 @@
     "tabletModeLabel": "Tablet mode",
     "tabletBadge": "tablet",
     "remoteLabel": "Remote (Google Drive)",
-    "remoteBadge": "remote"
+    "remoteBadge": "remote",
+    "makeRemoteBtn": "Make remote",
+    "makeRemoteConfirmTitle": "Convert to remote profile?",
+    "makeRemoteConfirmText": "The profile \"{{name}}\" will be linked to Google Drive. Its assets will be uploaded on the next save.",
+    "makeRemoteConfirmWarning": "This operation cannot be undone.",
+    "makeRemoteConfirm": "Convert to remote",
+    "makeRemoteCancel": "Cancel",
+    "makeRemoteSuccess": "Profile converted to remote",
+    "makeRemoteError": "Failed to convert profile to remote",
+    "deleteBtn": "Delete",
+    "deleteConfirmTitle": "Delete profile?",
+    "deleteConfirmText": "The profile \"{{name}}\" will be permanently deleted. Its image files will not be removed.",
+    "deleteConfirmRemoteNote": "This is a remote profile. Its JSON and asset folder will also be deleted from Google Drive.",
+    "deleteConfirmWarning": "This operation cannot be undone.",
+    "deleteConfirm": "Delete",
+    "deleteCancel": "Cancel",
+    "deleteSuccess": "Profile deleted",
+    "deleteError": "Failed to delete profile"
   }
 }

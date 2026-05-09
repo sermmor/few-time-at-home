@@ -171,9 +171,11 @@ export class APIService {
     liveGet: '/youtube-page/live',
   };
   static desktopProfilesEndpoint = {
-    list:     '/desktop/profiles',
-    create:   '/desktop/profile/create',
-    activate: '/desktop/profile/activate',
+    list:       '/desktop/profiles',
+    create:     '/desktop/profile/create',
+    activate:   '/desktop/profile/activate',
+    makeRemote: '/desktop/profile/make-remote',
+    delete:     '/desktop/profile',           // DELETE /desktop/profile/:name
   };
 
   app: Express;
@@ -1631,6 +1633,64 @@ export class APIService {
       if (!result.ok) {
         return res.status(404).json({ error: result.error });
       }
+      const svc = DesktopProfilesService.Instance;
+      res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
+    });
+
+    // POST /desktop/profile/make-remote — body: { name } → convierte un perfil local en remoto
+    // La operación no se puede deshacer desde la app.
+    this.app.post(ep.makeRemote, async (req: Request, res: Response) => {
+      const { name } = req.body ?? {};
+      if (typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'invalid_name' });
+      }
+      const svc = DesktopProfilesService.Instance;
+      const result = svc.makeProfileRemote(name);
+      if (!result.ok) {
+        const status = result.error === 'not_found' ? 404 : 409;
+        return res.status(status).json({ error: result.error });
+      }
+
+      // Normalise asset paths: copy existing wallpapers and image-widget files
+      // to cloud/desktop-remote/ and rewrite the JSON so every machine can
+      // resolve them under the same relative path.
+      const currentConfig = svc.getProfileConfig(name);
+      if (currentConfig) {
+        try {
+          const normalized = DesktopRemoteService.normalizeRemoteAssetPaths(currentConfig);
+          svc.saveProfileConfig(name, normalized as any);
+          console.log(`[Desktop] Asset paths normalised for newly-remote profile "${name}"`);
+        } catch (e: any) {
+          console.error(`[Desktop] Asset normalisation failed for "${name}":`, e?.message);
+          // Non-fatal: profile is already marked remote; assets will normalise on next save.
+        }
+      }
+
+      // Ensure the GDrive desktop folder exists (fire-and-forget)
+      DesktopRemoteService.ensureMainFolder().catch(e =>
+        console.error('[Desktop] GDrive folder creation on make-remote failed:', e?.message),
+      );
+      res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
+    });
+
+    // DELETE /desktop/profile/:name — elimina un perfil (JSON local + GDrive si es remoto)
+    this.app.delete(`${ep.delete}/:name`, async (req: Request, res: Response) => {
+      const name = req.params.name as string;
+      if (!name) return res.status(400).json({ error: 'invalid_name' });
+
+      const result = DesktopProfilesService.Instance.deleteProfile(name);
+      if (!result.ok) {
+        const status = result.error === 'not_found' ? 404 : 409;
+        return res.status(status).json({ error: result.error });
+      }
+
+      if (result.wasRemote) {
+        // Fire-and-forget: clean up GDrive asynchronously
+        DesktopRemoteService.deleteProfileFromDrive(name).catch(e =>
+          console.error('[Desktop] GDrive cleanup after delete failed:', e?.message),
+        );
+      }
+
       const svc = DesktopProfilesService.Instance;
       res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });

@@ -7,6 +7,11 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControlLabel,
   List,
   ListItem,
@@ -16,13 +21,16 @@ import {
   SxProps,
   TextField,
   Theme,
+  Tooltip,
   Typography,
 } from '@mui/material';
-import ExpandMoreIcon  from '@mui/icons-material/ExpandMore';
-import DashboardIcon   from '@mui/icons-material/Dashboard';
-import TabletIcon      from '@mui/icons-material/Tablet';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CloudSyncIcon   from '@mui/icons-material/CloudSync';
+import ExpandMoreIcon    from '@mui/icons-material/ExpandMore';
+import DashboardIcon     from '@mui/icons-material/Dashboard';
+import TabletIcon        from '@mui/icons-material/Tablet';
+import CheckCircleIcon   from '@mui/icons-material/CheckCircle';
+import CloudSyncIcon     from '@mui/icons-material/CloudSync';
+import CloudUploadIcon   from '@mui/icons-material/CloudUpload';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useTranslation } from 'react-i18next';
 import { DesktopActions, DesktopProfileMeta, DesktopProfilesInfo } from '../../../../core/actions/desktop';
 import { useConfiguredDialogAlphas } from '../../../../core/context/DialogAlphasContext';
@@ -55,9 +63,13 @@ export const DesktopSection: React.FC = () => {
   const [newName,    setNewName   ] = React.useState('');
   const [newTablet,  setNewTablet ] = React.useState(false);
   const [newRemote,  setNewRemote ] = React.useState(false);
-  const [creating,   setCreating  ] = React.useState(false);
-  const [activating, setActivating] = React.useState<string | null>(null);
-  const [feedback,   setFeedback  ] = React.useState<{ msg: string; ok: boolean } | null>(null);
+  const [creating,        setCreating       ] = React.useState(false);
+  const [activating,      setActivating     ] = React.useState<string | null>(null);
+  const [confirmRemote,   setConfirmRemote  ] = React.useState<string | null>(null);
+  const [makingRemote,    setMakingRemote   ] = React.useState<string | null>(null);
+  const [confirmDelete,   setConfirmDelete  ] = React.useState<string | null>(null);
+  const [deleting,        setDeleting       ] = React.useState<string | null>(null);
+  const [feedback,        setFeedback       ] = React.useState<{ msg: string; ok: boolean } | null>(null);
 
   // ── Load on mount ────────────────────────────────────────────────────────
   React.useEffect(() => {
@@ -93,6 +105,34 @@ export const DesktopSection: React.FC = () => {
         setFeedback({ msg: t(key), ok: false });
       })
       .finally(() => setCreating(false));
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmDelete) return;
+    const name = confirmDelete;
+    setConfirmDelete(null);
+    setDeleting(name);
+    DesktopActions.deleteProfile(name)
+      .then(updated => {
+        setInfo(updated);
+        setFeedback({ msg: t('desktopProfiles.deleteSuccess'), ok: true });
+      })
+      .catch(() => setFeedback({ msg: t('desktopProfiles.deleteError'), ok: false }))
+      .finally(() => setDeleting(null));
+  };
+
+  const handleConfirmMakeRemote = () => {
+    if (!confirmRemote) return;
+    const name = confirmRemote;
+    setConfirmRemote(null);
+    setMakingRemote(name);
+    DesktopActions.makeProfileRemote(name)
+      .then(updated => {
+        setInfo(updated);
+        setFeedback({ msg: t('desktopProfiles.makeRemoteSuccess'), ok: true });
+      })
+      .catch(() => setFeedback({ msg: t('desktopProfiles.makeRemoteError'), ok: false }))
+      .finally(() => setMakingRemote(null));
   };
 
   const handleActivate = (name: string) => {
@@ -179,8 +219,8 @@ export const DesktopSection: React.FC = () => {
                             </Box>
                           }
                         />
-                        {!isActive && (
-                          <ListItemSecondaryAction>
+                        <ListItemSecondaryAction sx={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                          {!isActive && (
                             <Button
                               size="small" variant="outlined"
                               disabled={activating === profile.name}
@@ -194,8 +234,46 @@ export const DesktopSection: React.FC = () => {
                             >
                               {t('desktopProfiles.activate')}
                             </Button>
-                          </ListItemSecondaryAction>
-                        )}
+                          )}
+                          {!profile.isRemote && (
+                            <Tooltip title={t('desktopProfiles.makeRemoteBtn')} arrow>
+                              <span>
+                                <Button
+                                  size="small" variant="outlined" color="secondary"
+                                  disabled={makingRemote === profile.name}
+                                  onClick={() => setConfirmRemote(profile.name)}
+                                  startIcon={
+                                    makingRemote === profile.name
+                                      ? <CircularProgress size={12} color="inherit" />
+                                      : <CloudUploadIcon sx={{ fontSize: '0.95rem !important' }} />
+                                  }
+                                  sx={{ minWidth: 'unset', px: '0.5rem', fontSize: '0.72rem' }}
+                                >
+                                  {t('desktopProfiles.makeRemoteBtn')}
+                                </Button>
+                              </span>
+                            </Tooltip>
+                          )}
+                          {!isActive && profile.name !== 'default' && (
+                            <Tooltip title={t('desktopProfiles.deleteBtn')} arrow>
+                              <span>
+                                <Button
+                                  size="small" variant="outlined" color="error"
+                                  disabled={deleting === profile.name}
+                                  onClick={() => setConfirmDelete(profile.name)}
+                                  startIcon={
+                                    deleting === profile.name
+                                      ? <CircularProgress size={12} color="inherit" />
+                                      : <DeleteOutlineIcon sx={{ fontSize: '0.95rem !important' }} />
+                                  }
+                                  sx={{ minWidth: 'unset', px: '0.5rem', fontSize: '0.72rem' }}
+                                >
+                                  {t('desktopProfiles.deleteBtn')}
+                                </Button>
+                              </span>
+                            </Tooltip>
+                          )}
+                        </ListItemSecondaryAction>
                       </ListItem>
                     );
                   })}
@@ -286,6 +364,77 @@ export const DesktopSection: React.FC = () => {
           )}
         </Box>
       </AccordionDetails>
+
+      {/* ── Delete confirmation dialog ──────────────────────────────────── */}
+      <Dialog
+        open={confirmDelete !== null}
+        onClose={() => setConfirmDelete(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <DeleteOutlineIcon color="error" sx={{ fontSize: '1.3rem' }} />
+          {t('desktopProfiles.deleteConfirmTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: '0.75rem' }}>
+            {t('desktopProfiles.deleteConfirmText', { name: confirmDelete ?? '' })}
+          </DialogContentText>
+          {info?.profiles.find(p => p.name === confirmDelete)?.isRemote && (
+            <DialogContentText sx={{ mb: '0.75rem', color: 'secondary.main', fontSize: '0.85rem' }}>
+              ☁ {t('desktopProfiles.deleteConfirmRemoteNote')}
+            </DialogContentText>
+          )}
+          <DialogContentText variant="caption" sx={{ color: 'warning.main', fontWeight: 600 }}>
+            ⚠ {t('desktopProfiles.deleteConfirmWarning')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete(null)} color="inherit">
+            {t('desktopProfiles.deleteCancel')}
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained" color="error"
+            startIcon={<DeleteOutlineIcon />}
+          >
+            {t('desktopProfiles.deleteConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Make-remote confirmation dialog ─────────────────────────────── */}
+      <Dialog
+        open={confirmRemote !== null}
+        onClose={() => setConfirmRemote(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CloudUploadIcon color="secondary" sx={{ fontSize: '1.3rem' }} />
+          {t('desktopProfiles.makeRemoteConfirmTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: '0.75rem' }}>
+            {t('desktopProfiles.makeRemoteConfirmText', { name: confirmRemote ?? '' })}
+          </DialogContentText>
+          <DialogContentText variant="caption" sx={{ color: 'warning.main', fontWeight: 600 }}>
+            ⚠ {t('desktopProfiles.makeRemoteConfirmWarning')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmRemote(null)} color="inherit">
+            {t('desktopProfiles.makeRemoteCancel')}
+          </Button>
+          <Button
+            onClick={handleConfirmMakeRemote}
+            variant="contained" color="secondary"
+            startIcon={<CloudUploadIcon />}
+          >
+            {t('desktopProfiles.makeRemoteConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Accordion>
   );
 };

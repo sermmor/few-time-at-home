@@ -453,6 +453,49 @@ export class DesktopRemoteService {
     }
   };
 
+  // ── Delete (GDrive cleanup) ───────────────────────────────────────────────
+
+  /**
+   * Removes a profile's data from GDrive:
+   *   • {profileName}.json  in the main desktop folder
+   *   • {profileName}/      subfolder (contains assets/ and favicons/)
+   *
+   * Both deletions are attempted independently so a missing file/folder does
+   * not prevent the other from being removed.  Also clears the local ID cache
+   * for that profile so stale IDs are never reused.
+   */
+  static deleteProfileFromDrive = async (profileName: string): Promise<void> => {
+    const drive = GoogleDriveService.Instance;
+    if (!drive?.isConfigured()) return;
+    try {
+      const mainFolderId = await DesktopRemoteService.ensureMainFolder();
+      if (!mainFolderId) return;
+
+      const items = await drive.listFolder(mainFolderId);
+
+      // Delete profileName.json
+      const jsonFile = items.find(it => !it.isFolder && it.name === `${profileName}.json`);
+      if (jsonFile) {
+        await drive.deleteItem(jsonFile.id);
+        console.log(`[DesktopRemote] Deleted GDrive file "${profileName}.json"`);
+      }
+
+      // Delete profileName/ folder (GDrive deletes its contents recursively)
+      const profileFolder = items.find(it => it.isFolder && it.name === profileName);
+      if (profileFolder) {
+        await drive.deleteItem(profileFolder.id);
+        console.log(`[DesktopRemote] Deleted GDrive folder "${profileName}/"`);
+      }
+
+      // Clear cached IDs so they are never reused for a future profile with the same name
+      DesktopRemoteService._subFolderIds.delete(profileName);
+      DesktopRemoteService._subFolderIds.delete(`${profileName}/assets`);
+      DesktopRemoteService._subFolderIds.delete(`${profileName}/favicons`);
+    } catch (e: any) {
+      console.error(`[DesktopRemote] deleteProfileFromDrive("${profileName}") error:`, e?.message ?? e);
+    }
+  };
+
   // ── Discovery (startup) ───────────────────────────────────────────────────
 
   /**
