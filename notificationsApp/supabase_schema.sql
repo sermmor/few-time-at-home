@@ -79,3 +79,33 @@ CREATE POLICY "anon_read_weather" ON public.weather FOR SELECT USING (true);
 -- Enable Realtime so the Flutter app gets instant updates when the
 -- backend upserts the daily forecast.
 ALTER PUBLICATION supabase_realtime ADD TABLE public.weather;
+
+-- ============================================================
+-- RSS cache (updated by the backend after every RSS auto-update)
+-- One row per feed key; the backend upserts up to 60 messages.
+--
+-- feed_key values:
+--   'mastodon', 'blog', 'news', 'favorites', 'saved'
+--   'youtube_null'           → all YouTube items (no tag filter)
+--   'youtube_sesionesMusica' → YouTube: music sessions
+--   'youtube_politica'       → YouTube: politics
+--   'youtube_divulgacion'    → YouTube: science/education
+--   'youtube_ingles'         → YouTube: English
+--   'youtube_podcasts'       → YouTube: podcasts
+--   'youtube_abandonados'    → YouTube: abandoned places
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.rss_cache (
+  feed_key   TEXT         PRIMARY KEY,
+  messages   JSONB        NOT NULL DEFAULT '[]',
+  updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- Backend writes via service_role (bypasses RLS).
+-- Flutter app reads via anon key.
+GRANT ALL    ON TABLE public.rss_cache TO service_role;
+GRANT SELECT ON TABLE public.rss_cache TO anon;
+GRANT SELECT ON TABLE public.rss_cache TO authenticated;
+
+ALTER TABLE public.rss_cache ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_read_rss_cache" ON public.rss_cache FOR SELECT USING (true);

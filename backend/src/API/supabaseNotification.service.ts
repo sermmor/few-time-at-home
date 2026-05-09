@@ -160,6 +160,57 @@ export class SupabaseNotificationService {
     }
   };
 
+  /**
+   * Upserts one RSS feed's latest messages into the `rss_cache` table.
+   * The table has a single row per feed_key; on conflict the row is replaced.
+   *
+   * feed_key examples: 'mastodon', 'blog', 'news', 'favorites', 'saved',
+   *                    'youtube_null', 'youtube_sesionesMusica', …
+   */
+  upsertRssCache = (feedKey: string, messages: string[]): Promise<void> =>
+    new Promise((resolve, reject) => {
+      if (!this.isConfigured()) { resolve(); return; }
+
+      const body = JSON.stringify({
+        feed_key:   feedKey,
+        messages:   messages,
+        updated_at: new Date().toISOString(),
+      });
+
+      try {
+        const url = new URL(`${this.supabaseUrl}/rest/v1/rss_cache`);
+        const req = https.request(
+          {
+            hostname: url.hostname,
+            port:     url.port ? Number(url.port) : 443,
+            path:     url.pathname,
+            method:   'POST',
+            headers: {
+              'Content-Type':   'application/json',
+              'Content-Length': Buffer.byteLength(body),
+              'apikey':         this.serviceKey,
+              'Authorization':  `Bearer ${this.serviceKey}`,
+              'Prefer':         'resolution=merge-duplicates,return=minimal',
+            },
+          },
+          (res) => {
+            if (res.statusCode && res.statusCode >= 400) {
+              console.error(`[Supabase] Upsert rss_cache(${feedKey}) failed — HTTP ${res.statusCode}`);
+              reject(new Error(`HTTP ${res.statusCode}`));
+            } else {
+              resolve();
+            }
+          },
+        );
+        req.on('error', (err) => { console.error('[Supabase] rss_cache upsert error:', err.message); reject(err); });
+        req.write(body);
+        req.end();
+      } catch (err) {
+        console.error('[Supabase] rss_cache upsert error:', err);
+        reject(err);
+      }
+    });
+
   insertAlert = (message: string, isRecurring: boolean): void => {
     if (!this.isConfigured()) return;
 

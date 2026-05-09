@@ -98,6 +98,9 @@ Local server (Node.js)
        ├─ Email
        ├─ Firebase Admin SDK  →  FCM        →  push notification (app closed/background)
        └─ POST /rest/v1/alerts  →  Supabase  →  Realtime list update (app open)
+
+  └─ RSS auto-update completes (every N hours)
+       └─ POST /rest/v1/rss_cache (upsert)  →  Supabase  →  Flutter app reads on demand
 ```
 
 ### Files
@@ -201,7 +204,16 @@ Run `flutter doctor` — all relevant items should show ✓.
    - ❌ Automatically expose new tables and functions
    - ✅ Enable automatic RLS
 
-2. Open **SQL Editor → New query**, paste the contents of `notificationsApp/supabase_schema.sql` and run it. This creates the `alerts` table, grants permissions to the API roles, sets RLS policies and enables Realtime.
+2. Open **SQL Editor → New query**, paste the contents of `notificationsApp/supabase_schema.sql` and run it. This creates all required tables, grants permissions to the API roles, sets RLS policies and enables Realtime where needed.
+
+   The schema creates the following tables:
+
+   | Table | Purpose | Writer | Reader |
+   |---|---|---|---|
+   | `alerts` | Alert messages pushed by the backend in real time | Backend (service_role) | Flutter (anon, Realtime) |
+   | `pomodoro_config` | Pomodoro timer modes, synced from the web frontend | Backend (service_role) | Flutter (anon) |
+   | `weather` | Daily weather forecast, updated each morning at 07:00 | Backend (service_role) | Flutter (anon, Realtime) |
+   | `rss_cache` | Latest 60 RSS articles per feed type, refreshed after every RSS auto-update | Backend (service_role) | Flutter (anon) |
 
 3. Go to **Project Settings → API** and copy your keys:
 

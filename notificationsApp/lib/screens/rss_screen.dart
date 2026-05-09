@@ -16,13 +16,13 @@ class _RssScreenState extends State<RssScreen> {
   // ── Constants ──────────────────────────────────────────────────────────────
   static const _bg      = Color(0xFF020C18);
   static const _bgPanel = Color(0xFF071526);
-  static const _bgSub   = Color(0xFF040E1A); // slightly darker for YT sub-row
+  static const _bgSub   = Color(0xFF040E1A);
   static const _orange  = Color(0xFFFF7700);
   static const _white   = Color(0xFFE8F0F8);
   static const _gray    = Color(0xFF7A9BB8);
   static const _border  = Color(0xFF1A3A5C);
 
-  /// Total number of downloads (4 base + 7 YT tags).
+  /// Total number of downloads (5 base + 7 YT tags).
   static int get _totalDownloads =>
       RssService.baseFeedTypes.length + RssService.ytTags.length;
 
@@ -46,11 +46,8 @@ class _RssScreenState extends State<RssScreen> {
 
   // ── State ──────────────────────────────────────────────────────────────────
   String _selectedFeed = 'mastodon';
-  String _youtubeTag   = 'null';       // currently selected YouTube subcategory
+  String _youtubeTag   = 'null';
 
-  /// All item lists keyed by fileKey:
-  /// 'mastodon', 'blog', 'news', 'favorites',
-  /// 'youtube_all', 'youtube_sesionesMusica', …
   Map<String, List<RssItem>> _items = {
     for (final t in RssService.baseFeedTypes) t: [],
     for (final tag in RssService.ytTags) RssService.youtubeFileKey(tag): [],
@@ -63,78 +60,38 @@ class _RssScreenState extends State<RssScreen> {
   bool    _downloading      = false;
   int     _downloadProgress = 0;
   String? _errorMsg;
-  bool    _urlExpanded      = true;
-
-  late TextEditingController _urlCtrl;
 
   // ── Computed ───────────────────────────────────────────────────────────────
-
-  /// The map key for the currently visible feed.
   String get _selectedFeedKey => _selectedFeed == 'youtube'
       ? RssService.youtubeFileKey(_youtubeTag)
       : _selectedFeed;
 
-  // ── Init / dispose ─────────────────────────────────────────────────────────
+  // ── Init ───────────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    _urlCtrl = TextEditingController();
     _loadAll();
   }
 
-  @override
-  void dispose() {
-    _urlCtrl.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadAll() async {
-    final url = await RssService.getBackendUrl();
-    _urlCtrl.text = url;
-
     final items = <String, List<RssItem>>{};
     final syncs = <String, DateTime?>{};
-    bool hasAny = false;
 
     for (final type in RssService.baseFeedTypes) {
-      final loaded = await RssService.loadLocalItems(type);
-      items[type] = loaded;
+      items[type] = await RssService.loadLocalItems(type);
       syncs[type] = await RssService.getLastSync(type);
-      if (loaded.isNotEmpty) hasAny = true;
     }
-
     for (final tag in RssService.ytTags) {
       final key    = RssService.youtubeFileKey(tag);
-      final loaded = await RssService.loadLocalItems(key);
-      items[key]   = loaded;
+      items[key]   = await RssService.loadLocalItems(key);
       syncs[key]   = await RssService.getLastSync(key);
-      if (loaded.isNotEmpty) hasAny = true;
     }
 
-    if (mounted) {
-      setState(() {
-        _items       = items;
-        _lastSync    = syncs;
-        _urlExpanded = !hasAny;
-      });
-    }
+    if (mounted) setState(() { _items = items; _lastSync = syncs; });
   }
 
-  // ── Download ───────────────────────────────────────────────────────────────
+  // ── Download from Supabase ─────────────────────────────────────────────────
   Future<void> _download() async {
-    final url = _urlCtrl.text.trim();
-    if (url.isEmpty) {
-      setState(() => _errorMsg = 'Escribe la URL del servidor primero.');
-      return;
-    }
-    if (!url.startsWith('http')) {
-      setState(
-          () => _errorMsg = 'La URL debe empezar por http:// o https://');
-      return;
-    }
-
-    await RssService.setBackendUrl(url);
-
     setState(() {
       _downloading      = true;
       _downloadProgress = 0;
@@ -143,13 +100,11 @@ class _RssScreenState extends State<RssScreen> {
 
     try {
       final results = await RssService.downloadAllFeeds(
-        url,
         onProgress: (done, total, label) {
           if (mounted) setState(() => _downloadProgress = done);
         },
       );
 
-      // Reload sync timestamps for every key.
       final syncs = <String, DateTime?>{};
       for (final type in RssService.baseFeedTypes) {
         syncs[type] = await RssService.getLastSync(type);
@@ -161,21 +116,16 @@ class _RssScreenState extends State<RssScreen> {
 
       if (mounted) {
         setState(() {
-          _items = {
-            ..._items,    // keep any existing keys not in results
-            ...results,   // overwrite with fresh data
-          };
+          _items       = {..._items, ...results};
           _lastSync    = syncs;
           _downloading = false;
-          _urlExpanded = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _downloading = false;
-          _errorMsg =
-              'Error: ${e.toString().replaceAll('Exception: ', '')}';
+          _errorMsg    = 'Error: ${e.toString().replaceAll('Exception: ', '')}';
         });
       }
     }
@@ -218,7 +168,7 @@ class _RssScreenState extends State<RssScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            if (_urlExpanded) _buildUrlSection(),
+            if (_downloading)    _buildProgressBar(),
             if (_errorMsg != null) _buildErrorBanner(),
             _buildChips(),
             if (_selectedFeed == 'youtube') _buildYtSubchips(),
@@ -238,151 +188,68 @@ class _RssScreenState extends State<RssScreen> {
       decoration: BoxDecoration(
         color:  _bgPanel,
         border: Border(
-            bottom:
-                BorderSide(color: _orange.withOpacity(0.22), width: 1)),
+            bottom: BorderSide(color: _orange.withOpacity(0.22), width: 1)),
       ),
       child: Row(
         children: [
           Icon(Icons.rss_feed, color: _orange, size: 20,
-              shadows: [
-                Shadow(color: _orange.withOpacity(0.5), blurRadius: 8)
-              ]),
+              shadows: [Shadow(color: _orange.withOpacity(0.5), blurRadius: 8)]),
           const SizedBox(width: 10),
           Text(
             'RSS',
             style: TextStyle(
-              color:       _orange,
-              fontSize:    16,
-              fontWeight:  FontWeight.bold,
-              fontFamily:  'monospace',
+              color:        _orange,
+              fontSize:     16,
+              fontWeight:   FontWeight.bold,
+              fontFamily:   'monospace',
               letterSpacing: 2,
-              shadows: [
-                Shadow(color: _orange.withOpacity(0.4), blurRadius: 6)
-              ],
+              shadows: [Shadow(color: _orange.withOpacity(0.4), blurRadius: 6)],
             ),
           ),
           const Spacer(),
-          IconButton(
-            icon: Icon(
-              _urlExpanded ? Icons.expand_less : Icons.sync,
-              color: _orange.withOpacity(0.75),
-              size:  20,
-            ),
-            onPressed: () =>
-                setState(() => _urlExpanded = !_urlExpanded),
-            tooltip:     _urlExpanded ? 'Ocultar' : 'Configurar servidor',
-            padding:     EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
+          // Sync button
+          _downloading
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 14, height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _orange,
+                          value: _downloadProgress / _totalDownloads,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$_downloadProgress/$_totalDownloads',
+                        style: TextStyle(
+                            color: _orange, fontSize: 11, fontFamily: 'monospace'),
+                      ),
+                    ],
+                  ),
+                )
+              : IconButton(
+                  icon: Icon(Icons.sync, color: _orange.withOpacity(0.75), size: 20),
+                  onPressed:   _download,
+                  tooltip:     'Actualizar desde Supabase',
+                  padding:     EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                ),
         ],
       ),
     );
   }
 
-  // ── URL / download section ─────────────────────────────────────────────────
-  Widget _buildUrlSection() {
-    final total = _totalDownloads;
-    return Container(
-      color:   _bgPanel,
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'URL DEL SERVIDOR',
-            style: TextStyle(
-                color:         _gray,
-                fontSize:      10,
-                fontFamily:    'monospace',
-                letterSpacing: 1.5),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _urlCtrl,
-                  enabled:    !_downloading,
-                  style: const TextStyle(
-                      color: _white, fontSize: 13, fontFamily: 'monospace'),
-                  decoration: InputDecoration(
-                    hintText:  'http://192.168.1.x:3000',
-                    hintStyle: TextStyle(
-                        color:      _gray.withOpacity(0.5),
-                        fontSize:   12,
-                        fontFamily: 'monospace'),
-                    filled:          true,
-                    fillColor:       const Color(0xFF0A1628),
-                    contentPadding:  const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide:   BorderSide(color: _border)),
-                    enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide:   BorderSide(color: _border)),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide:
-                            BorderSide(color: _orange.withOpacity(0.6))),
-                  ),
-                  onSubmitted: (_) => _download(),
-                ),
-              ),
-              const SizedBox(width: 10),
-              SizedBox(
-                height: 42,
-                child: _downloading
-                    ? Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width:  16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color:       _orange,
-                                value: _downloadProgress / total,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '$_downloadProgress/$total',
-                              style: TextStyle(
-                                  color:      _orange,
-                                  fontSize:   12,
-                                  fontFamily: 'monospace'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : OutlinedButton.icon(
-                        onPressed: _download,
-                        icon: Icon(Icons.download,
-                            size: 15, color: _orange),
-                        label: Text(
-                          'Descargar',
-                          style: TextStyle(
-                              color:      _orange,
-                              fontSize:   12,
-                              fontFamily: 'monospace'),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                              color: _orange.withOpacity(0.6)),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 0),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        ],
-      ),
+  // ── Progress bar (shown while downloading) ─────────────────────────────────
+  Widget _buildProgressBar() {
+    return LinearProgressIndicator(
+      value:           _downloadProgress / _totalDownloads,
+      backgroundColor: _bgPanel,
+      valueColor:      AlwaysStoppedAnimation<Color>(_orange.withOpacity(0.6)),
+      minHeight:       2,
     );
   }
 
@@ -394,22 +261,18 @@ class _RssScreenState extends State<RssScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.error_outline,
-              color: Color(0xFFFF4444), size: 14),
+          const Icon(Icons.error_outline, color: Color(0xFFFF4444), size: 14),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               _errorMsg!,
               style: const TextStyle(
-                  color:      Color(0xFFFF4444),
-                  fontSize:   11,
-                  fontFamily: 'monospace'),
+                  color: Color(0xFFFF4444), fontSize: 11, fontFamily: 'monospace'),
             ),
           ),
           GestureDetector(
             onTap: () => setState(() => _errorMsg = null),
-            child: const Icon(Icons.close,
-                color: Color(0xFFFF4444), size: 14),
+            child: const Icon(Icons.close, color: Color(0xFFFF4444), size: 14),
           ),
         ],
       ),
@@ -418,7 +281,6 @@ class _RssScreenState extends State<RssScreen> {
 
   // ── Feed-type chips (top row) ──────────────────────────────────────────────
   Widget _buildChips() {
-    // Show item count for YouTube as the sum of all subcategories combined.
     int youtubeTotal = 0;
     for (final tag in RssService.ytTags) {
       youtubeTotal += _items[RssService.youtubeFileKey(tag)]?.length ?? 0;
@@ -434,30 +296,23 @@ class _RssScreenState extends State<RssScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         children: displayTypes.map((type) {
           final selected = _selectedFeed == type;
-          final count    = type == 'youtube'
-              ? youtubeTotal
-              : (_items[type]?.length ?? 0);
+          final count    = type == 'youtube' ? youtubeTotal : (_items[type]?.length ?? 0);
           return GestureDetector(
             onTap: () => setState(() => _selectedFeed = type),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              margin:  const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              margin:   const EdgeInsets.only(right: 8),
+              padding:  const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: selected
-                    ? _orange.withOpacity(0.15)
-                    : Colors.transparent,
+                color:        selected ? _orange.withOpacity(0.15) : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                    color: selected
-                        ? _orange.withOpacity(0.7)
-                        : _border),
+                    color: selected ? _orange.withOpacity(0.7) : _border),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(_feedIcons[type],
-                      size:  13,
+                  Icon(_feedIcons[type], size: 13,
                       color: selected ? _orange : _gray),
                   const SizedBox(width: 5),
                   Text(
@@ -466,9 +321,7 @@ class _RssScreenState extends State<RssScreen> {
                       color:      selected ? _orange : _gray,
                       fontSize:   12,
                       fontFamily: 'monospace',
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                   if (count > 0) ...[
@@ -479,8 +332,7 @@ class _RssScreenState extends State<RssScreen> {
                         color: selected
                             ? _orange.withOpacity(0.7)
                             : _gray.withOpacity(0.6),
-                        fontSize:   10,
-                        fontFamily: 'monospace',
+                        fontSize: 10, fontFamily: 'monospace',
                       ),
                     ),
                   ],
@@ -493,7 +345,7 @@ class _RssScreenState extends State<RssScreen> {
     );
   }
 
-  // ── YouTube subcategory chips (shown only when YouTube is selected) ─────────
+  // ── YouTube subcategory chips ──────────────────────────────────────────────
   Widget _buildYtSubchips() {
     return Container(
       color:  _bgSub,
@@ -509,12 +361,10 @@ class _RssScreenState extends State<RssScreen> {
             onTap: () => setState(() => _youtubeTag = tag),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              margin:  const EdgeInsets.only(right: 7),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              margin:   const EdgeInsets.only(right: 7),
+              padding:  const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: selected
-                    ? _orange.withOpacity(0.12)
-                    : Colors.transparent,
+                color: selected ? _orange.withOpacity(0.12) : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: selected
@@ -528,11 +378,8 @@ class _RssScreenState extends State<RssScreen> {
                   Text(
                     RssService.ytTagLabels[tag]!,
                     style: TextStyle(
-                      color: selected
-                          ? _orange
-                          : _gray.withOpacity(0.7),
-                      fontSize:   11,
-                      fontFamily: 'monospace',
+                      color:    selected ? _orange : _gray.withOpacity(0.7),
+                      fontSize: 11, fontFamily: 'monospace',
                     ),
                   ),
                   if (count > 0) ...[
@@ -543,8 +390,7 @@ class _RssScreenState extends State<RssScreen> {
                         color: selected
                             ? _orange.withOpacity(0.6)
                             : _gray.withOpacity(0.4),
-                        fontSize:   10,
-                        fontFamily: 'monospace',
+                        fontSize: 10, fontFamily: 'monospace',
                       ),
                     ),
                   ],
@@ -569,21 +415,15 @@ class _RssScreenState extends State<RssScreen> {
           Text(
             '$count artículos',
             style: TextStyle(
-                color:      _gray.withOpacity(0.7),
-                fontSize:   10,
-                fontFamily: 'monospace'),
+                color: _gray.withOpacity(0.7), fontSize: 10, fontFamily: 'monospace'),
           ),
           const SizedBox(width: 10),
-          Text('·',
-              style: TextStyle(
-                  color: _gray.withOpacity(0.4), fontSize: 10)),
+          Text('·', style: TextStyle(color: _gray.withOpacity(0.4), fontSize: 10)),
           const SizedBox(width: 10),
           Text(
             'Sync: ${_formatSync(syncDt)}',
             style: TextStyle(
-                color:      _gray.withOpacity(0.7),
-                fontSize:   10,
-                fontFamily: 'monospace'),
+                color: _gray.withOpacity(0.7), fontSize: 10, fontFamily: 'monospace'),
           ),
         ],
       ),
@@ -599,27 +439,19 @@ class _RssScreenState extends State<RssScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              _feedIcons[_selectedFeed],
-              color: _orange.withOpacity(0.2),
-              size:  56,
-            ),
+            Icon(_feedIcons[_selectedFeed],
+                color: _orange.withOpacity(0.2), size: 56),
             const SizedBox(height: 16),
             Text(
               'Sin artículos',
               style: TextStyle(
-                  color:      _gray.withOpacity(0.6),
-                  fontSize:   14,
-                  fontFamily: 'monospace'),
+                  color: _gray.withOpacity(0.6), fontSize: 14, fontFamily: 'monospace'),
             ),
             const SizedBox(height: 8),
             Text(
-              _urlCtrl.text.isEmpty
-                  ? 'Configura el servidor y\ndescarga los feeds'
-                  : 'Pulsa Descargar para\nobtener los feeds',
+              'Pulsa el botón ↻ para\nsincronizar desde Supabase',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: _gray.withOpacity(0.4), fontSize: 12),
+              style: TextStyle(color: _gray.withOpacity(0.4), fontSize: 12),
             ),
           ],
         ),

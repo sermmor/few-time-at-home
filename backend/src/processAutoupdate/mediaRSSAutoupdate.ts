@@ -3,6 +3,8 @@ import { readJSONFile, saveInAFilePromise } from "../utils";
 import { WebSocketsServerService } from "../webSockets/webSocketsServer.service";
 import { YoutubeRSSUtils } from "../youtubeRSS/youtubeRSSUtils";
 import { forceToSaveUnfurlCache, getUnfurlWithCache, getUnfurlYoutubeImage, isYoutubeUrl } from "../unfurl/unfurl";
+import { SupabaseNotificationService } from "../API/supabaseNotification.service";
+import { ReadLaterMessagesRSS } from "../API/readLaterMessagesRSS.service";
 
 type FileMediaContentType = {messagesMasto: string[], messagesBlog: string[], messagesNewsFeed: string[], messagesYoutube: {tag: string; content: string[]}[]};
 
@@ -95,6 +97,8 @@ export class MediaRSSAutoupdate {
           rssAutoUpdateMessage: nextUpdateMessage,
         });
       }
+      // Push the fresh RSS data to Supabase (non-blocking — fires after resolving).
+      setTimeout(() => MediaRSSAutoupdate.pushAllFeedsToSupabase(), 0);
       resolve();
     }).catch(err => {
       console.error("Error during Media RSS Autoupdate:", err);
@@ -358,6 +362,48 @@ export class MediaRSSAutoupdate {
       return messages;
     } catch (error) {
       return [];
+    }
+  };
+
+  /**
+   * Pushes the 60 latest articles of every RSS feed into the Supabase
+   * `rss_cache` table (one row per feed_key, upserted atomically).
+   * Called automatically at the end of every auto-update cycle and after
+   * a force-update request.  Silently skips if Supabase is not configured.
+   */
+  static pushAllFeedsToSupabase = async (): Promise<void> => {
+    const svc = SupabaseNotificationService.Instance;
+    if (!svc?.isConfigured()) return;
+
+    const AMOUNT = 60;
+
+    const limited = (msgs: string[]): string[] =>
+      msgs.length > AMOUNT ? msgs.slice(msgs.length - AMOUNT) : msgs;
+
+    try {
+      // ── mastodon / blog / news ──────────────────────────────────────────
+      for (const type of ['mastodon', 'blog', 'news'] as MediaType[]) {
+        const msgs = await MediaRSSAutoupdate.getMediaFileContent(type);
+        await svc.upsertRssCache(type, limited(msgs));
+      }
+
+      // ── YouTube subcategories ───────────────────────────────────────────
+      for (const tag of ConfigurationService.Instance.rssConfig.optionTagsYoutube) {
+        const msgs = await MediaRSSAutoupdate.getMediaFileContent('youtube', tag);
+        await svc.upsertRssCache(`youtube_${tag}`, limited(msgs));
+      }
+
+      // ── Favorites ───────────────────────────────────────────────────────
+      const favs = await MediaRSSAutoupdate.getFavoritesYoutubeFileContent(AMOUNT);
+      await svc.upsertRssCache('favorites', favs);
+
+      // ── Saved / read-later ──────────────────────────────────────────────
+      const savedItems = await ReadLaterMessagesRSS.getMessagesRSSSaved(AMOUNT);
+      await svc.upsertRssCache('saved', savedItems.map((item: any) => item.message as string));
+
+      console.log('[Supabase] RSS cache fully pushed to rss_cache table.');
+    } catch (err) {
+      console.error('[Supabase] pushAllFeedsToSupabase failed:', err);
     }
   };
 }
