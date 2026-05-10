@@ -19,6 +19,15 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Suppress the javac "source/target value 8 is obsolete" warning that comes
+// from Flutter plugin dependencies that still declare Java 8 compatibility.
+// Using -Xlint:-options is the approach recommended by the warning itself.
+subprojects {
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-Xlint:-options")
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
