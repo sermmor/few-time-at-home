@@ -30,6 +30,14 @@ export class DesktopProfilesService {
   private profiles       = new Map<string, DesktopConfig>();
   private activeProfile  = DEFAULT_PROFILE;
   private remoteProfiles = new Set<string>();
+  /**
+   * Names of profiles whose in-memory config has been modified by the frontend
+   * since the last pull from Google Drive. Used by /desktop/flush to decide
+   * whether to push to Drive — pushing a non-dirty profile can overwrite
+   * Drive-side changes made by another client (e.g. the Flutter desktop app)
+   * when our in-memory copy is still the stale-on-disk version loaded at boot.
+   */
+  private dirtyProfiles  = new Set<string>();
 
   constructor() {
     DesktopProfilesService.Instance = this;
@@ -138,6 +146,14 @@ export class DesktopProfilesService {
     }));
 
   isProfileRemote = (name: string): boolean => this.remoteProfiles.has(name);
+
+  // ── Dirty tracking ────────────────────────────────────────────────────────
+  // Marked by the /configuration save endpoint after a user-initiated edit;
+  // cleared by /configuration/type/list after a successful pull from Drive
+  // (or after a flush has just pushed the dirty state up).
+  markActiveDirty  = (): void => { this.dirtyProfiles.add(this.activeProfile); };
+  clearActiveDirty = (): void => { this.dirtyProfiles.delete(this.activeProfile); };
+  isActiveDirty    = (): boolean => this.dirtyProfiles.has(this.activeProfile);
 
   getActiveConfig = (): DesktopConfig =>
     this.profiles.get(this.activeProfile) ?? { ...EMPTY_CONFIG };

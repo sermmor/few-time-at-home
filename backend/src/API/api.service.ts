@@ -393,6 +393,12 @@ export class APIService {
             }
 
             ConfigurationService.Instance.updateConfigurationByType(this.channelMediaCollection, type, content).then(() => {
+              // Mark the active desktop profile as dirty so the next /desktop/flush
+              // knows there's something to push to Drive. Without this, the flush
+              // would skip the push and the user's edit would never reach Drive.
+              if (type === 'desktop') {
+                DesktopProfilesService.Instance?.markActiveDirty();
+              }
               res.send({response: 'OK'});
             });
         }
@@ -406,7 +412,13 @@ export class APIService {
         if (profileSvc?.isProfileRemote(profileSvc.getActiveProfileName())) {
           try {
             const fresh = await DesktopRemoteService.pullProfile(profileSvc.getActiveProfileName());
-            if (fresh) profileSvc.setActiveConfig(fresh as any);
+            if (fresh) {
+              profileSvc.setActiveConfig(fresh as any);
+              // Memory now matches Drive — any prior "dirty" mark is obsolete.
+              // Without this, a subsequent flush would push our just-pulled
+              // copy back to Drive, harmlessly but unnecessarily.
+              profileSvc.clearActiveDirty();
+            }
           } catch { /* fall through with cached config on error */ }
         }
       }
@@ -1587,12 +1599,19 @@ export class APIService {
       ConfigurationService.Instance.flushDesktopToDisk();
       const profileSvc = DesktopProfilesService.Instance;
       const activeName = profileSvc?.getActiveProfileName() ?? '';
-      if (profileSvc?.isProfileRemote(activeName)) {
+      // Only push to Drive if the user actually edited something locally since
+      // the last pull. Pushing when not dirty would overwrite changes made by
+      // another client (e.g. the Flutter desktop app writing directly to Drive)
+      // with our potentially-stale in-memory copy.
+      if (profileSvc?.isProfileRemote(activeName) && profileSvc.isActiveDirty()) {
         const config = profileSvc.getActiveConfig();
+        profileSvc.clearActiveDirty(); // optimistically clear; reset by errors below if needed
         // Fire-and-forget — don't block the flush response
-        DesktopRemoteService.pushProfile(activeName, config).catch(e =>
-          console.error('[Desktop] Remote push after flush failed:', e?.message),
-        );
+        DesktopRemoteService.pushProfile(activeName, config).catch(e => {
+          console.error('[Desktop] Remote push after flush failed:', e?.message);
+          // Re-mark dirty so the next flush will retry
+          profileSvc.markActiveDirty();
+        });
       }
       res.status(204).end();
     });
