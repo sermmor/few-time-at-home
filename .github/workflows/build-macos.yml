@@ -1,0 +1,58 @@
+name: Build macOS
+
+on:
+  workflow_dispatch:   # triggered manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: macos-14   # Apple Silicon runner with Xcode 15
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ── Flutter ─────────────────────────────────────────────────────────────
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: stable
+          cache: true
+
+      # ── Dependencies ────────────────────────────────────────────────────────
+      - name: Install dependencies
+        working-directory: desktopApp
+        run: flutter pub get
+
+      # ── Build ───────────────────────────────────────────────────────────────
+      # CODE_SIGN_IDENTITY="-"  → ad-hoc signature (no Apple Developer account needed)
+      # CODE_SIGN_STYLE=Manual  → stops Xcode trying to fetch a provisioning profile
+      # DEVELOPMENT_TEAM=""     → clears any team ID that would trigger profile lookup
+      - name: Build macOS release
+        working-directory: desktopApp
+        env:
+          FLUTTER_XCODE_CODE_SIGN_IDENTITY: "-"
+          FLUTTER_XCODE_CODE_SIGN_STYLE: Manual
+          FLUTTER_XCODE_DEVELOPMENT_TEAM: ""
+        run: flutter build macos --release
+
+      # ── Re-sign (ensures our entitlements file is applied) ──────────────────
+      # This re-signs the .app with an ad-hoc signature so macOS enforces the
+      # entitlements we control (network.client + network.server, no sandbox).
+      - name: Ad-hoc sign with entitlements
+        run: |
+          codesign --force --deep --sign - \
+            --entitlements desktopApp/macos/Runner/Release.entitlements \
+            desktopApp/build/macos/Build/Products/Release/desktop_app.app
+
+      # ── Package ─────────────────────────────────────────────────────────────
+      - name: Create ZIP archive
+        run: |
+          cd desktopApp/build/macos/Build/Products/Release
+          zip -r --symlinks desktop_app.zip desktop_app.app
+
+      # ── Upload ──────────────────────────────────────────────────────────────
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: desktopApp/build/macos/Build/Products/Release/desktop_app.zip
+          retention-days: 30
