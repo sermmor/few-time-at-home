@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -13,31 +15,36 @@ import '../constants.dart';
 ///   3. Waits for the browser to redirect back to localhost with the auth code.
 ///   4. Exchanges the code for access + refresh tokens.
 ///
-/// This works on Windows/macOS/Linux natively.
-/// On Android, Chrome can redirect to localhost on the same device, so the flow
-/// also works — the app must have INTERNET permission (added by default in Flutter).
+/// Storage strategy:
+///   • Windows / Linux / Android / iOS → flutter_secure_storage
+///       (DPAPI / libsecret / Keystore / Keychain — all properly backed)
+///   • macOS                            → SharedPreferences (NSUserDefaults)
+///       Keychain calls from an ad-hoc signed app (identity "-", no team ID)
+///       block indefinitely because macOS can't derive a stable Keychain
+///       access group from the unstable code signature. NSUserDefaults has
+///       no such dependency.
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
 
-  final _storage = const FlutterSecureStorage();
+  final _store = _PlatformKVStore();
 
   // ── Credentials setup ────────────────────────────────────────────────────
 
   Future<bool> hasCredentials() async {
-    final id = await _storage.read(key: kSecClientId);
-    final secret = await _storage.read(key: kSecClientSecret);
+    final id = await _store.read(kSecClientId);
+    final secret = await _store.read(kSecClientSecret);
     return id != null && id.isNotEmpty && secret != null && secret.isNotEmpty;
   }
 
   Future<void> saveCredentials(String clientId, String clientSecret) async {
-    await _storage.write(key: kSecClientId,     value: clientId);
-    await _storage.write(key: kSecClientSecret, value: clientSecret);
+    await _store.write(kSecClientId,     clientId);
+    await _store.write(kSecClientSecret, clientSecret);
   }
 
   Future<({String clientId, String clientSecret})?> loadCredentials() async {
-    final id     = await _storage.read(key: kSecClientId);
-    final secret = await _storage.read(key: kSecClientSecret);
+    final id     = await _store.read(kSecClientId);
+    final secret = await _store.read(kSecClientSecret);
     if (id == null || secret == null) return null;
     return (clientId: id, clientSecret: secret);
   }
@@ -45,15 +52,15 @@ class AuthService {
   // ── Token persistence ────────────────────────────────────────────────────
 
   Future<void> _saveTokens(AccessCredentials creds) async {
-    await _storage.write(key: kSecAccessToken,  value: creds.accessToken.data);
-    await _storage.write(key: kSecRefreshToken, value: creds.refreshToken ?? '');
-    await _storage.write(key: kSecTokenExpiry,  value: creds.accessToken.expiry.toIso8601String());
+    await _store.write(kSecAccessToken,  creds.accessToken.data);
+    await _store.write(kSecRefreshToken, creds.refreshToken ?? '');
+    await _store.write(kSecTokenExpiry,  creds.accessToken.expiry.toIso8601String());
   }
 
   Future<AccessCredentials?> _loadTokens(String clientId, String clientSecret) async {
-    final access   = await _storage.read(key: kSecAccessToken);
-    final refresh  = await _storage.read(key: kSecRefreshToken);
-    final expiryRaw = await _storage.read(key: kSecTokenExpiry);
+    final access    = await _store.read(kSecAccessToken);
+    final refresh   = await _store.read(kSecRefreshToken);
+    final expiryRaw = await _store.read(kSecTokenExpiry);
     if (access == null || refresh == null || expiryRaw == null) return null;
     final expiry = DateTime.tryParse(expiryRaw);
     if (expiry == null) return null;
@@ -107,13 +114,66 @@ class AuthService {
 
   /// Clears all saved tokens (but keeps client credentials).
   Future<void> signOut() async {
-    await _storage.delete(key: kSecAccessToken);
-    await _storage.delete(key: kSecRefreshToken);
-    await _storage.delete(key: kSecTokenExpiry);
+    await _store.delete(kSecAccessToken);
+    await _store.delete(kSecRefreshToken);
+    await _store.delete(kSecTokenExpiry);
   }
 
   /// Clears everything including client credentials.
   Future<void> clearAll() async {
-    await _storage.deleteAll();
+    await _store.deleteAll();
+  }
+}
+
+/// Thin key/value abstraction that picks the right backing store per platform.
+/// macOS uses SharedPreferences to avoid the ad-hoc-signing Keychain hang
+/// described in [AuthService]'s class docs.
+class _PlatformKVStore {
+  static const _secure = FlutterSecureStorage();
+  // Keep all SharedPreferences keys to scope a clearAll() to only our own
+  // entries instead of wiping the entire UserDefaults domain.
+  static const _knownKeys = [
+    kSecClientId,
+    kSecClientSecret,
+    kSecAccessToken,
+    kSecRefreshToken,
+    kSecTokenExpiry,
+  ];
+
+  Future<String?> read(String key) async {
+    if (Platform.isMacOS) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(key);
+    }
+    return _secure.read(key: key);
+  }
+
+  Future<void> write(String key, String value) async {
+    if (Platform.isMacOS) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
+      return;
+    }
+    await _secure.write(key: key, value: value);
+  }
+
+  Future<void> delete(String key) async {
+    if (Platform.isMacOS) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
+      return;
+    }
+    await _secure.delete(key: key);
+  }
+
+  Future<void> deleteAll() async {
+    if (Platform.isMacOS) {
+      final prefs = await SharedPreferences.getInstance();
+      for (final k in _knownKeys) {
+        await prefs.remove(k);
+      }
+      return;
+    }
+    await _secure.deleteAll();
   }
 }
