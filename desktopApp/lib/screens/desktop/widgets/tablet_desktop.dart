@@ -727,40 +727,116 @@ class _RenameDialog extends StatelessWidget {
   );
 }
 
-class _AddLinkDialog extends StatelessWidget {
+class _AddLinkDialog extends StatefulWidget {
   final TextEditingController urlCtrl;
   final TextEditingController nameCtrl;
   const _AddLinkDialog({required this.urlCtrl, required this.nameCtrl});
 
   @override
+  State<_AddLinkDialog> createState() => _AddLinkDialogState();
+}
+
+class _AddLinkDialogState extends State<_AddLinkDialog> {
+  bool    _fetching = false;
+  String? _fetchError;
+
+  static String _normalizeUrl(String raw) {
+    raw = raw.trim();
+    if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+      raw = 'https://$raw';
+    }
+    return raw;
+  }
+
+  Future<void> _fetchTitle() async {
+    final raw = widget.urlCtrl.text.trim();
+    if (raw.isEmpty) return;
+    final url = _normalizeUrl(raw);
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasAuthority) return;
+
+    widget.urlCtrl.text = url;
+    setState(() { _fetching = true; _fetchError = null; });
+    try {
+      final resp = await http
+          .get(uri, headers: {'User-Agent': 'Mozilla/5.0'})
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      if (resp.statusCode == 200) {
+        final match = RegExp(r'<title[^>]*>([^<]+)</title>',
+                caseSensitive: false)
+            .firstMatch(resp.body);
+        final title = match?.group(1)?.trim();
+        if (title != null && title.isNotEmpty) {
+          widget.nameCtrl.text = title;
+        } else {
+          setState(() => _fetchError = 'No se encontró título');
+        }
+      } else {
+        setState(() => _fetchError = 'Error ${resp.statusCode}');
+      }
+    } catch (_) {
+      if (mounted) setState(() => _fetchError = 'Sin conexión o URL inválida');
+    } finally {
+      if (mounted) setState(() => _fetching = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) => AlertDialog(
     backgroundColor: const Color(0xFF1E1E1E),
-    title: const Text('Añadir enlace', style: TextStyle(color: Colors.white)),
+    title: const Text('Añadir enlace',
+        style: TextStyle(color: Colors.white)),
     content: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         TextField(
-          controller: urlCtrl,
+          controller: widget.urlCtrl,
           autofocus: true,
           style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
+          onSubmitted: (_) => _fetchTitle(),
+          decoration: InputDecoration(
             labelText: 'URL',
-            hintText: 'https://...',
-            labelStyle: TextStyle(color: Colors.white54),
-            hintStyle:  TextStyle(color: Colors.white24),
-            enabledBorder: UnderlineInputBorder(
+            hintText: 'https://…',
+            labelStyle: const TextStyle(color: Colors.white54),
+            hintStyle:  const TextStyle(color: Colors.white24),
+            enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white24)),
-            focusedBorder: UnderlineInputBorder(
+            focusedBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.tealAccent)),
+            suffixIcon: _fetching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.tealAccent),
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.search,
+                        size: 18, color: Colors.white38),
+                    tooltip: 'Obtener título',
+                    onPressed: _fetchTitle,
+                  ),
           ),
         ),
+        if (_fetchError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(_fetchError!,
+                style: const TextStyle(
+                    color: Colors.orangeAccent, fontSize: 11)),
+          ),
         const SizedBox(height: 12),
         TextField(
-          controller: nameCtrl,
+          controller: widget.nameCtrl,
           style: const TextStyle(color: Colors.white),
           decoration: const InputDecoration(
-            labelText: 'Nombre (opcional)',
+            labelText: 'Nombre',
+            hintText: 'Pulsa 🔍 para autocompletar',
             labelStyle: TextStyle(color: Colors.white54),
+            hintStyle:  TextStyle(color: Colors.white24),
             enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white24)),
             focusedBorder: UnderlineInputBorder(
@@ -772,11 +848,13 @@ class _AddLinkDialog extends StatelessWidget {
     actions: [
       TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+          child: const Text('Cancelar',
+              style: TextStyle(color: Colors.white54))),
       FilledButton(
         onPressed: () => Navigator.of(context).pop(true),
         style: FilledButton.styleFrom(
-            backgroundColor: Colors.tealAccent, foregroundColor: Colors.black),
+            backgroundColor: Colors.tealAccent,
+            foregroundColor: Colors.black),
         child: const Text('Añadir'),
       ),
     ],

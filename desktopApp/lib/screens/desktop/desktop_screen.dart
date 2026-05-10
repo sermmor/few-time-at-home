@@ -229,6 +229,21 @@ class _DesktopScreenState extends State<DesktopScreen> {
     );
   });
 
+  void _updateNoteSettings(
+      String id, String? color, double fontSize, double alpha) =>
+      setState(() {
+        _config = _config!.copyWith(
+          notes: _config!.notes.map((n) => n.id == id
+              ? StickyNote(
+                  id: n.id, workspaceIndex: n.workspaceIndex,
+                  x: n.x, y: n.y,
+                  width: n.width, height: n.height,
+                  content: n.content,
+                  color: color, fontSize: fontSize, alpha: alpha)
+              : n).toList(),
+        );
+      });
+
   void _movePanel(String id, double xRef, double yRef) => setState(() {
     _config = _config!.copyWith(
       panels: _config!.panels.map((p) => p.id == id
@@ -392,6 +407,7 @@ class _DesktopScreenState extends State<DesktopScreen> {
                   onUpdateNoteContent: _updateNoteContent,
                   onDeleteNote:        _deleteNote,
                   onResizeNote:        _resizeNote,
+                  onUpdateNoteSettings: _updateNoteSettings,
                   onMovePanel:         _movePanel,
                   onDeletePanel:       _deletePanel,
                   onResizePanel:       _resizePanel,

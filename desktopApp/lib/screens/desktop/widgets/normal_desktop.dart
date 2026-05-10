@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../../core/constants.dart';
 import '../../../core/models/desktop_config.dart';
 import '../../../core/services/asset_cache_service.dart';
@@ -25,10 +26,12 @@ class NormalDesktop extends StatefulWidget {
   final void Function(String id, String name)          onRenameLink;
   final void Function(String id, double x, double y)   onMoveLink;
 
-  final void Function(String id, double x, double y)   onMoveNote;
-  final void Function(String id, String content)       onUpdateNoteContent;
-  final void Function(String id)                       onDeleteNote;
-  final void Function(String id, double w, double h)   onResizeNote;
+  final void Function(String id, double x, double y)          onMoveNote;
+  final void Function(String id, String content)               onUpdateNoteContent;
+  final void Function(String id)                               onDeleteNote;
+  final void Function(String id, double w, double h)           onResizeNote;
+  final void Function(String id, String? color,
+      double fontSize, double alpha)                           onUpdateNoteSettings;
 
   final void Function(String id, double x, double y)   onMovePanel;
   final void Function(String id)                       onDeletePanel;
@@ -55,6 +58,7 @@ class NormalDesktop extends StatefulWidget {
     required this.onUpdateNoteContent,
     required this.onDeleteNote,
     required this.onResizeNote,
+    required this.onUpdateNoteSettings,
     required this.onMovePanel,
     required this.onDeletePanel,
     required this.onResizePanel,
@@ -211,6 +215,7 @@ class _NormalDesktopState extends State<NormalDesktop> {
             onUpdateNoteContent: widget.onUpdateNoteContent,
             onDeleteNote:        widget.onDeleteNote,
             onResizeNote:        widget.onResizeNote,
+            onUpdateNoteSettings: widget.onUpdateNoteSettings,
             onMovePanel:         widget.onMovePanel,
             onDeletePanel:       widget.onDeletePanel,
             onResizePanel:       widget.onResizePanel,
@@ -268,60 +273,142 @@ class _CloseButtonState extends State<_CloseButton> {
   );
 }
 
-class _AddLinkDialog extends StatelessWidget {
+class _AddLinkDialog extends StatefulWidget {
   final TextEditingController urlCtrl;
   final TextEditingController nameCtrl;
   const _AddLinkDialog({required this.urlCtrl, required this.nameCtrl});
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: const Color(0xFF1E1E1E),
-    title: const Text('Añadir enlace', style: TextStyle(color: Colors.white)),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: urlCtrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            labelText: 'URL',
-            hintText: 'https://…',
-            labelStyle: TextStyle(color: Colors.white54),
-            hintStyle:  TextStyle(color: Colors.white24),
-            enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24)),
-            focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.tealAccent)),
+  State<_AddLinkDialog> createState() => _AddLinkDialogState();
+}
+
+class _AddLinkDialogState extends State<_AddLinkDialog> {
+  bool _fetching = false;
+  String? _fetchError;
+
+  static String _normalizeUrl(String raw) {
+    raw = raw.trim();
+    if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+      raw = 'https://$raw';
+    }
+    return raw;
+  }
+
+  Future<void> _fetchTitle() async {
+    final raw = widget.urlCtrl.text.trim();
+    if (raw.isEmpty) return;
+    final url = _normalizeUrl(raw);
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasAuthority) return;
+
+    // Update the URL field with the normalized form
+    widget.urlCtrl.text = url;
+
+    setState(() { _fetching = true; _fetchError = null; });
+    try {
+      final resp = await http
+          .get(uri, headers: {'User-Agent': 'Mozilla/5.0'})
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      if (resp.statusCode == 200) {
+        final match = RegExp(r'<title[^>]*>([^<]+)</title>',
+                caseSensitive: false)
+            .firstMatch(resp.body);
+        final title = match?.group(1)?.trim();
+        if (title != null && title.isNotEmpty) {
+          widget.nameCtrl.text = title;
+        } else {
+          setState(() => _fetchError = 'No se encontró título');
+        }
+      } else {
+        setState(() => _fetchError = 'Error ${resp.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) setState(() => _fetchError = 'Sin conexión o URL inválida');
+    } finally {
+      if (mounted) setState(() => _fetching = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1E1E1E),
+      title: const Text('Añadir enlace',
+          style: TextStyle(color: Colors.white)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── URL field with fetch button ───────────────────────────────
+          TextField(
+            controller: widget.urlCtrl,
+            autofocus: true,
+            style: const TextStyle(color: Colors.white),
+            onSubmitted: (_) => _fetchTitle(),
+            decoration: InputDecoration(
+              labelText: 'URL',
+              hintText: 'https://…',
+              labelStyle: const TextStyle(color: Colors.white54),
+              hintStyle:  const TextStyle(color: Colors.white24),
+              enabledBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24)),
+              focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.tealAccent)),
+              suffixIcon: _fetching
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 16, height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.tealAccent),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.search,
+                          size: 18, color: Colors.white38),
+                      tooltip: 'Obtener título',
+                      onPressed: _fetchTitle,
+                    ),
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: nameCtrl,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            labelText: 'Nombre (opcional)',
-            labelStyle: TextStyle(color: Colors.white54),
-            enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white24)),
-            focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.tealAccent)),
+          if (_fetchError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(_fetchError!,
+                  style: const TextStyle(
+                      color: Colors.orangeAccent, fontSize: 11)),
+            ),
+          const SizedBox(height: 12),
+          // ── Name field ────────────────────────────────────────────────
+          TextField(
+            controller: widget.nameCtrl,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: 'Nombre',
+              hintText: 'Pulsa 🔍 para autocompletar',
+              labelStyle: TextStyle(color: Colors.white54),
+              hintStyle:  TextStyle(color: Colors.white24),
+              enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white24)),
+              focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.tealAccent)),
+            ),
           ),
+        ],
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar',
+                style: TextStyle(color: Colors.white54))),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: FilledButton.styleFrom(
+              backgroundColor: Colors.tealAccent,
+              foregroundColor: Colors.black),
+          child: const Text('Añadir'),
         ),
       ],
-    ),
-    actions: [
-      TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancelar',
-              style: TextStyle(color: Colors.white54))),
-      FilledButton(
-        onPressed: () => Navigator.of(context).pop(true),
-        style: FilledButton.styleFrom(
-            backgroundColor: Colors.tealAccent,
-            foregroundColor: Colors.black),
-        child: const Text('Añadir'),
-      ),
-    ],
-  );
+    );
+  }
 }

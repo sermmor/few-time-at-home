@@ -27,6 +27,8 @@ class WorkspaceCanvas extends StatelessWidget {
   final void Function(String id, double xRef, double yRef)? onMoveNote;
   final void Function(String id)?                           onDeleteNote;
   final void Function(String id, double wRef, double hRef)? onResizeNote;
+  final void Function(String id, String? color,
+      double fontSize, double alpha)?                       onUpdateNoteSettings;
 
   // ── Panel callbacks ───────────────────────────────────────────────────────
   final void Function(String id, double xRef, double yRef)? onMovePanel;
@@ -45,6 +47,7 @@ class WorkspaceCanvas extends StatelessWidget {
     this.onMoveNote,
     this.onDeleteNote,
     this.onResizeNote,
+    this.onUpdateNoteSettings,
     this.onMovePanel,
     this.onDeletePanel,
     this.onResizePanel,
@@ -121,6 +124,10 @@ class WorkspaceCanvas extends StatelessWidget {
                 onResized: onResizeNote != null
                     ? (sw, sh) =>
                         onResizeNote!(note.id, sw / scaleX, sh / scaleY)
+                    : null,
+                onSettingsChanged: onUpdateNoteSettings != null
+                    ? (color, fontSize, alpha) =>
+                        onUpdateNoteSettings!(note.id, color, fontSize, alpha)
                     : null,
               ),
 
