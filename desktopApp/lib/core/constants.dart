@@ -20,3 +20,14 @@ const String kSecTokenExpiry  = 'ftah_token_expiry';
 
 /// shared_preferences keys
 const String kPrefLastProfile = 'last_profile';
+
+/// Workspace colour palette — matches DesktopCommons.tsx BASE_COLORS
+const List<int> kBaseColorValues = [
+  0xFF1a1a2e, 0xFF16213e, 0xFF0f3460, 0xFF533483,
+  0xFF2d6a4f, 0xFF1b4332, 0xFF40916c, 0xFF52b788,
+  0xFF7b2d8b, 0xFF6a0572, 0xFF9b5de5, 0xFFc77dff,
+  0xFFe63946, 0xFFc1121f, 0xFFfb8500, 0xFFffb703,
+];
+
+/// Slide-transition duration — matches TRANSITION_MS in DesktopCommons.tsx
+const int kTransitionMs = 280;

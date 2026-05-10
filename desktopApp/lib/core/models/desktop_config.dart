@@ -46,10 +46,15 @@ class StickyNote {
     'alpha':     alpha,
   };
 
-  StickyNote copyWith({double? x, double? y, String? content}) => StickyNote(
+  StickyNote copyWith({
+    double? x, double? y,
+    double? width, double? height,
+    String? content,
+  }) => StickyNote(
     id: id, workspaceIndex: workspaceIndex,
     x: x ?? this.x, y: y ?? this.y,
-    width: width, height: height,
+    width:  width  ?? this.width,
+    height: height ?? this.height,
     content: content ?? this.content,
     color: color, fontSize: fontSize, alpha: alpha,
   );
@@ -217,10 +222,24 @@ class DesktopConfig {
     'panels':  panels.map((e) => e.toJson()).toList(),
   };
 
-  DesktopConfig copyWithNotes(List<StickyNote> notes) => DesktopConfig(
-    rows: rows, cols: cols, wallpapers: wallpapers,
-    notes: notes, links: links, tabletMode: tabletMode,
-    images: images, panels: panels,
+  DesktopConfig copyWith({
+    int?              rows,
+    int?              cols,
+    List<String>?     wallpapers,
+    List<StickyNote>? notes,
+    List<DesktopLink>? links,
+    bool?             tabletMode,
+    List<DesktopImage>?  images,
+    List<DesktopPanel>?  panels,
+  }) => DesktopConfig(
+    rows:       rows       ?? this.rows,
+    cols:       cols       ?? this.cols,
+    wallpapers: wallpapers ?? this.wallpapers,
+    notes:      notes      ?? this.notes,
+    links:      links      ?? this.links,
+    tabletMode: tabletMode ?? this.tabletMode,
+    images:     images     ?? this.images,
+    panels:     panels     ?? this.panels,
   );
 }
 

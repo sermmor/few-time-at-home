@@ -75,6 +75,23 @@ class AssetCacheService {
     return localPath;
   }
 
+  /// Saves raw favicon bytes directly to the local cache (no GDrive needed).
+  /// Used when a favicon is fetched directly from a website.
+  /// Returns the local file path, or null on error.
+  Future<String?> saveFaviconToCache(
+      String profileName, String faviconName, String ext, List<int> bytes) async {
+    await ensureReady();
+    try {
+      final dir = Directory(p.join(_cacheRoot, profileName, 'favicons'));
+      await dir.create(recursive: true);
+      final localPath = p.join(dir.path, '$faviconName.$ext');
+      await File(localPath).writeAsBytes(bytes);
+      return localPath;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // ── Cache management ─────────────────────────────────────────────────────
 
   /// Deletes the cached assets for a specific profile.
