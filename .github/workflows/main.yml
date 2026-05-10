@@ -1,0 +1,25 @@
+# .github/workflows/build-macos.yml
+name: Build macOS
+
+on: workflow_dispatch   # lanzar manualmente desde la UI de GitHub
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: stable
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: desktopApp
+      - name: Build macOS release
+        run: flutter build macos --release
+        working-directory: desktopApp
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: desktopApp/build/macos/Build/Products/Release/
