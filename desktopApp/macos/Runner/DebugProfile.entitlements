@@ -6,6 +6,10 @@
 	<true/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
+	<!-- Outbound HTTPS: Google OAuth token exchange and Drive API calls -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Inbound socket: local HTTP server used by clientViaUserConsent OAuth callback -->
 	<key>com.apple.security.network.server</key>
 	<true/>
 </dict>

@@ -9,11 +9,18 @@ import 'screens/profile_selection/profile_selection_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Desktop fullscreen (Windows / macOS / Linux) ─────────────────────────
-  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+  // ── Desktop window setup ─────────────────────────────────────────────────
+  if (Platform.isWindows || Platform.isLinux) {
+    // True fullscreen (hides taskbar/dock)
     await windowManager.ensureInitialized();
     await windowManager.setFullScreen(true);
     await windowManager.setTitle('FT@Home Desktop');
+  } else if (Platform.isMacOS) {
+    // Maximised window: fills the screen while keeping the menu bar and Dock
+    // visible — more natural on macOS than hiding them with true fullscreen.
+    await windowManager.ensureInitialized();
+    await windowManager.setTitle('FT@Home Desktop');
+    await windowManager.maximize();
   }
 
   // ── Mobile fullscreen (Android / iOS) ────────────────────────────────────

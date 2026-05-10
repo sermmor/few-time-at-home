@@ -82,12 +82,41 @@ flutter build windows --release
 # Android APK
 flutter build apk --release
 
-# macOS app bundle
+# macOS app bundle — must be run on a Mac (see section below)
 flutter build macos --release
 
 # Linux bundle
 flutter build linux --release
 ```
+
+### Building macOS from a Windows machine (GitHub Actions)
+
+macOS builds require Xcode and can only be compiled on macOS. From a Windows
+machine use the included GitHub Actions workflow:
+
+1. Push the repo to GitHub (if not already done).
+2. In the GitHub repository go to **Actions → Build macOS → Run workflow**.
+3. Wait for the job to complete (~5–10 min).
+4. On the finished run scroll down to the **Artifacts** section and click
+   **`macos-release`** to download the ZIP.
+5. Extract the ZIP — inside you will find `desktop_app.app`.
+
+**Directory layout inside the ZIP:**
+
+```
+macos-release/
+└── desktop_app.app/          ← the entire .app bundle (copy this to the Mac)
+    └── Contents/
+        └── MacOS/
+            └── desktop_app   ← Unix binary (not runnable on Windows)
+```
+
+**Installing on macOS:**
+
+1. Copy the `desktop_app.app` folder to the Mac (e.g. into `/Applications`).
+2. Double-click to open.
+3. The first time macOS will block the app because it is unsigned.
+   Go to **System Settings → Privacy & Security** and click **"Open Anyway"**.
 
 ---
 
