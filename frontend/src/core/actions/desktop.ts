@@ -6,6 +6,7 @@ import {
   desktopFlushEndpoint,
   desktopProfilesEndpoint,
   desktopProfileCreateEndpoint,
+  desktopProfileDuplicateEndpoint,
   desktopProfileActivateEndpoint,
   desktopProfileMakeRemoteEndpoint,
   desktopProfileDeleteEndpoint,
@@ -179,6 +180,17 @@ const deleteProfile = (name: string): Promise<DesktopProfilesInfo> =>
     return body as DesktopProfilesInfo;
   });
 
+const duplicateProfile = (sourceName: string, newName: string): Promise<DesktopProfilesInfo> =>
+  fetch(desktopProfileDuplicateEndpoint(), {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ sourceName, newName }),
+  }).then(async r => {
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error ?? 'duplicate_failed');
+    return body as DesktopProfilesInfo;
+  });
+
 const makeProfileRemote = (name: string): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfileMakeRemoteEndpoint(), {
     method:  'POST',
@@ -197,6 +209,7 @@ export const DesktopActions = {
   flushDesktopConfig,
   listProfiles,
   createProfile,
+  duplicateProfile,
   activateProfile,
   makeProfileRemote,
   deleteProfile,

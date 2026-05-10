@@ -123,6 +123,7 @@ export const desktopFlushEndpoint         = (): string => `${getUrlApi()}/deskto
 // Desktop profile management
 export const desktopProfilesEndpoint            = (): string => `${getUrlApi()}/desktop/profiles`;
 export const desktopProfileCreateEndpoint       = (): string => `${getUrlApi()}/desktop/profile/create`;
+export const desktopProfileDuplicateEndpoint    = (): string => `${getUrlApi()}/desktop/profile/duplicate`;
 export const desktopProfileActivateEndpoint     = (): string => `${getUrlApi()}/desktop/profile/activate`;
 export const desktopProfileMakeRemoteEndpoint   = (): string => `${getUrlApi()}/desktop/profile/make-remote`;
 export const desktopProfileDeleteEndpoint       = (name: string): string => `${getUrlApi()}/desktop/profile/${encodeURIComponent(name)}`;

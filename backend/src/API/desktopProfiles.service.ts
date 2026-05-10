@@ -199,6 +199,28 @@ export class DesktopProfilesService {
   };
 
   /**
+   * Duplicates a local (non-remote) profile under a new name.
+   * The new profile gets an identical config; it is created as a local profile.
+   * Returns an error if the source doesn't exist, is remote, or the target name is taken.
+   */
+  duplicateProfile = (sourceName: string, newName: string): { ok: boolean; error?: string } => {
+    const safe = newName.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
+    if (!safe)                           return { ok: false, error: 'invalid_name' };
+    if (!this.profiles.has(sourceName))  return { ok: false, error: 'source_not_found' };
+    if (this.remoteProfiles.has(sourceName)) return { ok: false, error: 'source_is_remote' };
+    if (this.profiles.has(safe))         return { ok: false, error: 'already_exists' };
+
+    const sourceConfig = this.profiles.get(sourceName)!;
+    // Deep-clone so the two profiles are fully independent
+    const cloned: DesktopConfig = JSON.parse(JSON.stringify(sourceConfig));
+    this.profiles.set(safe, cloned);
+    writeFileSync(`${DESKTOP_DIR}/${safe}.json`, JSON.stringify(cloned, null, 2), 'utf8');
+    this._saveMeta();
+    console.log(`[Desktop] Duplicated profile "${sourceName}" → "${safe}".`);
+    return { ok: true };
+  };
+
+  /**
    * Converts an existing local profile to a remote profile.
    * Returns an error if the profile does not exist or is already remote.
    * This operation cannot be undone from the app.

@@ -173,6 +173,7 @@ export class APIService {
   static desktopProfilesEndpoint = {
     list:       '/desktop/profiles',
     create:     '/desktop/profile/create',
+    duplicate:  '/desktop/profile/duplicate',
     activate:   '/desktop/profile/activate',
     makeRemote: '/desktop/profile/make-remote',
     delete:     '/desktop/profile',           // DELETE /desktop/profile/:name
@@ -1618,6 +1619,22 @@ export class APIService {
         DesktopRemoteService.ensureMainFolder().catch(e =>
           console.error('[Desktop] GDrive folder creation failed:', e?.message),
         );
+      }
+      const svc = DesktopProfilesService.Instance;
+      res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
+    });
+
+    // POST /desktop/profile/duplicate — body: { sourceName, newName } → duplica un perfil local
+    this.app.post(ep.duplicate, (req: Request, res: Response) => {
+      const { sourceName, newName } = req.body ?? {};
+      if (typeof sourceName !== 'string' || !sourceName.trim() ||
+          typeof newName    !== 'string' || !newName.trim()) {
+        return res.status(400).json({ error: 'invalid_name' });
+      }
+      const result = DesktopProfilesService.Instance.duplicateProfile(sourceName, newName);
+      if (!result.ok) {
+        const status = result.error === 'source_not_found' ? 404 : 409;
+        return res.status(status).json({ error: result.error });
       }
       const svc = DesktopProfilesService.Instance;
       res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });

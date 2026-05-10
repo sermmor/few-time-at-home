@@ -30,6 +30,7 @@ import TabletIcon        from '@mui/icons-material/Tablet';
 import CheckCircleIcon   from '@mui/icons-material/CheckCircle';
 import CloudSyncIcon     from '@mui/icons-material/CloudSync';
 import CloudUploadIcon   from '@mui/icons-material/CloudUpload';
+import ContentCopyIcon   from '@mui/icons-material/ContentCopy';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { useTranslation } from 'react-i18next';
 import { DesktopActions, DesktopProfileMeta, DesktopProfilesInfo } from '../../../../core/actions/desktop';
@@ -67,6 +68,9 @@ export const DesktopSection: React.FC = () => {
   const [activating,      setActivating     ] = React.useState<string | null>(null);
   const [confirmRemote,   setConfirmRemote  ] = React.useState<string | null>(null);
   const [makingRemote,    setMakingRemote   ] = React.useState<string | null>(null);
+  const [confirmDuplicate,setConfirmDuplicate] = React.useState<string | null>(null);
+  const [duplicateNewName,setDuplicateNewName] = React.useState('');
+  const [duplicating,     setDuplicating    ] = React.useState<string | null>(null);
   const [confirmDelete,   setConfirmDelete  ] = React.useState<string | null>(null);
   const [deleting,        setDeleting       ] = React.useState<string | null>(null);
   const [feedback,        setFeedback       ] = React.useState<{ msg: string; ok: boolean } | null>(null);
@@ -119,6 +123,31 @@ export const DesktopSection: React.FC = () => {
       })
       .catch(() => setFeedback({ msg: t('desktopProfiles.deleteError'), ok: false }))
       .finally(() => setDeleting(null));
+  };
+
+  const handleOpenDuplicate = (name: string) => {
+    setDuplicateNewName(name + '_copy');
+    setConfirmDuplicate(name);
+  };
+
+  const handleConfirmDuplicate = () => {
+    if (!confirmDuplicate || !duplicateNewName.trim()) return;
+    const sourceName = confirmDuplicate;
+    const newName    = duplicateNewName.trim();
+    setConfirmDuplicate(null);
+    setDuplicating(sourceName);
+    DesktopActions.duplicateProfile(sourceName, newName)
+      .then(updated => {
+        setInfo(updated);
+        setFeedback({ msg: t('desktopProfiles.duplicateSuccess'), ok: true });
+      })
+      .catch((err: Error) => {
+        const key = err.message === 'already_exists'
+          ? 'desktopProfiles.duplicateAlreadyExists'
+          : 'desktopProfiles.duplicateError';
+        setFeedback({ msg: t(key), ok: false });
+      })
+      .finally(() => setDuplicating(null));
   };
 
   const handleConfirmMakeRemote = () => {
@@ -235,7 +264,7 @@ export const DesktopSection: React.FC = () => {
                               {t('desktopProfiles.activate')}
                             </Button>
                           )}
-                          {!profile.isRemote && (
+                          {!profile.isRemote && profile.name !== 'default' && (
                             <Tooltip title={t('desktopProfiles.makeRemoteBtn')} arrow>
                               <span>
                                 <Button
@@ -250,6 +279,25 @@ export const DesktopSection: React.FC = () => {
                                   sx={{ minWidth: 'unset', px: '0.5rem', fontSize: '0.72rem' }}
                                 >
                                   {t('desktopProfiles.makeRemoteBtn')}
+                                </Button>
+                              </span>
+                            </Tooltip>
+                          )}
+                          {!profile.isRemote && (
+                            <Tooltip title={t('desktopProfiles.duplicateBtn')} arrow>
+                              <span>
+                                <Button
+                                  size="small" variant="outlined" color="info"
+                                  disabled={duplicating === profile.name}
+                                  onClick={() => handleOpenDuplicate(profile.name)}
+                                  startIcon={
+                                    duplicating === profile.name
+                                      ? <CircularProgress size={12} color="inherit" />
+                                      : <ContentCopyIcon sx={{ fontSize: '0.95rem !important' }} />
+                                  }
+                                  sx={{ minWidth: 'unset', px: '0.5rem', fontSize: '0.72rem' }}
+                                >
+                                  {t('desktopProfiles.duplicateBtn')}
                                 </Button>
                               </span>
                             </Tooltip>
@@ -399,6 +447,47 @@ export const DesktopSection: React.FC = () => {
             startIcon={<DeleteOutlineIcon />}
           >
             {t('desktopProfiles.deleteConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Duplicate dialog ────────────────────────────────────────────── */}
+      <Dialog
+        open={confirmDuplicate !== null}
+        onClose={() => setConfirmDuplicate(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <ContentCopyIcon color="info" sx={{ fontSize: '1.3rem' }} />
+          {t('desktopProfiles.duplicateDialogTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: '1rem' }}>
+            {t('desktopProfiles.duplicateDialogText', { name: confirmDuplicate ?? '' })}
+          </DialogContentText>
+          <TextField
+            autoFocus
+            fullWidth
+            size="small"
+            label={t('desktopProfiles.duplicateNameLabel')}
+            value={duplicateNewName}
+            onChange={e => setDuplicateNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleConfirmDuplicate()}
+            inputProps={{ maxLength: 40 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDuplicate(null)} color="inherit">
+            {t('desktopProfiles.duplicateCancel')}
+          </Button>
+          <Button
+            onClick={handleConfirmDuplicate}
+            variant="contained" color="info"
+            disabled={!duplicateNewName.trim()}
+            startIcon={<ContentCopyIcon />}
+          >
+            {t('desktopProfiles.duplicateConfirm')}
           </Button>
         </DialogActions>
       </Dialog>
