@@ -24,9 +24,13 @@ jobs:
         run: flutter pub get
 
       # ── Build ───────────────────────────────────────────────────────────────
-      # CODE_SIGN_IDENTITY="-"  → ad-hoc signature (no Apple Developer account needed)
-      # CODE_SIGN_STYLE=Manual  → stops Xcode trying to fetch a provisioning profile
-      # DEVELOPMENT_TEAM=""     → clears any team ID that would trigger profile lookup
+      # FLUTTER_XCODE_CODE_SIGN_IDENTITY="-" → ad-hoc signature (no Apple Developer account needed)
+      # FLUTTER_XCODE_CODE_SIGN_STYLE=Manual → stops Xcode fetching a provisioning profile
+      # FLUTTER_XCODE_DEVELOPMENT_TEAM=""    → clears any team ID that would trigger profile lookup
+      #
+      # Xcode applies Release.entitlements (referenced in the .xcodeproj) during the build,
+      # so no separate codesign step is needed — doing so would break the nested-framework
+      # signatures that Xcode already set up correctly.
       - name: Build macOS release
         working-directory: desktopApp
         env:
@@ -35,16 +39,8 @@ jobs:
           FLUTTER_XCODE_DEVELOPMENT_TEAM: ""
         run: flutter build macos --release
 
-      # ── Re-sign (ensures our entitlements file is applied) ──────────────────
-      # This re-signs the .app with an ad-hoc signature so macOS enforces the
-      # entitlements we control (network.client + network.server, no sandbox).
-      - name: Ad-hoc sign with entitlements
-        run: |
-          codesign --force --deep --sign - \
-            --entitlements desktopApp/macos/Runner/Release.entitlements \
-            desktopApp/build/macos/Build/Products/Release/desktop_app.app
-
       # ── Package ─────────────────────────────────────────────────────────────
+      # --symlinks preserves the framework symlinks that macOS requires.
       - name: Create ZIP archive
         run: |
           cd desktopApp/build/macos/Build/Products/Release

@@ -113,10 +113,20 @@ macos-release/
 
 **Installing on macOS:**
 
-1. Copy the `desktop_app.app` folder to the Mac (e.g. into `/Applications`).
-2. Double-click to open.
-3. The first time macOS will block the app because it is unsigned.
-   Go to **System Settings → Privacy & Security** and click **"Open Anyway"**.
+1. Extract the downloaded ZIP — you will find `desktop_app.zip` inside.
+2. Extract `desktop_app.zip` — you will get `desktop_app.app`
+   (Finder may hide the `.app` extension and show it simply as `desktop_app`).
+3. Copy `desktop_app.app` to the Mac (e.g. into `/Applications`).
+4. Before opening, **remove the quarantine attribute** in Terminal:
+
+   ```bash
+   xattr -cr ~/Downloads/desktop_app.app
+   ```
+
+   Replace the path with wherever you saved the file.
+   This is a one-time step needed for any app downloaded outside the App Store.
+
+5. Double-click `desktop_app.app` to open it.
 
 ---
 
