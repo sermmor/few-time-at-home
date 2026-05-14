@@ -6,6 +6,7 @@ import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
 import { DesktopLink } from '../../../core/actions/desktop';
 import { desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
+import { copyToClipboard } from '../../../core/clipboard';
 
 interface Props {
   link:     DesktopLink;
@@ -180,7 +181,7 @@ export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, o
         slotProps={{ paper: { sx: { minWidth: '170px' } } }}
       >
         <MenuItem
-          onClick={() => { closeCtx(); navigator.clipboard.writeText(link.url); }}
+          onClick={() => { closeCtx(); copyToClipboard(link.url); }}
           dense
         >
           <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>

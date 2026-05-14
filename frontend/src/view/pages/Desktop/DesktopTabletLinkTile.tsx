@@ -6,6 +6,7 @@ import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
 import { DesktopLink } from '../../../core/actions/desktop';
 import { desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
+import { copyToClipboard } from '../../../core/clipboard';
 
 export type TabletAction = 'normal' | 'edit' | 'delete';
 
@@ -172,7 +173,7 @@ export const DesktopTabletLinkTile: React.FC<Props> = ({ link, mode, onDelete, o
         anchorPosition={ctxMenu ? { top: ctxMenu.y, left: ctxMenu.x } : undefined}
         slotProps={{ paper: { sx: { minWidth: '170px' } } }}
       >
-        <MenuItem onClick={() => { closeCtx(); navigator.clipboard.writeText(link.url); }} dense>
+        <MenuItem onClick={() => { closeCtx(); copyToClipboard(link.url); }} dense>
           <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Copiar enlace</ListItemText>
         </MenuItem>
