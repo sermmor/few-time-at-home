@@ -1,4 +1,4 @@
-import { Box, Button, SxProps, TextField, Theme, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, Checkbox, FormControlLabel, SxProps, TextField, Theme, Typography, useMediaQuery } from "@mui/material";
 import React from "react";
 import { NotepadActions } from "../../../core/actions/notepad";
 import { NotificationsActions } from "../../../core/actions/notifications";
@@ -66,6 +66,7 @@ export const Telegram = () => {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = React.useState<boolean>(false);
   const [isDraggingOver, setIsDraggingOver] = React.useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = React.useState<'idle' | 'uploading' | 'ok' | 'error'>('idle');
+  const [charLimitEnabled, setCharLimitEnabled] = React.useState<boolean>(true);
 
   React.useEffect(() => {
     NotificationsActions.getAreNotificationsEnabled().then(isAlertReady => setIsNotificationsEnabled(isAlertReady));
@@ -111,7 +112,15 @@ export const Telegram = () => {
   const setTextNotepad = (text: string) => {
     TemporalData.NotepadTextData = text;
     setTextData(text);
-  }
+  };
+
+  const handleCharLimitToggle = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const enabling = evt.target.checked;
+    setCharLimitEnabled(enabling);
+    if (enabling && textData.length > TELEGRAM_MAX_CHARS) {
+      setTextNotepad(textData.slice(0, TELEGRAM_MAX_CHARS));
+    }
+  };
 
   return <Box sx={formStyle}>
     <Typography variant='h6' sx={titleStyle()}>
@@ -126,23 +135,45 @@ export const Telegram = () => {
       sx={getTextAreaStyle(alphas.general)}
       placeholder={t('telegram.placeholder')}
       value={textData}
-      inputProps={{ maxLength: TELEGRAM_MAX_CHARS }}
+      inputProps={charLimitEnabled ? { maxLength: TELEGRAM_MAX_CHARS } : undefined}
       helperText={
-        <Typography
-          variant='caption'
-          component='span'
-          sx={{ color: textData.length >= TELEGRAM_MAX_CHARS ? 'error.main' : textData.length >= TELEGRAM_MAX_CHARS * 0.9 ? 'warning.main' : 'text.secondary' }}
-        >
-          {textData.length} / {TELEGRAM_MAX_CHARS}
-        </Typography>
+        charLimitEnabled ? (
+          <Typography
+            variant='caption'
+            component='span'
+            sx={{ color: textData.length >= TELEGRAM_MAX_CHARS ? 'error.main' : textData.length >= TELEGRAM_MAX_CHARS * 0.9 ? 'warning.main' : 'text.secondary' }}
+          >
+            {textData.length} / {TELEGRAM_MAX_CHARS}
+          </Typography>
+        ) : (
+          <Typography variant='caption' component='span' sx={{ color: 'text.secondary' }}>
+            {textData.length}
+          </Typography>
+        )
       }
       onChange={evt => setTextNotepad(evt.target.value)}
       onKeyDown={(evt) => {
         if (evt.key === 'Tab') {
           evt.preventDefault();
-          setTextNotepad(`${textData}\t`)
+          setTextNotepad(`${textData}\t`);
         }
       }}
+    />
+    <FormControlLabel
+      control={
+        <Checkbox
+          checked={charLimitEnabled}
+          onChange={handleCharLimitToggle}
+          size="small"
+          sx={{ color: 'rgba(255,255,255,0.7)', '&.Mui-checked': { color: 'primary.light' } }}
+        />
+      }
+      label={
+        <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.85)', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+          {t('telegram.limitChars', { max: TELEGRAM_MAX_CHARS })}
+        </Typography>
+      }
+      sx={{ ml: 0.5 }}
     />
 
     {isMobileOrTablet ? (

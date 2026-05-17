@@ -339,7 +339,8 @@
     "copyText": "Copy text",
     "clearText": "Clear text",
     "downloadText": "Download text",
-    "sendText": "Send text to Telegram"
+    "sendText": "Send text to Telegram",
+    "limitChars": "Limit to {{max}} characters"
   },
   "googleDrive": {
     "title": "// GOOGLE DRIVE //",
