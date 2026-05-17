@@ -1,13 +1,16 @@
 /**
  * Copies text to the clipboard.
  *
- * Prefers the modern navigator.clipboard API (requires HTTPS or localhost).
- * Falls back to the legacy document.execCommand('copy') approach so the
- * feature works on plain-HTTP local-network deployments where navigator.clipboard
- * is undefined.
+ * Uses the modern navigator.clipboard API only on secure contexts (HTTPS or
+ * localhost). On plain-HTTP local-network deployments (e.g. Raspberry Pi),
+ * window.isSecureContext is false — navigator.clipboard may still exist in
+ * Chrome but writeText() will reject asynchronously, which means the
+ * execCommand fallback would run outside the original user-gesture and also
+ * fail. Checking isSecureContext upfront ensures we always call execCommand
+ * synchronously within the click handler when needed.
  */
 export function copyToClipboard(text: string): void {
-  if (navigator.clipboard) {
+  if (window.isSecureContext && navigator.clipboard) {
     navigator.clipboard.writeText(text).catch(() => _execCommandCopy(text));
   } else {
     _execCommandCopy(text);
