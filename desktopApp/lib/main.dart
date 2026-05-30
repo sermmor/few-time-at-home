@@ -26,10 +26,18 @@ Future<void> main() async {
   // ── Mobile fullscreen (Android / iOS) ────────────────────────────────────
   if (Platform.isAndroid || Platform.isIOS) {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+
+    // Detect phone vs. tablet by the shortest side in logical pixels.
+    // Phones (< 600 dp) run in portrait; tablets use landscape like before.
+    final view        = WidgetsBinding.instance.platformDispatcher.views.first;
+    final shortestDp  = view.physicalSize.shortestSide / view.devicePixelRatio;
+    final isPhone     = shortestDp < 600;
+
+    await SystemChrome.setPreferredOrientations(
+      isPhone
+          ? [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
+          : [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
+    );
   }
 
   final hasCredentials = await AuthService.instance.hasCredentials();

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/models/desktop_config.dart';
 import '../../core/services/drive_service.dart';
 import 'widgets/desktop_commons.dart';
+import 'widgets/mobile_desktop.dart';
 import 'widgets/normal_desktop.dart';
 import 'widgets/tablet_desktop.dart';
 
@@ -377,7 +378,22 @@ class _DesktopScreenState extends State<DesktopScreen> {
         autofocus: true,
         onKeyEvent: _onKey,
         child: Scaffold(
-          body: config.tabletMode
+          body: config.mobileMode
+              ? MobileDesktop(
+                  config:      config,
+                  profileName: widget.profile.name,
+                  activeWs:    _activeWs,
+                  lastNavDir:  _lastNavDir,
+                  overlayVisible: _shiftHeld,
+                  onClose:     _saveAndPop,
+                  onPropsOpen: () => _showPropertiesDialog(context),
+                  onNavigate:  _navigate,
+                  onDeleteLink: _deleteLink,
+                  onRenameLink: _renameLink,
+                  onAddLink:   _addLink,
+                  onLinkEnriched: _enrichLink,
+                )
+              : config.tabletMode
               ? TabletDesktop(
                   config:      config,
                   profileName: widget.profile.name,
@@ -439,14 +455,19 @@ class _DesktopScreenState extends State<DesktopScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _PropRow('Perfil',      widget.profile.name),
-            _PropRow('Cuadrícula',  '${cfg.rows} filas × ${cfg.cols} columnas'),
-            _PropRow('Escritorios', '${cfg.workspaceCount}'),
-            _PropRow('Modo tablet', cfg.tabletMode ? 'Sí' : 'No'),
+            if (cfg.mobileMode) ...[
+              _PropRow('Modo',        'Móvil (retrato)'),
+              _PropRow('Escritorios', '${cfg.cols}  (1 fila × ${cfg.cols} cols)'),
+            ] else ...[
+              _PropRow('Modo',        cfg.tabletMode ? 'Tablet' : 'Normal'),
+              _PropRow('Cuadrícula',  '${cfg.rows} filas × ${cfg.cols} columnas'),
+              _PropRow('Escritorios', '${cfg.workspaceCount}'),
+            ],
             const Divider(color: Colors.white12, height: 24),
-            _PropRow('Notas',       '${cfg.notes.length}'),
-            _PropRow('Imágenes',    '${cfg.images.length}'),
-            _PropRow('Paneles',     '${cfg.panels.length}'),
-            _PropRow('Enlaces',     '${cfg.links.length}'),
+            _PropRow('Notas',    '${cfg.notes.length}'),
+            _PropRow('Imágenes', '${cfg.images.length}'),
+            _PropRow('Paneles',  '${cfg.panels.length}'),
+            _PropRow('Enlaces',  '${cfg.links.length}'),
           ],
         ),
         actions: [

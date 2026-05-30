@@ -171,6 +171,7 @@ class DesktopConfig {
   final List<StickyNote> notes;
   final List<DesktopLink> links;
   final bool             tabletMode;
+  final bool             mobileMode;
   final List<DesktopImage>  images;
   final List<DesktopPanel>  panels;
 
@@ -181,11 +182,13 @@ class DesktopConfig {
     required this.notes,
     required this.links,
     this.tabletMode = false,
+    this.mobileMode = false,
     required this.images,
     required this.panels,
   });
 
-  int get workspaceCount => rows * cols;
+  /// Mobile mode has a single implicit row; workspace count equals cols.
+  int get workspaceCount => mobileMode ? cols : rows * cols;
 
   factory DesktopConfig.empty() => const DesktopConfig(
     rows: 4, cols: 4,
@@ -194,10 +197,12 @@ class DesktopConfig {
   );
 
   factory DesktopConfig.fromJson(Map<String, dynamic> j) {
-    final rows = (j['rows'] as num? ?? 4).toInt();
-    final cols = (j['cols'] as num? ?? 4).toInt();
-    final total = rows * cols;
-    final raw = (j['wallpapers'] as List?)?.cast<String?>() ?? [];
+    final rows       = (j['rows'] as num? ?? 4).toInt();
+    final cols       = (j['cols'] as num? ?? 4).toInt();
+    final mobileMode = j['mobileMode'] as bool? ?? false;
+    // Mobile mode has 1 implicit row; wallpaper count equals cols.
+    final total      = mobileMode ? cols : rows * cols;
+    final raw        = (j['wallpapers'] as List?)?.cast<String?>() ?? [];
     final wallpapers = List.generate(total, (i) => (i < raw.length ? raw[i] : null) ?? '');
 
     return DesktopConfig(
@@ -207,6 +212,7 @@ class DesktopConfig {
       notes:      ((j['notes']   as List?) ?? []).map((e) => StickyNote.fromJson(e as Map<String, dynamic>)).toList(),
       links:      ((j['links']   as List?) ?? []).map((e) => DesktopLink.fromJson(e as Map<String, dynamic>)).toList(),
       tabletMode: j['tabletMode'] as bool? ?? false,
+      mobileMode: mobileMode,
       images:     ((j['images']  as List?) ?? []).map((e) => DesktopImage.fromJson(e as Map<String, dynamic>)).toList(),
       panels:     ((j['panels']  as List?) ?? []).map((e) => DesktopPanel.fromJson(e as Map<String, dynamic>)).toList(),
     );
@@ -216,6 +222,7 @@ class DesktopConfig {
     'rows': rows, 'cols': cols,
     'wallpapers': wallpapers,
     'tabletMode': tabletMode,
+    'mobileMode': mobileMode,
     'notes':   notes.map((e) => e.toJson()).toList(),
     'links':   links.map((e) => e.toJson()).toList(),
     'images':  images.map((e) => e.toJson()).toList(),
@@ -223,12 +230,13 @@ class DesktopConfig {
   };
 
   DesktopConfig copyWith({
-    int?              rows,
-    int?              cols,
-    List<String>?     wallpapers,
-    List<StickyNote>? notes,
+    int?               rows,
+    int?               cols,
+    List<String>?      wallpapers,
+    List<StickyNote>?  notes,
     List<DesktopLink>? links,
-    bool?             tabletMode,
+    bool?              tabletMode,
+    bool?              mobileMode,
     List<DesktopImage>?  images,
     List<DesktopPanel>?  panels,
   }) => DesktopConfig(
@@ -238,6 +246,7 @@ class DesktopConfig {
     notes:      notes      ?? this.notes,
     links:      links      ?? this.links,
     tabletMode: tabletMode ?? this.tabletMode,
+    mobileMode: mobileMode ?? this.mobileMode,
     images:     images     ?? this.images,
     panels:     panels     ?? this.panels,
   );

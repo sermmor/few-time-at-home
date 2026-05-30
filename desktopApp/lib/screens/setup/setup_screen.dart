@@ -44,94 +44,138 @@ class _SetupScreenState extends State<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme       = Theme.of(context);
+    final mq          = MediaQuery.of(context);
+    // A phone is any device whose shortest side is under 600 dp.
+    final isPhone     = mq.size.shortestSide < 600;
+    final cardPadding = isPhone ? 20.0 : 32.0;
+
+    final formContent = Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header ────────────────────────────────────────────────────────
+          Row(children: [
+            const Icon(Icons.cloud_sync, color: Colors.tealAccent, size: 28),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('FT@Home Desktop',
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(color: Colors.white)),
+            ),
+          ]),
+          const SizedBox(height: 6),
+          Text(
+            'Connect your Google Drive to access remote desktop profiles.',
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white54),
+          ),
+          SizedBox(height: isPhone ? 16.0 : 28.0),
+
+          // ── Help box ───────────────────────────────────────────────────────
+          Container(
+            padding: EdgeInsets.all(isPhone ? 10 : 12),
+            decoration: BoxDecoration(
+              color:        Colors.tealAccent.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+              border:       Border.all(color: Colors.tealAccent.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('How to get credentials:',
+                    style: TextStyle(
+                      color:      Colors.tealAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize:   isPhone ? 12 : 14,
+                    )),
+                const SizedBox(height: 4),
+                _helpLine('1. Go to console.cloud.google.com'),
+                _helpLine('2. Enable the Google Drive API'),
+                _helpLine('3. Create OAuth 2.0 credentials → Desktop app'),
+                _helpLine('4. Copy the Client ID and Client Secret below'),
+              ],
+            ),
+          ),
+          SizedBox(height: isPhone ? 16 : 24),
+
+          // ── Fields ─────────────────────────────────────────────────────────
+          _field(
+            controller: _clientIdCtrl,
+            label:      'Client ID',
+            hint:       '123456789-xxx.apps.googleusercontent.com',
+            validator:  (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+          ),
+          SizedBox(height: isPhone ? 12 : 16),
+          _field(
+            controller: _secretCtrl,
+            label:      'Client Secret',
+            hint:       'GOCSPX-…',
+            obscure:    true,
+            validator:  (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+          ),
+          SizedBox(height: isPhone ? 20 : 28),
+
+          // ── Connect button ─────────────────────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _saving ? null : _save,
+              icon: _saving
+                  ? const SizedBox(width: 18, height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.black))
+                  : const Icon(Icons.login),
+              label: Text(_saving ? 'Connecting…' : 'Connect'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.tealAccent,
+                foregroundColor: Colors.black,
+                padding: EdgeInsets.symmetric(
+                    vertical: isPhone ? 12 : 14),
+              ),
+            ),
+          ),
+
+          // Extra bottom padding so the button clears the system nav bar
+          // on phones when the soft keyboard is closed.
+          if (isPhone) SizedBox(height: mq.padding.bottom + 8),
+        ],
+      ),
+    );
+
+    // ── Phone layout: full-width scrollable column ─────────────────────────
+    if (isPhone) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF121212),
+        // resizeToAvoidBottomInset = true (default) shrinks the body when the
+        // soft keyboard appears, making the SingleChildScrollView scrollable.
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              cardPadding, cardPadding,
+              cardPadding, cardPadding + mq.viewInsets.bottom,
+            ),
+            child: formContent,
+          ),
+        ),
+      );
+    }
+
+    // ── Tablet / desktop layout: centred card ──────────────────────────────
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: Card(
-            color: const Color(0xFF1E1E1E),
+            color:     const Color(0xFF1E1E1E),
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
             child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.cloud_sync, color: Colors.tealAccent, size: 32),
-                      const SizedBox(width: 12),
-                      Text('FT@Home Desktop',
-                          style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white)),
-                    ]),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Connect your Google Drive to access remote desktop profiles.',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white54),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // Help box
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.tealAccent.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.tealAccent.withOpacity(0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('How to get credentials:', style: TextStyle(color: Colors.tealAccent, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 6),
-                          _helpLine('1. Go to console.cloud.google.com'),
-                          _helpLine('2. Enable the Google Drive API'),
-                          _helpLine('3. Create OAuth 2.0 credentials → Desktop app'),
-                          _helpLine('4. Copy the Client ID and Client Secret below'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    _field(
-                      controller: _clientIdCtrl,
-                      label:       'Client ID',
-                      hint:        '123456789-xxx.apps.googleusercontent.com',
-                      validator:   (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _field(
-                      controller: _secretCtrl,
-                      label:      'Client Secret',
-                      hint:       'GOCSPX-…',
-                      obscure:    true,
-                      validator:  (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 28),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: _saving ? null : _save,
-                        icon: _saving
-                            ? const SizedBox(width: 18, height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                            : const Icon(Icons.login),
-                        label: Text(_saving ? 'Connecting…' : 'Connect'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.tealAccent,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              padding: EdgeInsets.all(cardPadding),
+              child:   formContent,
             ),
           ),
         ),
