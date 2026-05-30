@@ -65,7 +65,7 @@ export const bootstrapApp = (): void => {
         const bot      = new TelegramBot(keyData);
         const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
         bot.start(commands);
-        new MediaRSSAutoupdate(commands);
+        new MediaRSSAutoupdate(commands, !!keyData.connect_to_telegram);
         new APIService(keyData, channelMediaCollection, commands);
 
         // Always instantiate so weather browser endpoints work even without Telegram.

@@ -16,10 +16,12 @@ import {
 } from '../../../core/actions/desktop';
 import { desktopFlushEndpoint } from '../../../core/urls-and-end-points';
 import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
+import { DesktopMobilePropertiesDialog } from './DesktopMobilePropertiesDialog';
 import { StickyNoteWidget } from './StickyNoteWidget';
 import { AddLinkDialog } from './AddLinkDialog';
 import { DesktopLinkWidget } from './DesktopLinkWidget';
 import { DesktopTablet } from './DesktopTablet';
+import { DesktopMobile } from './DesktopMobile';
 import {
   CANVAS_TOP_OFFSET,
   CANVAS_TOP_MARGIN,
@@ -82,11 +84,14 @@ export const Desktop = (): JSX.Element => {
     DesktopActions.getDesktopConfig().then(setConfig);
   }, []);
 
-  // Clamp activeWs when the grid shrinks
+  // Clamp activeWs when the grid shrinks.
+  // Mobile mode uses a single implicit row, so max = cols - 1.
   React.useEffect(() => {
-    const max = config.rows * config.cols - 1;
+    const max = config.mobileMode
+      ? config.cols - 1
+      : config.rows * config.cols - 1;
     setActiveWs(prev => Math.min(prev, max));
-  }, [config.rows, config.cols]);
+  }, [config.rows, config.cols, config.mobileMode]);
 
   // Slide transition: fires whenever activeWs changes
   React.useEffect(() => {
@@ -117,11 +122,13 @@ export const Desktop = (): JSX.Element => {
 
       if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
         e.preventDefault();
-        const cols = configRef.current.cols;
-        const rows = configRef.current.rows;
-        const cur  = activeWsRef.current;
-        const col  = cur % cols;
-        const row  = Math.floor(cur / cols);
+        const cols     = configRef.current.cols;
+        const rows     = configRef.current.rows;
+        const isMobile = configRef.current.mobileMode ?? false;
+        const cur      = activeWsRef.current;
+        // In mobile mode there is only 1 implicit row, so col === cur
+        const col  = isMobile ? cur        : cur % cols;
+        const row  = isMobile ? 0          : Math.floor(cur / cols);
 
         let next: number = cur;
         let overrideDir: Direction | null = null;
@@ -130,24 +137,24 @@ export const Desktop = (): JSX.Element => {
           if (col < cols - 1) {
             next = cur + 1;
           } else {
-            next = cur - (cols - 1);   // wrap to col 0, same row
+            next = isMobile ? 0 : cur - (cols - 1);   // wrap to col 0
             overrideDir = 'right';
           }
         } else if (e.key === 'ArrowLeft') {
           if (col > 0) {
             next = cur - 1;
           } else {
-            next = cur + (cols - 1);   // wrap to last col, same row
+            next = isMobile ? cols - 1 : cur + (cols - 1);   // wrap to last col
             overrideDir = 'left';
           }
-        } else if (e.key === 'ArrowDown') {
+        } else if (e.key === 'ArrowDown' && !isMobile) {
           if (row < rows - 1) {
             next = cur + cols;
           } else {
             next = cur - cols * (rows - 1);  // wrap to row 0, same col
             overrideDir = 'down';
           }
-        } else if (e.key === 'ArrowUp') {
+        } else if (e.key === 'ArrowUp' && !isMobile) {
           if (row > 0) {
             next = cur - cols;
           } else {
@@ -391,7 +398,26 @@ export const Desktop = (): JSX.Element => {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {config.tabletMode ? (
+      {config.mobileMode ? (
+        // ── Mobile mode: portrait phone canvas ───────────────────────────
+        <DesktopMobile
+          activeWs={activeWs}
+          setActiveWs={setActiveWs}
+          slide={slide}
+          setSlide={setSlide}
+          activeWallpaper={activeWallpaper}
+          linksForActiveWs={linksForActiveWs}
+          notesForActiveWs={notesForActiveWs}
+          onDeleteLink={deleteLink}
+          onEditLink={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+          onAddLink={openAddLinkDialog}
+          onUpdateNote={updateNote}
+          onDeleteNote={deleteNote}
+          onPropsOpen={() => setPropsOpen(true)}
+          COLS={COLS}
+          wsOverlayVisible={visible}
+        />
+      ) : config.tabletMode ? (
         // ── Tablet mode: delegated to DesktopTablet ──────────────────────
         <DesktopTablet
           activeWs={activeWs}
@@ -565,12 +591,21 @@ export const Desktop = (): JSX.Element => {
       )}
 
       {/* ── Dialogs — rendered regardless of mode ────────────────────────── */}
-      <DesktopPropertiesDialog
-        isOpen={propsOpen}
-        onClose={() => setPropsOpen(false)}
-        config={config}
-        onSave={updated => setConfig(updated)}
-      />
+      {config.mobileMode ? (
+        <DesktopMobilePropertiesDialog
+          isOpen={propsOpen}
+          onClose={() => setPropsOpen(false)}
+          config={config}
+          onSave={updated => setConfig(updated)}
+        />
+      ) : (
+        <DesktopPropertiesDialog
+          isOpen={propsOpen}
+          onClose={() => setPropsOpen(false)}
+          config={config}
+          onSave={updated => setConfig(updated)}
+        />
+      )}
 
       <AddLinkDialog
         isOpen={linkDialogOpen}

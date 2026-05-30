@@ -11,6 +11,7 @@ interface DesktopConfig {
   notes:       any[];
   links:       any[];
   tabletMode?: boolean;
+  mobileMode?: boolean;
 }
 
 const EMPTY_CONFIG: DesktopConfig = {
@@ -20,6 +21,7 @@ const EMPTY_CONFIG: DesktopConfig = {
   notes:      [],
   links:      [],
   tabletMode: false,
+  mobileMode: false,
 };
 
 // ── DesktopProfilesService ────────────────────────────────────────────────────
@@ -137,11 +139,12 @@ export class DesktopProfilesService {
       return a.localeCompare(b);
     });
 
-  /** Returns profiles with their metadata (name + tabletMode + isRemote). */
-  listProfilesWithMeta = (): { name: string; tabletMode: boolean; isRemote: boolean }[] =>
+  /** Returns profiles with their metadata (name + tabletMode + mobileMode + isRemote). */
+  listProfilesWithMeta = (): { name: string; tabletMode: boolean; mobileMode: boolean; isRemote: boolean }[] =>
     this.listProfiles().map(name => ({
       name,
       tabletMode: this.profiles.get(name)?.tabletMode ?? false,
+      mobileMode: this.profiles.get(name)?.mobileMode ?? false,
       isRemote:   this.remoteProfiles.has(name),
     }));
 
@@ -186,17 +189,21 @@ export class DesktopProfilesService {
     }
   };
 
-  createProfile = (name: string, tabletMode = false, isRemote = false): { ok: boolean; error?: string } => {
+  createProfile = (name: string, tabletMode = false, mobileMode = false, isRemote = false): { ok: boolean; error?: string } => {
     const safe = name.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
     if (!safe)                      return { ok: false, error: 'invalid_name' };
     if (this.profiles.has(safe))    return { ok: false, error: 'already_exists' };
 
-    const config: DesktopConfig = { ...EMPTY_CONFIG, wallpapers: Array(16).fill(''), tabletMode };
+    // Mobile profiles use 1 row × 16 cols by default (one workspace per column,
+    // portrait orientation). Normal/tablet profiles keep the standard 4 × 4 grid.
+    const config: DesktopConfig = mobileMode
+      ? { ...EMPTY_CONFIG, rows: 1, cols: 16, wallpapers: Array(16).fill(''), tabletMode: false, mobileMode: true }
+      : { ...EMPTY_CONFIG, wallpapers: Array(16).fill(''), tabletMode, mobileMode: false };
     this.profiles.set(safe, config);
     writeFileSync(`${DESKTOP_DIR}/${safe}.json`, JSON.stringify(config, null, 2), 'utf8');
     if (isRemote) this.remoteProfiles.add(safe);
     this._saveMeta();
-    console.log(`[Desktop] Created profile "${safe}" (tabletMode=${tabletMode}, isRemote=${isRemote}).`);
+    console.log(`[Desktop] Created profile "${safe}" (tabletMode=${tabletMode}, mobileMode=${mobileMode}, isRemote=${isRemote}).`);
     return { ok: true };
   };
 

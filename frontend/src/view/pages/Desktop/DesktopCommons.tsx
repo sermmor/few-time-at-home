@@ -6,12 +6,16 @@ import { getCloudEndpoint } from '../../../core/urls-and-end-points';
 export const CANVAS_TOP_OFFSET = '4rem';
 export const CANVAS_TOP_MARGIN = '-1.5rem';
 
-// Workspace thumbnail dimensions for the Shift-overlay (px)
+// Workspace thumbnail dimensions for the Shift-overlay (px) — landscape (normal/tablet mode)
 export const WS_W       = 112;
 export const WS_H       = 72;
 export const WS_GAP     = 10;
 export const WS_PADDING = 14;
 export const WS_RADIUS  = 5;
+
+// Workspace thumbnail dimensions for mobile mode overlay — portrait ratio (~9:19)
+export const MOBILE_WS_W = 48;
+export const MOBILE_WS_H = 84;
 
 // Slide animation duration (ms)
 export const TRANSITION_MS = 280;

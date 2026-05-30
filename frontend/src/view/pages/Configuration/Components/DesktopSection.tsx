@@ -27,6 +27,7 @@ import {
 import ExpandMoreIcon    from '@mui/icons-material/ExpandMore';
 import DashboardIcon     from '@mui/icons-material/Dashboard';
 import TabletIcon        from '@mui/icons-material/Tablet';
+import SmartphoneIcon    from '@mui/icons-material/Smartphone';
 import CheckCircleIcon   from '@mui/icons-material/CheckCircle';
 import CloudSyncIcon     from '@mui/icons-material/CloudSync';
 import CloudUploadIcon   from '@mui/icons-material/CloudUpload';
@@ -63,6 +64,7 @@ export const DesktopSection: React.FC = () => {
   const [loading,    setLoading   ] = React.useState(true);
   const [newName,    setNewName   ] = React.useState('');
   const [newTablet,  setNewTablet ] = React.useState(false);
+  const [newMobile,  setNewMobile ] = React.useState(false);
   const [newRemote,  setNewRemote ] = React.useState(false);
   const [creating,        setCreating       ] = React.useState(false);
   const [activating,      setActivating     ] = React.useState<string | null>(null);
@@ -94,11 +96,12 @@ export const DesktopSection: React.FC = () => {
   const handleCreate = () => {
     if (!newName.trim()) return;
     setCreating(true);
-    DesktopActions.createProfile(newName.trim(), newTablet, newRemote)
+    DesktopActions.createProfile(newName.trim(), newTablet, newMobile, newRemote)
       .then(updated => {
         setInfo(updated);
         setNewName('');
         setNewTablet(false);
+        setNewMobile(false);
         setNewRemote(false);
         setFeedback({ msg: t('desktopProfiles.createSuccess'), ok: true });
       })
@@ -237,6 +240,14 @@ export const DesktopSection: React.FC = () => {
                                   sx={{ height: '1.3rem', fontSize: '0.65rem' }}
                                 />
                               )}
+                              {profile.mobileMode && (
+                                <Chip
+                                  icon={<SmartphoneIcon sx={{ fontSize: '0.9rem !important' }} />}
+                                  label={t('desktopProfiles.mobileBadge')}
+                                  size="small" color="success" variant="outlined"
+                                  sx={{ height: '1.3rem', fontSize: '0.65rem' }}
+                                />
+                              )}
                               {profile.isRemote && (
                                 <Chip
                                   icon={<CloudSyncIcon sx={{ fontSize: '0.9rem !important' }} />}
@@ -349,7 +360,10 @@ export const DesktopSection: React.FC = () => {
                     control={
                       <Switch
                         checked={newTablet}
-                        onChange={e => setNewTablet(e.target.checked)}
+                        onChange={e => {
+                          setNewTablet(e.target.checked);
+                          if (e.target.checked) setNewMobile(false);
+                        }}
                         disabled={creating}
                         size="small"
                         color="info"
@@ -360,6 +374,28 @@ export const DesktopSection: React.FC = () => {
                         <TabletIcon sx={{ fontSize: '1rem', color: newTablet ? 'info.main' : 'text.disabled' }} />
                         <Typography variant="body2" sx={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                           {t('desktopProfiles.tabletModeLabel')}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newMobile}
+                        onChange={e => {
+                          setNewMobile(e.target.checked);
+                          if (e.target.checked) setNewTablet(false);
+                        }}
+                        disabled={creating}
+                        size="small"
+                        color="success"
+                      />
+                    }
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <SmartphoneIcon sx={{ fontSize: '1rem', color: newMobile ? 'success.main' : 'text.disabled' }} />
+                        <Typography variant="body2" sx={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                          {t('desktopProfiles.mobileModeLabel')}
                         </Typography>
                       </Box>
                     }

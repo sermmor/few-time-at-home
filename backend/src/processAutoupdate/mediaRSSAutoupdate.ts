@@ -24,7 +24,7 @@ export class MediaRSSAutoupdate {
   public currentCompleteData: FileMediaContentType = {messagesMasto: [], messagesBlog: [], messagesNewsFeed: [], messagesYoutube: []};
   public youtubeFavoriteCompleteData: string[] = []
 
-  constructor(private commands: TelegramBotCommand) {
+  constructor(private commands: TelegramBotCommand, private connectToTelegram: boolean = true) {
     MediaRSSAutoupdate.instance = this;
     this.lastUpdateMilliseconds = Date.now();
     if (ConfigurationService.Instance.rssConfig.updateAtStartApp) {
@@ -98,7 +98,10 @@ export class MediaRSSAutoupdate {
         });
       }
       // Push the fresh RSS data to Supabase (non-blocking — fires after resolving).
-      setTimeout(() => MediaRSSAutoupdate.pushAllFeedsToSupabase(), 0);
+      // Skipped when connect_to_telegram is false (dev mode) to avoid touching production data.
+      if (this.connectToTelegram) {
+        setTimeout(() => MediaRSSAutoupdate.pushAllFeedsToSupabase(), 0);
+      }
       resolve();
     }).catch(err => {
       console.error("Error during Media RSS Autoupdate:", err);

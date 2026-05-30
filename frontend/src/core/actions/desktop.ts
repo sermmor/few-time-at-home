@@ -69,6 +69,8 @@ export interface DesktopConfig {
   links:       DesktopLink[];
   /** When true, links are rendered as a touch-friendly grid instead of free-floating icons. */
   tabletMode?: boolean;
+  /** When true, links are rendered in a portrait phone-sized canvas (single row of workspaces). */
+  mobileMode?: boolean;
   images?:     DesktopImage[];
   panels?:     DesktopPanel[];
 }
@@ -80,6 +82,7 @@ export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
   notes:      [],
   links:      [],
   tabletMode: false,
+  mobileMode: false,
   images:     [],
   panels:     [],
 };
@@ -100,6 +103,7 @@ const getDesktopConfig = (): Promise<DesktopConfig> =>
       notes:      Array.isArray(d.notes) ? d.notes : [],
       links:      Array.isArray(d.links) ? d.links : [],
       tabletMode: d.tabletMode ?? false,
+      mobileMode: d.mobileMode ?? false,
       images:     Array.isArray(d.images) ? d.images : [],
       panels:     Array.isArray(d.panels) ? d.panels : [],
     };
@@ -137,6 +141,7 @@ const flushDesktopConfig = (): Promise<void> =>
 export interface DesktopProfileMeta {
   name:       string;
   tabletMode: boolean;
+  mobileMode: boolean;
   isRemote:   boolean;
 }
 
@@ -149,11 +154,11 @@ const listProfiles = (): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfilesEndpoint())
     .then(r => r.json() as Promise<DesktopProfilesInfo>);
 
-const createProfile = (name: string, tabletMode = false, isRemote = false): Promise<DesktopProfilesInfo> =>
+const createProfile = (name: string, tabletMode = false, mobileMode = false, isRemote = false): Promise<DesktopProfilesInfo> =>
   fetch(desktopProfileCreateEndpoint(), {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ name, tabletMode, isRemote }),
+    body:    JSON.stringify({ name, tabletMode, mobileMode, isRemote }),
   }).then(async r => {
     const body = await r.json();
     if (!r.ok) throw new Error(body.error ?? 'create_failed');

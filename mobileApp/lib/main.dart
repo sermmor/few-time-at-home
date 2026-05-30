@@ -9,6 +9,7 @@ import 'screens/weather_screen.dart';
 import 'services/notification_service.dart';
 import 'notes/notes_home_screen.dart';
 import 'screens/rss_screen.dart';
+import 'screens/auto_screen.dart';
 
 /// Called by Firebase when a push arrives and the app is BACKGROUND or KILLED.
 /// Must be a top-level function. Android shows the notification automatically
@@ -76,6 +77,7 @@ class _MainScreenState extends State<MainScreen> {
   static const _amber   = Color(0xFFFFBB00);
   static const _green   = Color(0xFF00FF88);
   static const _orange  = Color(0xFFFF7700);
+  static const _purple  = Color(0xFF7F00FF);
   static const _bg      = Color(0xFF020C18);
   static const _bgPanel = Color(0xFF071526);
 
@@ -89,6 +91,7 @@ class _MainScreenState extends State<MainScreen> {
     WeatherScreen(),
     NotesHomeScreen(),
     RssScreen(),
+    AutoScreen(),
   ];
 
   @override
@@ -203,6 +206,19 @@ class _MainScreenState extends State<MainScreen> {
               color:  _orange,
             ),
             label: 'RSS',
+          ),
+          BottomNavigationBarItem(
+            icon: _NavIcon(
+              icon:   Icons.tonality_outlined,
+              active: _tabIndex == 5,
+              color:  _purple,
+            ),
+            activeIcon: _NavIcon(
+              icon:   Icons.tonality_rounded,
+              active: true,
+              color:  _purple,
+            ),
+            label: 'AUTO',
           ),
         ],
       ),

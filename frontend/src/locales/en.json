@@ -469,6 +469,8 @@
     "activateError": "Could not activate profile",
     "errorLoad": "Error loading desktop profiles",
     "tabletModeLabel": "Tablet mode",
+    "mobileBadge":     "mobile",
+    "mobileModeLabel": "Mobile mode",
     "tabletBadge": "tablet",
     "remoteLabel": "Remote (Google Drive)",
     "remoteBadge": "remote",

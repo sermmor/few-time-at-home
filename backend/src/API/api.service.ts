@@ -1622,14 +1622,14 @@ export class APIService {
       res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });
 
-    // POST /desktop/profile/create — body: { name, tabletMode?, isRemote? } → creates a new profile
+    // POST /desktop/profile/create — body: { name, tabletMode?, mobileMode?, isRemote? } → creates a new profile
     // When isRemote=true the Few_Time_at_home_desktop folder is created in GDrive if absent.
     this.app.post(ep.create, async (req: Request, res: Response) => {
-      const { name, tabletMode, isRemote } = req.body ?? {};
+      const { name, tabletMode, mobileMode, isRemote } = req.body ?? {};
       if (typeof name !== 'string' || !name.trim()) {
         return res.status(400).json({ error: 'invalid_name' });
       }
-      const result = DesktopProfilesService.Instance.createProfile(name, !!tabletMode, !!isRemote);
+      const result = DesktopProfilesService.Instance.createProfile(name, !!tabletMode, !!mobileMode, !!isRemote);
       if (!result.ok) {
         return res.status(409).json({ error: result.error });
       }
