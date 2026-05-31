@@ -1,0 +1,56 @@
+name: ftah_app
+description: "FT@Home — Pomodoro, Tiempo, Neo Notas y RSS para Windows, macOS, Linux y Android"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # ── Supabase (RSS + Pomodoro config) ──────────────────────────────────────
+  supabase_flutter: ^2.5.0
+
+  # ── HTTP (AEMET weather XML) ───────────────────────────────────────────────
+  http: ^1.2.2
+
+  # ── Storage ───────────────────────────────────────────────────────────────
+  path_provider:      ^2.1.5
+  path:               ^1.9.1
+  shared_preferences: ^2.2.3
+
+  # ── Pomodoro ──────────────────────────────────────────────────────────────
+  wakelock_plus: ^1.2.8
+  audioplayers:  ^6.1.0
+
+  # ── Neo Notas ─────────────────────────────────────────────────────────────
+  flutter_markdown:  ^0.7.7+1
+  google_fonts:      ^8.1.0
+  uuid:              ^4.5.3
+  animated_text_kit: ^4.2.2
+  pdf:               ^3.10.8
+  printing:          ^5.13.1
+  # Permissions (Android only — guarded by Platform.isAndroid at runtime)
+  permission_handler: ^12.0.1
+
+  # ── Desktop window management ─────────────────────────────────────────────
+  window_manager: ^0.4.3
+
+  # ── Links ─────────────────────────────────────────────────────────────────
+  url_launcher: ^6.3.1
+
+  # ── Utils ─────────────────────────────────────────────────────────────────
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/alarm.mp3
