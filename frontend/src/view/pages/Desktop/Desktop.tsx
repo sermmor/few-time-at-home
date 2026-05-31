@@ -458,7 +458,7 @@ export const Desktop = (): JSX.Element => {
               overflow:           'hidden',
               outline:            'none',
               backgroundColor:    activeWallpaper ? 'transparent' : wsColor(activeWs),
-              backgroundImage:    activeWallpaper ? `url(${activeWallpaper})` : 'none',
+              backgroundImage:    activeWallpaper ? `url("${activeWallpaper}")` : 'none',
               backgroundSize:     'cover',
               backgroundPosition: 'center',
             }}
@@ -472,7 +472,7 @@ export const Desktop = (): JSX.Element => {
                   inset:              0,
                   pointerEvents:      'none',   // never intercept clicks during animation
                   backgroundColor:    slide.wallpaper ? 'transparent' : slide.color,
-                  backgroundImage:    slide.wallpaper ? `url(${slide.wallpaper})` : 'none',
+                  backgroundImage:    slide.wallpaper ? `url("${slide.wallpaper}")` : 'none',
                   backgroundSize:     'cover',
                   backgroundPosition: 'center',
                   animation:          `${EXIT_ANIM[slide.dir]} ${TRANSITION_MS}ms ease forwards`,

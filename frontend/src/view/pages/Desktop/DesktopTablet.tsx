@@ -190,7 +190,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
           overflow:           'hidden',
           outline:            'none',
           backgroundColor:    activeWallpaper ? 'transparent' : wsColor(activeWs),
-          backgroundImage:    activeWallpaper ? `url(${activeWallpaper})` : 'none',
+          backgroundImage:    activeWallpaper ? `url("${activeWallpaper}")` : 'none',
           backgroundSize:     'cover',
           backgroundPosition: 'center',
         }}
@@ -205,7 +205,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
               inset:              0,
               pointerEvents:      'none',   // never intercept clicks during animation
               backgroundColor:    slide.wallpaper ? 'transparent' : slide.color,
-              backgroundImage:    slide.wallpaper ? `url(${slide.wallpaper})` : 'none',
+              backgroundImage:    slide.wallpaper ? `url("${slide.wallpaper}")` : 'none',
               backgroundSize:     'cover',
               backgroundPosition: 'center',
               animation:          `${EXIT_ANIM[slide.dir]} ${280}ms ease forwards`,

@@ -22,6 +22,7 @@
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { basename, dirname, join }  from 'path';
+import sharp                        from 'sharp';
 import { GoogleDriveService }       from './googleDrive.service';
 import { DesktopProfilesService }   from './desktopProfiles.service';
 import { CloudService }             from './cloud.service';
@@ -220,9 +221,9 @@ export class DesktopRemoteService {
    * Returns a deep-cloned config with the normalised paths (the original is
    * never mutated).
    */
-  static normalizeRemoteAssetPaths = (config: any): any => {
-    const REMOTE_DIR    = 'cloud/desktop-remote';
-    const absRemoteDir  = cloudToAbs(REMOTE_DIR);
+  static normalizeRemoteAssetPaths = async (config: any): Promise<any> => {
+    const REMOTE_DIR   = 'cloud/desktop-remote';
+    const absRemoteDir = cloudToAbs(REMOTE_DIR);
 
     if (!existsSync(absRemoteDir)) {
       mkdirSync(absRemoteDir, { recursive: true });
@@ -231,22 +232,36 @@ export class DesktopRemoteService {
 
     const normalized = JSON.parse(JSON.stringify(config)) as any;
 
-    const normalisePath = (cloudPath: string): string => {
+    const normalisePath = async (cloudPath: string): Promise<string> => {
       if (!cloudPath || cloudPath.startsWith(`${REMOTE_DIR}/`)) return cloudPath;
 
-      const filename   = basename(cloudPath);
-      const destRel    = `${REMOTE_DIR}/${filename}`;
-      const srcAbs     = cloudToAbs(cloudPath);
-      const destAbs    = cloudToAbs(destRel);
-
+      const srcAbs = cloudToAbs(cloudPath);
       if (!existsSync(srcAbs)) return cloudPath; // source missing — keep as-is
+
+      const filename = basename(cloudPath);
+      const ext      = filename.split('.').pop()?.toLowerCase() ?? '';
+      const isWebp   = ext === 'webp';
+
+      // WebP files are converted to JPG so the Flutter desktop app
+      // (Mac / Windows / Android) does not need WebP decoding support.
+      // The converted .jpg file is what gets stored locally and pushed to GDrive.
+      const destFilename = isWebp
+        ? `${filename.slice(0, -(ext.length + 1))}.jpg`
+        : filename;
+      const destRel = `${REMOTE_DIR}/${destFilename}`;
+      const destAbs = cloudToAbs(destRel);
 
       if (!existsSync(destAbs)) {
         try {
-          copyFileSync(srcAbs, destAbs);
-          console.log(`[DesktopRemote] Copied asset to remote dir: ${filename}`);
+          if (isWebp) {
+            await sharp(srcAbs).jpeg({ quality: 92 }).toFile(destAbs);
+            console.log(`[DesktopRemote] Converted WebP → JPG: ${destFilename}`);
+          } else {
+            copyFileSync(srcAbs, destAbs);
+            console.log(`[DesktopRemote] Copied asset to remote dir: ${destFilename}`);
+          }
         } catch (e: any) {
-          console.error(`[DesktopRemote] Failed to copy "${cloudPath}" → remote dir:`, e?.message);
+          console.error(`[DesktopRemote] Failed to process "${cloudPath}" → remote dir:`, e?.message);
           return cloudPath; // keep original on error
         }
       }
@@ -255,12 +270,16 @@ export class DesktopRemoteService {
     };
 
     if (Array.isArray(normalized.wallpapers)) {
-      normalized.wallpapers = (normalized.wallpapers as string[]).map(p => p ? normalisePath(p) : p);
+      normalized.wallpapers = await Promise.all(
+        (normalized.wallpapers as string[]).map(p => p ? normalisePath(p) : Promise.resolve(p)),
+      );
     }
 
     if (Array.isArray(normalized.images)) {
-      normalized.images = normalized.images.map((img: any) =>
-        img?.cloudPath ? { ...img, cloudPath: normalisePath(img.cloudPath) } : img,
+      normalized.images = await Promise.all(
+        normalized.images.map(async (img: any) =>
+          img?.cloudPath ? { ...img, cloudPath: await normalisePath(img.cloudPath) } : img,
+        ),
       );
     }
 

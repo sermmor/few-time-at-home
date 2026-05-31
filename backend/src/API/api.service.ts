@@ -1,5 +1,5 @@
 ﻿import express, {Express, Request, Response} from 'express';
-import { readFile, writeFile } from 'fs';
+import { createReadStream, existsSync, readFile, statSync, writeFile } from 'fs';
 import { QuoteListUtilities } from '../quote/quoteList';
 import { TelegramBot } from '../telegramBot/telegramBot';
 import { getUnfurl, getUnfurlWithCache, getUnfurlYoutubeImage } from '../unfurl/unfurl';
@@ -375,7 +375,7 @@ export class APIService {
 
   private configurationService() {
     // { type: string, content: JSON }
-    this.app.post(APIService.configurationEndpoint, (req, res) => {
+    this.app.post(APIService.configurationEndpoint, async (req, res) => {
         if (!req.body) {
             console.error("Received NO body JSON");
             res.send({response: 'OK'});
@@ -385,10 +385,11 @@ export class APIService {
 
             // For remote desktop profiles, copy any new asset that is not yet
             // in cloud/desktop-remote/ and rewrite its path before storing.
+            // WebP assets are converted to JPG during this step.
             if (type === 'desktop') {
               const profileSvc = DesktopProfilesService.Instance;
               if (profileSvc?.isProfileRemote(profileSvc.getActiveProfileName())) {
-                content = DesktopRemoteService.normalizeRemoteAssetPaths(content);
+                content = await DesktopRemoteService.normalizeRemoteAssetPaths(content);
               }
             }
 
@@ -1004,8 +1005,52 @@ export class APIService {
         return;
       }
 
-      const options: { root: string } = { root };
+      const lowerPath = fileRelativePath.toLowerCase();
 
+      // All image formats: bypass res.sendFile() entirely and stream directly.
+      //
+      // res.sendFile() (via the `send` npm module) can silently fail for
+      // filenames that contain spaces or parentheses, never sending a response
+      // so the browser stalls. Using createReadStream + explicit headers gives
+      // full control over MIME type and error handling for every image format.
+      const IMAGE_MIME: Record<string, string> = {
+        '.jpg':  'image/jpeg', '.jpeg': 'image/jpeg',
+        '.png':  'image/png',  '.gif':  'image/gif',
+        '.bmp':  'image/bmp',  '.ico':  'image/x-icon',
+        '.webp': 'image/webp', '.avif': 'image/avif',
+        '.svg':  'image/svg+xml',
+      };
+      const ext       = path.extname(lowerPath);
+      const mimeType  = IMAGE_MIME[ext];
+
+      if (mimeType) {
+        if (!existsSync(absoluteFilePath)) {
+          console.error(`[stream-file] Not found: ${absoluteFilePath}`);
+          res.status(404).json({ error: 'File not found' });
+          return;
+        }
+        try {
+          const { size } = statSync(absoluteFilePath);
+          res.setHeader('Content-Type',   mimeType);
+          res.setHeader('Content-Length', size);
+          res.setHeader('Cache-Control',  'public, max-age=86400');
+          const stream = createReadStream(absoluteFilePath);
+          stream.on('error', (e) => {
+            console.error(`[stream-file] Stream error "${fileRelativePath}":`, e);
+            if (!res.headersSent) res.status(500).end();
+            else res.end();
+          });
+          stream.pipe(res);
+        } catch (e: any) {
+          console.error(`[stream-file] Error "${fileRelativePath}":`, e?.message);
+          if (!res.headersSent) res.status(500).json({ error: 'Server error' });
+        }
+        return;
+      }
+
+      // Non-image files (audio, video, documents…): use sendFile with Range
+      // support so the media player can seek efficiently.
+      const options: { root: string } = { root };
       res.sendFile(fileRelativePath, options, (err) => {
         if (err) {
           console.error(`Error streaming file: ${err}`);
@@ -1693,7 +1738,7 @@ export class APIService {
       const currentConfig = svc.getProfileConfig(name);
       if (currentConfig) {
         try {
-          const normalized = DesktopRemoteService.normalizeRemoteAssetPaths(currentConfig);
+          const normalized = await DesktopRemoteService.normalizeRemoteAssetPaths(currentConfig);
           svc.saveProfileConfig(name, normalized as any);
           console.log(`[Desktop] Asset paths normalised for newly-remote profile "${name}"`);
         } catch (e: any) {

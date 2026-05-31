@@ -159,7 +159,7 @@ export const DesktopMobile: React.FC<DesktopMobileProps> = ({
             overflow:           'hidden',
             boxShadow:          '0 0 0 1.5px rgba(255,255,255,0.10), 0 16px 64px rgba(0,0,0,0.85)',
             backgroundColor:    activeWallpaper ? 'transparent' : wsColor(activeWs),
-            backgroundImage:    activeWallpaper ? `url(${activeWallpaper})` : 'none',
+            backgroundImage:    activeWallpaper ? `url("${activeWallpaper}")` : 'none',
             backgroundSize:     'cover',
             backgroundPosition: 'center top',
           }}
@@ -173,7 +173,7 @@ export const DesktopMobile: React.FC<DesktopMobileProps> = ({
                 inset:              0,
                 pointerEvents:      'none',
                 backgroundColor:    slide.wallpaper ? 'transparent' : slide.color,
-                backgroundImage:    slide.wallpaper ? `url(${slide.wallpaper})` : 'none',
+                backgroundImage:    slide.wallpaper ? `url("${slide.wallpaper}")` : 'none',
                 backgroundSize:     'cover',
                 backgroundPosition: 'center top',
                 animation:          `${EXIT_ANIM[slide.dir]} 280ms ease forwards`,
