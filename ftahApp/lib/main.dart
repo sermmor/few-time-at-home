@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:window_manager/window_manager.dart';
-import 'core/supabase_config.dart';
 import 'core/theme.dart';
 import 'screens/home_screen.dart';
+import 'screens/setup_screen.dart';
+import 'services/supabase_config_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,23 +38,21 @@ Future<void> main() async {
     );
   }
 
-  // ── Supabase ─────────────────────────────────────────────────────────────
-  await Supabase.initialize(
-    url:     SupabaseConfig.url,
-    anonKey: SupabaseConfig.anonKey,
-  );
+  // ── Supabase — load from stored credentials (if any) ─────────────────────
+  final configured = await SupabaseConfigService.initFromStorage();
 
-  runApp(const FtahApp());
+  runApp(FtahApp(showSetup: !configured));
 }
 
 class FtahApp extends StatelessWidget {
-  const FtahApp({super.key});
+  final bool showSetup;
+  const FtahApp({super.key, required this.showSetup});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
     title:                    'FT@Home',
     debugShowCheckedModeBanner: false,
     theme:                    buildCyberTheme(),
-    home:                     const HomeScreen(),
+    home:                     showSetup ? const SetupScreen() : const HomeScreen(),
   );
 }

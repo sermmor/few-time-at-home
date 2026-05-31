@@ -4,13 +4,14 @@ import 'pomodoro_screen.dart';
 import 'weather_screen.dart';
 import 'notes_screen.dart';
 import 'rss_screen.dart';
+import 'settings_screen.dart';
 
 // ── Navigation items ─────────────────────────────────────────────────────────
 const _items = [
-  _NavItem(label: 'POMODORO', icon: Icons.timer_outlined,    activeIcon: Icons.timer,          color: CyberColors.magenta),
-  _NavItem(label: 'TIEMPO',   icon: Icons.cloud_outlined,    activeIcon: Icons.cloud,           color: CyberColors.amber),
-  _NavItem(label: 'NEO NOTAS',icon: Icons.description_outlined, activeIcon: Icons.description,  color: CyberColors.green),
-  _NavItem(label: 'RSS',      icon: Icons.rss_feed_outlined, activeIcon: Icons.rss_feed,        color: CyberColors.orange),
+  _NavItem(label: 'POMODORO', icon: Icons.timer_outlined,       activeIcon: Icons.timer,          color: CyberColors.magenta),
+  _NavItem(label: 'TIEMPO',   icon: Icons.cloud_outlined,       activeIcon: Icons.cloud,           color: CyberColors.amber),
+  _NavItem(label: 'NEO NOTAS',icon: Icons.description_outlined, activeIcon: Icons.description,     color: CyberColors.green),
+  _NavItem(label: 'RSS',      icon: Icons.rss_feed_outlined,    activeIcon: Icons.rss_feed,        color: CyberColors.orange),
 ];
 
 class _NavItem {
@@ -36,7 +37,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
 
-  // Screens kept alive with IndexedStack
   static const _screens = [
     PomodoroScreen(),
     WeatherScreen(),
@@ -44,20 +44,29 @@ class _HomeScreenState extends State<HomeScreen> {
     RssScreen(),
   ];
 
+  void _openSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final width    = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 600;
+    final isDesktop = MediaQuery.of(context).size.width >= 600;
 
-    return isDesktop ? _DesktopLayout(
-      index:    _index,
-      onSelect: (i) => setState(() => _index = i),
-      child:    IndexedStack(index: _index, children: _screens),
-    ) : _MobileLayout(
-      index:    _index,
-      onSelect: (i) => setState(() => _index = i),
-      child:    IndexedStack(index: _index, children: _screens),
-    );
+    return isDesktop
+        ? _DesktopLayout(
+            index:       _index,
+            onSelect:    (i) => setState(() => _index = i),
+            onSettings:  _openSettings,
+            child:       IndexedStack(index: _index, children: _screens),
+          )
+        : _MobileLayout(
+            index:       _index,
+            onSelect:    (i) => setState(() => _index = i),
+            onSettings:  _openSettings,
+            child:       IndexedStack(index: _index, children: _screens),
+          );
   }
 }
 
@@ -66,11 +75,13 @@ class _DesktopLayout extends StatelessWidget {
   final int      index;
   final Widget   child;
   final ValueChanged<int> onSelect;
+  final VoidCallback onSettings;
 
   const _DesktopLayout({
     required this.index,
     required this.child,
     required this.onSelect,
+    required this.onSettings,
   });
 
   @override
@@ -94,22 +105,26 @@ class _DesktopLayout extends StatelessWidget {
               labelType:        NavigationRailLabelType.all,
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  children: [
-                    const Icon(Icons.home_outlined, color: CyberColors.cyan, size: 28),
-                    const SizedBox(height: 4),
-                    Text(
-                      'FT@H',
-                      style: const TextStyle(
-                        fontFamily:    'monospace',
-                        fontSize:       9,
-                        letterSpacing:  1.5,
-                        color:          CyberColors.cyan,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(height: 1, width: 40, color: CyberColors.border),
-                  ],
+                child: Column(children: [
+                  const Icon(Icons.home_outlined, color: CyberColors.cyan, size: 28),
+                  const SizedBox(height: 4),
+                  const Text('FT@H', style: TextStyle(
+                    fontFamily: 'monospace', fontSize: 9,
+                    letterSpacing: 1.5, color: CyberColors.cyan,
+                  )),
+                  const SizedBox(height: 16),
+                  Container(height: 1, width: 40, color: CyberColors.border),
+                ]),
+              ),
+              trailing: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Tooltip(
+                  message: 'Ajustes',
+                  child: IconButton(
+                    icon: const Icon(Icons.settings_outlined, color: CyberColors.gray),
+                    onPressed: onSettings,
+                    iconSize: 22,
+                  ),
                 ),
               ),
               destinations: _items.map((item) {
@@ -120,7 +135,7 @@ class _DesktopLayout extends StatelessWidget {
                       color: selected ? item.color : CyberColors.gray),
                   selectedIcon: Icon(item.activeIcon,
                       color: item.color,
-                      shadows: [Shadow(color: item.color.withOpacity(0.6), blurRadius: 8)]),
+                      shadows: [Shadow(color: item.color.withValues(alpha: 0.6), blurRadius: 8)]),
                   label: Text(
                     item.label,
                     style: TextStyle(
@@ -134,7 +149,6 @@ class _DesktopLayout extends StatelessWidget {
               }).toList(),
             ),
           ),
-
           // ── Content ───────────────────────────────────────────────────────
           Expanded(child: child),
         ],
@@ -143,16 +157,18 @@ class _DesktopLayout extends StatelessWidget {
   }
 }
 
-// ── Mobile layout: BottomNavigationBar (identical to mobileApp) ──────────────
+// ── Mobile layout: BottomNavigationBar + settings in AppBar ──────────────────
 class _MobileLayout extends StatelessWidget {
   final int      index;
   final Widget   child;
   final ValueChanged<int> onSelect;
+  final VoidCallback onSettings;
 
   const _MobileLayout({
     required this.index,
     required this.child,
     required this.onSelect,
+    required this.onSettings,
   });
 
   @override
@@ -161,7 +177,26 @@ class _MobileLayout extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: CyberColors.bg,
-      body:            child,
+      // Thin top bar with just the settings icon for mobile
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(36),
+        child: AppBar(
+          backgroundColor: CyberColors.bgPanel,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings_outlined,
+                  color: CyberColors.gray, size: 18),
+              onPressed: onSettings,
+              tooltip: 'Ajustes',
+              padding: EdgeInsets.zero,
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+      ),
+      body: child,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color:  CyberColors.bgPanel,
@@ -177,17 +212,17 @@ class _MobileLayout extends StatelessWidget {
               icon: Icon(item.icon,
                   color: selected ? item.color : CyberColors.gray,
                   shadows: selected
-                      ? [Shadow(color: item.color.withOpacity(0.6), blurRadius: 8)]
+                      ? [Shadow(color: item.color.withValues(alpha: 0.6), blurRadius: 8)]
                       : null),
               label: item.label,
             );
           }).toList(),
-          selectedItemColor:   activeColor,
-          unselectedItemColor: CyberColors.gray,
-          backgroundColor:     Colors.transparent,
-          elevation:           0,
-          type:                BottomNavigationBarType.fixed,
-          selectedLabelStyle:  const TextStyle(
+          selectedItemColor:    activeColor,
+          unselectedItemColor:  CyberColors.gray,
+          backgroundColor:      Colors.transparent,
+          elevation:            0,
+          type:                 BottomNavigationBarType.fixed,
+          selectedLabelStyle:   const TextStyle(
               fontFamily: 'monospace', fontSize: 9, letterSpacing: 1),
           unselectedLabelStyle: const TextStyle(
               fontFamily: 'monospace', fontSize: 9, letterSpacing: 1),
