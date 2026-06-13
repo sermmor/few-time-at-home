@@ -32,3 +32,7 @@ src/configuration.json
 # ── Sensitive credentials ─────────────────────────────────────────────────────
 # Firebase Admin SDK service account key (backend)
 backend/data/firebase-service-account.json
+
+# Local runtime state (e.g. whether the Python `tapo` lib install was attempted).
+# Written by the backend; must NOT be committed.
+vars.json

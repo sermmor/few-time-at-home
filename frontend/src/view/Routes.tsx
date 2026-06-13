@@ -2,6 +2,7 @@ import { lazy } from 'react';
 
 // Each page is loaded only when the user first navigates to it.
 // Named-export modules are re-wrapped as default exports for React.lazy.
+const Auto                  = lazy(() => import('./pages/Auto/Auto').then(m => ({ default: m.Auto })));
 const Bookmarks             = lazy(() => import('./pages/Bookmarks/Bookmarks').then(m => ({ default: m.Bookmarks })));
 const Cloud                 = lazy(() => import('./pages/Cloud/Cloud').then(m => ({ default: m.Cloud })));
 const ConfigurationComponent = lazy(() => import('./pages/Configuration/Configuration').then(m => ({ default: m.ConfigurationComponent })));
@@ -136,6 +137,12 @@ export const routesFTAH: RouteFTAHElement[] = [
     path: '/cloud/mp3-converter',
     group: 'Cloud',
     element: <Mp3Converter/>,
+  },
+  {
+    name: 'Auto',
+    path: '/cloud/auto',
+    group: 'Cloud',
+    element: <Auto/>,
   },
   {
     name: 'Video Player',

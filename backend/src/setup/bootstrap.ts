@@ -25,8 +25,13 @@ import { WebSocketsServerService } from '../webSockets/webSocketsServer.service'
 import { AemetService }           from '../API/aemet.service';
 import { GoogleDriveService }     from '../API/googleDrive.service';
 import { DesktopRemoteService }   from '../API/desktopRemote.service';
+import { ensurePythonTapo }       from '../smartHome/ensurePythonTapo';
 
 export const bootstrapApp = (): void => {
+  // Best-effort: install the Python `tapo` library if needed (for the Auto page).
+  // Non-blocking and never throws — Tapo just stays unavailable if it can't.
+  ensurePythonTapo();
+
   readFile('keys.json', (err, data) => {
     if (err) throw err;
     const keyData = JSON.parse(data.toString());

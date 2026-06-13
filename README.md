@@ -377,3 +377,156 @@ Every Monday 12:00 (+ once on startup)
             ├─ Finds or creates "Few_time_at_home_backups" folder
             └─ Uploads the .7z via Google Drive API v3 (OAuth 2.0)
 ```
+
+---
+
+# Página "Auto" — Controlar dispositivos inteligentes
+
+La sección **Cloud → Auto** del frontend permite encender y apagar tus enchufes
+inteligentes y ajustar el encendido, brillo, calidez (temperatura de color) y
+color de tu bombilla, desde cualquier portátil o tablet de tu red.
+
+El backend habla **directamente** con cada marca a través de su propia librería,
+sin ningún hub intermedio:
+
+| Marca (app)        | Librería            | Cómo conecta                          |
+|--------------------|---------------------|---------------------------------------|
+| SmartLife / Tuya   | `tuyapi`            | Red local (necesita *local key*)      |
+| TP-Link Tapo       | `tapo` (helper Python) | Red local (login de tu cuenta Tapo; soporta KLAP v2 / TPAP). Requiere Python — ver más abajo |
+| eWeLink / Sonoff   | `ewelink-api-next`  | Nube de eWeLink (cuenta + credenciales de app) |
+
+Todo se configura en la sección `smart_home` de `backend/keys.json` (que está en
+`.gitignore`, así que tus credenciales nunca se suben al repo).
+
+## 1 — Instalar dependencias
+
+```bash
+cd backend
+npm install
+```
+
+(Esto instala `tuyapi` y `ewelink-api-next`, ya añadidas al `package.json`.)
+
+### Tapo necesita Python (automático y opcional)
+
+El firmware reciente de Tapo usa cifrado **KLAP v2 / TPAP**, que ninguna librería
+Node mantenida soporta (devuelven 403). Por eso el control de Tapo se hace a
+través de un pequeño helper en Python con la librería **`tapo`** (Python 3.10+;
+trae *wheels* precompiladas para Windows, macOS y Linux incluida Raspberry Pi
+aarch64).
+
+**No tienes que instalar nada a mano**: al arrancar el backend, si hay
+dispositivos Tapo configurados y detecta Python, instala la librería `tapo`
+automáticamente (probando `pip`, `pip --user` y `--break-system-packages` para
+cubrir entornos como la Raspberry Pi con PEP 668). El estado de ese intento se
+guarda en un fichero **`vars.json`** en la raíz del proyecto, que está en
+`.gitignore` (así no toca el `package-lock.json` ni se sube al repo). Solo se
+intenta una vez; borra `vars.json` si quieres forzar un nuevo intento.
+
+Ese paso es **best-effort y nunca rompe nada**:
+
+- Si en el equipo no hay Python, o falla la instalación, el backend arranca
+  igual; los dispositivos Tapo simplemente **no aparecen** en la página Auto y
+  el resto de la aplicación funciona con normalidad.
+- Así puedes ejecutar Few_Time@Home en un Mac o Windows sin Python sin problemas;
+  solo perderás el control de los Tapo en ese equipo. Tuya y eWeLink no necesitan
+  Python.
+
+Si quisieras instalarlo manualmente: `pip install tapo` (requiere Python 3.10+).
+
+## 2 — Configurar `keys.json`
+
+Añade una sección `smart_home` con los bloques de las marcas que uses. Todos los
+bloques son opcionales: si omites uno, esa marca simplemente no aparece.
+
+```jsonc
+"smart_home": {
+  "tuya": {
+    "devices": [
+      { "name": "Bombilla salón", "type": "light",  "id": "bfXXXX", "key": "LOCALKEY", "ip": "192.168.1.50", "version": "3.3" },
+      { "name": "Enchufe SmartLife", "type": "switch", "id": "bfYYYY", "key": "LOCALKEY2", "ip": "192.168.1.51", "version": "3.3" }
+    ]
+  },
+  "tapo": {
+    "email": "tu@email.com",
+    "password": "********",
+    "devices": [ { "name": "Enchufe Tapo", "type": "switch", "ip": "192.168.1.52" } ]
+  },
+  "ewelink": {
+    "email": "tu@email.com",
+    "password": "********",
+    "region": "eu",
+    "appId": "APP_ID",
+    "appSecret": "APP_SECRET",
+    "devices": [ { "name": "Enchufe eWeLink", "type": "switch", "deviceId": "1000abcd" } ]
+  }
+}
+```
+
+### Cómo obtener cada dato
+
+**Tuya / SmartLife** — necesitas, por cada dispositivo, su `id`, su `key` (*local
+key*) y su `ip` en la red:
+
+1. Crea una cuenta gratis en el [Tuya IoT Platform](https://iot.tuya.com/) y un
+   *Cloud Project*.
+2. En *Devices → Link App Account*, vincula tu cuenta de SmartLife (escaneando el
+   QR desde la app SmartLife → Yo → ajustes).
+3. En la lista de dispositivos verás el **Device ID** y la **Local Key** de cada
+   uno.
+   Para obtener la Local Key: Tuya IoT Platform → Cloud → API Explorer → categoría Device Management → Query Device Details (GET /v1.0/devices/{device_id}) → metes el Device ID → en la respuesta JSON aparece el campo local_key.
+4. La **IP** la ves en tu router o en la propia app SmartLife. (Conviene fijar la
+   IP del dispositivo en el router para que no cambie.)
+5. `version` suele ser `"3.3"`; algunos dispositivos nuevos usan `"3.4"`.
+
+> Si un enchufe/bombilla Tuya no responde con los valores por defecto, puedes
+> ajustar los códigos DPS por dispositivo con un bloque `"dps"` opcional
+> (`power`, `mode`, `brightness`, `colorTemp`, `color`, `brightnessMin`,
+> `brightnessMax`). Los valores por defecto cubren la mayoría de bombillas Tuya
+> v3.3 (power=20, brightness=22 [10-1000], colorTemp=23, color=24) y enchufes
+> (power=1).
+
+**Tapo** — solo necesitas el **email y la contraseña de tu cuenta Tapo** y la
+**IP** de cada dispositivo (fíjala en el router). No hace falta nada más.
+
+**eWeLink** — usa la nube oficial, así que necesitas:
+
+1. El **email y contraseña** de tu cuenta eWeLink.
+2. Un **App ID** y **App Secret** del [portal de desarrolladores de eWeLink](https://dev.ewelink.cc/)
+   (crea una cuenta de desarrollador y una app).
+3. El **deviceId** de cada enchufe (en la app eWeLink → dispositivo → ajustes →
+   información del dispositivo).
+4. La `region` de tu cuenta (`eu`, `us`, `as` o `cn`).
+
+## 3 — Usar la página
+
+1. Reinicia el backend (`npm start`).
+2. En la web entra en **Cloud → Auto**. Verás una tarjeta por dispositivo:
+   - **Enchufes**: interruptor de encendido/apagado.
+   - **Bombilla**: interruptor + deslizadores de brillo y calidez + selector de
+     color.
+3. El botón **actualizar** (↻) relee el estado de todos los dispositivos.
+
+## Notas y resolución de problemas
+
+- **"Sin dispositivos configurados"**: falta la sección `smart_home` en
+  `keys.json` (o todos los bloques están vacíos).
+- **Un dispositivo aparece como "no alcanzable"**:
+  - *Tuya*: revisa `id`, `key` (local key) e `ip`; deben coincidir y el
+    dispositivo debe estar en la misma red. Si la local key cambió (al re-emparejar
+    el dispositivo), vuelve a copiarla del Tuya IoT Platform.
+  - *Tapo*: primero, ¿está Python con la librería `tapo` instalada? Sin ella los
+    Tapo no aparecen (a propósito; el backend intenta instalarla sola al
+    arrancar). Si está y aun así no responden, revisa email/contraseña (las de tu
+    cuenta TP-Link/Tapo) e IP; el dispositivo debe estar encendido y accesible en
+    la red. La librería `tapo` soporta el cifrado actual (KLAP v2 / TPAP).
+  - *eWeLink*: revisa email/contraseña, `appId`/`appSecret`, `region` y
+    `deviceId`.
+- **El control de la bombilla Tuya no hace lo esperado** (no cambia color o
+  brillo): tu modelo usa códigos DPS distintos — añade el bloque `"dps"` al
+  dispositivo en `keys.json` (ver arriba).
+- **eWeLink es el más sensible**: su API cambia con cierta frecuencia. Si falla,
+  revisa el README actual de `ewelink-api-next` por si cambiaron los nombres de
+  los métodos.
+- Esta función controla **enchufes** (on/off) y **una bombilla** (on/off + brillo
+  + calidez + color). Otros tipos de dispositivos no están contemplados.

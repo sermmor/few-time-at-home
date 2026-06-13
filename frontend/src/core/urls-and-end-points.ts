@@ -26,6 +26,16 @@ export const synchronizeDownloadEndpoint = (): string => `${getUrlApi()}/synchro
 export const synchronizeUploadEndpoint = (): string => `${getUrlApi()}/synchronize/upload`;
 export const backgroundImageEndpoint = (): string => `${getUrlApi()}/background`;
 
+export type SmartHomeEndpointType = 'status' | 'devices' | 'turnOn' | 'turnOff' | 'setLight';
+const smartHomeEndpointList = {
+  'status':   '/smart/status',
+  'devices':  '/smart/devices',
+  'turnOn':   '/smart/device/turn-on',
+  'turnOff':  '/smart/device/turn-off',
+  'setLight': '/smart/device/light',
+};
+export const getSmartHomeEndpoint = (typeEndpoint: SmartHomeEndpointType): string => `${getUrlApi()}${smartHomeEndpointList[typeEndpoint]}`;
+
 export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'searchInFolderDeep' | 'deleteFileOrFolder' | 'zipFolder';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',

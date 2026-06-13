@@ -37,6 +37,7 @@ import * as os from 'os';
 import * as http from 'http';
 import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
+import { SmartHomeService } from './smartHome.service';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -178,6 +179,13 @@ export class APIService {
     makeRemote: '/desktop/profile/make-remote',
     delete:     '/desktop/profile',           // DELETE /desktop/profile/:name
   };
+  static smartHomeEndpoint = {
+    status:   '/smart/status',
+    devices:  '/smart/devices',
+    turnOn:   '/smart/device/turn-on',
+    turnOff:  '/smart/device/turn-off',
+    setLight: '/smart/device/light',
+  };
 
   app: Express;
   private activeSessions = new Set<string>();
@@ -235,6 +243,7 @@ export class APIService {
     this.audioEditorService();
     this.imageEditorService();
     this.youtubePageService();
+    this.smartHomeService();
 
     this.app.listen(ConfigurationService.Instance.apiPort, () => {
         console.log("> Server ready!");
@@ -1988,6 +1997,47 @@ export class APIService {
     // GET /youtube-page/live — returns { videoId }
     this.app.get(APIService.youtubePageEndpoint.liveGet, (_req: Request, res: Response) => {
       res.json({ videoId: getLiveVideoId() });
+    });
+  }
+
+  private smartHomeService() {
+    const smartHome = new SmartHomeService();
+
+    // Connection / configuration status (used by the Auto page to show banners).
+    this.app.get(APIService.smartHomeEndpoint.status, (_req: Request, res: Response) => {
+      smartHome.ping().then(status => res.send(status));
+    });
+
+    // List all switch + light devices discovered by Home Assistant.
+    this.app.get(APIService.smartHomeEndpoint.devices, (_req: Request, res: Response) => {
+      smartHome.listDevices()
+        .then(devices => res.send({ devices }))
+        .catch(e => res.status(502).send({ devices: [], error: `${e}` }));
+    });
+
+    // body: { entityId }
+    this.app.post(APIService.smartHomeEndpoint.turnOn, (req: Request, res: Response) => {
+      if (!req.body?.entityId) { res.status(400).send({ ok: false, error: 'entityId requerido' }); return; }
+      smartHome.turnOn(req.body.entityId)
+        .then(() => res.send({ ok: true }))
+        .catch(e => res.status(502).send({ ok: false, error: `${e}` }));
+    });
+
+    // body: { entityId }
+    this.app.post(APIService.smartHomeEndpoint.turnOff, (req: Request, res: Response) => {
+      if (!req.body?.entityId) { res.status(400).send({ ok: false, error: 'entityId requerido' }); return; }
+      smartHome.turnOff(req.body.entityId)
+        .then(() => res.send({ ok: true }))
+        .catch(e => res.status(502).send({ ok: false, error: `${e}` }));
+    });
+
+    // body: { entityId, brightnessPct?, colorTempKelvin?, rgbColor? }
+    this.app.post(APIService.smartHomeEndpoint.setLight, (req: Request, res: Response) => {
+      if (!req.body?.entityId) { res.status(400).send({ ok: false, error: 'entityId requerido' }); return; }
+      const { entityId, brightnessPct, colorTempKelvin, rgbColor } = req.body;
+      smartHome.setLight(entityId, { brightnessPct, colorTempKelvin, rgbColor })
+        .then(() => res.send({ ok: true }))
+        .catch(e => res.status(502).send({ ok: false, error: `${e}` }));
     });
   }
 }
