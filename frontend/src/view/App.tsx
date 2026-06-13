@@ -8,6 +8,7 @@ import { WebSocketClientService } from '../service/webSocketService/webSocketCli
 import { NotificationsActions } from '../core/actions/notifications';
 import { BackgroundActions } from '../core/actions/background';
 import { CyberpunkLoadingScreen } from './CyberpunkLoadingScreen';
+import { ScreenSaver } from './ScreenSaver';
 import { SetupWizard } from './pages/Setup/SetupWizard';
 import { SetupActions } from '../core/actions/setup';
 import { LoginPage } from './pages/Login/LoginPage';
@@ -338,5 +339,6 @@ export const App = () => {
         <Box sx={appContainerStyle}>
           <AllRoutes />
         </Box>
+        <ScreenSaver />
     </>);
 }
