@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import { WebSocketClientService } from '../../../service/webSocketService/webSocketClient.service';
@@ -205,7 +204,12 @@ export const Alexa = (): JSX.Element => {
             backgroundColor: '#1a1a2e', border: '2px solid #3a3a6a',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <GraphicEqIcon sx={{ fontSize: '4rem', color: '#1db954' }} />
+            <Box
+              component="img"
+              src="/GraphicEqAnimation.gif"
+              alt="Reproduciendo música"
+              sx={{ width: '6rem', height: '6rem', objectFit: 'contain' }}
+            />
           </Box>
           <Typography variant="h6" sx={{
             fontWeight: 400, textAlign: 'center',
