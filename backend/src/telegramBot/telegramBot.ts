@@ -901,6 +901,12 @@ export class TelegramBot {
 
     this.launchAlertsToTelegram();
 
+    // Errores dentro de los handlers del bot: registrar en vez de propagar.
+    this.bot!.catch((err: any) => {
+      console.error(`> Telegram handler error: ${err?.code ?? ''} ${err?.message ?? err}`
+        .replace(/bot\d+:[\w-]+/g, 'bot<token>'));
+    });
+
     // Descarta updates acumulados mientras la app estaba apagada.
     // Sin esto, el bot procesa todos los mensajes viejos antes de
     // llegar al /login recién enviado, causando un retraso considerable.
@@ -996,11 +1002,28 @@ export class TelegramBot {
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   private sendMessages = (ctx: TelegrafContext, msgs: string[]) => {
-    msgs.forEach((m, i) => setTimeout(() => ctx.reply(m), i * 1000));
+    msgs.forEach((m, i) => setTimeout(() => this.safeReply(ctx, m, 0), i * 1000));
     setTimeout(
-      () => ctx.reply(`✅ Fin (${msgs.length} mensajes)`),
+      () => this.safeReply(ctx, `✅ Fin (${msgs.length} mensajes)`, 0),
       msgs.length * 1000
     );
+  };
+
+  /**
+   * ctx.reply() con captura de errores y reintentos.
+   * Un timeout de red hacia Telegram no debe tumbar el proceso ni perder
+   * mensajes importantes (alertas, cumpleaños…).
+   */
+  private safeReply = (ctx: TelegrafContext, message: string, retries = 3, delayMs = 10000): void => {
+    ctx.reply(message).catch((err: any) => {
+      const code = err?.code ?? err?.errno ?? 'unknown';
+      if (retries > 0) {
+        console.warn(`> Telegram reply failed (${code}), retrying in ${delayMs / 1000}s… (${retries} left)`);
+        setTimeout(() => this.safeReply(ctx, message, retries - 1, delayMs * 3), delayMs);
+      } else {
+        console.error(`> Telegram reply failed (${code}), giving up.`);
+      }
+    });
   };
 
   private chunked = <T>(arr: T[], size: number): T[][] => {
@@ -1013,7 +1036,7 @@ export class TelegramBot {
 
   sendNotepadTextToTelegram = (text: string): boolean => {
     if (!this.context) return false;
-    this.context.reply(text);
+    this.safeReply(this.context, text);
     return true;
   };
 
@@ -1029,7 +1052,7 @@ export class TelegramBot {
 
   public sendMessageToTelegram = (message: string) => {
     if (this.context) {
-      this.context.reply(message);
+      this.safeReply(this.context, message);
       AlertListService.Instance.clear();
     }
   };
