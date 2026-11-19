@@ -1,6 +1,7 @@
 import ConfigData from '../../configuration.json';
+import { resolveBackendHost } from '../../service/configuration/configuration.service';
 
-const BASE_URL = `http://${ConfigData.ip}:${ConfigData.port}`;
+const BASE_URL = `http://${resolveBackendHost(ConfigData.ip)}:${ConfigData.port}`;
 
 export interface SetupWizardData {
   cloudRootPath:     string;

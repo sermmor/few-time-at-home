@@ -4,6 +4,8 @@ import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
 import { WebSocketClientService } from '../../../service/webSocketService/webSocketClient.service';
 import { alexaStateEndpoint } from '../../../core/urls-and-end-points';
+import { isAndroidDevice, useKeepScreenAwake } from '../../../core/hooks/useKeepScreenAwake';
+import { toReachableBackendUrl } from '../../../service/configuration/configuration.service';
 
 // ── State shape (mirrors AlexaLiveState on the backend) ──────────────────────
 interface AlexaLiveState {
@@ -27,6 +29,12 @@ export const Alexa = (): JSX.Element => {
   const audioRef = React.useRef<HTMLAudioElement>(null);
 
   const [liveState, setLiveState] = React.useState<AlexaLiveState | null>(null);
+
+  // ── Pantalla siempre encendida en móviles/tablets Android (solo música) ──────
+  // Con música la pantalla no muestra nada que se mueva, así que el ahorro de
+  // energía la apaga y la emisión falla. Con vídeo el propio navegador ya la
+  // mantiene encendida. En el ordenador no hace falta.
+  const keepAwakeMode = useKeepScreenAwake(isAndroidDevice() && liveState?.type === 'audio');
 
   // ── URL tracking (ref, not el.src, to avoid browser URL-normalisation diffs) ─
   const currentUrlRef = React.useRef<string>('');
@@ -60,7 +68,12 @@ export const Alexa = (): JSX.Element => {
   };
 
   // ── Core: apply a received live state to the player elements ─────────────────
-  const applyState = React.useCallback((state: AlexaLiveState) => {
+  const applyState = React.useCallback((receivedState: AlexaLiveState) => {
+    // El emisor puede mandar una URL con "localhost" (si su configuration.json
+    // usa localhost); desde otro dispositivo hay que apuntar al host real.
+    const state: AlexaLiveState = receivedState.url
+      ? { ...receivedState, url: toReachableBackendUrl(receivedState.url) }
+      : receivedState;
     // ── STOP ──────────────────────────────────────────────────────────────────
     if (!state.type) {
       // Cancel any in-flight canplay listeners so they don't start old content.
@@ -160,9 +173,12 @@ export const Alexa = (): JSX.Element => {
   return (
     <Box sx={{
       position:        'relative',
+      zIndex:          1, // por encima del vídeo de "pantalla encendida" (z-index 0)
       width:           '100vw',
       height:          '100vh',
-      backgroundColor: '#000',
+      // En modo 'video' el fondo negro lo pone el vídeo de "pantalla encendida"
+      // (por detrás): tiene que verse para que Chrome no apague la pantalla.
+      backgroundColor: keepAwakeMode === 'video' ? 'transparent' : '#000',
       display:         'flex',
       flexDirection:   'column',
       alignItems:      'center',
@@ -241,6 +257,22 @@ export const Alexa = (): JSX.Element => {
             dispositivo de la red.
           </Typography>
         </Box>
+      )}
+
+      {/* ── Indicador discreto: la pantalla se mantiene encendida ── */}
+      {keepAwakeMode !== 'off' && (
+        <Typography
+          variant="caption"
+          title={keepAwakeMode === 'wakeLock'
+            ? 'Pantalla siempre encendida (Wake Lock)'
+            : 'Pantalla siempre encendida (vídeo de respaldo)'}
+          sx={{
+            position: 'absolute', right: '0.5rem', bottom: '0.25rem',
+            color: 'rgba(255,255,255,0.18)', userSelect: 'none', zIndex: 5,
+          }}
+        >
+          ☀
+        </Typography>
       )}
 
       {/* ── Tap-to-activate overlay ───────────────────────────────────────────

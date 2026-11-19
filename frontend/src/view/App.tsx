@@ -3,7 +3,7 @@ import { Box, CssBaseline, SxProps, Theme } from '@mui/material';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AppMenubar } from './molecules/AppMenubar/AppMenubar';
 import { routesFTAH } from './Routes';
-import { ConfigurationService } from '../service/configuration/configuration.service';
+import { ConfigurationService, resolveBackendHost } from '../service/configuration/configuration.service';
 import { WebSocketClientService } from '../service/webSocketService/webSocketClient.service';
 import { NotificationsActions } from '../core/actions/notifications';
 import { BackgroundActions } from '../core/actions/background';
@@ -205,7 +205,7 @@ const AllRoutes = () => {
   // the server switched to broadcasting on it, leaving VideoPlayerBar's
   // subscription stranded on the original (now-silent) connection.
   if (!WebSocketClientService.Instance) {
-    new WebSocketClientService(`ws://${ConfigData.ip}:${ConfigData.webSocketPort}/ws`, () => undefined);
+    new WebSocketClientService(`ws://${resolveBackendHost(ConfigData.ip)}:${ConfigData.webSocketPort}/ws`, () => undefined);
   }
 
   return <BrowserRouter>
@@ -234,7 +234,7 @@ const AllRoutes = () => {
 // is always available before any action (auth, background, etc.) is called.
 new ConfigurationService(ConfigData.ip, ConfigData.port, ConfigData.webSocketPort, ConfigData.isUsingMocks);
 
-const READY_URL = `http://${ConfigData.ip}:${ConfigData.port}/ready`;
+const READY_URL = `http://${resolveBackendHost(ConfigData.ip)}:${ConfigData.port}/ready`;
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS  = 3000;
 

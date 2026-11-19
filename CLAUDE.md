@@ -34,6 +34,14 @@ home control, and companion desktop/mobile apps.
     cd frontend && npm run start
 
 - Ports: backend API **3001**, websocket **3002**, frontend dev server **7000**.
+- The frontend finds the backend through the gitignored
+  `frontend/src/configuration.json` (`ip`, `port`, `webSocketPort`). If `ip` is a
+  loopback host (`localhost`) and the page was opened from another host (a phone
+  at `http://<LAN-IP>:7000`), `resolveBackendHost` in
+  `service/configuration/configuration.service.ts` uses the page's host instead.
+  Build backend URLs through it, never from `ConfigData.ip` directly. Absolute
+  backend URLs that arrive from another device (e.g. the media `url` the sender
+  posts to `/alexa/state`) go through `toReachableBackendUrl`.
 
 - Backend compiles to `backend/build/` (`rootDir: src`). **Do not add loose `.js`
   files under `backend/src`** — they break `npx tsc` (TS5055/TS6059); put scripts
@@ -109,6 +117,22 @@ in several Desktop widgets. Judge your change by "no **new** errors".
   pages (e.g. Desktop) hardcode Spanish strings; follow the file you are in.
 - `fetch-utils` returns the supplied **mock** when a request fails, so a broken
   endpoint looks like "fake data" in the UI rather than an error.
+- `/alexa` (hidden, fullscreen) is the live-cast **receiver**, usually left open on
+  an Android phone wired to a speaker. While it plays **music** on Android (not
+  video: video already keeps the screen on), it keeps the screen on through
+  `core/hooks/useKeepScreenAwake.ts`. It uses the Screen Wake Lock API when the
+  page is a secure context. Over plain-http LAN that API does not exist, so it
+  falls back to a muted, looping `public/keep-awake.{webm,mp4}` video. Chrome
+  ignores tiny or transparent videos, so this one is a full-screen, opaque black
+  video on z-index 0, used as the page background. The page content sits above it
+  (`zIndex: 1`) and its background turns transparent in that mode. A faint ☀ in
+  the corner means it is active. A sure fix on the phone is the Chrome flag
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure` (add the
+  `http://<IP>:7000` origin), which enables the real Wake Lock API. The browser pane runs as a background page,
+  so it pauses that video: check the real behaviour on a phone.
+- The browser pane blocks a LAN-IP page from calling `:3001`
+  (`ERR_BLOCKED_BY_CLIENT`). To check LAN access, curl the backend on the LAN IP
+  with an `Origin` header instead.
 
 ## Non-negotiable rules
 
