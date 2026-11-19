@@ -28,7 +28,10 @@ registered in the central router `backend/src/API/api.service.ts`.
    `this.xxxService()` calls are made (around the service-init block).
 4. Keep response shapes in sync with the frontend `data-model` + action files.
 5. If the feature can notify via Telegram, follow `telegram-guard.md`.
-6. Comments in Spanish.
+6. If it persists a JSON file under `data/`, follow `data-files-and-backups.md`
+   (weekly backup `filePairs`, `reloadFromDisk()` in `SynchronizeService`,
+   lazy reads, optional fields for old files).
+7. Comments in Spanish.
 
 ## RSS sources & background workers
 - RSS source modules live in `src/blogRSS/`, `src/channelMediaRSS/`,

@@ -5,8 +5,9 @@ description: Add or modify a page in the Few_Time@Home React frontend — route 
 
 # Frontend page pattern
 
-The frontend is React + MUI + TypeScript (CRA). UI text is Spanish; comments are
-Spanish.
+The frontend is React + MUI + TypeScript, built with Vite (dev server on port
+7000). UI text is Spanish; comments are Spanish. Some pages use `react-i18next`
+(`src/locales/es.json` + `en.json`, add keys to both); others hardcode Spanish.
 
 ## Files involved per feature
 - `src/view/pages/<Name>/<Name>.tsx` — the page component (named export).

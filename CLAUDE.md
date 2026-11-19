@@ -14,7 +14,7 @@ home control, and companion desktop/mobile apps.
 | Path              | Stack                          | What it is                                              |
 |-------------------|--------------------------------|--------------------------------------------------------|
 | `backend/`        | Node + Express 5 + TypeScript  | API, Telegram bot, RSS workers, smart home, websockets |
-| `frontend/`       | React + MUI + TypeScript (CRA) | The dashboard SPA served to browsers/apps              |
+| `frontend/`       | React + MUI + TypeScript (Vite)| The dashboard SPA served to browsers/apps              |
 | `ftahApp/`        | Flutter                        | Newest companion app (desktop + mobile)                |
 | `desktopApp/`     | Flutter                        | Older desktop companion app                            |
 | `mobileApp/`      | Flutter                        | Older mobile companion app                             |
@@ -30,14 +30,46 @@ home control, and companion desktop/mobile apps.
     # Backend only: compiles TS then runs the build
     cd backend && npm start        # = npx tsc && node build/index.js
 
-    # Frontend only
+    # Frontend only (Vite dev server on http://localhost:7000)
     cd frontend && npm run start
+
+- Ports: backend API **3001**, websocket **3002**, frontend dev server **7000**.
 
 - Backend compiles to `backend/build/` (`rootDir: src`). **Do not add loose `.js`
   files under `backend/src`** — they break `npx tsc` (TS5055/TS6059); put scripts
   elsewhere or add them to `backend/tsconfig.json` `exclude`.
 - First run with no `keys.json`/`configuration.json` starts a minimal setup
   server (`backend/src/setup/`), then `bootstrapApp()`.
+
+## Type-checking
+
+    # Backend: must pass cleanly
+    cd backend && npx tsc --noEmit -p .
+
+    # Frontend: TypeScript is 4.9.5, which does not understand the tsconfig's
+    # `moduleResolution: bundler`, so override it
+    cd frontend && npx tsc --noEmit -p . --moduleResolution node
+
+The frontend check has **pre-existing errors** you can ignore unless you touched
+those files: the tsconfig TS6046 line itself, `data-model/configuration.ts`
+(~line 95) and `configurationMock.ts` union types, `reportWebVitals.ts`
+(`web-vitals`), `Desktop.tsx` `autoFocus` on a `div`, and MUI `slotProps.paper`
+in several Desktop widgets. Judge your change by "no **new** errors".
+
+## Running it locally to verify a change
+
+- `.claude/launch.json` (gitignored) has `backend` and `frontend` configs for the
+  browser preview. The backend takes a while to compile and boot; poll an endpoint
+  (e.g. `curl http://localhost:3001/desktop/profiles`) until it answers before
+  loading pages, otherwise the frontend silently falls back to mocks.
+- The local `backend/keys.json` is a dev setup (`is_dev_mode_enabled`,
+  `is_backup_disabled`, `connect_to_telegram: false`), so running locally sends
+  no Telegram messages and uploads no backups. Do **not** flip those flags to
+  test something — e.g. the weekly backup would upload to Google Drive.
+- Tests touch real data under `backend/data/`. Back up any file you will mutate
+  (to the scratchpad) and restore it afterwards, with the servers stopped.
+- The Configuration page renders API keys in its inputs: never dump all page
+  inputs/text there; query only the elements you need.
 
 ## Architecture quick map (backend)
 
@@ -50,6 +82,12 @@ home control, and companion desktop/mobile apps.
 - `src/*RSS/`, `src/processAutoupdate/`, `src/workerModule/` — RSS sources and
   background update workers.
 - `src/telegramBot/` — Telegram bot (`TelegramBot.Instance()`).
+- `src/API/synchronize.service.ts` — zip export/import of `data/`;
+  `reloadAllServices()` resets in-memory caches after an import.
+- `src/utils.ts` `startBackupEveryWeek` — the weekly encrypted backup zip (an
+  explicit `filePairs` list). See the `data-files-and-backups` rule.
+- `data/` (relative to the backend cwd) — persisted JSON state;
+  `data/config/` holds user-editable lists and the desktop profiles.
 
 ## Architecture quick map (frontend)
 
@@ -59,6 +97,11 @@ home control, and companion desktop/mobile apps.
   `fetch-utils` using endpoints from `src/core/urls-and-end-points.ts`.
 - `src/data-model/*.ts` — response types + mocks.
 - `src/view/pages/<Name>/` — page components.
+- i18n: some pages (e.g. Configuration) use `react-i18next` (`useTranslation`)
+  with `src/locales/es.json` + `en.json` — add every new key to **both**. Other
+  pages (e.g. Desktop) hardcode Spanish strings; follow the file you are in.
+- `fetch-utils` returns the supplied **mock** when a request fails, so a broken
+  endpoint looks like "fake data" in the UI rather than an error.
 
 ## Non-negotiable rules
 
@@ -68,6 +111,7 @@ Read the relevant rule before touching that area:
 - @.claude/rules/telegram-guard.md
 - @.claude/rules/crash-safety.md
 - @.claude/rules/git-workflow.md
+- @.claude/rules/data-files-and-backups.md
 
 ## Skills (loaded on demand)
 
@@ -76,5 +120,7 @@ Read the relevant rule before touching that area:
 - `backend-api-service` — add a new backend feature (`*.service.ts` + register in
   `api.service.ts`) and the RSS module pattern.
 - `frontend-page` — add a React page (route, action, data-model, websocket page).
+- `desktop-page` — the Desktop page: profiles, RAM + flush persistence, config
+  normalization, normal/tablet/mobile modes, widget coordinates and zoom.
 - `ftah-app` — build the Flutter `ftahApp`, window/icon setup, Supabase settings,
   GitHub Actions.
