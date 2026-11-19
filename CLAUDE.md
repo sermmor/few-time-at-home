@@ -97,10 +97,6 @@ in several Desktop widgets. Judge your change by "no **new** errors".
 - `src/*RSS/`, `src/processAutoupdate/`, `src/workerModule/` — RSS sources and
   background update workers.
 - `src/telegramBot/` — Telegram bot (`TelegramBot.Instance()`).
-- `src/API/youtube.service.ts` — the `/youtube` page resolves stream URLs by
-  running the external **`yt-dlp`** binary (`YT_DLP_PATH` env var or `PATH`),
-  not an npm library. It passes `--js-runtimes node:<process.execPath>` so it
-  works without deno. Updating yt-dlp (`yt-dlp -U`) needs no backend change.
 - `src/API/synchronize.service.ts` — zip export/import of `data/`;
   `reloadAllServices()` resets in-memory caches after an import.
 - `src/utils.ts` `startBackupEveryWeek` — the weekly encrypted backup zip (an

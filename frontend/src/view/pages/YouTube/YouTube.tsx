@@ -199,7 +199,7 @@ export const YouTubePage = (): JSX.Element => {
         YouTube
       </Typography>
 
-      {/* ── yt-dlp version badge + update alert ────────────────────────────── */}
+      {/* ── youtubei.js version badge + update alert ───────────────────────── */}
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
         {versionLoading ? (
           <CircularProgress size={16} />
@@ -210,7 +210,7 @@ export const YouTubePage = (): JSX.Element => {
                 {t('youtube.libVersion')}
               </Typography>
               <Chip
-                label={`yt-dlp v${versionInfo.installed}`}
+                label={`youtubei.js v${versionInfo.installed}`}
                 size="small"
                 variant="outlined"
                 color={versionInfo.hasUpdate ? 'warning' : 'default'}
@@ -219,7 +219,7 @@ export const YouTubePage = (): JSX.Element => {
                 <IconButton
                   size="small"
                   component="a"
-                  href="https://github.com/yt-dlp/yt-dlp/releases"
+                  href="https://github.com/LuanRT/YouTube.js/releases"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

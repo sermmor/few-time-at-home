@@ -462,9 +462,9 @@
     "castStopped": "Cast stopped",
     "errorDiscovery": "Could not discover devices",
     "errorCast": "Error starting cast",
-    "libVersion": "Tool:",
+    "libVersion": "Library:",
     "githubReleasesTitle": "View releases on GitHub",
-    "updateAvailable": "New version available: v{{latest}} (update with: yt-dlp -U or pip install -U yt-dlp)",
+    "updateAvailable": "New version available: v{{latest}}",
     "liveEmbed": "Live embed"
   },
   "desktopProfiles": {
