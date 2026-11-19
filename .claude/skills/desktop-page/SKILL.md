@@ -47,6 +47,16 @@ Backend, `backend/src/API/`:
    component unmount, `beforeunload` (`sendBeacon`), sync export, or
    `POST /desktop/flush`.
 
+Remote profiles, two details:
+- The push after a flush runs in the background. While the profile is dirty or a
+  push is in flight (`DesktopRemoteService.isPushPending`), the load endpoint
+  serves the RAM copy instead of pulling from Drive. Otherwise a reload would pull
+  the stale Drive copy and the user would have to reload twice.
+- `pushProfile` never runs twice at once for a profile. A call made while a push
+  is running queues its config, and that config is pushed once the running push
+  ends; it is not dropped. It resolves to `false` on failure, and the flush then
+  marks the profile dirty again so the next flush retries.
+
 So when you check a profile file on disk, flush first:
 `curl -X POST http://localhost:3001/desktop/flush -H "Content-Type: application/json" -d '{}'`.
 

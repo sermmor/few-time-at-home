@@ -425,9 +425,20 @@ export class APIService {
     this.app.post(APIService.configurationListByTypeEndpoint, async (req: Request, res: Response) => {
       if (req.body.type === 'desktop') {
         const profileSvc = DesktopProfilesService.Instance;
-        if (profileSvc?.isProfileRemote(profileSvc.getActiveProfileName())) {
+        const activeName = profileSvc?.getActiveProfileName() ?? '';
+        // No se descarga de Drive si la RAM tiene cambios que aún no han llegado
+        // allí (sin flush, o con la subida del flush todavía en curso): la copia
+        // de Drive sería antigua y pisaría esos cambios. Es lo que pasaba al
+        // recargar: el flush del beforeunload subía en segundo plano, la carga
+        // siguiente bajaba la versión vieja y había que recargar dos veces.
+        const hasUnpushedChanges = !!profileSvc && (
+          profileSvc.isActiveDirty() || DesktopRemoteService.isPushPending(activeName)
+        );
+        if (profileSvc?.isProfileRemote(activeName) && hasUnpushedChanges) {
+          console.log(`[Desktop] "${activeName}" has changes not yet in Drive — serving RAM copy`);
+        } else if (profileSvc?.isProfileRemote(activeName)) {
           try {
-            const fresh = await DesktopRemoteService.pullProfile(profileSvc.getActiveProfileName());
+            const fresh = await DesktopRemoteService.pullProfile(activeName);
             if (fresh) {
               profileSvc.setActiveConfig(fresh as any);
               // Memory now matches Drive — any prior "dirty" mark is obsolete.
@@ -1688,12 +1699,15 @@ export class APIService {
       if (profileSvc?.isProfileRemote(activeName) && profileSvc.isActiveDirty()) {
         const config = profileSvc.getActiveConfig();
         profileSvc.clearActiveDirty(); // optimistically clear; reset by errors below if needed
-        // Fire-and-forget — don't block the flush response
-        DesktopRemoteService.pushProfile(activeName, config).catch(e => {
-          console.error('[Desktop] Remote push after flush failed:', e?.message);
-          // Re-mark dirty so the next flush will retry
-          profileSvc.markActiveDirty();
-        });
+        // Fire-and-forget — don't block the flush response. Mientras la subida
+        // esté en curso, /configuration/type/list sirve la copia de RAM.
+        DesktopRemoteService.pushProfile(activeName, config).then(ok => {
+          if (!ok) {
+            console.error(`[Desktop] Remote push after flush failed for "${activeName}"`);
+            // Re-mark dirty so the next flush will retry
+            profileSvc.markProfileDirty(activeName);
+          }
+        }).catch(() => profileSvc.markProfileDirty(activeName));
       }
       res.status(204).end();
     });

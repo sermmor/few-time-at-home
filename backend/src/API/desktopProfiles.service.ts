@@ -159,6 +159,9 @@ export class DesktopProfilesService {
   markActiveDirty  = (): void => { this.dirtyProfiles.add(this.activeProfile); };
   clearActiveDirty = (): void => { this.dirtyProfiles.delete(this.activeProfile); };
   isActiveDirty    = (): boolean => this.dirtyProfiles.has(this.activeProfile);
+  // Por nombre: la subida a Drive es asíncrona y el perfil activo puede haber
+  // cambiado cuando termina (p. ej. al reintentar tras un fallo).
+  markProfileDirty = (name: string): void => { this.dirtyProfiles.add(name); };
 
   getActiveConfig = (): DesktopConfig =>
     this.profiles.get(this.activeProfile) ?? { ...EMPTY_CONFIG };

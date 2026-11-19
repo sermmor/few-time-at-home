@@ -77,10 +77,15 @@ export class DesktopRemoteService {
    */
   private static _pendingSubFolders: Map<string, Promise<string | null>> = new Map();
   /**
-   * Profiles whose push is currently in progress.
-   * A second concurrent pushProfile call for the same profile is dropped.
+   * Subida en curso por perfil. Una segunda llamada a pushProfile mientras hay
+   * una en curso NO se descarta: deja su config en `_queuedPushes` y la subida
+   * en curso la sube al terminar (solo la última; las intermedias se pisan).
+   * Así nunca hay dos subidas simultáneas del mismo perfil (carpetas duplicadas)
+   * y tampoco se pierde una edición hecha mientras se subía la anterior.
    */
-  private static _activePushes:     Set<string>                     = new Set();
+  private static _activePushes:     Map<string, Promise<boolean>>   = new Map();
+  /** Última config pendiente de subir por perfil. */
+  private static _queuedPushes:     Map<string, object>             = new Map();
 
   // ── Folder helpers ─────────────────────────────────────────────────────────
 
@@ -292,21 +297,53 @@ export class DesktopRemoteService {
    * Uploads the profile JSON, all referenced wallpapers, image widget files
    * and favicons to GDrive.  Files that already exist in GDrive are updated
    * (upsert) so they stay in sync.
+   *
+   * Nunca lanza. Resuelve a `true` si el JSON (de la última config encolada)
+   * llegó a Drive, `false` si no (sin Drive configurado o error de red).
    */
-  static pushProfile = async (profileName: string, config: object): Promise<void> => {
-    // Drop concurrent pushes for the same profile to avoid race conditions that
-    // would create duplicate folders/files in GDrive (e.g. beforeunload + unmount
-    // firing simultaneously).
-    if (DesktopRemoteService._activePushes.has(profileName)) {
-      console.log(`[DesktopRemote] Push already in progress for "${profileName}" — skipping duplicate`);
-      return;
+  static pushProfile = (profileName: string, config: object): Promise<boolean> => {
+    // Copia: la config de RAM puede mutarse mientras esperamos en la cola.
+    DesktopRemoteService._queuedPushes.set(profileName, JSON.parse(JSON.stringify(config)));
+
+    // Ya hay una subida en curso → se encargará de esta config al terminar.
+    const running = DesktopRemoteService._activePushes.get(profileName);
+    if (running) {
+      console.log(`[DesktopRemote] Push in progress for "${profileName}" — queued latest config`);
+      return running;
     }
-    DesktopRemoteService._activePushes.add(profileName);
+
+    const promise = (async (): Promise<boolean> => {
+      let ok = true;
+      try {
+        while (DesktopRemoteService._queuedPushes.has(profileName)) {
+          const next = DesktopRemoteService._queuedPushes.get(profileName)!;
+          DesktopRemoteService._queuedPushes.delete(profileName);
+          ok = await DesktopRemoteService._pushProfileOnce(profileName, next);
+        }
+      } catch (e: any) {
+        console.error('[DesktopRemote] pushProfile error:', e?.message ?? e);
+        ok = false;
+      } finally {
+        // Sin await entre el fin del bucle y esto: no se puede colar una config
+        // en la cola sin que alguien la suba.
+        DesktopRemoteService._activePushes.delete(profileName);
+      }
+      return ok;
+    })();
+    DesktopRemoteService._activePushes.set(profileName, promise);
+    return promise;
+  };
+
+  /** true si hay una subida a Drive en curso (o encolada) para el perfil. */
+  static isPushPending = (profileName: string): boolean =>
+    DesktopRemoteService._activePushes.has(profileName);
+
+  private static _pushProfileOnce = async (profileName: string, config: object): Promise<boolean> => {
     const drive = GoogleDriveService.Instance;
-    if (!drive?.isConfigured()) { DesktopRemoteService._activePushes.delete(profileName); return; }
+    if (!drive?.isConfigured()) return false;
     try {
       const mainFolderId = await DesktopRemoteService.ensureMainFolder();
-      if (!mainFolderId) return;
+      if (!mainFolderId) return false;
 
       // 1. Upload / overwrite profile JSON
       const jsonBuf = Buffer.from(JSON.stringify(config, null, 2), 'utf8');
@@ -366,10 +403,10 @@ export class DesktopRemoteService {
           }
         }
       }
+      return true;
     } catch (e: any) {
       console.error('[DesktopRemote] pushProfile error:', e?.message ?? e);
-    } finally {
-      DesktopRemoteService._activePushes.delete(profileName);
+      return false;
     }
   };
 
