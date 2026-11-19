@@ -38,6 +38,7 @@ import * as http from 'http';
 import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
 import { SmartHomeService } from './smartHome.service';
+import { SavedCommandsService } from './savedCommands.service';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
 const cors = require('cors');
@@ -75,6 +76,11 @@ export class APIService {
   static configurationTypeEndpoint = "/configuration/type";
   static configurationListByTypeEndpoint = "/configuration/type/list";
   static configurationLaunchCommandEndpoint = "/configuration/launch-command";
+  static configurationSavedCommandsEndpoint = {
+    list:   "/configuration/saved-commands",        // GET
+    save:   "/configuration/saved-commands/save",   // POST — crea o actualiza
+    remove: "/configuration/saved-commands/remove", // POST
+  };
   static notesEndpoint = "/notes";
   static pomodoroEndpoint = "/pomodoro";
   static alertsEndpoint = "/alerts";
@@ -449,6 +455,28 @@ export class APIService {
             res.send(response);
           });
         }
+    });
+
+    // Comandos guardados por el usuario (data/config/savedCommands.json)
+    new SavedCommandsService();
+    const savedCommandsEp = APIService.configurationSavedCommandsEndpoint;
+
+    this.app.get(savedCommandsEp.list, (req, res) => {
+      res.send({ data: SavedCommandsService.Instance.getAll() });
+    });
+
+    // body: { id?: string, name: string, command: string }
+    this.app.post(savedCommandsEp.save, (req, res) => {
+      if (!req.body) {
+        res.send({ data: SavedCommandsService.Instance.getAll() });
+        return;
+      }
+      res.send({ data: SavedCommandsService.Instance.save(req.body) });
+    });
+
+    // body: { id: string }
+    this.app.post(savedCommandsEp.remove, (req, res) => {
+      res.send({ data: SavedCommandsService.Instance.remove(req.body?.id ?? '') });
     });
   }
 

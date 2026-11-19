@@ -12,6 +12,8 @@ interface DesktopConfig {
   links:       any[];
   tabletMode?: boolean;
   mobileMode?: boolean;
+  /** Zoom del escritorio (1 = 100%). Solo se guarda cuando el usuario lo cambia; si falta, el frontend usa 100%. */
+  zoom?: number;
 }
 
 const EMPTY_CONFIG: DesktopConfig = {

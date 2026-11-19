@@ -9,6 +9,9 @@ export const configurationTypesEndpoint = (): string => `${getUrlApi()}/configur
 export const configurationListByTypeEndpoint = (): string => `${getUrlApi()}/configuration/type/list`;
 export const configurationEndpoint = (): string => `${getUrlApi()}/configuration`;
 export const configurationSendCommandEndpoint = (): string => `${getUrlApi()}/configuration/launch-command`;
+export const configurationSavedCommandsEndpoint = (): string => `${getUrlApi()}/configuration/saved-commands`;
+export const configurationSaveSavedCommandEndpoint = (): string => `${getUrlApi()}/configuration/saved-commands/save`;
+export const configurationRemoveSavedCommandEndpoint = (): string => `${getUrlApi()}/configuration/saved-commands/remove`;
 export const notesEndpoint = (): string => `${getUrlApi()}/notes`;
 export const pomodoroEndpoint = (): string => `${getUrlApi()}/pomodoro`;
 export const videoToMp3ConverterEndpoint = (): string => `${getUrlApi()}/video-to-mp3-converter`;

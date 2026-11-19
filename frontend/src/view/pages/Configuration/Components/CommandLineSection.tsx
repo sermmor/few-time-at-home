@@ -1,8 +1,15 @@
-import React from "react";
-import { Box, Button, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Box, Button, SxProps, TextField, Theme, Typography, Accordion, AccordionSummary, AccordionDetails,
+  IconButton, List, ListItem, ListItemButton, ListItemText, Tooltip,
+} from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { ConfigurationActions } from "../../../../core/actions/configuration";
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
+import { SavedCommand } from "../../../../data-model/configuration";
 import { useTranslation } from 'react-i18next';
 
 const getCommandLineStyle = (alpha: number): SxProps<Theme> => ({
@@ -33,6 +40,63 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
 }) => {
   const alphas = useConfiguredDialogAlphas();
   const { t } = useTranslation();
+
+  // Comandos guardados por el usuario
+  const [savedCommands, setSavedCommands] = useState<SavedCommand[]>([]);
+  const [commandName, setCommandName] = useState<string>('');
+  // id del comando que se está editando (null = crear uno nuevo)
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    ConfigurationActions.getSavedCommands().then(setSavedCommands);
+  }, []);
+
+  const runCommand = (commandLine: string) => {
+    setLineToSendResult('');
+    ConfigurationActions.sendCommandLine({ commandLine }).then(result => {
+      if (result.stdout) {
+        setLineToSendResult(result.stdout);
+      } else if (result.stderr) {
+        setLineToSendResult(result.stderr);
+      } else if (result.stdout === '' && result.stderr === '') {
+        setLineToSendResult(t('commandLine.finished'));
+      } else {
+        console.log(result);
+      }
+    });
+  };
+
+  const resetSaveForm = () => {
+    setCommandName('');
+    setEditingId(null);
+  };
+
+  const saveCommand = () => {
+    if (!lineToSend.trim()) return;
+    ConfigurationActions.saveSavedCommand({
+      ...(editingId ? { id: editingId } : {}),
+      name: commandName,
+      command: lineToSend,
+    }).then(list => {
+      setSavedCommands(list);
+      resetSaveForm();
+    });
+  };
+
+  const startEditing = (cmd: SavedCommand) => {
+    setEditingId(cmd.id);
+    setCommandName(cmd.name);
+    setLineToSend(cmd.command);
+  };
+
+  const removeCommand = (cmd: SavedCommand) => {
+    if (!window.confirm(t('commandLine.confirmDelete', { name: cmd.name }))) return;
+    ConfigurationActions.removeSavedCommand(cmd.id).then(list => {
+      setSavedCommands(list);
+      if (editingId === cmd.id) resetSaveForm();
+    });
+  };
+
   return (
     <Accordion sx={{ opacity: alphas.configurationCards }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -50,25 +114,94 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
           onChange={evt => {
             setLineToSend(evt.target.value);
           }}
+          onKeyDown={evt => {
+            if (evt.key === 'Enter' && lineToSend.trim()) runCommand(lineToSend);
+          }}
         />
         <Button
           variant='outlined'
           sx={{minWidth: '15.5rem'}}
-          onClick={() => ConfigurationActions.sendCommandLine({commandLine: lineToSend}).then(result => {
-            if (result.stdout) {
-              setLineToSendResult(result.stdout);
-            } else if (result.stderr) {
-              setLineToSendResult(result.stderr);
-            } else if (result.stdout === '' && result.stderr === '') {
-              setLineToSendResult(t('commandLine.finished'));
-            } else {
-              console.log(result);
-            }
-          })}
+          onClick={() => runCommand(lineToSend)}
           >
           {t('commandLine.sendButton')}
         </Button>
       </Box>
+
+      {/* Guardar el comando actual para reutilizarlo más adelante */}
+      <Box sx={{display: 'flex', flexDirection: {xs: 'column', sm:'row'}, gap: '1rem', alignItems: 'center', justifyContent: 'left'}}>
+        <TextField
+          label={t('commandLine.nameLabel')}
+          variant="standard"
+          value={commandName}
+          sx={{minWidth: {xs: '15.5rem', md: '20rem'}}}
+          onChange={evt => setCommandName(evt.target.value)}
+        />
+        <Button
+          variant='contained'
+          disabled={!lineToSend.trim()}
+          onClick={saveCommand}
+        >
+          {editingId ? t('commandLine.updateButton') : t('commandLine.saveButton')}
+        </Button>
+        {editingId && (
+          <Button variant='text' onClick={resetSaveForm}>
+            {t('commandLine.cancelEdit')}
+          </Button>
+        )}
+      </Box>
+
+      <Box>
+        <Typography variant='subtitle1' sx={{fontWeight: 'bold'}}>{t('commandLine.savedTitle')}</Typography>
+        {savedCommands.length === 0 ? (
+          <Typography variant='body2' sx={{fontStyle: 'italic', color: 'rgb(90, 90, 90)'}}>
+            {t('commandLine.noSaved')}
+          </Typography>
+        ) : (
+          <List dense disablePadding>
+            {savedCommands.map(cmd => (
+              <ListItem
+                key={cmd.id}
+                disablePadding
+                secondaryAction={
+                  <Box>
+                    <Tooltip title={t('commandLine.runSaved')}>
+                      <IconButton edge="end" onClick={() => { setLineToSend(cmd.command); runCommand(cmd.command); }}>
+                        <PlayArrowIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('commandLine.editSaved')}>
+                      <IconButton edge="end" onClick={() => startEditing(cmd)}>
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('commandLine.deleteSaved')}>
+                      <IconButton edge="end" onClick={() => removeCommand(cmd)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                }
+              >
+                {/* Clic en el comando: lo carga en el campo de texto sin ejecutarlo */}
+                <Tooltip title={t('commandLine.loadSaved')} placement="bottom-start" enterDelay={800} enterNextDelay={800}>
+                  <ListItemButton
+                    selected={editingId === cmd.id}
+                    onClick={() => setLineToSend(cmd.command)}
+                    sx={{pr: '9rem'}}
+                  >
+                    <ListItemText
+                      primary={cmd.name}
+                      secondary={cmd.command}
+                      secondaryTypographyProps={{sx: {fontFamily: 'monospace', wordBreak: 'break-all'}}}
+                    />
+                  </ListItemButton>
+                </Tooltip>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Box>
+
       <TextField
         id="outlined-multiline-static"
         label={t('commandLine.result')}

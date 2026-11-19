@@ -258,7 +258,18 @@
     "inputLabel": "line to send",
     "sendButton": "Send command line",
     "result": "Result",
-    "finished": "FINISHED"
+    "finished": "FINISHED",
+    "nameLabel": "Command name (optional)",
+    "saveButton": "Save command",
+    "updateButton": "Update command",
+    "cancelEdit": "Cancel",
+    "savedTitle": "Saved commands",
+    "noSaved": "No saved commands yet.",
+    "runSaved": "Run",
+    "editSaved": "Edit",
+    "deleteSaved": "Delete",
+    "loadSaved": "Load into the text field",
+    "confirmDelete": "Delete the command \"{{name}}\"?"
   },
   "cloud": {
     "title": "Cloud",

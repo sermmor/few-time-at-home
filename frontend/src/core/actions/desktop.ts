@@ -73,7 +73,20 @@ export interface DesktopConfig {
   mobileMode?: boolean;
   images?:     DesktopImage[];
   panels?:     DesktopPanel[];
+  /** Zoom del escritorio (1 = 100%). Opcional: los ficheros antiguos no lo tienen y usan 100%. */
+  zoom?:       number;
 }
+
+export const DEFAULT_DESKTOP_ZOOM = 1;
+export const MIN_DESKTOP_ZOOM     = 0.5;
+export const MAX_DESKTOP_ZOOM     = 2;
+
+/** Devuelve el zoom efectivo de una configuración (100% si no está definido o es inválido). */
+export const getDesktopZoom = (config: DesktopConfig): number => {
+  const z = config.zoom;
+  if (typeof z !== 'number' || !isFinite(z) || z <= 0) return DEFAULT_DESKTOP_ZOOM;
+  return Math.min(MAX_DESKTOP_ZOOM, Math.max(MIN_DESKTOP_ZOOM, z));
+};
 
 export const DEFAULT_DESKTOP_CONFIG: DesktopConfig = {
   rows:       4,
@@ -106,6 +119,8 @@ const getDesktopConfig = (): Promise<DesktopConfig> =>
       mobileMode: d.mobileMode ?? false,
       images:     Array.isArray(d.images) ? d.images : [],
       panels:     Array.isArray(d.panels) ? d.panels : [],
+      // Solo se conserva si el fichero ya lo tenía, para no reescribir ficheros antiguos
+      ...(typeof d.zoom === 'number' ? { zoom: d.zoom } : {}),
     };
   });
 

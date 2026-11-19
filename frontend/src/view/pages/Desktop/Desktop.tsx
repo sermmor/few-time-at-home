@@ -13,6 +13,7 @@ import {
   DesktopLink,
   DesktopImage,
   DesktopPanel,
+  getDesktopZoom,
 } from '../../../core/actions/desktop';
 import { desktopFlushEndpoint } from '../../../core/urls-and-end-points';
 import { DesktopPropertiesDialog } from './DesktopPropertiesDialog';
@@ -33,6 +34,7 @@ import {
   wallpaperUrl,
   SLIDE_KEYFRAMES,
   SlideState,
+  DesktopZoomLayer,
   type Direction,
 } from './DesktopCommons';
 import { DesktopImageWidget } from './DesktopImageWidget';
@@ -57,6 +59,9 @@ export const Desktop = (): JSX.Element => {
   const desktopRef = React.useRef<HTMLDivElement>(null);
 
   // Refs so effects can read current values without re-subscribing
+  // Zoom del escritorio (100% si el fichero no lo define)
+  const zoom = getDesktopZoom(config);
+
   const configRef   = React.useRef(config);
   configRef.current = config;
   const prevWsRef   = React.useRef(0);
@@ -207,8 +212,8 @@ export const Desktop = (): JSX.Element => {
   // ── Note handlers ─────────────────────────────────────────────────────────
   const addNote = () => {
     const rect = desktopRef.current?.getBoundingClientRect();
-    const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 110) : 60;
-    const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 90)  : 60;
+    const x = contextMenu ? Math.max(0, (contextMenu.x - (rect?.left ?? 0)) / zoom - 110) : 60;
+    const y = contextMenu ? Math.max(0, (contextMenu.y - (rect?.top  ?? 0)) / zoom - 90)  : 60;
     const newNote: StickyNote = {
       id:             `note-${Date.now()}`,
       workspaceIndex: activeWs,
@@ -246,8 +251,8 @@ export const Desktop = (): JSX.Element => {
   // ── Image handlers ────────────────────────────────────────────────────────
   const addImage = (cloudPath: string) => {
     const rect = desktopRef.current?.getBoundingClientRect();
-    const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 150) : 100;
-    const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 100) : 100;
+    const x = contextMenu ? Math.max(0, (contextMenu.x - (rect?.left ?? 0)) / zoom - 150) : 100;
+    const y = contextMenu ? Math.max(0, (contextMenu.y - (rect?.top  ?? 0)) / zoom - 100) : 100;
     const newImage: DesktopImage = {
       id:             `img-${Date.now()}`,
       workspaceIndex: activeWs,
@@ -286,8 +291,8 @@ export const Desktop = (): JSX.Element => {
   // ── Panel handlers ────────────────────────────────────────────────────────
   const addPanel = () => {
     const rect = desktopRef.current?.getBoundingClientRect();
-    const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 100) : 80;
-    const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 75)  : 80;
+    const x = contextMenu ? Math.max(0, (contextMenu.x - (rect?.left ?? 0)) / zoom - 100) : 80;
+    const y = contextMenu ? Math.max(0, (contextMenu.y - (rect?.top  ?? 0)) / zoom - 75)  : 80;
     const newPanel: DesktopPanel = {
       id:             `panel-${Date.now()}`,
       workspaceIndex: activeWs,
@@ -342,8 +347,8 @@ export const Desktop = (): JSX.Element => {
       });
     } else {
       const rect = desktopRef.current?.getBoundingClientRect();
-      const x = contextMenu ? Math.max(0, contextMenu.x - (rect?.left ?? 0) - 38) : 80;
-      const y = contextMenu ? Math.max(0, contextMenu.y - (rect?.top  ?? 0) - 30) : 80;
+      const x = contextMenu ? Math.max(0, (contextMenu.x - (rect?.left ?? 0)) / zoom - 38) : 80;
+      const y = contextMenu ? Math.max(0, (contextMenu.y - (rect?.top  ?? 0)) / zoom - 30) : 80;
       const newLink: DesktopLink = {
         id:             `link-${Date.now()}`,
         workspaceIndex: activeWs,
@@ -437,6 +442,7 @@ export const Desktop = (): JSX.Element => {
           ROWS={ROWS}
           TOTAL={TOTAL}
           wsOverlayVisible={visible}
+          zoom={zoom}
         />
       ) : (
         // ── Normal mode: free-floating desktop ───────────────────────────
@@ -481,6 +487,8 @@ export const Desktop = (): JSX.Element => {
               />
             )}
 
+            {/* Contenido escalado por el zoom del escritorio */}
+            <DesktopZoomLayer zoom={zoom}>
             {/* Dark panel widgets (behind links and notes) */}
             {panelsForActiveWs.map(panel => (
               <DesktopPanelWidget
@@ -488,6 +496,7 @@ export const Desktop = (): JSX.Element => {
                 panel={panel}
                 onUpdate={updatePanel}
                 onDelete={deletePanel}
+                zoom={zoom}
               />
             ))}
 
@@ -498,6 +507,7 @@ export const Desktop = (): JSX.Element => {
                 note={note}
                 onUpdate={updateNote}
                 onDelete={deleteNote}
+                zoom={zoom}
               />
             ))}
 
@@ -508,6 +518,7 @@ export const Desktop = (): JSX.Element => {
                 image={im}
                 onUpdate={updateImage}
                 onDelete={deleteImage}
+                zoom={zoom}
               />
             ))}
 
@@ -519,8 +530,10 @@ export const Desktop = (): JSX.Element => {
                 onUpdate={updateLink}
                 onDelete={deleteLink}
                 onEdit={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+                zoom={zoom}
               />
             ))}
+            </DesktopZoomLayer>
 
             {/* Workspace switcher overlay (visible while Shift is held) */}
             <div style={{

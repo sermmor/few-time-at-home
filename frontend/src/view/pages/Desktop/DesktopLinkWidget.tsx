@@ -12,6 +12,8 @@ interface Props {
   link:     DesktopLink;
   onUpdate: (id: string, changes: Partial<DesktopLink>) => void;
   onDelete: (id: string) => void;
+  /** Zoom del escritorio (1 = 100%); las coordenadas del ratón se dividen entre él. */
+  zoom?:    number;
   onEdit:   (link: DesktopLink) => void;
 }
 
@@ -39,7 +41,7 @@ const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
 const DRAG_THRESHOLD = 6;
 
 // ── DesktopLinkWidget ──────────────────────────────────────────────────────────
-export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, onEdit }) => {
+export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, onEdit, zoom = 1 }) => {
   const [lx, setLx] = React.useState(link.x);
   const [ly, setLy] = React.useState(link.y);
 
@@ -58,25 +60,25 @@ export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, o
     e.preventDefault();
     e.stopPropagation(); // no disparar el onContextMenu del escritorio
 
-    const ox = e.clientX - lx;
-    const oy = e.clientY - ly;
-    const startX = e.clientX;
-    const startY = e.clientY;
+    const ox = (e.clientX / zoom) - lx;
+    const oy = (e.clientY / zoom) - ly;
+    const startX = (e.clientX / zoom);
+    const startY = (e.clientY / zoom);
     let moved = false;
     // Ref mutable para la posición final (evita stale closure)
     const finalPos = { x: lx, y: ly };
 
     const onMove = (ev: MouseEvent) => {
       if (!moved) {
-        const dx = ev.clientX - startX;
-        const dy = ev.clientY - startY;
+        const dx = (ev.clientX / zoom) - startX;
+        const dy = (ev.clientY / zoom) - startY;
         if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
           moved = true;
         }
       }
       if (moved) {
-        finalPos.x = ev.clientX - ox;
-        finalPos.y = ev.clientY - oy;
+        finalPos.x = (ev.clientX / zoom) - ox;
+        finalPos.y = (ev.clientY / zoom) - oy;
         setLx(finalPos.x);
         setLy(finalPos.y);
       }

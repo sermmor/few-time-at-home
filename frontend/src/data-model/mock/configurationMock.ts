@@ -1,4 +1,4 @@
-import { ConfigurationDataModel, ConfigurationTypeDataModel } from '../configuration';
+import { ConfigurationDataModel, ConfigurationTypeDataModel, SavedCommandsResponse } from '../configuration';
 
 export const configurationTypeDataModelMock = (): ConfigurationTypeDataModel => ({
   data: [
@@ -126,4 +126,11 @@ export const configurationDataModelMock = (type: string): ConfigurationDataModel
 export const comandLineResponseMock = () => ({
   stdout: 'ok',
   stderr: 'undefined',
+});
+
+export const savedCommandsResponseMock = (): SavedCommandsResponse => ({
+  data: [
+    { id: 'mock-1', name: 'Espacio en disco', command: 'df -h' },
+    { id: 'mock-2', name: 'Temperatura CPU', command: 'vcgencmd measure_temp' },
+  ],
 });

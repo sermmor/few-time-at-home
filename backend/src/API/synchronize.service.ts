@@ -24,6 +24,7 @@ import { AlertListService }     from './alertNotification.service';
 import { PomodoroService }      from './pomodoro.service';
 import { ConfigurationService }   from './configuration.service';
 import { DesktopProfilesService } from './desktopProfiles.service';
+import { SavedCommandsService } from './savedCommands.service';
 import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate';
 import { UnfurlCacheService }     from '../unfurl/unfurlCache.service';
 
@@ -132,6 +133,9 @@ export class SynchronizeService {
     // ── Desktop profiles (data/config/desktop/*.json + desktopMeta.json) ──
     //   DesktopProfilesService manages these files independently of ConfigurationService.
     DesktopProfilesService.Instance.reloadFromDisk();
+
+    // ── Comandos guardados (data/config/savedCommands.json) ── relectura perezosa
+    SavedCommandsService.Instance?.reloadFromDisk();
 
     // ── RSS message cache (data/config/media/*.json) ──
     await MediaRSSAutoupdate.instance.reloadFromDisk();

@@ -9,12 +9,20 @@ import {
   DialogTitle,
   IconButton,
   InputAdornment,
+  Slider,
   TextField,
   Typography,
 } from '@mui/material';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import ClearIcon      from '@mui/icons-material/Clear';
-import { DesktopConfig, DesktopActions } from '../../../core/actions/desktop';
+import {
+  DesktopConfig,
+  DesktopActions,
+  DEFAULT_DESKTOP_ZOOM,
+  MIN_DESKTOP_ZOOM,
+  MAX_DESKTOP_ZOOM,
+  getDesktopZoom,
+} from '../../../core/actions/desktop';
 import { ModalCloudImagePicker } from '../../molecules/ModalCloudImagePicker/ModalCloudImagePicker';
 
 // Default colour per workspace index (cycling if > 16 workspaces)
@@ -44,6 +52,8 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
   const [wallpapers, setWallpapers] = React.useState<string[]>(config.wallpapers);
   const [saving,     setSaving    ] = React.useState(false);
   const [pickerFor,  setPickerFor ] = React.useState<number | null>(null);
+  // Zoom en porcentaje (100 = 100%)
+  const [zoomPct,    setZoomPct   ] = React.useState(Math.round(getDesktopZoom(config) * 100));
 
   // Re-sync local state when the dialog opens
   React.useEffect(() => {
@@ -51,6 +61,7 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
       setRows(config.rows);
       setCols(config.cols);
       setWallpapers(config.wallpapers);
+      setZoomPct(Math.round(getDesktopZoom(config) * 100));
     }
   }, [isOpen, config]);
 
@@ -78,6 +89,12 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
       cols,
       wallpapers: adjustedWallpapers,
     };
+    // El zoom solo se escribe en el fichero si ya existía o si el usuario lo ha cambiado,
+    // para no modificar ficheros de escritorio antiguos innecesariamente.
+    const newZoom = zoomPct / 100;
+    if (config.zoom !== undefined || newZoom !== getDesktopZoom(config)) {
+      next.zoom = newZoom;
+    }
     DesktopActions.saveDesktopConfig(next)
       .then(() => { onSave(next); onClose(); })
       .finally(() => setSaving(false));
@@ -117,6 +134,45 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
               inputProps={{ min: 1, max: 8 }}
               sx={{ width: '8rem' }}
             />
+          </Box>
+
+          {/* ── Zoom ──────────────────────────────────────────────────── */}
+          <Typography variant="subtitle2" sx={{
+            mb: 1.5, fontWeight: 600, textTransform: 'uppercase',
+            fontSize: '0.72rem', color: 'text.secondary', letterSpacing: '0.05em',
+          }}>
+            Zoom del escritorio
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3, px: 1 }}>
+            <Slider
+              value={zoomPct}
+              min={MIN_DESKTOP_ZOOM * 100}
+              max={MAX_DESKTOP_ZOOM * 100}
+              step={5}
+              marks={[
+                { value: 50,  label: '50%'  },
+                { value: 100, label: '100%' },
+                { value: 150, label: '150%' },
+                { value: 200, label: '200%' },
+              ]}
+              valueLabelDisplay="auto"
+              valueLabelFormat={v => `${v}%`}
+              onChange={(_e, v) => setZoomPct(v as number)}
+              sx={{ maxWidth: '24rem' }}
+            />
+            <Typography variant="body2" sx={{ minWidth: '3rem', fontWeight: 600 }}>
+              {zoomPct}%
+            </Typography>
+            <Button
+              size="small"
+              variant="text"
+              disabled={zoomPct === DEFAULT_DESKTOP_ZOOM * 100}
+              onClick={() => setZoomPct(DEFAULT_DESKTOP_ZOOM * 100)}
+              sx={{ textTransform: 'none' }}
+            >
+              Restablecer
+            </Button>
           </Box>
 
           {/* ── Wallpapers ────────────────────────────────────────────── */}

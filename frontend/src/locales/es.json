@@ -258,7 +258,18 @@
     "inputLabel": "línea a enviar",
     "sendButton": "Enviar comando",
     "result": "Resultado",
-    "finished": "FINALIZADO"
+    "finished": "FINALIZADO",
+    "nameLabel": "Nombre del comando (opcional)",
+    "saveButton": "Guardar comando",
+    "updateButton": "Actualizar comando",
+    "cancelEdit": "Cancelar",
+    "savedTitle": "Comandos guardados",
+    "noSaved": "Aún no hay comandos guardados.",
+    "runSaved": "Ejecutar",
+    "editSaved": "Editar",
+    "deleteSaved": "Borrar",
+    "loadSaved": "Cargar en el campo de texto",
+    "confirmDelete": "¿Borrar el comando \"{{name}}\"?"
   },
   "cloud": {
     "title": "Cloud",

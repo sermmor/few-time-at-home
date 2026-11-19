@@ -1,3 +1,4 @@
+import React from 'react';
 import { getCloudEndpoint } from '../../../core/urls-and-end-points';
 
 // ── Canvas geometry ───────────────────────────────────────────────────────────
@@ -69,3 +70,22 @@ export const wallpaperUrl = (cloudPath: string): string =>
   `${getCloudEndpoint('streamFile')}` +
   `?drive=${encodeURIComponent(cloudPath.split('/')[0])}` +
   `&path=${encodeURIComponent(cloudPath)}`;
+
+// ── Zoom del escritorio ───────────────────────────────────────────────────────
+// Capa que escala solo el contenido del escritorio (no la barra superior).
+// Se hace más grande en proporción inversa al zoom para que, una vez escalada,
+// ocupe exactamente el lienzo. Los widgets dividen las coordenadas del ratón
+// entre el zoom para que arrastrar/redimensionar siga al cursor.
+export const DesktopZoomLayer = ({ zoom, children }: { zoom: number; children: React.ReactNode }) => (
+  <div style={{
+    position:        'absolute',
+    top:             0,
+    left:            0,
+    width:           `${100 / zoom}%`,
+    height:          `${100 / zoom}%`,
+    transform:       zoom === 1 ? undefined : `scale(${zoom})`,
+    transformOrigin: '0 0',
+  }}>
+    {children}
+  </div>
+);

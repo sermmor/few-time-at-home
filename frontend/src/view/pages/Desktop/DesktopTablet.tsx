@@ -10,6 +10,7 @@ import {
   EXIT_ANIM,
   SLIDE_KEYFRAMES,
   SlideState,
+  DesktopZoomLayer,
 } from './DesktopCommons';
 
 // ── Props contract ────────────────────────────────────────────────────────────
@@ -31,6 +32,8 @@ export interface DesktopTabletProps {
   ROWS:             number;
   TOTAL:            number;
   wsOverlayVisible: boolean;
+  /** Zoom del escritorio (1 = 100%). */
+  zoom?:            number;
 }
 
 // ── NavArrow ──────────────────────────────────────────────────────────────────
@@ -163,6 +166,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
   onUpdateNote, onDeleteNote, onPropsOpen,
   COLS, ROWS, TOTAL,
   wsOverlayVisible,
+  zoom = 1,
 }) => {
   const [tabletAction, setTabletAction] = React.useState<TabletAction>('normal');
 
@@ -214,6 +218,8 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
           />
         )}
 
+        {/* Notas y rejilla de iconos escaladas por el zoom; flechas y barra no */}
+        <DesktopZoomLayer zoom={zoom}>
         {/* ── Sticky notes ──────────────────────────────────────────── */}
         {notesForActiveWs.map(note => (
           <StickyNoteWidget
@@ -221,6 +227,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
             note={note}
             onUpdate={onUpdateNote}
             onDelete={onDeleteNote}
+            zoom={zoom}
           />
         ))}
 
@@ -248,6 +255,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
             />
           ))}
         </div>
+        </DesktopZoomLayer>
 
         {/* ── Navigation arrows ─────────────────────────────────────── */}
         {/* Explicit keys ensure React never reuses a component with a stale  */}

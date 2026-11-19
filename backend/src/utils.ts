@@ -5,6 +5,7 @@ import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { TelegramBot } from './telegramBot/telegramBot';
 import { GoogleDriveService } from './API/googleDrive.service';
 import { getBookmarksFilesPathList, getBookmarksNameFilesPathList } from './API/bookmarks/bookmarks-utils';
+import { SAVED_COMMANDS_PATH } from './API/savedCommands.service';
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -222,47 +223,32 @@ const getDesktopBackupPairs = (): { src: string; dst: string }[] => {
 };
 
 export const startBackupEveryWeek = async(pathRootToPaste: string, password: string) => {
-  const pathToCopyList = [
-    'data/notes.txt',
-    'data/alerts.json',
-    'data/birthdays.json',
-    'data/pomodoro.json',
-    'data/youtube_rss_urls.json',
-    'keys.json',
-    'configuration.json',
-    'data/config/blogRssList.json',
-    // desktop profiles are added dynamically below (one file per profile)
-    'data/config/newsRSSList.json',
-    'data/config/mastodonRssUsersList.json',
-    'data/config/nitterInstancesList.json',
-    'data/config/nitterRssUsersList.json',
-    'data/config/quoteList.json',
-    'data/config/youtubeRssList.json',
-    'data/readLaterMessagesRSS.json',
-  ];
-
-  const pathToPasteList = [
-    'notes.txt',
-    'alerts.json',
-    'birthdays.json',
-    'pomodoro.json',
-    'youtube_rss_urls.json',
-    'keys.json',
-    'configuration.json',
-    'blogRssList.json',
-    // desktop profiles are added dynamically below (one file per profile)
-    'newsRSSList.json',
-    'mastodonRssUsersList.json',
-    'quoteList.json',
-    'youtubeRssList.json',
-    'readLaterMessagesRSS.json',
+  // Pares origen → nombre dentro del backup (así origen y destino nunca se desalinean)
+  const filePairs: { src: string; dst: string }[] = [
+    { src: 'data/notes.txt',                         dst: 'notes.txt' },
+    { src: 'data/alerts.json',                       dst: 'alerts.json' },
+    { src: 'data/birthdays.json',                    dst: 'birthdays.json' },
+    { src: 'data/pomodoro.json',                     dst: 'pomodoro.json' },
+    { src: 'data/youtube_rss_urls.json',             dst: 'youtube_rss_urls.json' },
+    { src: 'keys.json',                              dst: 'keys.json' },
+    { src: 'configuration.json',                     dst: 'configuration.json' },
+    { src: 'data/config/blogRssList.json',           dst: 'blogRssList.json' },
+    // los perfiles de escritorio se añaden dinámicamente abajo (un fichero por perfil)
+    { src: 'data/config/newsRSSList.json',           dst: 'newsRSSList.json' },
+    { src: 'data/config/mastodonRssUsersList.json',  dst: 'mastodonRssUsersList.json' },
+    { src: 'data/config/nitterInstancesList.json',   dst: 'nitterInstancesList.json' },
+    { src: 'data/config/nitterRssUsersList.json',    dst: 'nitterRssUsersList.json' },
+    { src: 'data/config/quoteList.json',             dst: 'quoteList.json' },
+    { src: 'data/config/youtubeRssList.json',        dst: 'youtubeRssList.json' },
+    { src: 'data/readLaterMessagesRSS.json',         dst: 'readLaterMessagesRSS.json' },
+    { src: SAVED_COMMANDS_PATH,                      dst: 'savedCommands.json' },
   ];
 
   const desktopPairs = getDesktopBackupPairs();
 
   const bookmarksPaths = await getBookmarksFilesPathList();
-  const allPathToCopyList  = [...pathToCopyList,  ...desktopPairs.map(p => p.src), ...bookmarksPaths];
-  const allPathToPasteList = [...pathToPasteList, ...desktopPairs.map(p => p.dst), ...getBookmarksNameFilesPathList(bookmarksPaths)];
+  const allPathToCopyList  = [...filePairs.map(p => p.src), ...desktopPairs.map(p => p.src), ...bookmarksPaths];
+  const allPathToPasteList = [...filePairs.map(p => p.dst), ...desktopPairs.map(p => p.dst), ...getBookmarksNameFilesPathList(bookmarksPaths)];
 
   const uploadBackup = (pathZipped: string) => {
     GoogleDriveService.Instance?.uploadBackup(pathZipped);

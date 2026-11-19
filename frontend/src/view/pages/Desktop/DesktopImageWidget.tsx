@@ -6,12 +6,14 @@ interface Props {
   image:    DesktopImage;
   onUpdate: (id: string, changes: Partial<DesktopImage>) => void;
   onDelete: (id: string) => void;
+  /** Zoom del escritorio (1 = 100%); las coordenadas del ratón se dividen entre él. */
+  zoom?:    number;
 }
 
 const MIN_W = 60;
 const MIN_H = 40;
 
-export const DesktopImageWidget: React.FC<Props> = ({ image, onUpdate, onDelete }) => {
+export const DesktopImageWidget: React.FC<Props> = ({ image, onUpdate, onDelete, zoom = 1 }) => {
   const [lx, setLx] = React.useState(image.x);
   const [ly, setLy] = React.useState(image.y);
   const [lw, setLw] = React.useState(image.width);
@@ -48,16 +50,16 @@ export const DesktopImageWidget: React.FC<Props> = ({ image, onUpdate, onDelete 
   // ── Drag (from header) ─────────────────────────────────────────────────────
   const startDrag = (e: React.MouseEvent) => {
     e.preventDefault();
-    const ox = e.clientX - lx;
-    const oy = e.clientY - ly;
+    const ox = (e.clientX / zoom) - lx;
+    const oy = (e.clientY / zoom) - ly;
 
     const onMove = (ev: MouseEvent) => {
-      setLx(ev.clientX - ox);
-      setLy(ev.clientY - oy);
+      setLx((ev.clientX / zoom) - ox);
+      setLy((ev.clientY / zoom) - oy);
     };
     const onUp = (ev: MouseEvent) => {
-      const fx = ev.clientX - ox;
-      const fy = ev.clientY - oy;
+      const fx = (ev.clientX / zoom) - ox;
+      const fy = (ev.clientY / zoom) - oy;
       setLx(fx); setLy(fy);
       onUpdate(image.id, { x: fx, y: fy });
       document.removeEventListener('mousemove', onMove);
@@ -71,16 +73,16 @@ export const DesktopImageWidget: React.FC<Props> = ({ image, onUpdate, onDelete 
   const startResize = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const mx0 = e.clientX, my0 = e.clientY;
+    const mx0 = (e.clientX / zoom), my0 = (e.clientY / zoom);
     const w0  = lw,        h0  = lh;
 
     const onMove = (ev: MouseEvent) => {
-      setLw(Math.max(MIN_W, w0 + ev.clientX - mx0));
-      setLh(Math.max(MIN_H, h0 + ev.clientY - my0));
+      setLw(Math.max(MIN_W, w0 + (ev.clientX / zoom) - mx0));
+      setLh(Math.max(MIN_H, h0 + (ev.clientY / zoom) - my0));
     };
     const onUp = (ev: MouseEvent) => {
-      const fw = Math.max(MIN_W, w0 + ev.clientX - mx0);
-      const fh = Math.max(MIN_H, h0 + ev.clientY - my0);
+      const fw = Math.max(MIN_W, w0 + (ev.clientX / zoom) - mx0);
+      const fh = Math.max(MIN_H, h0 + (ev.clientY / zoom) - my0);
       setLw(fw); setLh(fh);
       onUpdate(image.id, { width: fw, height: fh });
       document.removeEventListener('mousemove', onMove);

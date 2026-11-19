@@ -130,3 +130,13 @@ export interface ComandLineResponse {
   stdout: string;
   stderr: string;
 }
+
+export interface SavedCommand {
+  id: string;
+  name: string;
+  command: string;
+}
+
+export interface SavedCommandsResponse {
+  data: SavedCommand[];
+}
