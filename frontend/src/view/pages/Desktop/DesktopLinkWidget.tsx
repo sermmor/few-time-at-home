@@ -4,8 +4,9 @@ import InsertLinkIcon from '@mui/icons-material/InsertLink';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
+import RefreshIcon     from '@mui/icons-material/Refresh';
 import { DesktopLink } from '../../../core/actions/desktop';
-import { desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
+import { desktopFaviconSrc } from './DesktopCommons';
 import { copyToClipboard } from '../../../core/clipboard';
 
 interface Props {
@@ -15,6 +16,8 @@ interface Props {
   /** Zoom del escritorio (1 = 100%); las coordenadas del ratón se dividen entre él. */
   zoom?:    number;
   onEdit:   (link: DesktopLink) => void;
+  /** Vuelve a descargar el favicon del enlace (opción del menú contextual). */
+  onRefreshFavicon?: (link: DesktopLink) => void;
 }
 
 // ── Subcomponente de favicon con fallback ──────────────────────────────────────
@@ -28,7 +31,7 @@ const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
   }
   return (
     <img
-      src={desktopFaviconImageEndpoint(name)}
+      src={desktopFaviconSrc(name)}
       alt=""
       draggable={false}
       onError={() => setFailed(true)}
@@ -41,7 +44,7 @@ const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
 const DRAG_THRESHOLD = 6;
 
 // ── DesktopLinkWidget ──────────────────────────────────────────────────────────
-export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, onEdit, zoom = 1 }) => {
+export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, onEdit, onRefreshFavicon, zoom = 1 }) => {
   const [lx, setLx] = React.useState(link.x);
   const [ly, setLy] = React.useState(link.y);
 
@@ -145,7 +148,7 @@ export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, o
           overflow:        'hidden',
         }}>
           {link.favicon ? (
-            <FaviconImg name={link.favicon} />
+            <FaviconImg key={desktopFaviconSrc(link.favicon)} name={link.favicon} />
           ) : (
             <InsertLinkIcon
               sx={{ fontSize: '2rem', color: '#3b82f6',
@@ -196,6 +199,12 @@ export const DesktopLinkWidget: React.FC<Props> = ({ link, onUpdate, onDelete, o
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Editar nombre</ListItemText>
         </MenuItem>
+        {onRefreshFavicon && (
+          <MenuItem onClick={() => { closeCtx(); onRefreshFavicon(link); }} dense>
+            <ListItemIcon><RefreshIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Actualizar favicon</ListItemText>
+          </MenuItem>
+        )}
         <MenuItem
           onClick={() => { closeCtx(); onDelete(link.id); }}
           dense

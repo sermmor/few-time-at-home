@@ -24,6 +24,7 @@ export interface DesktopTabletProps {
   notesForActiveWs: StickyNote[];
   onDeleteLink:     (id: string) => void;
   onEditLink:       (link: DesktopLink) => void;
+  onRefreshFavicon?: (link: DesktopLink) => void;
   onAddLink:        () => void;
   onUpdateNote:     (id: string, changes: Partial<StickyNote>) => void;
   onDeleteNote:     (id: string) => void;
@@ -162,7 +163,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
   slide, setSlide,
   activeWallpaper,
   linksForActiveWs, notesForActiveWs,
-  onDeleteLink, onEditLink, onAddLink,
+  onDeleteLink, onEditLink, onRefreshFavicon, onAddLink,
   onUpdateNote, onDeleteNote, onPropsOpen,
   COLS, ROWS, TOTAL,
   wsOverlayVisible,
@@ -252,6 +253,7 @@ export const DesktopTablet: React.FC<DesktopTabletProps> = ({
               mode={tabletAction}
               onDelete={id => { onDeleteLink(id); setTabletAction('normal'); }}
               onEdit={l  => { onEditLink(l);  setTabletAction('normal'); }}
+              onRefreshFavicon={onRefreshFavicon}
             />
           ))}
         </div>

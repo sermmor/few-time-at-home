@@ -1,5 +1,5 @@
 import React from 'react';
-import { getCloudEndpoint } from '../../../core/urls-and-end-points';
+import { getCloudEndpoint, desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
 
 // ── Canvas geometry ───────────────────────────────────────────────────────────
 // EnvelopeComponent adds paddingTop: 5.5rem and paddingLeft/Right: 1rem.
@@ -89,3 +89,20 @@ export const DesktopZoomLayer = ({ zoom, children }: { zoom: number; children: R
     {children}
   </div>
 );
+
+// ── Favicons de enlaces ───────────────────────────────────────────────────────
+// El navegador cachea /desktop/favicon/:name, así que tras forzar la descarga de
+// un favicon se guarda aquí una "versión" para añadirla a la URL (?v=...).
+const faviconVersions: Record<string, number> = {};
+
+/** Marca el favicon como actualizado para que el <img> lo vuelva a pedir. */
+export const bumpFaviconVersion = (name: string): void => {
+  faviconVersions[name] = Date.now();
+};
+
+/** URL de la imagen del favicon (con la versión si se ha actualizado).
+ *  Úsala también como `key` del <img> para que se reintente tras un error. */
+export const desktopFaviconSrc = (name: string): string => {
+  const v = faviconVersions[name];
+  return v ? `${desktopFaviconImageEndpoint(name)}?v=${v}` : desktopFaviconImageEndpoint(name);
+};

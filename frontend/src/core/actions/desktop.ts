@@ -132,11 +132,12 @@ const saveDesktopConfig = (config: DesktopConfig): Promise<void> =>
   ).then(() => undefined);
 
 /** Solicita al backend que descargue (o recupere de caché) el favicon de una URL.
+ *  Con `force` ignora la caché del backend y lo vuelve a descargar.
  *  Devuelve el nombre del fichero (sin extensión) o null si no se pudo obtener. */
-const getFavicon = (url: string): Promise<string | null> =>
+const getFavicon = (url: string, force = false): Promise<string | null> =>
   fetchJsonSendAndReceive<{ name?: string | null }>(
     desktopGetFaviconEndpoint(),
-    { url },
+    force ? { url, force: true } : { url },
     {},
   ).then(res => res.name ?? null)
   .catch(() => null);

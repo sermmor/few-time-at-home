@@ -87,6 +87,18 @@ Follow `data-files-and-backups.md` (backward compatibility):
 - When you add a new free-floating widget: put it inside `DesktopZoomLayer`,
   give it a `zoom` prop, and divide its mouse math by it.
 
+## Link favicons
+- Backend `favicon.service.ts` caches files in `data/favicon/<name>.<ext>`, where
+  `<name>` is the second-level domain label, so links on the same site share one
+  file. `POST /desktop/get-favicon { url, force? }` returns `{ name | null }`.
+  `force` re-downloads and falls back to the cached file if the download fails.
+- Frontend: `link.favicon` holds that name. Render it with `desktopFaviconSrc(name)`
+  from `DesktopCommons` (and use it as the `<img>` `key`). After a forced refresh,
+  call `bumpFaviconVersion(name)` so the browser does not show its cached copy.
+- The link right-click menus have "Actualizar favicon" (`onRefreshFavicon`, forced).
+  The properties dialogs have `DesktopMissingFaviconsSection`, which only fetches
+  links without `favicon` (all workspaces) and applies the result immediately.
+
 ## Testing
 - Test profile: **`pruebaPerfilDefaultDoble`** (local, not remote). Check
   `desktopMeta.json` for the active profile. If you have to switch profiles,

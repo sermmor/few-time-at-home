@@ -21,6 +21,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import ClearIcon      from '@mui/icons-material/Clear';
 import SmartphoneIcon from '@mui/icons-material/Smartphone';
 import { DesktopConfig, DesktopActions } from '../../../core/actions/desktop';
+import { DesktopMissingFaviconsSection, RefreshMissingFavicons } from './DesktopMissingFaviconsSection';
 import { ModalCloudImagePicker } from '../../molecules/ModalCloudImagePicker/ModalCloudImagePicker';
 
 const BASE_COLORS = [
@@ -39,10 +40,12 @@ interface Props {
   onClose: () => void;
   config:  DesktopConfig;
   onSave:  (updated: DesktopConfig) => void;
+  /** Descarga los favicons de los enlaces que no tienen. */
+  onRefreshMissingFavicons?: RefreshMissingFavicons;
 }
 
 export const DesktopMobilePropertiesDialog: React.FC<Props> = ({
-  isOpen, onClose, config, onSave,
+  isOpen, onClose, config, onSave, onRefreshMissingFavicons,
 }) => {
   // rows is always 1 in mobile mode — never exposed to the user.
   const [cols,       setCols      ] = React.useState(config.cols);
@@ -56,7 +59,10 @@ export const DesktopMobilePropertiesDialog: React.FC<Props> = ({
       setCols(config.cols);
       setWallpapers(config.wallpapers);
     }
-  }, [isOpen, config]);
+  // Solo al abrir: si `config` cambia con el diálogo abierto (p. ej. al
+  // actualizar favicons) no hay que perder los cambios aún sin guardar.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // In mobile mode total = cols (1 implicit row)
   const total = cols;
@@ -125,6 +131,11 @@ export const DesktopMobilePropertiesDialog: React.FC<Props> = ({
             Cada columna es un escritorio independiente. Navega entre ellos con las flechas
             izquierda / derecha o con Shift + ←→.
           </Typography>
+
+          {/* ── Favicons ─────────────────────────────────────────────── */}
+          {onRefreshMissingFavicons && (
+            <DesktopMissingFaviconsSection config={config} onRefresh={onRefreshMissingFavicons} />
+          )}
 
           {/* ── Wallpapers ─────────────────────────────────────────── */}
           <Typography variant="subtitle2" sx={{

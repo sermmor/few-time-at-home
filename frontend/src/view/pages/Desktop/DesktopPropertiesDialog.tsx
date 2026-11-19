@@ -23,6 +23,7 @@ import {
   MAX_DESKTOP_ZOOM,
   getDesktopZoom,
 } from '../../../core/actions/desktop';
+import { DesktopMissingFaviconsSection, RefreshMissingFavicons } from './DesktopMissingFaviconsSection';
 import { ModalCloudImagePicker } from '../../molecules/ModalCloudImagePicker/ModalCloudImagePicker';
 
 // Default colour per workspace index (cycling if > 16 workspaces)
@@ -42,10 +43,12 @@ interface Props {
   onClose: () => void;
   config:  DesktopConfig;
   onSave:  (updated: DesktopConfig) => void;
+  /** Descarga los favicons de los enlaces que no tienen. */
+  onRefreshMissingFavicons?: RefreshMissingFavicons;
 }
 
 export const DesktopPropertiesDialog: React.FC<Props> = ({
-  isOpen, onClose, config, onSave,
+  isOpen, onClose, config, onSave, onRefreshMissingFavicons,
 }) => {
   const [rows,       setRows      ] = React.useState(config.rows);
   const [cols,       setCols      ] = React.useState(config.cols);
@@ -63,7 +66,10 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
       setWallpapers(config.wallpapers);
       setZoomPct(Math.round(getDesktopZoom(config) * 100));
     }
-  }, [isOpen, config]);
+  // Solo al abrir: si `config` cambia con el diálogo abierto (p. ej. al
+  // actualizar favicons) no hay que perder los cambios aún sin guardar.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const total = rows * cols;
 
@@ -174,6 +180,11 @@ export const DesktopPropertiesDialog: React.FC<Props> = ({
               Restablecer
             </Button>
           </Box>
+
+          {/* ── Favicons ─────────────────────────────────────────────── */}
+          {onRefreshMissingFavicons && (
+            <DesktopMissingFaviconsSection config={config} onRefresh={onRefreshMissingFavicons} />
+          )}
 
           {/* ── Wallpapers ────────────────────────────────────────────── */}
           <Typography variant="subtitle2" sx={{

@@ -1813,13 +1813,14 @@ export class APIService {
       res.json({ profiles: svc.listProfilesWithMeta(), active: svc.getActiveProfileName() });
     });
 
-    // POST /desktop/get-favicon — descarga (o recupera de caché) el favicon de una URL
+    // POST /desktop/get-favicon — descarga (o recupera de caché) el favicon de una URL.
+    // Con { force: true } ignora la caché y lo vuelve a descargar.
     this.app.post('/desktop/get-favicon', async (req: Request, res: Response) => {
       if (!req.body) return res.status(400).json({ error: 'No body received' });
-      const { url } = req.body as { url?: string };
+      const { url, force } = req.body as { url?: string; force?: boolean };
       if (!url) return res.status(400).json({ error: 'URL is required' });
       try {
-        const name = await getOrDownloadFavicon(url);
+        const name = await getOrDownloadFavicon(url, force === true);
         res.json({ name }); // name es string | null
       } catch (err: any) {
         console.error('[Favicon API] error:', err?.message);

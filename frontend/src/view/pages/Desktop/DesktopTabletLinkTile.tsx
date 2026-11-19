@@ -4,8 +4,9 @@ import InsertLinkIcon from '@mui/icons-material/InsertLink';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
+import RefreshIcon     from '@mui/icons-material/Refresh';
 import { DesktopLink } from '../../../core/actions/desktop';
-import { desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
+import { desktopFaviconSrc } from './DesktopCommons';
 import { copyToClipboard } from '../../../core/clipboard';
 
 export type TabletAction = 'normal' | 'edit' | 'delete';
@@ -15,6 +16,8 @@ interface Props {
   mode:     TabletAction;
   onDelete: (id: string) => void;
   onEdit:   (link: DesktopLink) => void;
+  /** Vuelve a descargar el favicon del enlace (opción del menú contextual). */
+  onRefreshFavicon?: (link: DesktopLink) => void;
 }
 
 const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
@@ -23,7 +26,7 @@ const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
                                            filter: 'drop-shadow(0 0 5px rgba(59,130,246,0.5))' }} />;
   return (
     <img
-      src={desktopFaviconImageEndpoint(name)}
+      src={desktopFaviconSrc(name)}
       alt=""
       draggable={false}
       onError={() => setFailed(true)}
@@ -44,7 +47,7 @@ const MODE_SHADOW: Record<TabletAction, string> = {
   delete: '0 0 0 2px #ff00cc, 0 3px 10px rgba(0,0,0,0.4)',
 };
 
-export const DesktopTabletLinkTile: React.FC<Props> = ({ link, mode, onDelete, onEdit }) => {
+export const DesktopTabletLinkTile: React.FC<Props> = ({ link, mode, onDelete, onEdit, onRefreshFavicon }) => {
   const [ctxMenu, setCtxMenu] = React.useState<{ x: number; y: number } | null>(null);
 
   const handleClick = () => {
@@ -140,7 +143,7 @@ export const DesktopTabletLinkTile: React.FC<Props> = ({ link, mode, onDelete, o
         }}
         >
           {link.favicon
-            ? <FaviconImg name={link.favicon} />
+            ? <FaviconImg key={desktopFaviconSrc(link.favicon)} name={link.favicon} />
             : <InsertLinkIcon sx={{ fontSize: '2.4rem', color: '#3b82f6',
                                     filter: 'drop-shadow(0 0 5px rgba(59,130,246,0.5))' }} />
           }
@@ -181,6 +184,12 @@ export const DesktopTabletLinkTile: React.FC<Props> = ({ link, mode, onDelete, o
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Editar nombre</ListItemText>
         </MenuItem>
+        {onRefreshFavicon && (
+          <MenuItem onClick={() => { closeCtx(); onRefreshFavicon(link); }} dense>
+            <ListItemIcon><RefreshIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Actualizar favicon</ListItemText>
+          </MenuItem>
+        )}
         <MenuItem
           onClick={() => { closeCtx(); onDelete(link.id); }} dense
           sx={{ color: 'error.main', '& .MuiListItemIcon-root': { color: 'error.main' } }}

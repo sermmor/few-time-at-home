@@ -7,8 +7,9 @@ import InsertLinkIcon from '@mui/icons-material/InsertLink';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon        from '@mui/icons-material/Edit';
 import DeleteIcon      from '@mui/icons-material/Delete';
+import RefreshIcon     from '@mui/icons-material/Refresh';
 import { DesktopLink } from '../../../core/actions/desktop';
-import { desktopFaviconImageEndpoint } from '../../../core/urls-and-end-points';
+import { desktopFaviconSrc } from './DesktopCommons';
 import { copyToClipboard } from '../../../core/clipboard';
 
 export type MobileTileAction = 'normal' | 'edit' | 'delete';
@@ -18,6 +19,8 @@ interface Props {
   mode:     MobileTileAction;
   onDelete: (id: string) => void;
   onEdit:   (link: DesktopLink) => void;
+  /** Vuelve a descargar el favicon del enlace (opción del menú contextual). */
+  onRefreshFavicon?: (link: DesktopLink) => void;
 }
 
 // ── Favicon with fallback ─────────────────────────────────────────────────────
@@ -26,7 +29,7 @@ const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
   if (failed) return <InsertLinkIcon sx={{ fontSize: '1.4rem', color: '#3b82f6' }} />;
   return (
     <img
-      src={desktopFaviconImageEndpoint(name)}
+      src={desktopFaviconSrc(name)}
       alt=""
       draggable={false}
       onError={() => setFailed(true)}
@@ -36,7 +39,7 @@ const FaviconImg: React.FC<{ name: string }> = ({ name }) => {
 };
 
 // ── DesktopMobileLinkTile ─────────────────────────────────────────────────────
-export const DesktopMobileLinkTile: React.FC<Props> = ({ link, mode, onDelete, onEdit }) => {
+export const DesktopMobileLinkTile: React.FC<Props> = ({ link, mode, onDelete, onEdit, onRefreshFavicon }) => {
   const [ctxMenu, setCtxMenu] = React.useState<{ x: number; y: number } | null>(null);
   const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -121,7 +124,7 @@ export const DesktopMobileLinkTile: React.FC<Props> = ({ link, mode, onDelete, o
           onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
         >
           {link.favicon ? (
-            <FaviconImg name={link.favicon} />
+            <FaviconImg key={desktopFaviconSrc(link.favicon)} name={link.favicon} />
           ) : (
             <InsertLinkIcon
               sx={{ fontSize: '1.4rem', color: accentColor ?? '#3b82f6' }}
@@ -189,6 +192,12 @@ export const DesktopMobileLinkTile: React.FC<Props> = ({ link, mode, onDelete, o
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Editar nombre</ListItemText>
         </MenuItem>
+        {onRefreshFavicon && (
+          <MenuItem onClick={() => { setCtxMenu(null); onRefreshFavicon(link); }} dense>
+            <ListItemIcon><RefreshIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Actualizar favicon</ListItemText>
+          </MenuItem>
+        )}
         <MenuItem
           onClick={() => { setCtxMenu(null); onDelete(link.id); }} dense
           sx={{ color: 'error.main', '& .MuiListItemIcon-root': { color: 'error.main' } }}

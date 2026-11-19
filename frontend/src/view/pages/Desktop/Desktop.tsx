@@ -1,9 +1,11 @@
 import React from 'react';
 import {
+  Alert,
   Divider,
   ListItemText,
   Menu,
   MenuItem,
+  Snackbar,
 } from '@mui/material';
 import {
   DesktopActions,
@@ -35,6 +37,7 @@ import {
   SLIDE_KEYFRAMES,
   SlideState,
   DesktopZoomLayer,
+  bumpFaviconVersion,
   type Direction,
 } from './DesktopCommons';
 import { DesktopImageWidget } from './DesktopImageWidget';
@@ -51,6 +54,8 @@ export const Desktop = (): JSX.Element => {
   const [slide,         setSlide        ] = React.useState<SlideState | null>(null);
   const [contextMenu,   setContextMenu  ] = React.useState<{ x: number; y: number } | null>(null);
   const [propsOpen,     setPropsOpen    ] = React.useState(false);
+  // Aviso (snackbar) del resultado al actualizar un favicon
+  const [faviconMsg,    setFaviconMsg   ] = React.useState<{ text: string; severity: 'info' | 'success' | 'error' } | null>(null);
   const [linkDialogOpen,setLinkDialogOpen] = React.useState(false);
   const [editingLink,   setEditingLink  ] = React.useState<DesktopLink | undefined>(undefined);
   const [imagePickerOpen, setImagePickerOpen] = React.useState(false);
@@ -376,6 +381,62 @@ export const Desktop = (): JSX.Element => {
     });
   };
 
+  // ── Favicons ──────────────────────────────────────────────────────────────
+  // Vuelve a descargar (forzando) el favicon de un enlace concreto.
+  const refreshLinkFavicon = (link: DesktopLink) => {
+    setFaviconMsg({ text: 'Actualizando favicon…', severity: 'info' });
+    DesktopActions.getFavicon(link.url, true).then(favicon => {
+      if (favicon) {
+        bumpFaviconVersion(favicon);
+        updateLink(link.id, { favicon });
+        setFaviconMsg({ text: 'Favicon actualizado', severity: 'success' });
+      } else {
+        setFaviconMsg({ text: 'No se pudo obtener el favicon (¿la página está disponible?)', severity: 'error' });
+      }
+    });
+  };
+
+  // Descarga el favicon de todos los enlaces que no tienen (en todos los escritorios).
+  // Los enlaces que ya tienen favicon no se tocan.
+  const refreshMissingFavicons = async (
+    onProgress?: (done: number, total: number) => void,
+  ): Promise<{ updated: number; total: number }> => {
+    const pending = (config.links ?? []).filter(l => !l.favicon);
+    const total   = pending.length;
+    const found: Record<string, string> = {};
+    let done = 0;
+    onProgress?.(0, total);
+
+    // Varias descargas a la vez (cada una puede tardar hasta el timeout del backend)
+    const CONCURRENCY = 4;
+    let next = 0;
+    const worker = async () => {
+      while (next < pending.length) {
+        const link = pending[next++];
+        const favicon = await DesktopActions.getFavicon(link.url);
+        if (favicon) found[link.id] = favicon;
+        onProgress?.(++done, total);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, total) }, worker));
+
+    const updated = Object.keys(found).length;
+    if (updated > 0) {
+      // Se aplica sobre el estado más reciente y solo a enlaces que siguen sin favicon
+      setConfig(prev => {
+        const next = {
+          ...prev,
+          links: (prev.links ?? []).map(l =>
+            !l.favicon && found[l.id] ? { ...l, favicon: found[l.id] } : l,
+          ),
+        };
+        DesktopActions.saveDesktopConfig(next);
+        return next;
+      });
+    }
+    return { updated, total };
+  };
+
   const deleteLink = (id: string) => {
     setConfig(prev => {
       const updated = {
@@ -415,6 +476,7 @@ export const Desktop = (): JSX.Element => {
           notesForActiveWs={notesForActiveWs}
           onDeleteLink={deleteLink}
           onEditLink={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+          onRefreshFavicon={refreshLinkFavicon}
           onAddLink={openAddLinkDialog}
           onUpdateNote={updateNote}
           onDeleteNote={deleteNote}
@@ -434,6 +496,7 @@ export const Desktop = (): JSX.Element => {
           notesForActiveWs={notesForActiveWs}
           onDeleteLink={deleteLink}
           onEditLink={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+          onRefreshFavicon={refreshLinkFavicon}
           onAddLink={openAddLinkDialog}
           onUpdateNote={updateNote}
           onDeleteNote={deleteNote}
@@ -530,6 +593,7 @@ export const Desktop = (): JSX.Element => {
                 onUpdate={updateLink}
                 onDelete={deleteLink}
                 onEdit={l => { setEditingLink(l); setLinkDialogOpen(true); }}
+                onRefreshFavicon={refreshLinkFavicon}
                 zoom={zoom}
               />
             ))}
@@ -610,6 +674,7 @@ export const Desktop = (): JSX.Element => {
           onClose={() => setPropsOpen(false)}
           config={config}
           onSave={updated => setConfig(updated)}
+          onRefreshMissingFavicons={refreshMissingFavicons}
         />
       ) : (
         <DesktopPropertiesDialog
@@ -617,6 +682,7 @@ export const Desktop = (): JSX.Element => {
           onClose={() => setPropsOpen(false)}
           config={config}
           onSave={updated => setConfig(updated)}
+          onRefreshMissingFavicons={refreshMissingFavicons}
         />
       )}
 
@@ -633,6 +699,17 @@ export const Desktop = (): JSX.Element => {
         onClose={() => { setImagePickerOpen(false); setContextMenu(null); }}
         onAccept={addImage}
       />
+
+      <Snackbar
+        open={faviconMsg !== null}
+        autoHideDuration={faviconMsg?.severity === 'info' ? null : 4000}
+        onClose={(_e, reason) => { if (reason !== 'clickaway') setFaviconMsg(null); }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={faviconMsg?.severity ?? 'info'} variant="filled" onClose={() => setFaviconMsg(null)}>
+          {faviconMsg?.text}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

@@ -48,26 +48,42 @@ const fetchWithTimeout = (url: string) =>
  * - Primero intenta el servicio de Google Favicons (más fiable).
  * - Si falla, intenta /favicon.ico directamente en el host.
  * Devuelve el nombre (sin extensión) si tuvo éxito, o null si no.
+ * Con `force = true` se ignora la caché y se vuelve a descargar; si la descarga
+ * falla se conserva (y devuelve) el fichero que ya hubiera en disco.
  */
-export const getOrDownloadFavicon = async (url: string): Promise<string | null> => {
+export const getOrDownloadFavicon = async (url: string, force = false): Promise<string | null> => {
   const name = extractFaviconName(url);
 
-  // ¿Ya existe en disco? No volver a descargar.
-  if (getFaviconFilePath(name)) {
+  // ¿Ya existe en disco? No volver a descargar (salvo que se fuerce).
+  if (!force && getFaviconFilePath(name)) {
     console.log(`[Favicon] cache hit: ${name}`);
     return name;
   }
+  const result = await downloadFavicon(url, name);
+  if (result) return result;
+  // Descarga fallida: si había uno en caché, seguir usándolo
+  return getFaviconFilePath(name) ? name : null;
+};
+
+const downloadFavicon = async (url: string, name: string): Promise<string | null> => {
 
   // Asegurar que el directorio existe
-  if (!existsSync(FAVICON_DIR)) {
-    mkdirSync(FAVICON_DIR, { recursive: true });
+  try {
+    if (!existsSync(FAVICON_DIR)) {
+      mkdirSync(FAVICON_DIR, { recursive: true });
+    }
+  } catch (e) {
+    console.warn('[Favicon] could not create favicon dir:', (e as Error).message);
+    return null;
   }
 
   let hostname: string;
+  let host:     string; // incluye el puerto (p. ej. "localhost:7000")
   let protocol: string;
   try {
     const parsed = new URL(url);
     hostname = parsed.hostname;
+    host     = parsed.host;
     protocol = parsed.protocol;
   } catch {
     return null;
@@ -91,7 +107,7 @@ export const getOrDownloadFavicon = async (url: string): Promise<string | null> 
 
   // ── Intento 2: /favicon.ico directo en el host ────────────────────────────
   try {
-    const icoUrl = `${protocol}//${hostname}/favicon.ico`;
+    const icoUrl = `${protocol}//${host}/favicon.ico`;
     const res    = await fetchWithTimeout(icoUrl);
     if (res.ok) {
       const buf = Buffer.from(await res.arrayBuffer());

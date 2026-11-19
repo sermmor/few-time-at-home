@@ -27,6 +27,7 @@ export interface DesktopMobileProps {
   notesForActiveWs: StickyNote[];
   onDeleteLink:     (id: string) => void;
   onEditLink:       (link: DesktopLink) => void;
+  onRefreshFavicon?: (link: DesktopLink) => void;
   onAddLink:        () => void;
   onUpdateNote:     (id: string, changes: Partial<StickyNote>) => void;
   onDeleteNote:     (id: string) => void;
@@ -118,7 +119,7 @@ export const DesktopMobile: React.FC<DesktopMobileProps> = ({
   slide, setSlide,
   activeWallpaper,
   linksForActiveWs, notesForActiveWs,
-  onDeleteLink, onEditLink, onAddLink,
+  onDeleteLink, onEditLink, onRefreshFavicon, onAddLink,
   onUpdateNote, onDeleteNote, onPropsOpen,
   COLS,
   wsOverlayVisible,
@@ -218,6 +219,7 @@ export const DesktopMobile: React.FC<DesktopMobileProps> = ({
                 mode={tileAction}
                 onDelete={id => { onDeleteLink(id); setTileAction('normal'); }}
                 onEdit={l  => { onEditLink(l);  setTileAction('normal'); }}
+                onRefreshFavicon={onRefreshFavicon}
               />
             ))}
           </div>
