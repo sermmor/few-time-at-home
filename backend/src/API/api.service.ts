@@ -31,7 +31,7 @@ import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import { DesktopProfilesService } from './desktopProfiles.service';
 import { DesktopRemoteService }   from './desktopRemote.service';
 import { AudioEditorService } from './audioEditor.service';
-import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
+import { resolveYoutubeStreamUrl, getYtDlpVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
 import { ImageEditorService } from './imageEditor.service';
 import * as os from 'os';
 import * as http from 'http';
@@ -2031,7 +2031,7 @@ export class APIService {
     // GET /youtube-page/version — returns { installed, latest, hasUpdate }
     this.app.get(APIService.youtubePageEndpoint.version, async (_req: Request, res: Response) => {
       try {
-        const info = await getYoutubeJsVersionInfo();
+        const info = await getYtDlpVersionInfo();
         res.json(info);
       } catch (err: any) {
         console.error('[YouTube page] version error:', err?.message ?? err);
