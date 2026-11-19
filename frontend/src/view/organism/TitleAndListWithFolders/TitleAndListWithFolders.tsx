@@ -103,6 +103,10 @@ interface Props {
   showPhotoLibrary?: () => void;
   /** Called when the user taps the "add to playlist" (+) button on an audio file or folder. */
   onAddToPlaylist?: (id: string, isFolder: boolean) => void;
+  /** Si se indica, muestra el botón "·" para ocultar/mostrar los ficheros que empiezan por ".". */
+  onToggleHideDotFiles?: () => void;
+  isHidingDotFiles?: boolean;
+  toggleHideDotFilesTitle?: string;
 }
 
 export const TitleAndListWithFolders = ({
@@ -131,6 +135,9 @@ export const TitleAndListWithFolders = ({
   createFile,
   showPhotoLibrary,
   onAddToPlaylist,
+  onToggleHideDotFiles,
+  isHidingDotFiles,
+  toggleHideDotFilesTitle,
 }: Props) => {
   const alphas = useConfiguredDialogAlphas();
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
@@ -233,6 +240,16 @@ export const TitleAndListWithFolders = ({
       {
         !isInSelectListMode && seeTrashDrive && 
           <Button onClick={seeTrashDrive}><DeleteIcon /></Button>
+      }
+      {
+        !isInSelectListMode && onToggleHideDotFiles &&
+          <Button
+            onClick={onToggleHideDotFiles}
+            title={toggleHideDotFilesTitle}
+            aria-pressed={!!isHidingDotFiles}
+            variant={isHidingDotFiles ? 'contained' : 'text'}
+            sx={{ minWidth: '2.5rem', fontSize: '1.6rem', fontWeight: 900, lineHeight: 1, padding: '0 0.5rem' }}
+          >·</Button>
       }
       {
         !isInSelectListMode && updateContent && 

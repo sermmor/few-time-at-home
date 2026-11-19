@@ -11,7 +11,7 @@ import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWi
 import { LabelAndUrlField } from "../../molecules/LabelAndUrlField/LabelAndUrlField";
 import { ActionsProps, addFolderActionItemList, changeDrive, createBlankFile, deleteItemAction, downloadAndOpenFileInEditor,
   downloadFile, downloadFileAndGetBlob, goBackToParentFolder, moveItemListToFolder, onSearchFileOrFolder, putInSelectedItemList, renameCloudFolder,
-  renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles, zipFolder } from "./ActionCloudList";
+  renameCloudItem, setOpenFolder, synchronizeWithCloud, uploadFiles, zipFolder, extractArchive } from "./ActionCloudList";
 import { ModalProgressComponent } from "../../molecules/ModalProgressComponent/ModalProgressComponent";
 import { CloudState, createCloudState, isShowingDescriptionState } from "./Models/CloudState";
 import { imageFileExtensions, ModalPhotoLibrary } from "../../molecules/ModalPhotoLibrary/ModalPhotoLibrary";
@@ -51,6 +51,20 @@ const compareByType = (item1: CloudItem, item2: CloudItem) => {
 };
 const sortFileList = (fileList: CloudItem[]) => fileList.sort(compareByName).sort(compareByType);
 
+// Ficheros "ocultos" (metadatos de macOS como .DS_Store o ._foto.jpg): empiezan por ".".
+const isDotFile = (name: string) => name.startsWith('.');
+// Los "._x.zip" de macOS no son zips de verdad: no se ofrecen para descomprimir.
+const isAnArchiveFile = (name: string) => !isDotFile(name) && /\.(zip|rar)$/i.test(name);
+
+// Preferencia por navegador de ocultar los ficheros que empiezan por ".".
+const HIDE_DOT_FILES_STORAGE_KEY = 'ftah.cloud.hideDotFiles';
+const readHideDotFiles = (): boolean => {
+  try { return localStorage.getItem(HIDE_DOT_FILES_STORAGE_KEY) === 'true'; } catch { return false; }
+};
+const writeHideDotFiles = (value: boolean) => {
+  try { localStorage.setItem(HIDE_DOT_FILES_STORAGE_KEY, `${value}`); } catch { /* sin almacenamiento: solo en memoria */ }
+};
+
 let indexNewCloudItemAdded = 0;
 
 export const Cloud = () => {
@@ -73,6 +87,13 @@ export const Cloud = () => {
   const [currentPathFolder, setCurrentPathFolder] = React.useState<string>('error');
   const [cloudState, setCloudState] = React.useState<CloudState>(createCloudState());
   const [fileList, setFileList] = React.useState<CloudItem[]>([]);
+  const [isHidingDotFiles, setHidingDotFiles] = React.useState<boolean>(readHideDotFiles);
+  // Lista que se muestra (y que reciben los visores): sin ficheros "." si están ocultos.
+  const visibleFileList = React.useMemo(
+    () => isHidingDotFiles ? fileList.filter(f => !isDotFile(f.name)) : fileList,
+    [fileList, isHidingDotFiles],
+  );
+  const toggleHideDotFiles = () => setHidingDotFiles(prev => { writeHideDotFiles(!prev); return !prev; });
   const [driveList, setDriveList] = React.useState<string[]>();
   const [indexCurrentDrive, setIndexCurrentDrive] = React.useState<number>(-1);
   const [currentDrive, setCurrentDrive] = React.useState<string>('');
@@ -168,7 +189,8 @@ export const Cloud = () => {
       if (!folderItem) return;
       CloudActions.getAllFolderItems({ drive: currentDrive, folderPath: folderItem.path }).then(data => {
         const audioFiles = data.data
-          .filter(f => !f.isFolder && isAnAudioFile(f.name))
+          // Sin metadatos (".") ni imágenes (p. ej. carátulas): solo audio.
+          .filter(f => !f.isFolder && !isDotFile(f.name) && isAnAudioFile(f.name) && !isAnImageFile(f.name))
           .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
         setPlaylist(prev => {
           const existing = new Set(prev.map(p => p.path));
@@ -238,8 +260,11 @@ export const Cloud = () => {
         goBackToParent={() => goBackToParentFolder(action).then(res => navigate(`${cloudRootPath}${res}`))}
         showPhotoLibrary={() => handleClickOpenPhotoLibraryDialog()}
         onAddToPlaylist={addToPlaylist}
+        onToggleHideDotFiles={toggleHideDotFiles}
+        isHidingDotFiles={isHidingDotFiles}
+        toggleHideDotFilesTitle={isHidingDotFiles ? t('cloud.showDotFiles') : t('cloud.hideDotFiles')}
         list={
-          sortFileList(fileList).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
+          sortFileList([...visibleFileList]).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
             item.isFolder ?
               <LabelAndTextFieldWithFolder
                 backgroundColor={(index % 2 === 0) ? '#D3D3D3' : '#FFFFFF'}
@@ -257,6 +282,8 @@ export const Cloud = () => {
                 hideUrl={true}
                 textUrl={`${item.path}`}
                 onClickUrl={() => downloadFile(action, item)}
+                onExtract={isAnArchiveFile(item.name) ? () => extractArchive(action, item.name) : undefined}
+                extractTitle={t('cloud.extractArchive')}
                 onChange={(newTextToShow, newTextUrl) => renameCloudItem(action, item, newTextToShow, newTextUrl)}
                 />
               }
@@ -276,7 +303,7 @@ export const Cloud = () => {
       handleClosePhotoLibraryDialog={handleClosePhotoLibraryDialog}
       isOpenPhotoLibraryDialog={isOpenPhotoLibraryDialog}
       nameFirstPhoto={nameImageInPhotoLibrary}
-      fileList={fileList}
+      fileList={visibleFileList}
       getUrlCloudFile={getUrlCloudFile}
       downloadCloudFile={downloadCloudFile}
     />
@@ -284,7 +311,7 @@ export const Cloud = () => {
       isOpen={isOpenVideoPlayerDialog}
       onClose={() => setOpenVideoPlayerDialog(false)}
       firstVideoName={currentVideoName}
-      fileList={fileList}
+      fileList={visibleFileList}
       getStreamUrl={getVideoStreamUrl}
       downloadCloudFile={downloadCloudFile}
     />
@@ -292,7 +319,7 @@ export const Cloud = () => {
       isOpen={isOpenAudioPlayerDialog}
       onClose={() => setOpenAudioPlayerDialog(false)}
       firstAudioName={currentAudioName}
-      fileList={fileList}
+      fileList={visibleFileList}
       getStreamUrl={getVideoStreamUrl}
       downloadCloudFile={downloadCloudFile}
     />

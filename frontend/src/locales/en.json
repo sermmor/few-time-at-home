@@ -277,7 +277,10 @@
     "newFile": "New File",
     "newFileDescription": "Write new file name",
     "newFolder": "New Folder",
-    "newFolderDescription": "Write new folder name"
+    "newFolderDescription": "Write new folder name",
+    "hideDotFiles": "Hide hidden files (starting with \".\")",
+    "showDotFiles": "Show hidden files (starting with \".\")",
+    "extractArchive": "Extract into a folder with the same name"
   },
   "bookmarks": {
     "title": "Bookmarks",

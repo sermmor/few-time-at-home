@@ -1,5 +1,5 @@
 
-import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest, MoveCloudRequest, SaveCloudFileRequest, ZipCloudRequest } from "../../data-model/cloud";
+import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest, MoveCloudRequest, SaveCloudFileRequest, ZipCloudRequest, ExtractArchiveCloudRequest, ExtractArchiveCloudResponse } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
 import { fetchDownloadFile, fetchDownloadFileAndGetBlob, fetchGetTextDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
@@ -49,6 +49,10 @@ const deleteFileOrFolder = (data: GenericCloudRequest) =>
 const zipFolder = (data: ZipCloudRequest) => 
   fetchJsonSendAndReceive<MessageResponse>(getCloudEndpoint("zipFolder"), data, messageResponseMock());
 
+// Descomprime un .zip/.rar en una carpeta con su mismo nombre (en el backend).
+const extractArchive = (data: ExtractArchiveCloudRequest) =>
+  fetchJsonSendAndReceive<ExtractArchiveCloudResponse>(getCloudEndpoint("extractArchive"), data, { message: 'Error extracting the file', isError: true });
+
 /**
  * Builds the URL for inline streaming of a cloud file (used by the video player).
  * Pointing <video src> directly at this URL lets Express handle HTTP Range requests,
@@ -57,4 +61,4 @@ const zipFolder = (data: ZipCloudRequest) =>
 const getStreamUrl = (data: DownloadFileToCloudResquest): string =>
   `${getCloudEndpoint('streamFile')}?drive=${encodeURIComponent(data.drive)}&path=${encodeURIComponent(data.path)}`;
 
-export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, searchAllItemsInFolderDeep, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, getStreamUrl };
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, searchAllItemsInFolderDeep, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, extractArchive, getStreamUrl };

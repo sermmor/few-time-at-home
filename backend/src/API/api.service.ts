@@ -124,6 +124,7 @@ export class APIService {
     searchInFolderDeep: '/cloud/search-in-folder-deep',
     deleteFileOrFolder: '/cloud/delete',
     zipFolder: '/cloud/zip-folder',
+    extractArchive: '/cloud/extract-archive',
   };
   static synchronize = {
     export:         '/synchronize/export',    // GET  — server packages data/ as zip
@@ -980,6 +981,16 @@ export class APIService {
           return res.status(400).json({ error: 'No body received' });
       } else {
         cloudService.zipFolder(req.body.relativePathToZip, req.body.compression).then((message) => res.send({message}));
+      }
+    });
+
+    // body: {relativePathFile: string} (un .zip o .rar) -> {message, isError}
+    this.app.post(APIService.cloudEndpointList.extractArchive, (req, res) => {
+      if (!req.body || typeof req.body.relativePathFile !== 'string') {
+          console.error("Received NO body text");
+          return res.status(400).json({ error: 'No body received' });
+      } else {
+        cloudService.extractArchive(req.body.relativePathFile).then((result) => res.send(result));
       }
     });
 

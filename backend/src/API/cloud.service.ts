@@ -1,5 +1,8 @@
 import { stat, mkdir, readdir, rename, rm } from "fs";
-import { readdir as readdirAsync } from "fs/promises";
+import { readdir as readdirAsync, access as accessAsync, mkdir as mkdirAsync, rm as rmAsync } from "fs/promises";
+import * as pathModule from "path";
+import AdmZip from "adm-zip";
+import { createExtractorFromFile } from "node-unrar-js";
 import { Dirent } from "fs";
 import { zip, COMPRESSION_LEVEL } from 'zip-a-folder';
 import { getCurrentStringDateAndHour, saveInAFile } from "../utils";
@@ -350,6 +353,60 @@ export class CloudService {
     const pathToZip = this.fromRelativePathToAbsolute(relativePathToZip);
     zip( pathToZip, `${pathToZip}.zip`, { compression } ).then(() => resolve(`Zip file created in ${relativePathToZip}.zip`));
   });
+
+  /**
+   * Descomprime un fichero .zip o .rar en una carpeta con el mismo nombre que el
+   * fichero (sin extensión), junto a él. Si esa carpeta ya existe se usa
+   * "<nombre> (1)", "<nombre> (2)", etc. Nunca lanza: devuelve un mensaje.
+   */
+  extractArchive = async (relativePathFile: string): Promise<{ message: string, isError: boolean }> => {
+    const archivePath = this.fromRelativePathToAbsolute(relativePathFile);
+    const extension = pathModule.extname(archivePath).toLowerCase();
+    if (extension !== '.zip' && extension !== '.rar') {
+      return { message: `Only .zip and .rar files can be extracted`, isError: true };
+    }
+
+    // Carpeta destino libre: "nombre", "nombre (1)", "nombre (2)", ...
+    const basePath = archivePath.slice(0, archivePath.length - extension.length);
+    let destinationPath = basePath;
+    for (let i = 1; await this.pathExists(destinationPath); i++) {
+      destinationPath = `${basePath} (${i})`;
+    }
+    const destinationRoot = pathModule.resolve(destinationPath);
+    // Protección "zip-slip": ninguna entrada puede escribirse fuera de la carpeta destino.
+    const isInsideDestination = (entryName: string) => {
+      const target = pathModule.resolve(destinationRoot, entryName);
+      return target === destinationRoot || target.startsWith(destinationRoot + pathModule.sep);
+    };
+
+    try {
+      await mkdirAsync(destinationPath, { recursive: true });
+      if (extension === '.zip') {
+        const zipFile = new AdmZip(archivePath);
+        const unsafeEntry = zipFile.getEntries().find(entry => !isInsideDestination(entry.entryName));
+        if (unsafeEntry) throw new Error(`Unsafe path inside the archive: ${unsafeEntry.entryName}`);
+        zipFile.extractAllTo(destinationPath, false);
+      } else {
+        const extractor = await createExtractorFromFile({ filepath: archivePath, targetPath: destinationPath });
+        const unsafeEntry = [...extractor.getFileList().fileHeaders].find(header => !isInsideDestination(header.name));
+        if (unsafeEntry) throw new Error(`Unsafe path inside the archive: ${unsafeEntry.name}`);
+        // El filtro se mantiene como segunda barrera.
+        const { files } = extractor.extract({ files: header => isInsideDestination(header.name) });
+        // El generador hay que recorrerlo para que extraiga realmente los ficheros.
+        for (const _file of files) { /* extrayendo */ }
+      }
+      const relativeDestination = `${relativePathFile.slice(0, relativePathFile.length - extension.length)}${destinationPath.slice(basePath.length)}`;
+      return { message: `Extracted in ${relativeDestination}`, isError: false };
+    } catch (err) {
+      console.error(`Error extracting ${relativePathFile}:`, err);
+      // No dejar una carpeta a medio extraer.
+      await rmAsync(destinationPath, { recursive: true, force: true }).catch(() => undefined);
+      const reason = (err as { reason?: string })?.reason ?? (err as Error)?.message ?? `${err}`;
+      return { message: `Error extracting ${relativePathFile}: ${reason}`, isError: true };
+    }
+  };
+
+  private pathExists = (path: string): Promise<boolean> => accessAsync(path).then(() => true, () => false);
 
   getBackgroundImageFileName = (): Promise<string | null> => new Promise<string | null>(resolve => {
     const cloudFolderPath = this.fromRelativePathToAbsolute('cloud');

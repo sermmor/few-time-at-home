@@ -277,7 +277,10 @@
     "newFile": "Nuevo fichero",
     "newFileDescription": "Escribe el nombre del nuevo fichero",
     "newFolder": "Nueva carpeta",
-    "newFolderDescription": "Escribe el nombre de la nueva carpeta"
+    "newFolderDescription": "Escribe el nombre de la nueva carpeta",
+    "hideDotFiles": "Ocultar ficheros ocultos (los que empiezan por \".\")",
+    "showDotFiles": "Mostrar ficheros ocultos (los que empiezan por \".\")",
+    "extractArchive": "Descomprimir en una carpeta con el mismo nombre"
   },
   "bookmarks": {
     "title": "Marcadores",

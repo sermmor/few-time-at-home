@@ -509,6 +509,21 @@ export const moveItemListToFolder = (actions: ActionsProps) => {
   }
 }
 
+// Descomprime un .zip/.rar de la carpeta actual en una carpeta con el mismo nombre.
+export const extractArchive = (actions: ActionsProps, nameFile: string) => {
+  const {currentPathFolder, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
+  const relativePathFile = `${currentPathFolder}/${nameFile}`;
+  setSnackBarMessage('Extracting file...');
+  setErrorSnackbar(false);
+  setOpenSnackbar(true);
+  CloudActions.extractArchive({ relativePathFile }).then(({message, isError}) => {
+    setSnackBarMessage(message);
+    setErrorSnackbar(isError);
+    setOpenSnackbar(true);
+    synchronizeWithCloud(actions);
+  });
+};
+
 export const zipFolder = (actions: ActionsProps, nameFolder: string) => {
   const {currentPathFolder, setSnackBarMessage, setErrorSnackbar, setOpenSnackbar} = actions;
   const relativePathToZip = `${currentPathFolder}/${nameFolder}`;

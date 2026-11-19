@@ -58,6 +58,15 @@ export interface GenericCloudRequest {
   path: string;
 }
 
+export interface ExtractArchiveCloudRequest {
+  relativePathFile: string; // fichero .zip o .rar
+}
+
+export interface ExtractArchiveCloudResponse {
+  message: string;
+  isError: boolean;
+}
+
 export interface ZipCloudRequest {
   relativePathToZip: string,
   compression: 0 | 5 | 9;

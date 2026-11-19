@@ -62,6 +62,13 @@ in several Desktop widgets. Judge your change by "no **new** errors".
   browser preview. The backend takes a while to compile and boot; poll an endpoint
   (e.g. `curl http://localhost:3001/desktop/profiles`) until it answers before
   loading pages, otherwise the frontend silently falls back to mocks.
+- If ports 3001/3002/7000 are already taken, it is almost always the owner's
+  own leftover `npm start`. You **may kill it** to run your tests: find the PIDs
+  with `netstat -ano | grep -E ":(3001|3002|7000) .*LISTEN"` and stop them with
+  `taskkill //PID <pid> //T //F` (from Bash). Then start the `backend` and
+  `frontend` preview configs. A second backend cannot run alongside, because the
+  websocket port 3002 is fixed. Leaving the old backend up means it serves the
+  **old** build, so new endpoints 404 and the UI falls back to mocks.
 - The local `backend/keys.json` is a dev setup (`is_dev_mode_enabled`,
   `is_backup_disabled`, `connect_to_telegram: false`), so running locally sends
   no Telegram messages and uploads no backups. Do **not** flip those flags to
@@ -122,5 +129,7 @@ Read the relevant rule before touching that area:
 - `frontend-page` — add a React page (route, action, data-model, websocket page).
 - `desktop-page` — the Desktop page: profiles, RAM + flush persistence, config
   normalization, normal/tablet/mobile modes, widget coordinates and zoom.
+- `cloud-page` — the Cloud file browser: toolbar, row actions (zip/extract),
+  hidden dotfiles, music queue from folders, testing with throwaway folders.
 - `ftah-app` — build the Flutter `ftahApp`, window/icon setup, Supabase settings,
   GitHub Actions.

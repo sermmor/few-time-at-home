@@ -1,9 +1,10 @@
 import { Box, Button, Link, SxProps, TextField, Theme } from "@mui/material";
 import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly, onClickUrl}: {
+export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly, onClickUrl, onExtract, extractTitle}: {
   textToShow: string,
   textUrl: string,
   backgroundColor?: string,
@@ -11,6 +12,9 @@ export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor,
   isReadOnly?: boolean,
   hideUrl?: boolean,
   onClickUrl?: () => void,
+  /** Si se indica, muestra un botón para descomprimir el fichero (.zip/.rar). */
+  onExtract?: () => void,
+  extractTitle?: string,
 }) => {
   const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
@@ -61,12 +65,18 @@ export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor,
         {textToShowEditing ? textToShowEditing : '<No title>'}
       </Box>
       {
+        onExtract &&
+          <Link title={extractTitle} sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onExtract}>
+            <UnarchiveIcon />
+          </Link>
+      }
+      {
         onClickUrl ? 
-          <Link target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onClickUrl}>
+          <Link target='_blank' rel='noreferrer' sx={{ marginLeft: onExtract ? undefined : {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onClickUrl}>
             <OpenInNewIcon />
           </Link>
         :
-          <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: {xs: 'none', sm:'auto'}}}>
+          <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: onExtract ? undefined : {xs: 'none', sm:'auto'}}}>
             <OpenInNewIcon />
           </Link>
       }

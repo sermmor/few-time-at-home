@@ -39,7 +39,7 @@ const smartHomeEndpointList = {
 };
 export const getSmartHomeEndpoint = (typeEndpoint: SmartHomeEndpointType): string => `${getUrlApi()}${smartHomeEndpointList[typeEndpoint]}`;
 
-export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'searchInFolderDeep' | 'deleteFileOrFolder' | 'zipFolder';
+export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'searchInFolderDeep' | 'deleteFileOrFolder' | 'zipFolder' | 'extractArchive';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',
   'getFolderContent': '/cloud/get-folder-content',
@@ -55,6 +55,7 @@ const cloudEndpointList = {
   'searchInFolderDeep': '/cloud/search-in-folder-deep',
   'deleteFileOrFolder': '/cloud/delete',
   'zipFolder': '/cloud/zip-folder',
+  'extractArchive': '/cloud/extract-archive',
 };
 
 export const getCloudEndpoint = (typeEndpoint: CloudEndpointType) => `${getUrlApi()}${cloudEndpointList[typeEndpoint]}`;
