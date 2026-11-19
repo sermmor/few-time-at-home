@@ -13,9 +13,20 @@ const getYtDlpCommand = (): string => process.env.YT_DLP_PATH || 'yt-dlp';
 // YouTube exige un runtime de JavaScript para descifrar las firmas. yt-dlp solo
 // activa deno por defecto; le añadimos el propio Node que ejecuta el backend,
 // así funciona aunque deno no esté instalado.
-const JS_RUNTIME_ARGS = ['--js-runtimes', `node:${process.execPath}`];
+//
+// Además, el resolvedor de esos retos (componente "ejs") viene dentro del
+// ejecutable oficial, pero NO en una instalación con `pip install yt-dlp` sin
+// extras. Sin él YouTube solo ofrece formatos sueltos (vídeo sin audio) y falla
+// con "Requested format is not available". `--remote-components ejs:github`
+// deja que yt-dlp lo descargue (y lo cachee) cuando le falte.
+const OPTIONAL_ARGS: string[][] = [
+  ['--js-runtimes', `node:${process.execPath}`],
+  ['--remote-components', 'ejs:github'],
+];
 
-const COMMON_ARGS = ['--no-warnings', '--no-update', '--no-playlist'];
+// Sin --no-warnings: los avisos (p. ej. "n challenge solving failed") son la
+// pista para diagnosticar los fallos, así que se registran en el log.
+const COMMON_ARGS = ['--no-update', '--no-playlist'];
 
 interface ExecResult { stdout: string; stderr: string; }
 
@@ -38,16 +49,30 @@ const runYtDlp = (args: string[], timeoutMs: number): Promise<ExecResult> =>
   });
 
 // Traduce los errores de yt-dlp a un mensaje legible para la UI.
-const toReadableError = (err: any): Error => {
+const toReadableError = (err: any, stderrText?: string): Error => {
   if (err?.code === 'ENOENT') {
     return new Error('yt-dlp no está instalado o no está en el PATH (puedes indicar la ruta con YT_DLP_PATH).');
   }
   if (err?.killed) {
     return new Error('yt-dlp tardó demasiado en responder.');
   }
-  const stderr: string = (err?.stderr ?? '').trim();
-  const errorLine = stderr.split(/\r?\n/).reverse().find(l => l.startsWith('ERROR:'));
-  return new Error(errorLine ?? (stderr || err?.message || 'yt-dlp falló'));
+  const stderr: string = (stderrText ?? err?.stderr ?? '').trim();
+  const lines = stderr.split(/\r?\n/);
+  const errorLine = [...lines].reverse().find(l => l.startsWith('ERROR:'));
+  let message = errorLine ?? (stderr || err?.message || 'yt-dlp falló');
+  // "Requested format is not available" casi siempre se debe a que yt-dlp no
+  // pudo resolver los retos JS de YouTube: se añade el aviso que lo explica.
+  if (/Requested format is not available/i.test(message)) {
+    const hint = lines.find(l => /WARNING:.*(JavaScript runtime|challenge|ejs|remote component)/i.test(l));
+    if (hint) message += ` | ${hint.trim()}`;
+  }
+  return new Error(message);
+};
+
+const logWarnings = (stderr: string): void => {
+  stderr.split(/\r?\n/)
+    .filter(l => l.startsWith('WARNING:') && !/older than \d+ days/i.test(l))
+    .forEach(l => console.warn(`[YouTube] yt-dlp ${l}`));
 };
 
 // ── URL helpers ──────────────────────────────────────────────────────────────
@@ -91,21 +116,27 @@ export const resolveYoutubeStreamUrl = async (
     canonicalUrl,
   ];
 
-  let stdout: string;
-  try {
-    ({ stdout } = await runYtDlp([...JS_RUNTIME_ARGS, ...args], 90_000));
-  } catch (err: any) {
-    // Versiones antiguas de yt-dlp no conocen --js-runtimes: reintento sin él.
-    if (/no such option.*--js-runtimes/i.test(err?.stderr ?? '')) {
-      try {
-        ({ stdout } = await runYtDlp(args, 90_000));
-      } catch (err2) {
-        throw toReadableError(err2);
+  // Las versiones antiguas de yt-dlp no conocen algunas opciones opcionales:
+  // si se queja de una, se reintenta sin ella.
+  let optional = [...OPTIONAL_ARGS];
+  let result: ExecResult | null = null;
+  while (!result) {
+    try {
+      result = await runYtDlp([...optional.flat(), ...args], 90_000);
+    } catch (err: any) {
+      const stderr: string = err?.stderr ?? '';
+      const unknown = optional.find(([opt]) => new RegExp(`no such option:? ${opt}\\b`, 'i').test(stderr));
+      if (unknown) {
+        console.warn(`[YouTube] yt-dlp no admite ${unknown[0]}; reintento sin esa opción`);
+        optional = optional.filter(o => o !== unknown);
+        continue;
       }
-    } else {
-      throw toReadableError(err);
+      logWarnings(stderr);
+      throw toReadableError(err, stderr);
     }
   }
+  logWarnings(result.stderr);
+  const { stdout } = result;
 
   // Salida: título, extensión y URL, una por línea.
   const lines = stdout.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
