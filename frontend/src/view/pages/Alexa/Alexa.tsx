@@ -1,7 +1,9 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
 import TouchAppIcon from '@mui/icons-material/TouchApp';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { WebSocketClientService } from '../../../service/webSocketService/webSocketClient.service';
 import { alexaStateEndpoint } from '../../../core/urls-and-end-points';
 import { isAndroidDevice, useKeepScreenAwake } from '../../../core/hooks/useKeepScreenAwake';
@@ -24,6 +26,33 @@ const adjustedTime = (state: AlexaLiveState): number =>
 // Only re-seek if the receiver has drifted more than this many seconds.
 const DRIFT_THRESHOLD = 3;
 
+// Segundos que se muestra la botonera (pantalla completa) tras tocar la pantalla.
+const CONTROLS_VISIBLE_MS = 7000;
+
+// ── Pantalla completa (con prefijo webkit por si el navegador es antiguo) ─────
+const getFullscreenElement = (): Element | null =>
+  document.fullscreenElement ?? (document as any).webkitFullscreenElement ?? null;
+
+const enterFullscreen = async (): Promise<void> => {
+  const el = document.documentElement as any;
+  try {
+    if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' });
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } catch (err) {
+    console.warn('[Alexa] no se pudo entrar en pantalla completa:', err);
+  }
+};
+
+const exitFullscreen = async (): Promise<void> => {
+  const doc = document as any;
+  try {
+    if (doc.exitFullscreen) await doc.exitFullscreen();
+    else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+  } catch (err) {
+    console.warn('[Alexa] no se pudo salir de pantalla completa:', err);
+  }
+};
+
 export const Alexa = (): JSX.Element => {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const audioRef = React.useRef<HTMLAudioElement>(null);
@@ -35,6 +64,38 @@ export const Alexa = (): JSX.Element => {
   // energía la apaga y la emisión falla. Con vídeo el propio navegador ya la
   // mantiene encendida. En el ordenador no hace falta.
   const keepAwakeMode = useKeepScreenAwake(isAndroidDevice() && liveState?.type === 'audio');
+
+  // ── Botonera al tocar la pantalla: entrar/salir de pantalla completa ─────────
+  // En el móvil las barras de notificaciones y de URL del navegador tapan parte
+  // del vídeo; en pantalla completa desaparecen.
+  const [isFullscreen, setIsFullscreen] = React.useState<boolean>(() => !!getFullscreenElement());
+  const [controlsVisible, setControlsVisible] = React.useState(false);
+  const hideControlsTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showControls = React.useCallback(() => {
+    setControlsVisible(true);
+    if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
+    hideControlsTimerRef.current = setTimeout(() => setControlsVisible(false), CONTROLS_VISIBLE_MS);
+  }, []);
+
+  const handleToggleFullscreen = (ev: React.MouseEvent) => {
+    ev.stopPropagation(); // no cuenta como "tocar la pantalla"
+    if (getFullscreenElement()) exitFullscreen();
+    else enterFullscreen();
+    showControls(); // reinicia los 7 s
+  };
+
+  React.useEffect(() => {
+    // También cambia si se sale con el botón "atrás" del móvil.
+    const onChange = () => setIsFullscreen(!!getFullscreenElement());
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+      if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
+    };
+  }, []);
 
   // ── URL tracking (ref, not el.src, to avoid browser URL-normalisation diffs) ─
   const currentUrlRef = React.useRef<string>('');
@@ -171,11 +232,14 @@ export const Alexa = (): JSX.Element => {
   // EnvelopComponent is NOT rendered for /alexa (see App.tsx isFullscreenPage),
   // so we take the full viewport directly — no negative-margin escape needed.
   return (
-    <Box sx={{
+    <Box onClick={showControls} sx={{
       position:        'relative',
       zIndex:          1, // por encima del vídeo de "pantalla encendida" (z-index 0)
       width:           '100vw',
+      // En el móvil `100vh` incluye la zona tapada por las barras del navegador
+      // (el vídeo quedaba recortado por abajo); `100dvh` es el área visible.
       height:          '100vh',
+      '@supports (height: 100dvh)': { height: '100dvh' },
       // En modo 'video' el fondo negro lo pone el vídeo de "pantalla encendida"
       // (por detrás): tiene que verse para que Chrome no apague la pantalla.
       backgroundColor: keepAwakeMode === 'video' ? 'transparent' : '#000',
@@ -274,6 +338,30 @@ export const Alexa = (): JSX.Element => {
           ☀
         </Typography>
       )}
+
+      {/* ── Botonera: aparece 7 s al tocar la pantalla ── */}
+      <Box sx={{
+        position: 'absolute', top: '1rem', right: '1rem', zIndex: 6,
+        opacity: controlsVisible ? 1 : 0,
+        pointerEvents: controlsVisible ? 'auto' : 'none',
+        transition: 'opacity 0.3s',
+      }}>
+        <IconButton
+          onClick={handleToggleFullscreen}
+          aria-label={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+          title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+          sx={{
+            width: '3.5rem', height: '3.5rem', color: '#fff',
+            backgroundColor: 'rgba(0,0,0,0.55)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            '&:hover': { backgroundColor: 'rgba(0,0,0,0.75)' },
+          }}
+        >
+          {isFullscreen
+            ? <FullscreenExitIcon sx={{ fontSize: '2rem' }} />
+            : <FullscreenIcon sx={{ fontSize: '2rem' }} />}
+        </IconButton>
+      </Box>
 
       {/* ── Tap-to-activate overlay ───────────────────────────────────────────
            Browsers block autoplay without a user gesture on this page.

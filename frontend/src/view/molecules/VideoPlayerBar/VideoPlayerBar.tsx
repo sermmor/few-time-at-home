@@ -111,16 +111,60 @@ export const VideoPlayerBar = ({
 
   React.useEffect(() => { isLiveRef.current = isLive; }, [isLive]);
 
-  // Stop live: clear interval, unmute local, notify backend
+  // ── Reloj virtual de la emisión en vivo ───────────────────────────────────
+  // Mientras se emite, el vídeo local se queda en pausa (fotograma congelado):
+  // solo se ve y se oye en /alexa. La posición la lleva este reloj, que es lo
+  // que se sincroniza con /alexa y lo que muestran los controles de la barra.
+  // `startedAt` (ms de performance.now()) es null cuando está en pausa.
+  const liveClockRef = React.useRef<{ baseTime: number; startedAt: number | null }>({ baseTime: 0, startedAt: null });
+  const [liveTime,      setLiveTime     ] = React.useState(0);
+  const [liveIsPlaying, setLiveIsPlaying] = React.useState(false);
+
+  const getLiveTime = (): number => {
+    const { baseTime, startedAt } = liveClockRef.current;
+    const t = baseTime + (startedAt !== null ? (performance.now() - startedAt) / 1000 : 0);
+    const d = videoRef.current?.duration;
+    return d && isFinite(d) ? Math.min(t, d) : t;
+  };
+
+  const setLiveClock = (time: number, playing: boolean) => {
+    liveClockRef.current = { baseTime: time, startedAt: playing ? performance.now() : null };
+    setLiveTime(time);
+    setLiveIsPlaying(playing);
+  };
+
+  const sendLiveSync = (body: { currentTime: number; isPlaying?: boolean }) => {
+    fetch(alexaSyncEndpoint(), {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    }).catch(console.error);
+  };
+
+  // Congela el vídeo local en el instante indicado (sin sonido ni avance).
+  const freezeLocalVideoAt = (time: number) => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (!v.paused) v.pause();
+    if (isFinite(time) && Math.abs(v.currentTime - time) > 0.5) v.currentTime = time;
+  };
+
+  // Stop live: clear interval, notify backend and resume locally where /alexa was.
   const stopLive = React.useCallback(() => {
     if (liveIntervalRef.current) {
       clearInterval(liveIntervalRef.current);
       liveIntervalRef.current = null;
     }
-    const v = videoRef.current;
-    if (v) { v.muted = false; }
+    const time    = getLiveTime();
+    const playing = liveClockRef.current.startedAt !== null;
+    isLiveRef.current = false;
     fetch(alexaStopEndpoint(), { method: 'POST' }).catch(console.error);
     setIsLive(false);
+    const v = videoRef.current;
+    if (v) {
+      if (isFinite(time)) v.currentTime = time;
+      if (playing) v.play().catch(err => console.error('Video play error:', err));
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Send full state to /alexa/state and start/restart the 5s sync interval.
@@ -139,14 +183,8 @@ export const VideoPlayerBar = ({
 
     if (liveIntervalRef.current) clearInterval(liveIntervalRef.current);
     liveIntervalRef.current = setInterval(() => {
-      const v = videoRef.current;
-      if (!v) return;
       // Always sync position so Alexa stays in lockstep, even when paused.
-      fetch(alexaSyncEndpoint(), {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentTime: v.currentTime }),
-      }).catch(console.error);
+      sendLiveSync({ currentTime: getLiveTime() });
     }, 5000);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -159,8 +197,11 @@ export const VideoPlayerBar = ({
     const video = videoRef.current;
     const currentTime = video?.currentTime ?? 0;
     const isPlaying   = video ? !video.paused : false;
-    // Mute local — Alexa becomes the audio output. Keep playing so controls work.
-    if (video) { video.muted = true; setIsMuted(true); }
+    // El vídeo local se congela: solo se ve y se oye en /alexa. El ref se marca
+    // antes de pausar para que el evento 'pause' no se envíe como pausa a /alexa.
+    isLiveRef.current = true;
+    setLiveClock(currentTime, isPlaying);
+    freezeLocalVideoAt(currentTime);
     setIsLive(true);
     startLive(currentItem, getVideoUrlForItem(currentItem), currentTime, isPlaying);
   };
@@ -169,6 +210,7 @@ export const VideoPlayerBar = ({
   // Always start from 0 and treat the new track as playing (auto-advance).
   React.useEffect(() => {
     if (!isLive || !currentItem) return;
+    setLiveClock(0, true);
     startLive(currentItem, getVideoUrlForItem(currentItem), 0, true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrackPath, isLive]);
@@ -178,10 +220,10 @@ export const VideoPlayerBar = ({
     if (liveIntervalRef.current) clearInterval(liveIntervalRef.current);
   }, []);
 
-  // ── Derived display values (cast mode overrides local) ────────────────────
-  const displayTime      = isCasting ? castState.currentTime : currentTime;
+  // ── Derived display values (cast / live mode override local) ──────────────
+  const displayTime      = isCasting ? castState.currentTime : isLive ? liveTime : currentTime;
   const displayDuration  = isCasting ? castState.duration    : duration;
-  const displayIsPlaying = isCasting ? castState.playerState === 'PLAYING' : isPlaying;
+  const displayIsPlaying = isCasting ? castState.playerState === 'PLAYING' : isLive ? liveIsPlaying : isPlaying;
 
   // ── Refs to break stale closures in async callbacks ──────────────────────
   const playlistRef         = React.useRef(playlist);
@@ -345,6 +387,13 @@ export const VideoPlayerBar = ({
       }
       return;
     }
+    if (isLive) {
+      const time    = getLiveTime();
+      const playing = liveClockRef.current.startedAt === null;
+      setLiveClock(time, playing);
+      sendLiveSync({ currentTime: time, isPlaying: playing });
+      return;
+    }
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
@@ -366,6 +415,10 @@ export const VideoPlayerBar = ({
     const video = videoRef.current;
     if (currentIndex > 0) {
       onTrackChange(playlist[currentIndex - 1].path);
+    } else if (isLive) {
+      setLiveClock(0, liveClockRef.current.startedAt !== null);
+      freezeLocalVideoAt(0);
+      sendLiveSync({ currentTime: 0 });
     } else if (video) {
       video.currentTime = 0;
       setCurrentTime(0);
@@ -420,16 +473,15 @@ export const VideoPlayerBar = ({
     }
     const video = videoRef.current;
     if (!video || !isFinite(video.duration)) return;
+    if (isLiveRef.current) {
+      // El fotograma congelado acompaña a la nueva posición.
+      setLiveClock(newTime, liveClockRef.current.startedAt !== null);
+      freezeLocalVideoAt(newTime);
+      sendLiveSync({ currentTime: newTime });
+      return;
+    }
     video.currentTime = newTime;
     setCurrentTime(newTime);
-    // Immediately sync seek position to Alexa
-    if (isLiveRef.current) {
-      fetch(alexaSyncEndpoint(), {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ currentTime: newTime }),
-      }).catch(console.error);
-    }
   };
 
   const handleMuteToggle = () => {
@@ -452,25 +504,11 @@ export const VideoPlayerBar = ({
     const onTimeUpdate = () => setCurrentTime(video.currentTime);
     const onDuration   = () => setDuration(video.duration ?? 0);
     const onPlay       = () => {
+      // En vivo el vídeo local no debe reproducirse (p. ej. al cambiar de pista).
+      if (isLiveRef.current) { video.pause(); return; }
       setIsPlaying(true);
-      if (isLiveRef.current) {
-        fetch(alexaSyncEndpoint(), {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ currentTime: video.currentTime, isPlaying: true }),
-        }).catch(console.error);
-      }
     };
-    const onPause = () => {
-      setIsPlaying(false);
-      if (isLiveRef.current) {
-        fetch(alexaSyncEndpoint(), {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ currentTime: video.currentTime, isPlaying: false }),
-        }).catch(console.error);
-      }
-    };
+    const onPause = () => setIsPlaying(false);
     const onEnded = () => handleNextRef.current();
     video.addEventListener('timeupdate',     onTimeUpdate);
     video.addEventListener('durationchange', onDuration);
@@ -486,6 +524,30 @@ export const VideoPlayerBar = ({
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoRef.current]);
+
+  // ── En vivo: refresca la posición y avanza de pista al terminar ───────────
+  React.useEffect(() => {
+    if (!isLive) return;
+    const timer = setInterval(() => {
+      const time = getLiveTime();
+      setLiveTime(time);
+      const d = videoRef.current?.duration;
+      if (liveClockRef.current.startedAt === null || !d || !isFinite(d) || time < d - 0.25) return;
+      // ¿Hay pista siguiente? (sin usar pickNextPath, que toca el historial aleatorio)
+      const pl  = playlistRef.current;
+      const idx = pl.findIndex(i => i.path === currentTrackPathRef.current);
+      const hasNext = isShuffleOnRef.current ? pl.length > 1 : idx >= 0 && idx < pl.length - 1;
+      if (hasNext) {
+        handleNextRef.current(); // el cambio de pista reinicia el reloj (efecto de arriba)
+      } else {
+        // Última pista: se queda en pausa al final.
+        setLiveClock(d, false);
+        sendLiveSync({ currentTime: d, isPlaying: false });
+      }
+    }, 500);
+    return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLive]);
 
   // ── Cast controls ─────────────────────────────────────────────────────────
   const handleCastButtonClick = async () => {

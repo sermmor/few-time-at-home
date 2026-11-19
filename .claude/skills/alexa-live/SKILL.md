@@ -18,6 +18,13 @@ the menu and fullscreen (`Routes.tsx`).
   change they send a new state. `stopLive` POSTs `/alexa/stop`.
   `url` is the **absolute** stream URL (`cloud/stream-file?...`) built on the
   sender.
+- **While Live, the sender's own media must not play.** In `VideoPlayerBar`,
+  the local `<video>` is paused on a frozen frame, and a virtual clock
+  (`liveClockRef`: `baseTime` + `startedAt`) drives the bar. Play/pause, seek,
+  prev/next, the 5 s sync and the auto-advance at the end all use that clock.
+  Seeking moves the frozen frame. The `play` listener re-pauses the video if
+  anything starts it. `stopLive` resumes locally at the clock position. Do not
+  read `video.currentTime` for the sync while Live: it is frozen.
 - **Backend**: `src/API/alexa.service.ts` keeps the state **in RAM only** (no
   data file, so nothing to back up). The handlers live in
   `api.service.ts` → `alexaService()`. Every change is broadcast over the
@@ -27,6 +34,15 @@ the menu and fullscreen (`Routes.tsx`).
   - `applyState` reloads the element when the URL changes, and only re-seeks when
     the drift is more than 3 s (`adjustedTime` uses `timestamp`).
   - A "Toca para activar el audio" overlay is shown once to unlock autoplay.
+  - The root `Box` is `100dvh` high (falling back to `100vh`). On a phone,
+    `100vh` includes the area under the browser bars, so the video was cropped
+    at the bottom.
+  - **Fullscreen controls**: a tap anywhere shows a button in the top-right for
+    7 s (`CONTROLS_VISIBLE_MS`). Each tap restarts the timer. The button toggles
+    `document.documentElement.requestFullscreen({ navigationUI: 'hide' })` /
+    `exitFullscreen()`, with `webkit*` fallbacks. Its icon follows
+    `fullscreenchange`, because the phone's back button also leaves fullscreen.
+    The Fullscreen API works over plain http.
 
 ## Cross-device URLs (important)
 The phone and the computer resolve `localhost` differently.
@@ -69,6 +85,10 @@ already keeps the screen on.
   test, inject a `<script>` (the JS tool runs in an isolated world) that overrides
   `visibilityState` to `'visible'`, dispatches `visibilitychange`, and re-plays
   the video on an interval.
+- The browser pane ignores `requestFullscreen` (no change or error event). To
+  test the toggle, inject a script that stubs `requestFullscreen`,
+  `exitFullscreen` and `document.fullscreenElement`, and dispatches
+  `fullscreenchange`.
 - The pane blocks a LAN-IP page (`http://<IP>:7000`) from calling `:3001`
   (`ERR_BLOCKED_BY_CLIENT`). To check LAN access, curl the backend on the LAN IP
   with an `Origin` header. Check URL rewriting with
