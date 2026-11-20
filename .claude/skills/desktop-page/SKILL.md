@@ -97,6 +97,29 @@ Follow `data-files-and-backups.md` (backward compatibility):
 - When you add a new free-floating widget: put it inside `DesktopZoomLayer`,
   give it a `zoom` prop, and divide its mouse math by it.
 
+## Clipboard ("Copiar enlace")
+- Always copy through `copyToClipboard` from `frontend/src/core/clipboard.ts`.
+  Do not call `navigator.clipboard` directly.
+- The owner runs the app on the Raspberry Pi with `npm run start:ios` and opens it
+  as `http://<LAN-IP>:7000`. That is plain HTTP and **not a secure context**, so
+  `navigator.clipboard` is unusable there, and HTTPS or Internet exposure is not
+  an option. `copyToClipboard` then falls back to `execCommand('copy')`
+  synchronously, inside the click handler.
+- The menu items run inside an MUI `Menu`, whose FocusTrap takes focus back from
+  any element outside it. A hidden `textarea` appended to `body` therefore never
+  holds a selection, and the copy silently copies nothing. That was the original
+  bug. The fallback now (1) sets the text in a capturing `copy` listener with
+  `clipboardData.setData`, which works without focus or selection, and (2) still
+  appends a selected `textarea` inside the focused `[role=presentation|dialog]`
+  for Safari/iOS. Keep both.
+- To test: on `localhost` the secure path runs, so temporarily force the fallback
+  (`if (false && window.isSecureContext ...)`) and revert afterwards. In the
+  preview, `navigator.clipboard.readText()` is denied and a simulated `ctrl+v`
+  does not paste. Instead, wrap `document.execCommand` and
+  `DataTransfer.prototype.setData` via JS before clicking "Copiar enlace", and
+  check that `setData('text/plain', <url>)` ran, `execCommand` returned `true`
+  and the `copy` event was trusted and `defaultPrevented`.
+
 ## Link favicons
 - Backend `favicon.service.ts` caches files in `data/favicon/<name>.<ext>`, where
   `<name>` is the second-level domain label, so links on the same site share one
@@ -120,6 +143,10 @@ Follow `data-files-and-backups.md` (backward compatibility):
 - Loading a profile and saving can normalize the file a little. For example,
   `getDesktopConfig` fills in `mobileMode: false` and `tabletMode: false`. That
   is pre-existing behaviour, not caused by your change.
+- `/desktop` stays on the "WAITING FOR BACKEND" boot screen until the backend
+  answers, so the frontend alone is not enough to test it.
+- In `AddLinkDialog`, filling the URL resets the name field. Fill the URL first,
+  then type the name.
 - In the browser preview, screenshot coordinates can be off for small controls
   inside dialogs. For MUI `Slider`, focus the `input[type=range]` via JS and use
   the arrow keys. To check drag, dispatch `mousedown` on the widget header, then
