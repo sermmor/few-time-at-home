@@ -332,7 +332,12 @@ export const Desktop = (): JSX.Element => {
   };
 
   // ── Link handlers ─────────────────────────────────────────────────────────
+  // Posición (clientX/clientY) del clic derecho que abrió "Añadir link".
+  // Se guarda aparte porque el menú contextual se cierra al abrir el diálogo.
+  const pendingLinkPosRef = React.useRef<{ x: number; y: number } | null>(null);
+
   const openAddLinkDialog = () => {
+    pendingLinkPosRef.current = contextMenu;
     setEditingLink(undefined);
     setLinkDialogOpen(true);
     setContextMenu(null);
@@ -352,8 +357,10 @@ export const Desktop = (): JSX.Element => {
       });
     } else {
       const rect = desktopRef.current?.getBoundingClientRect();
-      const x = contextMenu ? Math.max(0, (contextMenu.x - (rect?.left ?? 0)) / zoom - 38) : 80;
-      const y = contextMenu ? Math.max(0, (contextMenu.y - (rect?.top  ?? 0)) / zoom - 30) : 80;
+      const pos  = pendingLinkPosRef.current;
+      pendingLinkPosRef.current = null;
+      const x = pos ? Math.max(0, (pos.x - (rect?.left ?? 0)) / zoom - 38) : 80;
+      const y = pos ? Math.max(0, (pos.y - (rect?.top  ?? 0)) / zoom - 30) : 80;
       const newLink: DesktopLink = {
         id:             `link-${Date.now()}`,
         workspaceIndex: activeWs,
@@ -688,7 +695,7 @@ export const Desktop = (): JSX.Element => {
 
       <AddLinkDialog
         isOpen={linkDialogOpen}
-        onClose={() => { setLinkDialogOpen(false); setEditingLink(undefined); }}
+        onClose={() => { setLinkDialogOpen(false); setEditingLink(undefined); pendingLinkPosRef.current = null; }}
         onAccept={handleLinkAccept}
         editLink={editingLink}
       />
