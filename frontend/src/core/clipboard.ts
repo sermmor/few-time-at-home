@@ -17,18 +17,51 @@ export function copyToClipboard(text: string): void {
   }
 }
 
+/**
+ * Fallback para contextos no seguros (HTTP en la red local).
+ *
+ * Ojo: si se llama desde un Menu/Dialog de MUI, su FocusTrap recupera el foco
+ * en cuanto el textarea oculto lo toma, así que la selección queda vacía y
+ * execCommand('copy') no copiaba nada. Por eso:
+ *  1. Escuchamos el evento 'copy' y escribimos el texto directamente en
+ *     clipboardData: no depende ni del foco ni de la selección.
+ *  2. Aun así, insertamos el textarea dentro del contenedor que tiene el foco
+ *     (dentro del FocusTrap) y lo seleccionamos, para navegadores (Safari/iOS)
+ *     que no lanzan 'copy' sin una selección real.
+ */
 function _execCommandCopy(text: string): void {
+  const onCopy = (e: ClipboardEvent) => {
+    if (!e.clipboardData) return;
+    e.clipboardData.setData('text/plain', text);
+    e.preventDefault();
+  };
+
+  const previousFocus = document.activeElement as HTMLElement | null;
+  const container =
+    (previousFocus?.closest('[role="presentation"], [role="dialog"]') as HTMLElement | null)
+    ?? document.body;
+
   const el = document.createElement('textarea');
   el.value = text;
+  el.setAttribute('readonly', '');
   el.style.position = 'fixed';
-  el.style.top      = '-9999px';
-  el.style.left     = '-9999px';
-  document.body.appendChild(el);
-  el.focus();
-  el.select();
+  el.style.top      = '0';
+  el.style.left     = '0';
+  el.style.opacity  = '0';
+  el.style.pointerEvents = 'none';
+  container.appendChild(el);
+
+  document.addEventListener('copy', onCopy, true);
   try {
+    el.focus();
+    el.select();
+    el.setSelectionRange(0, text.length); // iOS
     document.execCommand('copy');
+  } catch {
+    // Sin portapapeles disponible: no hay nada más que hacer
   } finally {
-    document.body.removeChild(el);
+    document.removeEventListener('copy', onCopy, true);
+    container.removeChild(el);
+    previousFocus?.focus?.();
   }
 }
