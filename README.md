@@ -291,7 +291,7 @@ The archive password defaults to `admin` and can be changed at any time from **C
 
 ### Prerequisites
 
-The `googleapis` npm package is already listed as a dependency and installed automatically with `npm install`.
+The `@googleapis/drive` npm package (Drive-only Google client) is already listed as a dependency and installed automatically with `npm install`.
 
 **`7-Zip` is required on all platforms** and must be available in `PATH`:
 

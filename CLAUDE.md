@@ -27,8 +27,14 @@ home control, and companion desktop/mobile apps.
     # From repo root: runs frontend + backend together (concurrently)
     npm start
 
-    # Backend only: compiles TS then runs the build
-    cd backend && npm start        # = npx tsc && node build/index.js
+    # Backend only: esbuild transpiles src/ -> build/ (~1 s, NO type-check), then runs it
+    cd backend && npm start        # = npm run build && node build/index.js
+
+    # Backend with the old full path: tsc type-check + emit, then run
+    cd backend && npm run start:checked
+
+Because `npm start` skips type-checking, run `npm run typecheck` in `backend/`
+after any backend change (see Type-checking below).
 
     # Frontend only (Vite dev server on http://localhost:7000)
     cd frontend && npm run start

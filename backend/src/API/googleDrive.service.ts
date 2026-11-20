@@ -1,4 +1,6 @@
-import { google } from 'googleapis';
+// Solo el cliente de Drive: el paquete completo `googleapis` tardaba ~1,6 s en cargar
+// y ~900 ficheros de tipos en compilar.
+import { auth as googleAuth, drive as googleDrive } from '@googleapis/drive';
 import { createReadStream, stat } from 'fs';
 import { basename } from 'path';
 import { Readable } from 'stream';
@@ -45,7 +47,7 @@ export class GoogleDriveService {
   private static _lastTokenExpiredNotifMs = 0;
   private static readonly _NOTIF_THROTTLE_MS = 24 * 60 * 60 * 1000;
 
-  private drive:          ReturnType<typeof google.drive> | null = null;
+  private drive:          ReturnType<typeof googleDrive> | null = null;
   private backupFolderId: string | null;
 
   constructor(
@@ -277,9 +279,9 @@ export class GoogleDriveService {
       return;
     }
     try {
-      const auth = new google.auth.OAuth2(clientId, clientSecret);
+      const auth = new googleAuth.OAuth2(clientId, clientSecret);
       auth.setCredentials({ refresh_token: refreshToken });
-      this.drive = google.drive({ version: 'v3', auth });
+      this.drive = googleDrive({ version: 'v3', auth });
       console.log('[Drive] Initialized successfully.');
     } catch (err: any) {
       console.error('[Drive] Initialization error:', err?.message ?? err);

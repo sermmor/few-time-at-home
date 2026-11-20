@@ -4,8 +4,11 @@
   "description": "Tools with React app, API Rest and Telegram bot for people that spends few time at home.",
   "main": "index.js",
   "scripts": {
-    "start": "npx tsc && node build/index.js",
-    "start:withvideo": "npx tsc && (cpy video/finished.mp4 build || true) && (cpy video/start.mp4 build || true) && node build/index.js"
+    "start": "npm run build && node build/index.js",
+    "start:withvideo": "npm run build && (cpy video/finished.mp4 build || true) && (cpy video/start.mp4 build || true) && node build/index.js",
+    "start:checked": "npx tsc && node build/index.js",
+    "build": "esbuild \"src/**/*.ts\" --outdir=build --outbase=src --platform=node --format=cjs --target=es2017 --log-level=warning",
+    "typecheck": "tsc --noEmit -p ."
   },
   "repository": {
     "type": "git",
@@ -25,11 +28,13 @@
     "@types/node": "^17.0.23",
     "@types/node-fetch": "^2.6.2",
     "@types/nodemailer": "^6.4.16",
-    "cpy-cli": "^3.1.1"
+    "cpy-cli": "^3.1.1",
+    "esbuild": "^0.28.2"
   },
   "dependencies": {
     "@extractus/feed-extractor": "^6.2.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@googleapis/drive": "^22.0.0",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/node-schedule": "^2.1.5",
     "@types/pdfkit": "^0.17.6",
@@ -43,7 +48,6 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.8.0",
     "fluent-ffmpeg": "^2.1.2",
-    "googleapis": "^171.4.0",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^2.6.0",
     "node-lame": "^1.3.2",
