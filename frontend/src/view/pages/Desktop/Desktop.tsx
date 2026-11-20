@@ -254,10 +254,28 @@ export const Desktop = (): JSX.Element => {
   };
 
   // ── Image handlers ────────────────────────────────────────────────────────
+  // Posición del clic derecho que abrió "Añadir imagen": el menú contextual se
+  // cierra al abrir el selector, así que la guardamos aparte.
+  const pendingImagePosRef = React.useRef<{ x: number; y: number } | null>(null);
+
+  const openImagePicker = () => {
+    pendingImagePosRef.current = contextMenu;
+    setImagePickerOpen(true);
+    setContextMenu(null);
+  };
+
+  const closeImagePicker = () => {
+    setImagePickerOpen(false);
+    setContextMenu(null);
+    pendingImagePosRef.current = null;
+  };
+
   const addImage = (cloudPath: string) => {
     const rect = desktopRef.current?.getBoundingClientRect();
-    const x = contextMenu ? Math.max(0, (contextMenu.x - (rect?.left ?? 0)) / zoom - 150) : 100;
-    const y = contextMenu ? Math.max(0, (contextMenu.y - (rect?.top  ?? 0)) / zoom - 100) : 100;
+    const pos  = pendingImagePosRef.current;
+    pendingImagePosRef.current = null;
+    const x = pos ? Math.max(0, (pos.x - (rect?.left ?? 0)) / zoom - 150) : 100;
+    const y = pos ? Math.max(0, (pos.y - (rect?.top  ?? 0)) / zoom - 100) : 100;
     const newImage: DesktopImage = {
       id:             `img-${Date.now()}`,
       workspaceIndex: activeWs,
@@ -660,7 +678,7 @@ export const Desktop = (): JSX.Element => {
             <MenuItem onClick={openAddLinkDialog}>
               <ListItemText primary="Añadir link" />
             </MenuItem>
-            <MenuItem onClick={() => { setImagePickerOpen(true); setContextMenu(null); }}>
+            <MenuItem onClick={openImagePicker}>
               <ListItemText primary="Añadir imagen" />
             </MenuItem>
             <MenuItem onClick={addPanel}>
@@ -703,7 +721,7 @@ export const Desktop = (): JSX.Element => {
       <ModalCloudImagePicker
         isOpen={imagePickerOpen}
         title="Añadir imagen al escritorio"
-        onClose={() => { setImagePickerOpen(false); setContextMenu(null); }}
+        onClose={closeImagePicker}
         onAccept={addImage}
       />
 
