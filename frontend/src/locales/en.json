@@ -269,7 +269,10 @@
     "editSaved": "Edit",
     "deleteSaved": "Delete",
     "loadSaved": "Load into the text field",
-    "confirmDelete": "Delete the command \"{{name}}\"?"
+    "confirmDelete": "Delete the command \"{{name}}\"?",
+    "timeLabel": "Daily time (optional)",
+    "timeHelp": "If set, it runs automatically every day at that time",
+    "scheduledAt": "Runs every day at {{time}}"
   },
   "cloud": {
     "title": "Cloud",

@@ -135,6 +135,8 @@ export interface SavedCommand {
   id: string;
   name: string;
   command: string;
+  /** Hora opcional "HH:MM": si existe, el backend lo ejecuta a diario a esa hora. */
+  time?: string;
 }
 
 export interface SavedCommandsResponse {

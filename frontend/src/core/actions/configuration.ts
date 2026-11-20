@@ -44,7 +44,7 @@ const getSavedCommands = (): Promise<SavedCommand[]> =>
     .then(response => response?.data ?? []);
 
 /** Crea un comando nuevo (sin `id`) o actualiza uno existente (con `id`). */
-const saveSavedCommand = (data: { id?: string; name: string; command: string }): Promise<SavedCommand[]> =>
+const saveSavedCommand = (data: { id?: string; name: string; command: string; time?: string }): Promise<SavedCommand[]> =>
   fetchJsonSendAndReceive<SavedCommandsResponse>(configurationSaveSavedCommandEndpoint(), data, savedCommandsResponseMock())
     .then(response => response?.data ?? []);
 

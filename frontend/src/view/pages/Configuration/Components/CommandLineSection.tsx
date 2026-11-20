@@ -6,6 +6,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import EditIcon from '@mui/icons-material/Edit';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ConfigurationActions } from "../../../../core/actions/configuration";
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
@@ -44,6 +45,8 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
   // Comandos guardados por el usuario
   const [savedCommands, setSavedCommands] = useState<SavedCommand[]>([]);
   const [commandName, setCommandName] = useState<string>('');
+  // Hora diaria opcional ("HH:MM"); vacía = sólo ejecución manual
+  const [commandTime, setCommandTime] = useState<string>('');
   // id del comando que se está editando (null = crear uno nuevo)
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -68,6 +71,7 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
 
   const resetSaveForm = () => {
     setCommandName('');
+    setCommandTime('');
     setEditingId(null);
   };
 
@@ -77,6 +81,7 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
       ...(editingId ? { id: editingId } : {}),
       name: commandName,
       command: lineToSend,
+      time: commandTime,
     }).then(list => {
       setSavedCommands(list);
       resetSaveForm();
@@ -86,6 +91,7 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
   const startEditing = (cmd: SavedCommand) => {
     setEditingId(cmd.id);
     setCommandName(cmd.name);
+    setCommandTime(cmd.time ?? '');
     setLineToSend(cmd.command);
   };
 
@@ -136,6 +142,17 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
           sx={{minWidth: {xs: '15.5rem', md: '20rem'}}}
           onChange={evt => setCommandName(evt.target.value)}
         />
+        <Tooltip title={t('commandLine.timeHelp')}>
+          <TextField
+            label={t('commandLine.timeLabel')}
+            type="time"
+            variant="standard"
+            value={commandTime}
+            InputLabelProps={{ shrink: true }}
+            sx={{minWidth: '11rem'}}
+            onChange={evt => setCommandTime(evt.target.value)}
+          />
+        </Tooltip>
         <Button
           variant='contained'
           disabled={!lineToSend.trim()}
@@ -190,7 +207,17 @@ export const CommandLineSection: React.FC<CommandLineSectionProps> = ({
                     sx={{pr: '9rem'}}
                   >
                     <ListItemText
-                      primary={cmd.name}
+                      primary={cmd.time ? (
+                        <Box component="span" sx={{display: 'inline-flex', alignItems: 'center', gap: '0.4rem'}}>
+                          {cmd.name}
+                          <Tooltip title={t('commandLine.scheduledAt', { time: cmd.time })}>
+                            <Box component="span" sx={{display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.8rem', color: 'rgb(25, 118, 210)'}}>
+                              <ScheduleIcon sx={{fontSize: '1rem'}} />
+                              {cmd.time}
+                            </Box>
+                          </Tooltip>
+                        </Box>
+                      ) : cmd.name}
                       secondary={cmd.command}
                       secondaryTypographyProps={{sx: {fontFamily: 'monospace', wordBreak: 'break-all'}}}
                     />

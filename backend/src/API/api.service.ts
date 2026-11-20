@@ -471,13 +471,15 @@ export class APIService {
 
     // Comandos guardados por el usuario (data/config/savedCommands.json)
     new SavedCommandsService();
+    // Los comandos con hora se ejecutan solos cada día a esa hora
+    SavedCommandsService.Instance.startScheduler();
     const savedCommandsEp = APIService.configurationSavedCommandsEndpoint;
 
     this.app.get(savedCommandsEp.list, (req, res) => {
       res.send({ data: SavedCommandsService.Instance.getAll() });
     });
 
-    // body: { id?: string, name: string, command: string }
+    // body: { id?: string, name: string, command: string, time?: "HH:MM" | "" }
     this.app.post(savedCommandsEp.save, (req, res) => {
       if (!req.body) {
         res.send({ data: SavedCommandsService.Instance.getAll() });

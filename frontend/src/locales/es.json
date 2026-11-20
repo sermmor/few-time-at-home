@@ -269,7 +269,10 @@
     "editSaved": "Editar",
     "deleteSaved": "Borrar",
     "loadSaved": "Cargar en el campo de texto",
-    "confirmDelete": "¿Borrar el comando \"{{name}}\"?"
+    "confirmDelete": "¿Borrar el comando \"{{name}}\"?",
+    "timeLabel": "Hora diaria (opcional)",
+    "timeHelp": "Si pones una hora, se ejecutará solo cada día a esa hora",
+    "scheduledAt": "Se ejecuta cada día a las {{time}}"
   },
   "cloud": {
     "title": "Cloud",
