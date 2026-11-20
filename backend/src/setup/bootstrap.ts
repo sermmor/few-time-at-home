@@ -26,6 +26,7 @@ import { AemetService }           from '../API/aemet.service';
 import { GoogleDriveService }     from '../API/googleDrive.service';
 import { DesktopRemoteService }   from '../API/desktopRemote.service';
 import { ensurePythonTapo }       from '../smartHome/ensurePythonTapo';
+import { startMemoryMonitor }     from '../memoryMonitor';
 
 export const bootstrapApp = (): void => {
   // Best-effort: install the Python `tapo` library if needed (for the Auto page).
@@ -88,6 +89,9 @@ export const bootstrapApp = (): void => {
 
         // Discover new remote desktop profiles from GDrive (async, non-blocking)
         setTimeout(() => DesktopRemoteService.discoverNewProfiles(), 0);
+
+        // Registro periódico de memoria (logs/memory.log) para localizar fugas.
+        startMemoryMonitor();
 
         console.log('> The bot is ready.');
       });

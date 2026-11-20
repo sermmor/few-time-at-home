@@ -7,6 +7,9 @@ export interface WorkerChildParentHandleData {
 }
 
 export class WorkerChildParentHandle {
+    /** Workers vivos ahora mismo (lo lee el monitor de memoria). */
+    static liveWorkers = 0;
+
     private idWorker: string;
     private childHandle: any;
 
@@ -16,6 +19,7 @@ export class WorkerChildParentHandle {
             childData.workerScriptPath,
             { workerData: childData.workerDataObject }
         );
+        WorkerChildParentHandle.liveWorkers++;
         this.childHandle.on('error', (e: any) => {
             if (childData.onError) childData.onError(e);
             console.error(e);
@@ -23,6 +27,7 @@ export class WorkerChildParentHandle {
         });
         
         this.childHandle.on('exit', (exitCode: any) => {
+            WorkerChildParentHandle.liveWorkers--;
             if (exitCode !== 0) console.error(`Worker stopped with exit code ${exitCode}`);
             if (childData.onExit) childData.onExit(exitCode);
             onExit();

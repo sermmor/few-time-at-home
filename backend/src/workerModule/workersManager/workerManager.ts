@@ -3,6 +3,9 @@ import { WorkerChildParentHandle, WorkerChildParentHandleData } from "./workerCh
 
 // WorkerManager for parent.
 export class WorkerManager {
+    /** gatherReceive que siguen esperando respuesta (lo lee el monitor de memoria). */
+    static pendingGathers = 0;
+
     private parentHandler: any;
     private childrenHandlerList: WorkerChildParentHandle[] = [];
 
@@ -88,6 +91,7 @@ export class WorkerManager {
     gatherReceive = (): Promise<any[]> => {
         const allMessages: any[] = [];
         let childWaiting = this.childrenHandlerList.length;
+        WorkerManager.pendingGathers++;
         return new Promise<any>(resolve => {
             this.childrenHandlerList.forEach((handleChild) => {
                 handleChild.receiveMessageFromChildAsync().then(message => {
@@ -97,7 +101,10 @@ export class WorkerManager {
                     childWaiting--;
                 });
             });
-            checkUntilConditionIsTrue(() => childWaiting <= 0, () => resolve(allMessages), 0);
+            checkUntilConditionIsTrue(() => childWaiting <= 0, () => {
+                WorkerManager.pendingGathers--;
+                resolve(allMessages);
+            }, 0);
         });
     };
 
