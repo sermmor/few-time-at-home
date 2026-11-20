@@ -103,6 +103,13 @@ in several Desktop widgets. Judge your change by "no **new** errors".
 - `src/*RSS/`, `src/processAutoupdate/`, `src/workerModule/` — RSS sources and
   background update workers.
 - `src/telegramBot/` — Telegram bot (`TelegramBot.Instance()`).
+- `src/youtube/` — the `/youtube` page's `youtubei.js` runs in a **child process**
+  (`youtube.worker.ts`, forked by `youtubeLib.ts`), not in the backend. It is **not**
+  a `backend/package.json` dependency: each version is npm-installed into the
+  gitignored `backend/youtube-lib/<version>/` (with a `loader.mjs` entry), and
+  `youtube-lib/active.json` names the one in use. `POST /youtube-page/update`
+  installs the latest, starts a new worker and swaps to it without restarting the
+  backend; the old folder is deleted. Never `npm install youtubei.js` in `backend/`.
 - `src/API/synchronize.service.ts` — zip export/import of `data/`;
   `reloadAllServices()` resets in-memory caches after an import.
 - `src/utils.ts` `startBackupEveryWeek` — the weekly encrypted backup zip (an

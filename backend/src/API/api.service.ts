@@ -31,7 +31,7 @@ import { getOrDownloadFavicon, getFaviconFilePath } from './favicon.service';
 import { DesktopProfilesService } from './desktopProfiles.service';
 import { DesktopRemoteService }   from './desktopRemote.service';
 import { AudioEditorService } from './audioEditor.service';
-import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, setLiveVideoId, getLiveVideoId } from './youtube.service';
+import { resolveYoutubeStreamUrl, getYoutubeJsVersionInfo, updateYoutubeJs, setLiveVideoId, getLiveVideoId } from './youtube.service';
 import { ImageEditorService } from './imageEditor.service';
 import * as os from 'os';
 import * as http from 'http';
@@ -175,6 +175,7 @@ export class APIService {
   static youtubePageEndpoint = {
     resolve: '/youtube-page/resolve',
     version: '/youtube-page/version',
+    update:  '/youtube-page/update',
     liveSet: '/youtube-page/live',
     liveGet: '/youtube-page/live',
   };
@@ -2038,6 +2039,18 @@ export class APIService {
       } catch (err: any) {
         console.error('[YouTube page] version error:', err?.message ?? err);
         res.status(500).json({ error: err?.message ?? 'Could not retrieve version info' });
+      }
+    });
+
+    // POST /youtube-page/update — instala la última youtubei.js y cambia el worker
+    // en caliente (sin parar el backend). Devuelve { ok, previous, version, changed, error? }
+    this.app.post(APIService.youtubePageEndpoint.update, async (_req: Request, res: Response) => {
+      try {
+        const result = await updateYoutubeJs();
+        res.status(result.ok ? 200 : 500).json(result);
+      } catch (err: any) {
+        console.error('[YouTube page] update error:', err?.message ?? err);
+        res.status(500).json({ ok: false, error: err?.message ?? 'Could not update youtubei.js' });
       }
     });
 

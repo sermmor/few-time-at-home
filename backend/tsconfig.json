@@ -15,6 +15,7 @@
   },
   "exclude": [
     "build",
-    "setup-google-drive.js"
+    "setup-google-drive.js",
+    "youtube-lib"
   ]
 }

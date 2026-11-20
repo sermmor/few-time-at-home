@@ -113,3 +113,6 @@ build/
 data/
 cloud/
 trash/
+
+# Versiones instaladas de youtubei.js (las gestiona src/youtube/youtubeLib.ts)
+youtube-lib/

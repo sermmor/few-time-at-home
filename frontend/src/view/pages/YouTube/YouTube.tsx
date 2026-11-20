@@ -98,6 +98,7 @@ export const YouTubePage = (): JSX.Element => {
   // ── Version info ────────────────────────────────────────────────────────────
   const [versionInfo,    setVersionInfo  ] = React.useState<YoutubeVersionInfo | null>(null);
   const [versionLoading, setVersionLoading] = React.useState(true);
+  const [updatingLib,    setUpdatingLib   ] = React.useState(false);
 
   // ── Snackbar ────────────────────────────────────────────────────────────────
   const [snackOpen,    setSnackOpen   ] = React.useState(false);
@@ -181,6 +182,31 @@ export const YouTubePage = (): JSX.Element => {
     }
   };
 
+  // ── Actualizar youtubei.js ──────────────────────────────────────────────────
+  // El backend la instala en su carpeta y cambia el proceso hijo en caliente:
+  // ni el backend ni esta página se paran mientras tanto.
+  const updateLib = async () => {
+    setUpdatingLib(true);
+    showSnack(t('youtube.updating'), 'info');
+    try {
+      const result = await YoutubePageActions.updateLib();
+      if (!result.ok) throw new Error(result.error ?? '');
+      showSnack(
+        result.changed
+          ? t('youtube.updated', { version: result.version })
+          : t('youtube.alreadyLatest', { version: result.version }),
+        'success',
+      );
+      const info = await YoutubePageActions.getVersionInfo();
+      setVersionInfo(info);
+    } catch (err: any) {
+      const detail = err?.message ? `: ${err.message}` : '';
+      showSnack(`${t('youtube.updateError')}${detail}`, 'error');
+    } finally {
+      setUpdatingLib(false);
+    }
+  };
+
   // ── Stop cast ───────────────────────────────────────────────────────────────
   const stopCast = async () => {
     try {
@@ -210,7 +236,7 @@ export const YouTubePage = (): JSX.Element => {
                 {t('youtube.libVersion')}
               </Typography>
               <Chip
-                label={`youtubei.js v${versionInfo.installed}`}
+                label={versionInfo.installed === 'none' ? 'youtubei.js —' : `youtubei.js v${versionInfo.installed}`}
                 size="small"
                 variant="outlined"
                 color={versionInfo.hasUpdate ? 'warning' : 'default'}
@@ -227,13 +253,26 @@ export const YouTubePage = (): JSX.Element => {
                 </IconButton>
               </Tooltip>
             </Box>
-            {versionInfo.hasUpdate && (
+            {(versionInfo.hasUpdate || versionInfo.installed === 'none') && (
               <Alert
                 icon={<UpdateIcon fontSize="small" />}
                 severity="warning"
-                sx={{ py: 0, px: 1.5, fontSize: '0.8rem' }}
+                sx={{ py: 0, px: 1.5, fontSize: '0.8rem', alignItems: 'center' }}
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={updateLib}
+                    disabled={updatingLib || !!versionInfo.updating}
+                    startIcon={updatingLib || versionInfo.updating ? <CircularProgress size={12} color="inherit" /> : undefined}
+                  >
+                    {versionInfo.installed === 'none' ? t('youtube.install') : t('youtube.update')}
+                  </Button>
+                }
               >
-                {t('youtube.updateAvailable', { latest: versionInfo.latest })}
+                {versionInfo.installed === 'none'
+                  ? t('youtube.notInstalled')
+                  : t('youtube.updateAvailable', { latest: versionInfo.latest })}
               </Alert>
             )}
           </>

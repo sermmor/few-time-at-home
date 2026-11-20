@@ -468,6 +468,13 @@
     "libVersion": "Library:",
     "githubReleasesTitle": "View releases on GitHub",
     "updateAvailable": "New version available: v{{latest}}",
+    "update": "Update",
+    "install": "Install",
+    "notInstalled": "The library is not installed on the server yet",
+    "updating": "Updating youtubei.js… (the rest of the app keeps working)",
+    "updated": "youtubei.js updated to v{{version}}",
+    "alreadyLatest": "You already have the latest version (v{{version}})",
+    "updateError": "Could not update youtubei.js",
     "liveEmbed": "Live embed"
   },
   "desktopProfiles": {

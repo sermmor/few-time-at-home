@@ -26,12 +26,17 @@ import { AemetService }           from '../API/aemet.service';
 import { GoogleDriveService }     from '../API/googleDrive.service';
 import { DesktopRemoteService }   from '../API/desktopRemote.service';
 import { ensurePythonTapo }       from '../smartHome/ensurePythonTapo';
+import { ensureYoutubeLib }       from '../youtube/youtubeLib';
 import { startMemoryMonitor }     from '../memoryMonitor';
 
 export const bootstrapApp = (): void => {
   // Best-effort: install the Python `tapo` library if needed (for the Auto page).
   // Non-blocking and never throws — Tapo just stays unavailable if it can't.
   ensurePythonTapo();
+
+  // Best-effort: deja instalada youtubei.js (en youtube-lib/, fuera del package.json)
+  // para la página /youtube. No bloquea, nunca lanza y no arranca el worker.
+  ensureYoutubeLib();
 
   readFile('keys.json', (err, data) => {
     if (err) throw err;
