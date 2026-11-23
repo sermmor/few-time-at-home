@@ -16,6 +16,7 @@ const ffmpegPath: string = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
+import { CarUsbMp3Job } from '../convertToMp3/carUsbJob';
 import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { SynchronizeService } from './synchronize.service';
 import { PlaylistExportService } from './playlistExport.service';
@@ -112,6 +113,11 @@ export class APIService {
   static videoToMp3ConverterEndpoint = "/video-to-mp3-converter";
   static audioToMp3ConverterEndpoint = "/audio-to-mp3-converter";
   static stillConverterEndpoint = "/still-converter";
+  static carUsbMp3 = {
+    start:  '/car-usb-mp3/start',   // POST { items: string[], bitrate: number }
+    status: '/car-usb-mp3/status',  // GET  ?logFrom=n
+    cancel: '/car-usb-mp3/cancel',  // POST
+  };
   static backgroundImageEndpoint = "/background";
   static cloudEndpointList = {
     getDrivesList: '/cloud/drives',
@@ -576,6 +582,29 @@ export class APIService {
       }
     });
 
+    // Pestaña "Pendrive del coche": selección de la Cloud -> MP3 de menor bitrate -> zip en cloud/01_CONVERTIDOS.
+    const carUsbJob = new CarUsbMp3Job(
+      () => ConfigurationService.Instance.cloudRootPath,
+      snapshot => WebSocketsServerService.Instance?.broadcast(snapshot),
+    );
+
+    // body: { items: string[] (rutas relativas a la raíz de la Cloud), bitrate: number } -> { ok, message }
+    this.app.post(APIService.carUsbMp3.start, (req, res) => {
+      if (!req.body) return res.status(400).json({ ok: false, message: 'No body received' });
+      if (!isFinishedConverter) return res.send({ ok: false, message: 'El conversor de carpetas está ocupado' });
+      const error = carUsbJob.start(req.body.items, Number(req.body.bitrate));
+      res.send({ ok: !error, message: error ?? 'Ready!' });
+    });
+
+    this.app.get(APIService.carUsbMp3.status, (req, res) => {
+      const logFrom = Number(req.query.logFrom) || 0;
+      res.send(carUsbJob.getStatus(logFrom));
+    });
+
+    this.app.post(APIService.carUsbMp3.cancel, (req, res) => {
+      res.send({ ok: carUsbJob.cancel() });
+    });
+
     // Returns {message: string, isFinished: boolean}
     this.app.post(APIService.stillConverterEndpoint, (req, res) => {
       if (isFinishedConverter) {
@@ -595,6 +624,9 @@ export class APIService {
             ...req.body.data,
             folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
             folderTo: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderTo),
+          }
+          if (carUsbJob.isRunning()) {
+            return res.send({ message: "Busy: car USB conversion in progress", isFinished: true });
           }
           CloudService.Instance.isExistsAllPaths([data.folderFrom, data.folderTo]).then(isExistsPath => {
             if (isExistsPath) {
@@ -631,6 +663,9 @@ export class APIService {
             ...req.body.data,
             folderFrom: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderFrom),
             folderTo: CloudService.Instance.fromRelativePathToAbsolute(req.body.data.folderTo),
+          }
+          if (carUsbJob.isRunning()) {
+            return res.send({ message: "Busy: car USB conversion in progress", isFinished: true });
           }
           CloudService.Instance.isExistsAllPaths([data.folderFrom, data.folderTo]).then(isExistsPath => {
             if (isExistsPath) {

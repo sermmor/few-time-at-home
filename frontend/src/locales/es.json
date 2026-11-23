@@ -342,7 +342,26 @@
     "files": "ficheros",
     "fileProgress": "progreso del fichero",
     "totalProgress": "progreso total",
-    "result": "Resultado"
+    "result": "Resultado",
+    "pageTitle": "Conversor MP3"
+  },
+  "mp3car": {
+    "tab": "Pendrive del coche",
+    "description": "Selecciona carpetas y ficheros de la Cloud: se convertirán a MP3 con el bitrate elegido y se guardarán en un .zip en {{folder}}.",
+    "selection": "Selección",
+    "clear": "Vaciar",
+    "selectFromCloud": "Seleccionar de la Cloud",
+    "selectTitle": "Seleccionar carpetas y ficheros de audio",
+    "emptySelection": "No hay nada seleccionado todavía",
+    "remove": "Quitar",
+    "cancel": "Cancelar",
+    "download": "Descargar",
+    "scanning": "Analizando la selección…",
+    "zipping": "Comprimiendo",
+    "zippingHint": "Creando el zip…",
+    "filesLeft": "Quedan {{left}} de {{total}}",
+    "withError": "con error",
+    "cancelled": "⏹ Conversión cancelada"
   },
   "videoPlayer": {
     "noVideo": "Sin vídeo",

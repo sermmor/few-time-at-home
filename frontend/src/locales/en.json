@@ -342,7 +342,26 @@
     "files": "files",
     "fileProgress": "file progress",
     "totalProgress": "total progress",
-    "result": "Result"
+    "result": "Result",
+    "pageTitle": "MP3 converter"
+  },
+  "mp3car": {
+    "tab": "Car USB stick",
+    "description": "Select folders and files from the Cloud: they will be converted to MP3 at the chosen bitrate and saved as a .zip in {{folder}}.",
+    "selection": "Selection",
+    "clear": "Clear",
+    "selectFromCloud": "Select from Cloud",
+    "selectTitle": "Select folders and audio files",
+    "emptySelection": "Nothing selected yet",
+    "remove": "Remove",
+    "cancel": "Cancel",
+    "download": "Download",
+    "scanning": "Scanning selection…",
+    "zipping": "Zipping",
+    "zippingHint": "Creating the zip…",
+    "filesLeft": "{{left}} of {{total}} left",
+    "withError": "with errors",
+    "cancelled": "⏹ Conversion cancelled"
   },
   "videoPlayer": {
     "noVideo": "No video",

@@ -20,3 +20,38 @@ export interface ConverterDataModel {
   message: string;
   isFinished: boolean;
 }
+// ── Pestaña "Pendrive del coche" ─────────────────────────────────────────────
+
+export const carUsbBitrateList = [64, 96, 112, 128, 144, 160, 192, 224, 256, 320] as const;
+export type CarUsbBitrate = typeof carUsbBitrateList[number];
+export const CAR_USB_OUTPUT_FOLDER = 'cloud/01_CONVERTIDOS';
+
+export type CarUsbState = 'idle' | 'scanning' | 'converting' | 'zipping' | 'done' | 'error' | 'cancelled';
+
+export interface CarUsbProgress {
+  type: 'car_usb_progress';
+  state: CarUsbState;
+  currentFile: string;
+  /** 0-100 del fichero actual; -1 indeterminado. */
+  currentPercent: number;
+  done: number;
+  total: number;
+  errors: number;
+  bitrate: number;
+  /** Ruta del zip relativa a la raíz de la Cloud (`cloud/01_CONVERTIDOS/...zip`). */
+  zipPath: string;
+  message: string;
+  /** Cambia con cada conversión; si cambia, el log se vuelve a pedir desde el principio. */
+  jobId?: number;
+}
+
+export interface CarUsbStatus extends CarUsbProgress {
+  log: string[];
+  /** Índice a pedir en la siguiente consulta (`logFrom`). */
+  logNext: number;
+}
+
+export interface CarUsbStartResponse {
+  ok: boolean;
+  message: string;
+}
