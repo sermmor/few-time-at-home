@@ -91,6 +91,26 @@ in several Desktop widgets. Judge your change by "no **new** errors".
   (to the scratchpad) and restore it afterwards, with the servers stopped.
 - The Configuration page renders API keys in its inputs: never dump all page
   inputs/text there; query only the elements you need.
+- After a backend change, **restart the `backend` preview** (`preview_stop` +
+  `preview_start`): the running process keeps serving the old build.
+
+### Browser pane gotchas
+- Click by element `ref` (from `find`/`read_page`), not screenshot coordinates:
+  screenshots are scaled, and a miss on a dialog's backdrop closes it.
+- Confirm a click did what you expected with `read_network_requests` (a click
+  right after a dialog closes can be lost).
+- A file download shows as `200 OK [FAILED: net::ERR_ABORTED]`: that is success.
+- Check horizontal overflow with the `mobile` preset and
+  `document.documentElement.scrollWidth` vs `clientWidth`, not by eye. A
+  `maxWidth: '100%'` child does not shrink inside a flex column with no width.
+- Screenshots can catch MUI animations mid-way (e.g. the Tabs indicator); check
+  state (`aria-selected`) before calling it a bug.
+
+### Editing gotchas
+- The Bash tool mangles backslashes in heredocs (`\r`, `\\` in a regex end up
+  wrong). Edit code with backslashes using the Edit tool.
+- Edit `locales/es.json` / `en.json` with the Edit tool, not by re-serialising
+  them with a script: that reformats unrelated hand-aligned lines.
 
 ## Architecture quick map (backend)
 
@@ -159,6 +179,10 @@ Read the relevant rule before touching that area:
 - `alexa-live` — casting music/video to the `/alexa` receiver: Live button,
   `/alexa/*` endpoints, cross-device `localhost` URLs, keep-screen-on on Android.
 - `cloud-page` — the Cloud file browser: toolbar, row actions (zip/extract),
-  hidden dotfiles, music queue from folders, testing with throwaway folders.
+  hidden dotfiles, music queue from folders, testing with throwaway folders,
+  reusing the multi-select picker and downloads from other pages.
+- `mp3-converter` — `/cloud/mp3-converter`: folder converter and "Pendrive del
+  coche" tabs, ffmpeg re-encode + zip job, progress/log sync, testing with
+  generated audio.
 - `ftah-app` — build the Flutter `ftahApp`, window/icon setup, Supabase settings,
   GitHub Actions.

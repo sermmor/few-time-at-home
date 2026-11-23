@@ -53,6 +53,25 @@ Backend: `src/API/cloud.service.ts` (`CloudService`), endpoints in
 - **Add folder to the music queue** (`addToPlaylist`): only audio files, never
   dotfiles (a `._song.mp3` passes the extension check) or images.
 
+## Reusing the Cloud from other pages
+- **Pick several items**: `view/molecules/ModalCloudMultiSelect` (props
+  `isOpen`, `onClose`, `onAccept(selection)`, `initialSelection`, `title`,
+  `fileFilter`) returns `CloudSelection[]` (`{ path, isFolder }`). It has a
+  checkbox per folder/file plus "Abrir" to enter a folder, keeps the selection
+  while navigating, hides dotfiles, and shows items inside an already selected
+  folder as checked + disabled (selecting a folder drops its selected
+  descendants). For a single folder use `ModalCloudBrowser` instead. Used by the
+  MP3 converter's pendrive tab (see the `mp3-converter` skill).
+- **Download a cloud file** from any page:
+  `CloudActions.downloadFile({ drive: path.split('/')[0], path })` (hits
+  `GET /cloud/download-file`). In the browser pane the request shows as
+  `200 OK [FAILED: net::ERR_ABORTED]` because it is handed off as a download;
+  that is success.
+- Names starting with `.` are always hidden by `ModalCloudMultiSelect`, but the
+  Cloud page shows them unless the "·" toggle is on. So a temp folder inside the
+  cloud (e.g. the MP3 converter's `.tmp-*`) can be visible meanwhile: always
+  remove it when the job ends.
+
 ## Adding a row action for some file types
 1. Backend: a method in `CloudService` that returns a message and never throws.
    Add an endpoint in `cloudEndpointList` plus its handler.
