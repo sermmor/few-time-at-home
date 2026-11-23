@@ -318,7 +318,14 @@
     "bookmarkRemoved": "Bookmark removed!",
     "manageSaved": "Manage saved",
     "scrollTop": "Scroll to top",
-    "scrollBottom": "Scroll to bottom"
+    "scrollBottom": "Scroll to bottom",
+    "recommended": "RECOMMEND ME",
+    "notInterested": "Not interested",
+    "dismissed": "It won't be recommended again",
+    "reasonSimilar": "Similar to: {{ref}}",
+    "reasonAuthor": "You usually like {{ref}}",
+    "reasonDomain": "You often save things from {{ref}}",
+    "reasonRecent": "Recent"
   },
   "mp3": {
     "title": "Video/Audio To Mp3",

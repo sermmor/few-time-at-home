@@ -18,6 +18,11 @@ const timeInHoursToSaveMediaDataInFiles = 24; // 1 time in a day
 export class MediaRSSAutoupdate {
   public static instance: MediaRSSAutoupdate;
 
+  /** Aviso tras guardar en memoria los RSS nuevos (lo usa el recomendador). */
+  public static onUpdated?: () => void;
+  /** Feeds adicionales que se suben a Supabase junto a los demás (p. ej. "recommended"). */
+  public static extraSupabaseFeeds?: () => Promise<{ feedKey: string; messages: string[] }[]>;
+
   private favoritesYoutubeMessages: string[] = [];
   private lastUpdateMilliseconds: number = 0;
 
@@ -140,6 +145,12 @@ export class MediaRSSAutoupdate {
     let waitMe = await this.saveYoutubeFavorites();
 
     waitMe = await this.saveMedia(messagesMasto, messagesBlog, messagesNews, messagesYoutube);
+
+    try {
+      MediaRSSAutoupdate.onUpdated?.();
+    } catch (err) {
+      console.error('Error notifying RSS update:', err);
+    }
 
     // Warm up the unfurl + thumbnail cache for every new YouTube URL just downloaded.
     // This runs after the RSS data is already saved so the app is usable immediately;
@@ -403,6 +414,11 @@ export class MediaRSSAutoupdate {
       // ── Saved / read-later ──────────────────────────────────────────────
       const savedItems = await ReadLaterMessagesRSS.getMessagesRSSSaved(AMOUNT);
       await svc.upsertRssCache('saved', savedItems.map((item: any) => item.message as string));
+
+      // ── Extra (Recomiéndame) ────────────────────────────────────────────
+      for (const feed of (await MediaRSSAutoupdate.extraSupabaseFeeds?.()) || []) {
+        await svc.upsertRssCache(feed.feedKey, feed.messages);
+      }
 
       console.log('[Supabase] RSS cache fully pushed to rss_cache table.');
     } catch (err) {

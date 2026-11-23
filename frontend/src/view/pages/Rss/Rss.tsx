@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import ThumbDownOffAltIcon from '@mui/icons-material/ThumbDownOffAlt';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as React from 'react';
@@ -19,10 +20,11 @@ import { UnfurlActions } from '../../../core/actions/unfurl';
 import { UnfurlDataModel } from '../../../data-model/unfurl';
 import { useConfiguredDialogAlphas } from '../../../core/context/DialogAlphasContext';
 import { useTranslation } from 'react-i18next';
+import { RecommendationReason } from '../../../data-model/rss';
 
 const LOADING_CARD_TIME = 5000;
 
-type RSSType = 'mastodon' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites' | 'random';
+type RSSType = 'mastodon' | 'blog' | 'news' | 'youtube' | 'saved' | 'favorites' | 'random' | 'recommended';
 
 enum StateItemList { EMPTY, LOADING, CHARGED };
 
@@ -81,6 +83,16 @@ export const Rss = () => {
   const [readLaterData, setReadLaterData] = React.useState<ReadLaterMessage[]>();
   const [unfurlData, setUnfurlData] = React.useState<UnfurlDataModel[]>();
   const [rssMessages, setRssMessages] = React.useState<string[]>([]);
+  // Motivos de la categoría Recomiéndame (paralelo a rssMessages)
+  const [reasons, setReasons] = React.useState<RecommendationReason[]>([]);
+  const getReasonText = (reason: RecommendationReason): string => {
+    switch (reason.kind) {
+      case 'similar': return t('rss.reasonSimilar', { ref: reason.ref });
+      case 'author':  return t('rss.reasonAuthor', { ref: reason.ref });
+      case 'domain':  return t('rss.reasonDomain', { ref: reason.ref });
+      default:        return t('rss.reasonRecent');
+    }
+  };
   const [listState, setListState] = React.useState<StateItemList>(StateItemList.EMPTY);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [isErrorSnackbar, setErrorSnackbar] = React.useState(false);
@@ -187,7 +199,7 @@ export const Rss = () => {
         sx={{minWidth: '15.5rem'}}
       >
         {
-          (['favorites', 'mastodon', 'youtube', 'blog', 'news', 'saved', 'random'] as const).map(type => <MenuItem value={type} key={type} sx={{textTransform: 'uppercase'}}>{t(`rss.${type}`)}</MenuItem>)
+          (['favorites', 'recommended', 'mastodon', 'youtube', 'blog', 'news', 'saved', 'random'] as const).map(type => <MenuItem value={type} key={type} sx={{textTransform: 'uppercase'}}>{t(`rss.${type}`)}</MenuItem>)
         }
       </Select>
       <TextField label={t('rss.amount')} variant="outlined" type='number' value={amount} sx={formSizeFields()} onChange={evt => setAmount(+evt.target.value)} />
@@ -202,8 +214,22 @@ export const Rss = () => {
         onClick={() => {
           setRssMessages([]);
           setUnfurlData([]);
+          setReasons([]);
           setListState(StateItemList.LOADING);
-          if (rssType === 'youtube') {
+          if (rssType === 'recommended') {
+            RSSActions.getRSSRecommended(amount).then(data => {
+              const messages = data ? data.messages : [];
+              setListState(StateItemList.CHARGED);
+              setReadLaterData(undefined);
+              setRssMessages(messages);
+              setReasons(data?.reasons || []);
+              return messages.map(msg => getUrlMessage(msg));
+            }).then(urls => {
+              UnfurlActions.getUnfurl({urlList: urls, loadTime: LOADING_CARD_TIME}).then(data => {
+                setUnfurlData(data);
+              });
+            });
+          } else if (rssType === 'youtube') {
             // tagType
             RSSActions.getRSSYoutube(tagType, amount).then(data => {
               setListState(StateItemList.CHARGED);
@@ -327,8 +353,8 @@ export const Rss = () => {
     { listState === StateItemList.LOADING && <LoadingComponent /> }
     {
       rssType !== 'saved' && rssType !== 'random' ?
-      listState !== StateItemList.LOADING && rssMessages.map((msg: string, index: number) => <Box key={`card_${index}`}>
-          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={rssType !== 'favorites' ? Math.max(rssMessages.length - 1 - index, 0) : index} />
+      listState !== StateItemList.LOADING && rssMessages.map((msg: string, index: number) => <Box key={rssType === 'recommended' ? `rec_${msg}` : `card_${index}`}>
+          <RssMessage key={index} message={msg} unfurlData={unfurlData ? unfurlData[index] : unfurlData} index={rssType !== 'favorites' && rssType !== 'recommended' ? Math.max(rssMessages.length - 1 - index, 0) : index} />
           <Box sx={getButtonCardStyles(alphas.general)}>
             <Button onClick={() => ReadLaterRSSActions.add({ message: msg }).then(() => {
               console.log("Bookmark saved!");
@@ -336,6 +362,21 @@ export const Rss = () => {
               setErrorSnackbar(false);
               setOpenSnackbar(true);
             })}><BookmarkIcon /></Button>
+            {rssType === 'recommended' && <>
+              <Button title={t('rss.notInterested')} onClick={() => RSSActions.dismissRecommended(msg).then(({ ok }) => {
+                if (!ok) return;
+                setSnackBarMessage(t('rss.dismissed'));
+                setErrorSnackbar(false);
+                setOpenSnackbar(true);
+                // Se quita de las tres listas paralelas para que no se desplacen las miniaturas
+                setRssMessages(prev => prev.filter((_, idx) => idx !== index));
+                setUnfurlData(prev => prev ? prev.filter((_, idx) => idx !== index) : prev);
+                setReasons(prev => prev.filter((_, idx) => idx !== index));
+              })}><ThumbDownOffAltIcon /></Button>
+              {reasons[index] && <Box component='span' sx={{ fontSize: '0.8rem', color: 'text.secondary', px: '0.5rem' }}>
+                {getReasonText(reasons[index])}
+              </Box>}
+            </>}
           </Box>
         </Box>) 
       : listState !== StateItemList.LOADING && readLaterData && readLaterData.map((msg: ReadLaterMessage, index: number) => <Box key={msg.id}>

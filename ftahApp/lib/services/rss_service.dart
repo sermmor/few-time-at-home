@@ -12,7 +12,7 @@ class RssService {
 
   /// Non-YouTube feed types.
   static const List<String> baseFeedTypes = [
-    'mastodon', 'blog', 'news', 'favorites', 'saved',
+    'mastodon', 'blog', 'news', 'favorites', 'saved', 'recommended',
   ];
 
   /// YouTube subcategory tag values. 'null' = all videos.

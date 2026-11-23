@@ -38,6 +38,8 @@ import * as http from 'http';
 import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
 import { SmartHomeService } from './smartHome.service';
+// Al importarlo se registran los enganches del recomendador (guardados, actualización RSS, Supabase)
+import { RecommendationService } from '../recommendation/recommendation.service';
 import { SavedCommandsService } from './savedCommands.service';
 // import { NitterRSSMessageList } from '../nitterRSS';
 
@@ -61,6 +63,8 @@ export class APIService {
   static getRssYoutubeEndpoint  = "/rss/youtube";
   static getRssFavoritesEndpoint  = "/rss/favorites";
   static getRssSavedEndpoint      = "/rss/saved";
+  static getRssRecommendedEndpoint     = "/rss/recommended";
+  static dismissRssRecommendedEndpoint = "/rss/recommended/dismiss";
   static getRssForceUpdateEndpoint = "/rss/force-update";
   static readLaterRSSEndpoint = {
     getMessages:       "/readLaterRSS/get-messages",
@@ -222,6 +226,7 @@ export class APIService {
     this.getRSS(APIService.getRssYoutubeEndpoint, 'youtube');
     this.getReadLaterRSSService();
     this.getFavoritesRSSService();
+    this.getRecommendedRSSService();
     this.forceUpdateRSS();
     this.unfurlService();
     this.unfurlYoutubeImageService();
@@ -269,6 +274,27 @@ export class APIService {
           res.send({ messages: messagesToSend.slice(messagesToSend.length - webNumberOfMessagesWithLinks)});
         }
       });
+    });
+  }
+
+  private getRecommendedRSSService() {
+    // GET /rss/recommended?amount=N  → { messages: string[], reasons: RecommendationReason[] }
+    this.app.get(APIService.getRssRecommendedEndpoint, (req, res) => {
+      const amount = req.query.amount ? +req.query.amount : 60;
+      RecommendationService.Instance.getRecommendations(isNaN(amount) ? 60 : amount)
+        .then(data => res.send(data))
+        .catch(() => res.send({ messages: [], reasons: [] }));
+    });
+
+    // POST /rss/recommended/dismiss  { message }  → "No me interesa"
+    this.app.post(APIService.dismissRssRecommendedEndpoint, (req, res) => {
+      const message = req.body?.message;
+      if (typeof message !== 'string' || !message) {
+        return res.status(400).json({ error: 'No message received' });
+      }
+      RecommendationService.Instance.dismiss(message)
+        .then(() => res.send({ ok: true }))
+        .catch(() => res.status(500).json({ ok: false }));
     });
   }
 

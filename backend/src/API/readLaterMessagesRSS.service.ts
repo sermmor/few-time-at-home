@@ -5,6 +5,16 @@ export type ReadLaterMessage = {id: number; message: string};
 
 export class ReadLaterMessagesRSS {
   private static readLaterMessagesRSSPath = 'data/readLaterMessagesRSS.json';
+
+  /** Aviso tras cada escritura con la lista completa (lo usa el recomendador para no releer el disco). */
+  static onChange?: (messages: ReadLaterMessage[]) => void;
+  private static notifyChange = (messages: ReadLaterMessage[]) => {
+    try {
+      ReadLaterMessagesRSS.onChange?.(messages);
+    } catch (err) {
+      console.error('[ReadLater] Error en onChange:', err);
+    }
+  };
   
   private static shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -86,6 +96,7 @@ export class ReadLaterMessagesRSS {
     };
     messages.push(newMessage);
     await saveInAFilePromise(JSON.stringify(messages, null, 2), ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+    ReadLaterMessagesRSS.notifyChange(messages);
     return newMessage;
   };
   
@@ -93,6 +104,7 @@ export class ReadLaterMessagesRSS {
     const messages: ReadLaterMessage[] = await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
     const newMessages = messages.filter(b => idMessageToRemove !== b.id);
     await saveInAFilePromise(JSON.stringify(newMessages, null, 2), ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+    ReadLaterMessagesRSS.notifyChange(newMessages);
   };
 
   static getAllMessagesPaginated = async(
@@ -124,11 +136,13 @@ export class ReadLaterMessagesRSS {
       JSON.stringify(messages, null, 2),
       ReadLaterMessagesRSS.readLaterMessagesRSSPath,
     );
+    ReadLaterMessagesRSS.notifyChange(messages);
   };
 
   static fileContent = async(): Promise<any> => await readJSONFile(ReadLaterMessagesRSS.readLaterMessagesRSSPath, '[]');
 
   static setFileContent = async(data: any): Promise<void> => {
     await saveInAFilePromise(JSON.stringify(data, null, 2), ReadLaterMessagesRSS.readLaterMessagesRSSPath);
+    ReadLaterMessagesRSS.notifyChange(Array.isArray(data) ? data : []);
   };
 }

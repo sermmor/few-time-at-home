@@ -3,6 +3,8 @@ import { ConfigurationService } from "../service/configuration/configuration.ser
 const getUrlApi = (): string => `http://${ConfigurationService.Instance.ip}:${ConfigurationService.Instance.port}`;
 
 export const queryRssEndpoint  = (nameEndpoint: 'mastodon' | 'twitter' | 'blog' | 'news' | 'youtube' | 'favorites', amount: number): string => `${getUrlApi()}/rss/${nameEndpoint}?amount=${amount}`;
+export const queryRssRecommendedEndpoint = (amount: number): string => `${getUrlApi()}/rss/recommended?amount=${amount}`;
+export const dismissRssRecommendedEndpoint = (): string => `${getUrlApi()}/rss/recommended/dismiss`;
 export const queryRssYoutubeEndpoint  = (tag: string, amount: number): string => `${getUrlApi()}/rss/youtube?amount=${amount}&tag=${tag}`;
 export const keysEndpoint = (): string => `${getUrlApi()}/keys`;
 export const configurationTypesEndpoint = (): string => `${getUrlApi()}/configuration/type`;

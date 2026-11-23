@@ -318,7 +318,14 @@
     "bookmarkRemoved": "¡Marcador eliminado!",
     "manageSaved": "Gestionar guardados",
     "scrollTop": "Volver arriba",
-    "scrollBottom": "Ir abajo"
+    "scrollBottom": "Ir abajo",
+    "recommended": "RECOMIÉNDAME",
+    "notInterested": "No me interesa",
+    "dismissed": "No se volverá a recomendar",
+    "reasonSimilar": "Parecido a: {{ref}}",
+    "reasonAuthor": "Te suele interesar {{ref}}",
+    "reasonDomain": "Sueles guardar cosas de {{ref}}",
+    "reasonRecent": "Novedad reciente"
   },
   "mp3": {
     "title": "Vídeo/Audio a Mp3",

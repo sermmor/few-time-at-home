@@ -23,6 +23,7 @@ class _RssScreenState extends State<RssScreen> {
     'youtube':   'YouTube',
     'favorites': 'Favoritos',
     'saved':     'Guardados',
+    'recommended': 'Recomiéndame',
   };
   static const _feedIcons = {
     'mastodon':  Icons.people_alt_outlined,
@@ -31,6 +32,7 @@ class _RssScreenState extends State<RssScreen> {
     'youtube':   Icons.play_circle_outline,
     'favorites': Icons.star_outline,
     'saved':     Icons.bookmark_outline,
+    'recommended': Icons.auto_awesome_outlined,
   };
 
   String _selectedFeed = 'mastodon';
@@ -187,7 +189,7 @@ class _RssScreenState extends State<RssScreen> {
                 padding: EdgeInsets.all(16),
                 child: CyberLabel('FEEDS', color: _orange),
               ),
-              ...['mastodon', 'blog', 'news', 'youtube', 'favorites', 'saved'].map((feed) =>
+              ...['recommended', 'mastodon', 'blog', 'news', 'youtube', 'favorites', 'saved'].map((feed) =>
                 _SidebarTile(
                   label:    _feedLabels[feed]!,
                   icon:     _feedIcons[feed]!,
@@ -237,7 +239,7 @@ class _RssScreenState extends State<RssScreen> {
         child: ListView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          children: ['mastodon', 'blog', 'news', 'youtube', 'favorites', 'saved'].map((feed) {
+          children: ['recommended', 'mastodon', 'blog', 'news', 'youtube', 'favorites', 'saved'].map((feed) {
             final selected = _selectedFeed == feed;
             return GestureDetector(
               onTap: () => setState(() { _selectedFeed = feed; _youtubeTag = 'null'; }),

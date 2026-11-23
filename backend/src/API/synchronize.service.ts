@@ -25,6 +25,7 @@ import { PomodoroService }      from './pomodoro.service';
 import { ConfigurationService }   from './configuration.service';
 import { DesktopProfilesService } from './desktopProfiles.service';
 import { SavedCommandsService } from './savedCommands.service';
+import { RecommendationService } from '../recommendation/recommendation.service';
 import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate';
 import { UnfurlCacheService }     from '../unfurl/unfurlCache.service';
 
@@ -136,6 +137,9 @@ export class SynchronizeService {
 
     // ── Comandos guardados (data/config/savedCommands.json) ── relectura perezosa
     SavedCommandsService.Instance?.reloadFromDisk();
+
+    // ── Recomendaciones (data/config/recomendaciones.json + guardados) ── relectura perezosa
+    RecommendationService.Instance.reloadFromDisk();
 
     // ── RSS message cache (data/config/media/*.json) ──
     await MediaRSSAutoupdate.instance.reloadFromDisk();
