@@ -4,7 +4,8 @@
 // volver a analizarlo. Es regenerable: no va en la copia semanal (sí en la
 // exportación de sincronización, que comprime todo data/).
 import { createHash } from 'crypto';
-import { mkdir, open, readdir, readFile, rename, stat, writeFile } from 'fs/promises';
+import { Dirent } from 'fs';
+import { mkdir, open, readdir, readFile, realpath, rename, stat, writeFile } from 'fs/promises';
 import pathModule from 'path';
 import { SongFeatures } from './audioFeatures';
 import { isIgnoredPath } from './moodSettings';
@@ -88,27 +89,50 @@ export const fingerprint = async (absPath: string, size: number): Promise<string
   }
 };
 
-/** Lista los audios de la Cloud (sin carpetas/ficheros ocultos) con su tamaño y fecha. */
+/** Tipo real de una entrada: los enlaces simbólicos (p. ej. "cloud/Música" apuntando a
+ *  un disco USB) se resuelven con stat, que los sigue. Enlace roto o ilegible: undefined. */
+const entryKind = async (entry: Dirent, absPath: string): Promise<'dir' | 'file' | undefined> => {
+  if (entry.isDirectory()) return 'dir';
+  if (entry.isFile()) return 'file';
+  if (!entry.isSymbolicLink()) return undefined;
+  try {
+    const s = await stat(absPath);
+    return s.isDirectory() ? 'dir' : s.isFile() ? 'file' : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/** Lista los audios de la Cloud (sin carpetas/ficheros ocultos) con su tamaño y fecha.
+ *  Sigue los enlaces simbólicos; cada carpeta real se recorre una sola vez, así un
+ *  enlace a una carpeta superior no crea un bucle infinito. */
 const listAudioFiles = async (cloudRoot: string, ignoredPaths: string[], shouldStop: () => boolean): Promise<Map<string, { size: number; mtimeMs: number }>> => {
   const found = new Map<string, { size: number; mtimeMs: number }>();
+  const visited = new Set<string>();
   const pending = [SCANNED_DRIVE];
   while (pending.length > 0 && !shouldStop()) {
     const relDir = pending.pop()!;
-    let entries;
+    const absDir = pathModule.join(cloudRoot, relDir);
+    let entries: Dirent[];
     try {
-      entries = await readdir(pathModule.join(cloudRoot, relDir), { withFileTypes: true });
+      const real = await realpath(absDir);
+      if (visited.has(real)) continue;
+      visited.add(real);
+      entries = await readdir(absDir, { withFileTypes: true });
     } catch {
-      continue; // carpeta ilegible: se ignora
+      continue; // carpeta ilegible o enlace roto: se ignora
     }
     for (const entry of entries) {
       if (entry.name.startsWith('.')) continue; // .DS_Store, ._x.mp3, .tmp-* del conversor…
       const rel = `${relDir}/${entry.name}`;
       if (isIgnoredPath(rel, ignoredPaths)) continue; // carpetas que el usuario excluye
-      if (entry.isDirectory()) {
+      const absPath = pathModule.join(cloudRoot, rel);
+      const kind = await entryKind(entry, absPath);
+      if (kind === 'dir') {
         pending.push(rel);
-      } else if (entry.isFile() && isAudioFile(entry.name)) {
+      } else if (kind === 'file' && isAudioFile(entry.name)) {
         try {
-          const s = await stat(pathModule.join(cloudRoot, rel));
+          const s = await stat(absPath);
           found.set(rel, { size: s.size, mtimeMs: Math.round(s.mtimeMs) });
         } catch { /* desaparecido entre medias */ }
       }
