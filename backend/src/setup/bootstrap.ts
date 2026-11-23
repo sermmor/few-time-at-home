@@ -30,6 +30,7 @@ import { ensureYoutubeLib }       from '../youtube/youtubeLib';
 import { startMemoryMonitor }     from '../memoryMonitor';
 import { DailyRecommendations }   from '../recommendation/dailyRecommendations';
 import { registerRecommendationHooks } from '../recommendation/recommendation.service';
+import { MusicMoodService }       from '../musicMood/musicMood.service';
 
 export const bootstrapApp = (): void => {
   // Best-effort: install the Python `tapo` library if needed (for the Auto page).
@@ -80,6 +81,13 @@ export const bootstrapApp = (): void => {
         bot.start(commands);
         registerRecommendationHooks();
         new MediaRSSAutoupdate(commands, !!keyData.connect_to_telegram);
+
+        // Análisis nocturno de ánimos de la música de la Cloud (01:00–07:00).
+        // Se crea antes que APIService, que registra los conversores como trabajo pesado.
+        const musicMood = new MusicMoodService(() => ConfigurationService.Instance.cloudRootPath);
+        musicMood.addBusyCheck('Actualización de RSS', () => MediaRSSAutoupdate.isUpdating);
+        musicMood.start();
+
         new APIService(keyData, channelMediaCollection, commands);
 
         // Always instantiate so weather browser endpoints work even without Telegram.

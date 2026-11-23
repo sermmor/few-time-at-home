@@ -65,6 +65,16 @@ const cloudEndpointList = {
 
 export const getCloudEndpoint = (typeEndpoint: CloudEndpointType) => `${getUrlApi()}${cloudEndpointList[typeEndpoint]}`;
 
+export type MusicMoodEndpointType = 'status' | 'analyzeNow' | 'stop' | 'settings' | 'playlist';
+const musicMoodEndpointList: Record<MusicMoodEndpointType, string> = {
+  'status': '/cloud/music-mood/status',
+  'analyzeNow': '/cloud/music-mood/analyze-now',
+  'stop': '/cloud/music-mood/stop',
+  'settings': '/cloud/music-mood/settings',
+  'playlist': '/cloud/music-mood/playlist',
+};
+export const getMusicMoodEndpoint = (typeEndpoint: MusicMoodEndpointType) => `${getUrlApi()}${musicMoodEndpointList[typeEndpoint]}`;
+
 export type BookmarkEndpointList = 'getPathList' | 'getTrashList' | 'search' | 'searchInTrash' | 'addBookmark' | 'addFolder' | 'removeBookmark' | 'removeFolder' | 'removeInTrash' | 'editBookmark' | 'editFolder' | 'move';
 const bookmarkEndpointList = {
   'getPathList': '/bookmarks/path',

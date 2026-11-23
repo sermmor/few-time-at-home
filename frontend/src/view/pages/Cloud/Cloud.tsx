@@ -20,6 +20,8 @@ import { ModalVideoPlayer, videoFileExtensions } from "../../molecules/ModalVide
 import { ModalAudioPlayer, audioFileExtensions } from "../../molecules/ModalAudioPlayer/ModalAudioPlayer";
 import { cloudFilesName, routesFTAH } from "../../Routes";
 import { MusicPlayerBar, PLAYER_BAR_HEIGHT } from "../../molecules/MusicPlayerBar/MusicPlayerBar";
+import { ModalMoodPlaylist, MoodPlaylistMode } from "./ModalMoodPlaylist";
+import { MoodId, MoodPlaylistResponse } from "../../../data-model/musicMood";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -204,6 +206,34 @@ export const Cloud = () => {
       setPlaylist(prev => prev.some(p => p.path === item.path) ? prev : [...prev, item]);
     }
   }, [currentDrive, fileList]);
+
+  // Lista por ánimo: canciones ya analizadas de la carpeta actual y subcarpetas
+  const [isOpenMoodPlaylistDialog, setOpenMoodPlaylistDialog] = React.useState(false);
+
+  const onMoodPlaylistResult = (result: MoodPlaylistResponse, mode: MoodPlaylistMode, mood: MoodId) => {
+    setOpenMoodPlaylistDialog(false);
+    const missing = result.totalInFolder - result.analyzedInFolder;
+    if (result.songs.length === 0) {
+      setSnackBarMessage(t('cloud.moodPlaylist.noSongs'));
+      setErrorSnackbar(true);
+      setOpenSnackbar(true);
+      return;
+    }
+    const items: CloudItem[] = result.songs.map(song => ({
+      name: song.name, path: song.path, isFolder: false, driveName: cloudDriveName,
+    }));
+    setPlaylist(prev => {
+      if (mode === 'replace') return items;
+      const existing = new Set(prev.map(p => p.path));
+      return [...prev, ...items.filter(i => !existing.has(i.path))];
+    });
+    const created = t('cloud.moodPlaylist.created', { mood: t(`cloud.moodPlaylist.moods.${mood}`), count: items.length });
+    setSnackBarMessage(missing > 0
+      ? `${created} ${t('cloud.moodPlaylist.partial', { missing, total: result.totalInFolder })}`
+      : created);
+    setErrorSnackbar(false);
+    setOpenSnackbar(true);
+  };
   // ─────────────────────────────────────────────────────────────────────────
 
   const getUrlCloudFile = (item: CloudItem) => downloadFileAndGetBlob(action, item);
@@ -263,6 +293,8 @@ export const Cloud = () => {
         onToggleHideDotFiles={toggleHideDotFiles}
         isHidingDotFiles={isHidingDotFiles}
         toggleHideDotFilesTitle={isHidingDotFiles ? t('cloud.showDotFiles') : t('cloud.hideDotFiles')}
+        onMoodPlaylist={currentDrive === cloudDriveName ? () => setOpenMoodPlaylistDialog(true) : undefined}
+        moodPlaylistTitle={t('cloud.moodPlaylist.button')}
         list={
           sortFileList([...visibleFileList]).map((item, index) => ({id:`${item.name}`, isFolder: item.isFolder, item: <>{
             item.isFolder ?
@@ -343,6 +375,12 @@ export const Cloud = () => {
         name: newName,
         path: `${currentPathFolder}/${newName}`,
       })}}
+    />
+    <ModalMoodPlaylist
+      isOpen={isOpenMoodPlaylistDialog}
+      onClose={() => setOpenMoodPlaylistDialog(false)}
+      folderPath={currentPathFolder}
+      onResult={onMoodPlaylistResult}
     />
     <MusicPlayerBar
       playlist={playlist}

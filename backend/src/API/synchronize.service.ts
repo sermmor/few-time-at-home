@@ -28,6 +28,7 @@ import { SavedCommandsService } from './savedCommands.service';
 import { RecommendationService } from '../recommendation/recommendation.service';
 import { MediaRSSAutoupdate }     from '../processAutoupdate/mediaRSSAutoupdate';
 import { UnfurlCacheService }     from '../unfurl/unfurlCache.service';
+import { MusicMoodService }       from '../musicMood/musicMood.service';
 
 const fetch = require('node-fetch');
 
@@ -143,6 +144,9 @@ export class SynchronizeService {
 
     // ── RSS message cache (data/config/media/*.json) ──
     await MediaRSSAutoupdate.instance.reloadFromDisk();
+
+    // ── Índice de ánimos de la música (data/music-mood/index.json) ── relectura perezosa
+    MusicMoodService.Instance?.reloadFromDisk();
 
     // ── Unfurl cache (data/cache/unfurl/) ──
     //   Reset lazy-load flags → will re-read from the extracted files on next request.

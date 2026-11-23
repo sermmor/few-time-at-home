@@ -20,6 +20,8 @@ export class MediaRSSAutoupdate {
 
   /** Aviso tras guardar en memoria los RSS nuevos (lo usa el recomendador). */
   public static onUpdated?: () => void;
+  /** true mientras se actualizan los RSS (el análisis de ánimos de la música espera). */
+  public static isUpdating = false;
   /** Feeds adicionales que se suben a Supabase junto a los demás (p. ej. "recommended"). */
   public static extraSupabaseFeeds?: () => Promise<{ feedKey: string; messages: string[] }[]>;
 
@@ -85,6 +87,7 @@ export class MediaRSSAutoupdate {
       this.loadFileData();
     }
     console.log("Starting Media RSS Autoupdate...");
+    MediaRSSAutoupdate.isUpdating = true;
     if (!isForce) {
       WebSocketsServerService.Instance.updateData({
         ...WebSocketsServerService.Instance.webSocketData,
@@ -92,6 +95,7 @@ export class MediaRSSAutoupdate {
       });
     }
     this.doAllUpdates().then(() => {
+      MediaRSSAutoupdate.isUpdating = false;
       const nextUpdateMessage = `Media RSS Autoupdate completed successfully. Next update at ${
         new Date(this.lastUpdateMilliseconds + ConfigurationService.Instance.rssConfig.autoUpdateTimeInSeconds * 1000).toLocaleString()
       }`;
@@ -109,6 +113,7 @@ export class MediaRSSAutoupdate {
       }
       resolve();
     }).catch(err => {
+      MediaRSSAutoupdate.isUpdating = false;
       console.error("Error during Media RSS Autoupdate:", err);
       WebSocketsServerService.Instance.updateData({
         ...WebSocketsServerService.Instance.webSocketData,

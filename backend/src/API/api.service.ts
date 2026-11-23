@@ -17,6 +17,8 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { CarUsbMp3Job } from '../convertToMp3/carUsbJob';
+import { MusicMoodService } from '../musicMood/musicMood.service';
+import { isMoodId } from '../musicMood/moodPlaylist';
 import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { SynchronizeService } from './synchronize.service';
 import { PlaylistExportService } from './playlistExport.service';
@@ -134,6 +136,11 @@ export class APIService {
     deleteFileOrFolder: '/cloud/delete',
     zipFolder: '/cloud/zip-folder',
     extractArchive: '/cloud/extract-archive',
+    musicMoodStatus: '/cloud/music-mood/status',        // GET -> MusicMoodStatus
+    musicMoodAnalyzeNow: '/cloud/music-mood/analyze-now', // POST -> { ok }
+    musicMoodStop: '/cloud/music-mood/stop',             // POST -> { ok }
+    musicMoodSettings: '/cloud/music-mood/settings',     // GET -> MusicMoodSettings; POST MusicMoodSettings -> { ok, settings }
+    musicMoodPlaylist: '/cloud/music-mood/playlist',     // POST { folderPath, mood, count } -> MoodPlaylistResult
   };
   static synchronize = {
     export:         '/synchronize/export',    // GET  — server packages data/ as zip
@@ -586,12 +593,15 @@ export class APIService {
       () => ConfigurationService.Instance.cloudRootPath,
       snapshot => WebSocketsServerService.Instance?.broadcast(snapshot),
     );
+    // El análisis de ánimos de la música cede el paso a los conversores
+    MusicMoodService.Instance?.addBusyCheck('Conversión a MP3', () => !isFinishedConverter || carUsbJob.isRunning());
 
     // body: { items: string[] (rutas relativas a la raíz de la Cloud), bitrate: number } -> { ok, message }
     this.app.post(APIService.carUsbMp3.start, (req, res) => {
       if (!req.body) return res.status(400).json({ ok: false, message: 'No body received' });
       if (!isFinishedConverter) return res.send({ ok: false, message: 'El conversor de carpetas está ocupado' });
       const error = carUsbJob.start(req.body.items, Number(req.body.bitrate));
+      if (!error) MusicMoodService.Instance?.markDirty();
       res.send({ ok: !error, message: error ?? 'Ready!' });
     });
 
@@ -630,6 +640,7 @@ export class APIService {
           CloudService.Instance.isExistsAllPaths([data.folderFrom, data.folderTo]).then(isExistsPath => {
             if (isExistsPath) {
               isFinishedConverter = false;
+              MusicMoodService.Instance?.markDirty();
               messageQueue = [];
               ConvertToMP3.Instance.convertAllVideosToMP3(
                 data,
@@ -669,6 +680,7 @@ export class APIService {
           CloudService.Instance.isExistsAllPaths([data.folderFrom, data.folderTo]).then(isExistsPath => {
             if (isExistsPath) {
               isFinishedConverter = false;
+              MusicMoodService.Instance?.markDirty();
               messageQueue = [];
               ConvertToMP3.Instance.convertAllAudiosToMP3(
                 data,
@@ -962,6 +974,7 @@ export class APIService {
           console.error("Received NO body text");
           return res.status(400).json({ error: 'No body received' });
       } else {
+        MusicMoodService.Instance?.markDirty();
         cloudService.moveFileOrFolder(req.body.oldPathList, req.body.newPathList).then((message) => res.send({ message }));
       }
     });
@@ -972,6 +985,7 @@ export class APIService {
           console.error("Received NO body text");
           return res.status(400).json({ error: 'No body received' });
       } else {
+        MusicMoodService.Instance?.markDirty();
         cloudService.renameFileOrFolder(req.body.oldPath, req.body.newPath).then((message) => res.send({ message }));
       }
     });
@@ -990,6 +1004,7 @@ export class APIService {
         // trick to an already-correct UTF-8 string corrupts accented characters.
         const originalName = Buffer.from(allFiles.originalname, 'latin1').toString('utf8');
         const folderPath   = req.body.folderPathToSave as string;
+        MusicMoodService.Instance?.markDirty();
         cloudService.uploadFile(allFiles.path, `${folderPath}/${originalName}`).then(message => {
           res.send({ message });
         });
@@ -1033,6 +1048,7 @@ export class APIService {
           console.error("Received NO body text");
           return res.status(400).json({ error: 'No body received' });
       } else {
+        MusicMoodService.Instance?.markDirty();
         cloudService.deleteFileOrFolder(req.body.drive, req.body.path).then((message) => res.send({message}));
       }
     });
@@ -1047,12 +1063,52 @@ export class APIService {
       }
     });
 
+    // Análisis de ánimos de la música (índice nocturno)
+    this.app.get(APIService.cloudEndpointList.musicMoodStatus, (req, res) => {
+      const service = MusicMoodService.Instance;
+      if (!service) return res.status(503).json({ error: 'Music mood service not ready' });
+      service.getStatus().then(status => res.send(status)).catch(() => res.status(500).json({ error: 'Status error' }));
+    });
+
+    this.app.post(APIService.cloudEndpointList.musicMoodAnalyzeNow, (req, res) => {
+      res.send({ ok: !!MusicMoodService.Instance?.analyzeNow() });
+    });
+
+    this.app.post(APIService.cloudEndpointList.musicMoodStop, (req, res) => {
+      res.send({ ok: !!MusicMoodService.Instance?.stop() });
+    });
+
+    this.app.get(APIService.cloudEndpointList.musicMoodSettings, (req, res) => {
+      const service = MusicMoodService.Instance;
+      if (!service) return res.status(503).json({ error: 'Music mood service not ready' });
+      service.getSettings().then(settings => res.send(settings)).catch(() => res.status(500).json({ error: 'Settings error' }));
+    });
+
+    this.app.post(APIService.cloudEndpointList.musicMoodSettings, (req, res) => {
+      const service = MusicMoodService.Instance;
+      if (!service) return res.status(503).json({ error: 'Music mood service not ready' });
+      service.setSettings(req.body).then(result => res.send(result)).catch(() => res.status(500).json({ error: 'Settings error' }));
+    });
+
+    this.app.post(APIService.cloudEndpointList.musicMoodPlaylist, (req, res) => {
+      const service = MusicMoodService.Instance;
+      if (!service) return res.status(503).json({ error: 'Music mood service not ready' });
+      const { folderPath, mood, count } = req.body ?? {};
+      if (typeof folderPath !== 'string' || !isMoodId(mood) || !Number.isFinite(Number(count))) {
+        return res.status(400).json({ error: 'Expected { folderPath, mood, count }' });
+      }
+      service.buildPlaylist(folderPath, mood, Number(count))
+        .then(result => res.send(result))
+        .catch(() => res.status(500).json({ error: 'Playlist error' }));
+    });
+
     // body: {relativePathFile: string} (un .zip o .rar) -> {message, isError}
     this.app.post(APIService.cloudEndpointList.extractArchive, (req, res) => {
       if (!req.body || typeof req.body.relativePathFile !== 'string') {
           console.error("Received NO body text");
           return res.status(400).json({ error: 'No body received' });
       } else {
+        MusicMoodService.Instance?.markDirty();
         cloudService.extractArchive(req.body.relativePathFile).then((result) => res.send(result));
       }
     });

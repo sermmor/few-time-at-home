@@ -7,6 +7,7 @@ import { GoogleDriveService } from './API/googleDrive.service';
 import { getBookmarksFilesPathList, getBookmarksNameFilesPathList } from './API/bookmarks/bookmarks-utils';
 import { SAVED_COMMANDS_PATH } from './API/savedCommands.service';
 import { RECOMMENDATIONS_PATH } from './recommendation/recommendationFeedback';
+import { MUSIC_MOOD_SETTINGS_PATH } from './musicMood/moodSettings';
 
 const nameMonths: {[key: string]: number} = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11, };
 
@@ -244,6 +245,9 @@ export const startBackupEveryWeek = async(pathRootToPaste: string, password: str
     { src: 'data/readLaterMessagesRSS.json',         dst: 'readLaterMessagesRSS.json' },
     { src: SAVED_COMMANDS_PATH,                      dst: 'savedCommands.json' },
     { src: RECOMMENDATIONS_PATH,                     dst: 'recomendaciones.json' },
+    { src: MUSIC_MOOD_SETTINGS_PATH,                 dst: 'musicMood.json' },
+    // Fuera a propósito: data/music-mood/index.json (análisis de la música). Es
+    // regenerable y grande; la exportación de sincronización sí lo incluye.
   ];
 
   const desktopPairs = getDesktopBackupPairs();

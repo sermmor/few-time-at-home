@@ -9,6 +9,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useConfiguredDialogAlphas } from "../../../../core/context/DialogAlphasContext";
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
+import { MusicMoodSettingsBlock } from "./MusicMoodSettingsBlock";
 
 const STORAGE_KEY = 'app-language';
 
@@ -233,6 +234,11 @@ export const OthersSection: React.FC<OthersSectionProps> = ({ config, setConfig 
 
         </Box>
         <ConfigurationSaveButton config={config} type={'configuration'} />
+
+        {/* ── Música por ánimos (se guarda aparte, con su propio botón) ── */}
+        <Box sx={{ ...getFooterStyle(alphas.general), marginTop: '1rem' }}>
+          <MusicMoodSettingsBlock rowSx={rowSx} fieldSx={fieldSx} />
+        </Box>
       </AccordionDetails>
     </Accordion>
   );

@@ -140,7 +140,33 @@
     "alphaConfigCardsLabel": "Alpha Configuration Cards",
     "language": "Idioma:",
     "languageEnglish": "English",
-    "languageSpanish": "Español"
+    "languageSpanish": "Español",
+    "musicMood": {
+      "title": "Música por ánimos",
+      "description": "Las canciones de la Cloud se analizan por la noche (sin IA) para poder crear listas por ánimo desde la página Cloud. El análisis se pausa mientras se actualizan los RSS o se convierte música.",
+      "schedule": "Horario del análisis:",
+      "startHour": "Desde",
+      "endHour": "Hasta",
+      "noNightlyRun": "Con la misma hora de inicio y de fin no hay análisis nocturno: solo con «Analizar ahora».",
+      "ignoredPaths": "Rutas de la Cloud que no se analizan:",
+      "noIgnoredPaths": "Ninguna",
+      "newPath": "Nueva ruta",
+      "addPath": "Añadir ruta",
+      "removePath": "Quitar ruta",
+      "pickFolder": "Elegir carpeta de la Cloud",
+      "save": "Guardar ajustes de música",
+      "saved": "Ajustes de música guardados.",
+      "saveError": "No se pudieron guardar los ajustes de música.",
+      "statusSummary": "{{analyzed}} canciones analizadas de {{total}} ficheros · {{pending}} pendientes · {{failed}} ilegibles",
+      "analyzeNow": "Analizar ahora",
+      "stop": "Detener",
+      "state": {
+        "idle": "En espera",
+        "scanning": "Revisando la Cloud…",
+        "analyzing": "Analizando…",
+        "paused": "En pausa"
+      }
+    }
   },
   "sync": {
     "sectionTitle": "Sincronizar",
@@ -283,7 +309,30 @@
     "newFolderDescription": "Escribe el nombre de la nueva carpeta",
     "hideDotFiles": "Ocultar ficheros ocultos (los que empiezan por \".\")",
     "showDotFiles": "Mostrar ficheros ocultos (los que empiezan por \".\")",
-    "extractArchive": "Descomprimir en una carpeta con el mismo nombre"
+    "extractArchive": "Descomprimir en una carpeta con el mismo nombre",
+    "moodPlaylist": {
+      "button": "Lista por ánimo",
+      "title": "Lista por ánimo",
+      "folder": "Canciones de: {{folder}} (y subcarpetas)",
+      "mood": "Ánimo",
+      "count": "Número de canciones",
+      "countError": "Entre 1 y {{max}}",
+      "mode": "En la cola de reproducción",
+      "replace": "Sustituir la cola",
+      "add": "Añadir al final",
+      "create": "Crear lista",
+      "created": "Lista «{{mood}}»: {{count}} canciones.",
+      "partial": "Aún faltan por analizar {{missing}} de {{total}} canciones de esta carpeta.",
+      "noSongs": "No hay canciones analizadas en esta carpeta todavía. El análisis se hace por la noche (o con «Analizar ahora» en Configuración > Otros).",
+      "moods": {
+        "energetico": "Energético",
+        "fiesta": "Fiesta",
+        "tranquilo": "Tranquilo",
+        "melancolico": "Melancólico",
+        "oscuro": "Oscuro / intenso",
+        "epico": "Épico"
+      }
+    }
   },
   "bookmarks": {
     "title": "Marcadores",

@@ -16,6 +16,7 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
+import MoodIcon from '@mui/icons-material/Mood';
 import { ItemListWithFoldersComponent } from "../../molecules/ItemListWithFoldersComponent/ItemListWithFoldersComponent";
 import { videoFileExtensions } from "../../molecules/ModalVideoPlayer/ModalVideoPlayer";
 import { audioFileExtensions } from "../../molecules/ModalAudioPlayer/ModalAudioPlayer";
@@ -107,6 +108,9 @@ interface Props {
   onToggleHideDotFiles?: () => void;
   isHidingDotFiles?: boolean;
   toggleHideDotFilesTitle?: string;
+  /** Si se indica, muestra el botón de "lista por ánimo" (Cloud). */
+  onMoodPlaylist?: () => void;
+  moodPlaylistTitle?: string;
 }
 
 export const TitleAndListWithFolders = ({
@@ -138,6 +142,8 @@ export const TitleAndListWithFolders = ({
   onToggleHideDotFiles,
   isHidingDotFiles,
   toggleHideDotFilesTitle,
+  onMoodPlaylist,
+  moodPlaylistTitle,
 }: Props) => {
   const alphas = useConfiguredDialogAlphas();
   const [isInSelectListMode, setSelectListMode] = React.useState<boolean>(false);
@@ -209,6 +215,10 @@ export const TitleAndListWithFolders = ({
       }
       {
         !isInSelectListMode && showPhotoLibrary && <Button onClick={showPhotoLibrary}>{<PhotoLibraryIcon />}</Button>
+      }
+      {
+        !isInSelectListMode && onMoodPlaylist &&
+          <Button onClick={onMoodPlaylist} title={moodPlaylistTitle} aria-label={moodPlaylistTitle}><MoodIcon /></Button>
       }
       {
         isInMoveItemMode &&

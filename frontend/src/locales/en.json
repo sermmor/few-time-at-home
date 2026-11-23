@@ -140,7 +140,33 @@
     "alphaConfigCardsLabel": "Configuration Cards Alpha",
     "language": "Language:",
     "languageEnglish": "English",
-    "languageSpanish": "Español"
+    "languageSpanish": "Español",
+    "musicMood": {
+      "title": "Music by mood",
+      "description": "Cloud songs are analyzed at night (no AI) so you can build mood playlists from the Cloud page. Analysis pauses while RSS feeds update or music is being converted.",
+      "schedule": "Analysis schedule:",
+      "startHour": "From",
+      "endHour": "To",
+      "noNightlyRun": "With the same start and end hour there is no nightly analysis: only with “Analyze now”.",
+      "ignoredPaths": "Cloud paths that are not analyzed:",
+      "noIgnoredPaths": "None",
+      "newPath": "New path",
+      "addPath": "Add path",
+      "removePath": "Remove path",
+      "pickFolder": "Pick a Cloud folder",
+      "save": "Save music settings",
+      "saved": "Music settings saved.",
+      "saveError": "Could not save the music settings.",
+      "statusSummary": "{{analyzed}} songs analyzed out of {{total}} files · {{pending}} pending · {{failed}} unreadable",
+      "analyzeNow": "Analyze now",
+      "stop": "Stop",
+      "state": {
+        "idle": "Idle",
+        "scanning": "Scanning the Cloud…",
+        "analyzing": "Analyzing…",
+        "paused": "Paused"
+      }
+    }
   },
   "sync": {
     "sectionTitle": "Synchronize",
@@ -283,7 +309,30 @@
     "newFolderDescription": "Write new folder name",
     "hideDotFiles": "Hide hidden files (starting with \".\")",
     "showDotFiles": "Show hidden files (starting with \".\")",
-    "extractArchive": "Extract into a folder with the same name"
+    "extractArchive": "Extract into a folder with the same name",
+    "moodPlaylist": {
+      "button": "Mood playlist",
+      "title": "Mood playlist",
+      "folder": "Songs from: {{folder}} (and subfolders)",
+      "mood": "Mood",
+      "count": "Number of songs",
+      "countError": "Between 1 and {{max}}",
+      "mode": "In the play queue",
+      "replace": "Replace the queue",
+      "add": "Add to the end",
+      "create": "Create playlist",
+      "created": "“{{mood}}” playlist: {{count}} songs.",
+      "partial": "{{missing}} of {{total}} songs in this folder are not analyzed yet.",
+      "noSongs": "No analyzed songs in this folder yet. Analysis runs at night (or with “Analyze now” in Configuration > Others).",
+      "moods": {
+        "energetico": "Energetic",
+        "fiesta": "Party",
+        "tranquilo": "Calm",
+        "melancolico": "Melancholic",
+        "oscuro": "Dark / intense",
+        "epico": "Epic"
+      }
+    }
   },
   "bookmarks": {
     "title": "Bookmarks",
