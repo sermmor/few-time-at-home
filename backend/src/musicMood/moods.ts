@@ -130,9 +130,11 @@ export const timbreDistance = (a: number[], b: number[]): number => {
 const AXES_TYPICAL = 0.54;
 const TIMBRE_TYPICAL = 1.37;
 
-/** Parecido sonoro (para "Como esta lista" y para ordenar): ~1 = distancia típica. */
-export const songDistance = (a: SongProfile, b: SongProfile): number =>
-  0.5 * axesDistance(a.axes, b.axes) / AXES_TYPICAL + 0.5 * timbreDistance(a.timbreZ, b.timbreZ) / TIMBRE_TYPICAL;
+/** Parecido sonoro (para ordenar y para "Como esta lista"): ~1 = distancia típica.
+ *  `axesWeight`: peso de los ejes de ánimo frente al timbre (0-1). */
+export const songDistance = (a: SongProfile, b: SongProfile, axesWeight = 0.5): number =>
+  axesWeight * axesDistance(a.axes, b.axes) / AXES_TYPICAL
+  + (1 - axesWeight) * timbreDistance(a.timbreZ, b.timbreZ) / TIMBRE_TYPICAL;
 
 /** Coste de transición tipo DJ: parecido + tempo cercano + tonalidades compatibles. */
 export const transitionCost = (a: SongProfile, b: SongProfile): number => {

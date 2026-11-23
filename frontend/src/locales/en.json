@@ -324,13 +324,23 @@
       "created": "“{{mood}}” playlist: {{count}} songs.",
       "partial": "{{missing}} of {{total}} songs in this folder are not analyzed yet.",
       "noSongs": "No analyzed songs in this folder yet. Analysis runs at night (or with “Analyze now” in Configuration > Others).",
+      "seed": "Pattern playlist or song",
+      "seedHelp": "Finds songs in this folder that sound similar",
+      "pickSeed": "Pick pattern folder or song",
+      "pickSeedTitle": "Pattern playlist or song",
+      "includeSeed": "Also include the pattern's own songs",
+      "seedRequired": "Pick a pattern folder or song",
+      "noSeedSongs": "The pattern playlist has no analyzed songs yet.",
+      "partialSeed": "Only {{analyzed}} of {{total}} pattern songs are analyzed.",
+      "similarName": "Like “{{name}}”",
       "moods": {
         "energetico": "Energetic",
         "fiesta": "Party",
         "tranquilo": "Calm",
         "melancolico": "Melancholic",
         "oscuro": "Dark / intense",
-        "epico": "Epic"
+        "epico": "Epic",
+        "comoLista": "Like this playlist…"
       }
     }
   },

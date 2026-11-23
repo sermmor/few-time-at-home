@@ -21,7 +21,7 @@ import { ModalAudioPlayer, audioFileExtensions } from "../../molecules/ModalAudi
 import { cloudFilesName, routesFTAH } from "../../Routes";
 import { MusicPlayerBar, PLAYER_BAR_HEIGHT } from "../../molecules/MusicPlayerBar/MusicPlayerBar";
 import { ModalMoodPlaylist, MoodPlaylistMode } from "./ModalMoodPlaylist";
-import { MoodId, MoodPlaylistResponse } from "../../../data-model/musicMood";
+import { MoodPlaylistResponse } from "../../../data-model/musicMood";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -210,11 +210,12 @@ export const Cloud = () => {
   // Lista por ánimo: canciones ya analizadas de la carpeta actual y subcarpetas
   const [isOpenMoodPlaylistDialog, setOpenMoodPlaylistDialog] = React.useState(false);
 
-  const onMoodPlaylistResult = (result: MoodPlaylistResponse, mode: MoodPlaylistMode, mood: MoodId) => {
+  /** `label`: nombre de la lista para el aviso ("Energético", "Como «D4rky Vol 2»"…). */
+  const onMoodPlaylistResult = (result: MoodPlaylistResponse, mode: MoodPlaylistMode, label: string) => {
     setOpenMoodPlaylistDialog(false);
     const missing = result.totalInFolder - result.analyzedInFolder;
     if (result.songs.length === 0) {
-      setSnackBarMessage(t('cloud.moodPlaylist.noSongs'));
+      setSnackBarMessage(result.analyzedInSeed === 0 ? t('cloud.moodPlaylist.noSeedSongs') : t('cloud.moodPlaylist.noSongs'));
       setErrorSnackbar(true);
       setOpenSnackbar(true);
       return;
@@ -227,10 +228,12 @@ export const Cloud = () => {
       const existing = new Set(prev.map(p => p.path));
       return [...prev, ...items.filter(i => !existing.has(i.path))];
     });
-    const created = t('cloud.moodPlaylist.created', { mood: t(`cloud.moodPlaylist.moods.${mood}`), count: items.length });
-    setSnackBarMessage(missing > 0
-      ? `${created} ${t('cloud.moodPlaylist.partial', { missing, total: result.totalInFolder })}`
-      : created);
+    const notes = [t('cloud.moodPlaylist.created', { mood: label, count: items.length })];
+    if (missing > 0) notes.push(t('cloud.moodPlaylist.partial', { missing, total: result.totalInFolder }));
+    const seedTotal = result.totalInSeed ?? 0;
+    const seedAnalyzed = result.analyzedInSeed ?? 0;
+    if (seedAnalyzed < seedTotal) notes.push(t('cloud.moodPlaylist.partialSeed', { analyzed: seedAnalyzed, total: seedTotal }));
+    setSnackBarMessage(notes.join(' '));
     setErrorSnackbar(false);
     setOpenSnackbar(true);
   };

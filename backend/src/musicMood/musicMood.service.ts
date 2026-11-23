@@ -9,7 +9,7 @@ import pathModule from 'path';
 import { scheduleJob, Job } from 'node-schedule';
 import { analyzeSong } from './audioFeatures';
 import { loadIndex, MoodIndex, pendingSongs, saveIndex, walkCloud } from './moodIndex';
-import { buildMoodPlaylist, MoodPlaylistResult } from './moodPlaylist';
+import { buildMoodPlaylist, buildSimilarPlaylist, MoodPlaylistResult } from './moodPlaylist';
 import { MoodId } from './moods';
 import { isHourInWindow, loadSettings, MusicMoodSettings, sanitizeSettings, saveSettings } from './moodSettings';
 
@@ -170,6 +170,13 @@ export class MusicMoodService {
   buildPlaylist = async (folderPath: string, mood: MoodId, count: number): Promise<MoodPlaylistResult> => {
     const [index, settings] = await Promise.all([this.getIndex(), this.getSettings()]);
     return buildMoodPlaylist(index, settings.ignoredPaths, folderPath, mood, count);
+  };
+
+  /** "Como esta lista": canciones de la carpeta que suenan parecido a `seedPaths`
+   *  (carpetas y/o canciones). */
+  buildSimilarPlaylist = async (folderPath: string, seedPaths: string[], count: number, includeSeedSongs: boolean): Promise<MoodPlaylistResult> => {
+    const [index, settings] = await Promise.all([this.getIndex(), this.getSettings()]);
+    return buildSimilarPlaylist(index, settings.ignoredPaths, folderPath, seedPaths, count, includeSeedSongs);
   };
 
   stop = (): boolean => {

@@ -18,7 +18,7 @@ import { PomodoroService } from './pomodoro.service';
 import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { CarUsbMp3Job } from '../convertToMp3/carUsbJob';
 import { MusicMoodService } from '../musicMood/musicMood.service';
-import { isMoodId } from '../musicMood/moodPlaylist';
+import { isMoodId, SIMILAR_MODE } from '../musicMood/moodPlaylist';
 import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { SynchronizeService } from './synchronize.service';
 import { PlaylistExportService } from './playlistExport.service';
@@ -140,7 +140,7 @@ export class APIService {
     musicMoodAnalyzeNow: '/cloud/music-mood/analyze-now', // POST -> { ok }
     musicMoodStop: '/cloud/music-mood/stop',             // POST -> { ok }
     musicMoodSettings: '/cloud/music-mood/settings',     // GET -> MusicMoodSettings; POST MusicMoodSettings -> { ok, settings }
-    musicMoodPlaylist: '/cloud/music-mood/playlist',     // POST { folderPath, mood, count } -> MoodPlaylistResult
+    musicMoodPlaylist: '/cloud/music-mood/playlist',     // POST { folderPath, mood, count, seedPaths?, includeSeedSongs? } -> MoodPlaylistResult ("comoLista" pide seedPaths)
   };
   static synchronize = {
     export:         '/synchronize/export',    // GET  — server packages data/ as zip
@@ -1093,10 +1093,21 @@ export class APIService {
     this.app.post(APIService.cloudEndpointList.musicMoodPlaylist, (req, res) => {
       const service = MusicMoodService.Instance;
       if (!service) return res.status(503).json({ error: 'Music mood service not ready' });
-      const { folderPath, mood, count } = req.body ?? {};
-      if (typeof folderPath !== 'string' || !isMoodId(mood) || !Number.isFinite(Number(count))) {
+      const { folderPath, mood, count, seedPaths, includeSeedSongs } = req.body ?? {};
+      if (typeof folderPath !== 'string' || !Number.isFinite(Number(count))) {
         return res.status(400).json({ error: 'Expected { folderPath, mood, count }' });
       }
+      if (mood === SIMILAR_MODE) {
+        const seeds = Array.isArray(seedPaths)
+          ? seedPaths.filter((p: unknown): p is string => typeof p === 'string' && p.trim() !== '').slice(0, 200)
+          : [];
+        if (seeds.length === 0) return res.status(400).json({ error: 'Expected seedPaths' });
+        service.buildSimilarPlaylist(folderPath, seeds, Number(count), includeSeedSongs === true)
+          .then(result => res.send(result))
+          .catch(() => res.status(500).json({ error: 'Playlist error' }));
+        return;
+      }
+      if (!isMoodId(mood)) return res.status(400).json({ error: 'Unknown mood' });
       service.buildPlaylist(folderPath, mood, Number(count))
         .then(result => res.send(result))
         .catch(() => res.status(500).json({ error: 'Playlist error' }));

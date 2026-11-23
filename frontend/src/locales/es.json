@@ -324,13 +324,23 @@
       "created": "Lista «{{mood}}»: {{count}} canciones.",
       "partial": "Aún faltan por analizar {{missing}} de {{total}} canciones de esta carpeta.",
       "noSongs": "No hay canciones analizadas en esta carpeta todavía. El análisis se hace por la noche (o con «Analizar ahora» en Configuración > Otros).",
+      "seed": "Lista o canción patrón",
+      "seedHelp": "Busca canciones de esta carpeta que suenen parecido",
+      "pickSeed": "Elegir carpeta o canción patrón",
+      "pickSeedTitle": "Lista o canción patrón",
+      "includeSeed": "Incluir también las canciones del patrón",
+      "seedRequired": "Elige una carpeta o canción patrón",
+      "noSeedSongs": "La lista patrón aún no tiene canciones analizadas.",
+      "partialSeed": "Del patrón solo hay {{analyzed}} de {{total}} canciones analizadas.",
+      "similarName": "Como «{{name}}»",
       "moods": {
         "energetico": "Energético",
         "fiesta": "Fiesta",
         "tranquilo": "Tranquilo",
         "melancolico": "Melancólico",
         "oscuro": "Oscuro / intenso",
-        "epico": "Épico"
+        "epico": "Épico",
+        "comoLista": "Como esta lista…"
       }
     }
   },

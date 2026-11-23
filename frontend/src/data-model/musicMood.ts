@@ -34,16 +34,27 @@ export interface MusicMoodStatus {
   lastRunEnd: number;
 }
 
+/** "Como esta lista": canciones parecidas a una carpeta o canción patrón. */
+export const SIMILAR_MODE = 'comoLista';
+export type PlaylistMood = MoodId | typeof SIMILAR_MODE;
+
 export interface MoodPlaylistRequest {
   folderPath: string;
-  mood: MoodId;
+  mood: PlaylistMood;
   count: number;
+  /** Solo con SIMILAR_MODE: carpetas y/o canciones patrón. */
+  seedPaths?: string[];
+  /** Solo con SIMILAR_MODE: incluir también las canciones del patrón (por defecto no). */
+  includeSeedSongs?: boolean;
 }
 
 export interface MoodPlaylistResponse {
   songs: { path: string; name: string }[];
   analyzedInFolder: number;
   totalInFolder: number;
+  /** Solo con SIMILAR_MODE. */
+  analyzedInSeed?: number;
+  totalInSeed?: number;
 }
 
 export const musicMoodSettingsMock = (): MusicMoodSettings => ({ startHour: 1, endHour: 7, ignoredPaths: ['cloud/01_CONVERTIDOS'] });
