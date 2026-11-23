@@ -102,6 +102,55 @@ export const Rss = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Las imágenes se cargan de forma diferida (loading="lazy") y las tarjetas crecen
+  // al llegar el unfurl, así que la altura de la página cambia mientras bajamos.
+  // Al pulsar "bajar" seguimos el final de la página cada vez que crece, hasta que
+  // el usuario interactúa o la altura se mantiene estable un rato.
+  const stopFollowBottomRef = React.useRef<(() => void) | null>(null);
+  const scrollToBottom = () => {
+    stopFollowBottomRef.current?.();
+
+    const STABLE_TIME = 4000;   // ms sin crecer la página para dejar de seguir
+    const MAX_TIME    = 30000;  // tiempo máximo siguiendo el final
+    const goBottom = () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+
+    let lastHeight = document.documentElement.scrollHeight;
+    let stableTimer = window.setTimeout(() => stop(), STABLE_TIME);
+    const maxTimer = window.setTimeout(() => stop(), MAX_TIME);
+
+    const observer = new ResizeObserver(() => {
+      const height = document.documentElement.scrollHeight;
+      if (height === lastHeight) return;
+      lastHeight = height;
+      goBottom();
+      window.clearTimeout(stableTimer);
+      stableTimer = window.setTimeout(() => stop(), STABLE_TIME);
+    });
+
+    // Cualquier interacción del usuario cancela el seguimiento
+    const userEvents: (keyof WindowEventMap)[] = ['wheel', 'touchstart', 'mousedown', 'keydown'];
+    const onUserInteraction = () => stop();
+
+    const stop = () => {
+      observer.disconnect();
+      window.clearTimeout(stableTimer);
+      window.clearTimeout(maxTimer);
+      userEvents.forEach(evt => window.removeEventListener(evt, onUserInteraction));
+      if (stopFollowBottomRef.current === stop) stopFollowBottomRef.current = null;
+    };
+
+    stopFollowBottomRef.current = stop;
+    observer.observe(document.body);
+    // Se registran tras el clic actual para que el propio clic no cancele
+    window.setTimeout(() => {
+      if (stopFollowBottomRef.current === stop) {
+        userEvents.forEach(evt => window.addEventListener(evt, onUserInteraction, { passive: true }));
+      }
+    }, 0);
+    goBottom();
+  };
+  React.useEffect(() => () => stopFollowBottomRef.current?.(), []);
+
   // ── SAVED manager ───────────────────────────────────────────────────────────
   const [managerOpen, setManagerOpen] = React.useState(false);
 
@@ -318,7 +367,7 @@ export const Rss = () => {
         size="medium"
         color="primary"
         aria-label={t('rss.scrollTop')}
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        onClick={() => { stopFollowBottomRef.current?.(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
       >
         <KeyboardArrowUpIcon />
@@ -330,7 +379,7 @@ export const Rss = () => {
         size="medium"
         color="primary"
         aria-label={t('rss.scrollBottom')}
-        onClick={() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' })}
+        onClick={scrollToBottom}
         sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
       >
         <KeyboardArrowDownIcon />
