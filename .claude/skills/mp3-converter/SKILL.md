@@ -41,7 +41,9 @@ Backend (`src/convertToMp3/`):
 - **Mutual exclusion**: only one converter runs at a time. The pendrive `start`
   refuses while the old converter is busy (`!isFinishedConverter`), and the old
   video/audio endpoints refuse while `carUsbJob.isRunning()`. A new converter
-  must join this check.
+  must join this check, and also the `MusicMoodService.addBusyCheck('Conversión a
+  MP3', …)` in `api.service.ts`, so the nightly mood analysis pauses while it
+  runs. A finished conversion writes to the Cloud, so it calls `markDirty()`.
 - **Paths** are relative to the cloud root (`cloud/...`; first segment = drive).
   Everything goes through `toSafeAbsolute`, which rejects paths escaping the
   root. Never build absolute paths from request input directly.

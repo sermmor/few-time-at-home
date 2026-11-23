@@ -25,7 +25,8 @@ Frontend:
   and calls `synchronizeWithCloud(actions)` to reload the folder.
 - `view/organism/TitleAndListWithFolders/TitleAndListWithFolders.tsx` — the
   sticky **toolbar** (select, move, photo library, new file/folder, upload,
-  drives, "·" dotfiles toggle, sync, up) and the list. Each toolbar button is
+  drives, "·" dotfiles toggle, "Lista por ánimo" mood playlists (only on the
+  `cloud` drive, see the `music-mood` skill), sync, up) and the list. Each toolbar button is
   an optional prop: it only renders when the page passes it. This organism is
   shared with Bookmarks, so new buttons must stay optional.
 - `view/molecules/ItemListWithFoldersComponent` — per-row delete, "+" (add to
@@ -61,7 +62,13 @@ Backend: `src/API/cloud.service.ts` (`CloudService`), endpoints in
   while navigating, hides dotfiles, and shows items inside an already selected
   folder as checked + disabled (selecting a folder drops its selected
   descendants). For a single folder use `ModalCloudBrowser` instead. Used by the
-  MP3 converter's pendrive tab (see the `mp3-converter` skill).
+  MP3 converter's pendrive tab (see the `mp3-converter` skill) and by the mood
+  playlist's "Como esta lista…" pattern picker.
+  When testing, **clicking an item's name toggles its checkbox**. Only the row's
+  "Abrir" button enters a folder. The breadcrumb ("Inicio › cloud") goes back up.
+- **Any Cloud write endpoint** (upload, move, rename, delete, extract,
+  conversions) must also call `MusicMoodService.Instance?.markDirty()`, so the
+  nightly mood analysis rescans the Cloud.
 - **Download a cloud file** from any page:
   `CloudActions.downloadFile({ drive: path.split('/')[0], path })` (hits
   `GET /cloud/download-file`). In the browser pane the request shows as
@@ -99,3 +106,5 @@ Backend: `src/API/cloud.service.ts` (`CloudService`), endpoints in
   shell can turn into a backspace character.
 - The music queue: the player bar's "Ver cola de reproducción" button expands
   it. Empty it afterwards ("Eliminar de la cola").
+- Folder-name clicks on the Cloud page itself can land on the row's rename
+  field. Navigate with the folder link or icon, or by URL, instead.

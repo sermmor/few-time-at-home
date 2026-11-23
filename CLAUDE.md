@@ -103,6 +103,11 @@ in several Desktop widgets. Judge your change by "no **new** errors".
 - Check horizontal overflow with the `mobile` preset and
   `document.documentElement.scrollWidth` vs `clientWidth`, not by eye. A
   `maxWidth: '100%'` child does not shrink inside a flex column with no width.
+- `find` may not match an icon-only button by its `aria-label`/`title`. Fall
+  back to `document.querySelector('[aria-label="…"]').click()` in
+  `javascript_tool`. The same applies to deep navigation inside a picker dialog.
+- When a page's text is not in the accessibility tree, the API response is the
+  fastest proof: fetch its body with `read_network_requests` and its `requestId`.
 - Screenshots can catch MUI animations mid-way (e.g. the Tabs indicator); check
   state (`aria-selected`) before calling it a bug.
 
@@ -125,6 +130,11 @@ in several Desktop widgets. Judge your change by "no **new** errors".
 - `src/recommendation/` — the `/rss` "Recomiéndame" recommender (RAM-only
   ranking, `data/config/recomendaciones.json` for dismissals, 6:30 Telegram
   digest). Its hooks are registered from `setup/bootstrap.ts`. See `rss-page`.
+- `src/musicMood/` — the Cloud "Lista por ánimo" playlists. A no-AI nightly
+  audio analysis (ffmpeg + hand-written DSP) builds the regenerable
+  `data/music-mood/index.json`. The analysis pauses through `addBusyCheck` while
+  RSS updates or MP3 conversions run, and every Cloud write endpoint calls
+  `MusicMoodService.Instance?.markDirty()`. See `music-mood`.
 - `src/telegramBot/` — Telegram bot (`TelegramBot.Instance()`).
 - `src/youtube/` — the `/youtube` page's `youtubei.js` runs in a **child process**
   (`youtube.worker.ts`, forked by `youtubeLib.ts`), not in the backend. It is **not**
@@ -190,5 +200,8 @@ Read the relevant rule before touching that area:
 - `mp3-converter` — `/cloud/mp3-converter`: folder converter and "Pendrive del
   coche" tabs, ffmpeg re-encode + zip job, progress/log sync, testing with
   generated audio.
+- `music-mood` — mood playlists and "Como esta lista…" on the Cloud player:
+  nightly analysis, index and fingerprints, mood rules, settings in
+  Configuration › Otros, and measuring/tuning quality with a leave-half-out test.
 - `ftah-app` — build the Flutter `ftahApp`, window/icon setup, Supabase settings,
   GitHub Actions.

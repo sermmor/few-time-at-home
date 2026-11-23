@@ -26,6 +26,18 @@ persisted file must be wired into both, and old files must keep loading.
 The sync export zips the whole `data/` folder, so files there are exported
 automatically. Only the weekly backup needs the explicit entry.
 
+**Exception: regenerable caches.** A large file that the app can rebuild by
+itself (e.g. the music mood index `data/music-mood/index.json`, rebuilt by
+re-analysing the Cloud) stays **out** of the weekly backup on purpose, to keep
+the zip small. Say so in a comment next to its path constant. Its user settings
+(`data/config/musicMood.json`) still go in the backup.
+
+**Minimise SD-card writes** for anything a background job updates (the Pi runs
+on an SD card). Keep the state in RAM, write only when something actually
+changed, batch writes (e.g. every N items plus once at the end), and write
+atomically (`.tmp` + `rename`). Never write on every request or every tick.
+Cheap "something changed" signals (`markDirty()`) live in RAM only.
+
 ## Backward compatibility of stored files
 Files written by older versions must keep working; never require a migration
 just to add a field.
