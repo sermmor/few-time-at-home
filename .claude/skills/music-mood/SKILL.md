@@ -29,6 +29,17 @@ Backend, under `src/musicMood/`:
   - The fingerprint is size plus a hash of the first and last 64 KB, so a
     rename or move does not re-analyze the song.
   - `walkCloud` scans the `cloud` drive only (not trash) and skips ignored paths.
+    **It follows symbolic links.** On the Pi, `cloud/Música` is a link to another
+    disk. A `Dirent` from `readdir(..., { withFileTypes: true })` reports a link
+    as neither `isDirectory()` nor `isFile()`, so links are resolved with
+    `stat`. A walk that silently skipped them reported
+    "Cloud revisada: 0 nuevas, 0 quitadas".
+    Each real folder (`realpath`) is walked once, so link loops are safe. If the
+    same folder is linked twice, only the first name gets indexed.
+    Indexed paths keep the link's name (`cloud/Música/...`), and ignored paths
+    match those logical paths.
+    Test with `fs.symlinkSync(target, link, 'junction')` in a scratchpad root
+    (junctions need no admin rights on Windows).
 - `moods.ts`:
   - `buildLibraryStats` turns every feature into a **percentile of the owner's own
     library**.
