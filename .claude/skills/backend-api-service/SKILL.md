@@ -39,6 +39,8 @@ registered in the central router `backend/src/API/api.service.ts`.
 - Background auto-update flows live in `src/processAutoupdate/` and
   `src/workerModule/`. The media auto-update (`mediaRSSAutoupdate.ts`) takes a
   `connectToTelegram` flag — respect it (telegram-guard rule).
+- Anything about the `/rss` page, its feeds in RAM, Guardados or the
+  recommender: load the `rss-page` skill.
 
 ## Build gotchas
 - Backend compiles with `npx tsc` (`rootDir: src`, output `build/`). **Do not put

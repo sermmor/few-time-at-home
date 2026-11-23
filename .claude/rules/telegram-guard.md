@@ -25,3 +25,9 @@ When adding a service that can notify via Telegram:
 1. Take the sender as an optional param / respect the `connectToTelegram` flag.
 2. Never send unconditionally at module load or in a constructor.
 3. Guard every call site so dev mode and offline runs stay silent and safe.
+4. Scheduled messages (`node-schedule`): create the service in
+   `setup/bootstrap.ts` with `keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined`
+   and **only call `scheduleJob` when the sender exists** (see `AemetService`,
+   `recommendation/dailyRecommendations.ts`).
+5. Test with a fake sender (`msg => list.push(msg)`) in a scratchpad script; never
+   flip `connect_to_telegram` in the local `keys.json` to try a message.

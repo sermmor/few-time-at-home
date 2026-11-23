@@ -19,6 +19,12 @@ logs and continues (and scrubs bot tokens from the message). Do not remove it.
 - Best-effort startup helpers (e.g. `ensurePythonTapo.ts`) must have a top-level
   `try/catch` and never throw.
 - No network calls in constructors or at module load — do them on demand.
+- **No cross-service side effects at module load either** (e.g. assigning
+  `OtherService.someHook = ...` at the bottom of a file). The backend has import
+  cycles (`mediaRSSAutoupdate → … → synchronize.service → …`), so a class may
+  still be uninitialised and boot dies with `Cannot access 'X' before
+  initialization`. Export a `registerXxxHooks()` and call it from
+  `setup/bootstrap.ts` (see `registerRecommendationHooks`).
 
 ## Result
 Running on a foreign network (travel) must still boot the app; unreachable

@@ -122,6 +122,9 @@ in several Desktop widgets. Judge your change by "no **new** errors".
   `smart-home` skill.
 - `src/*RSS/`, `src/processAutoupdate/`, `src/workerModule/` — RSS sources and
   background update workers.
+- `src/recommendation/` — the `/rss` "Recomiéndame" recommender (RAM-only
+  ranking, `data/config/recomendaciones.json` for dismissals, 6:30 Telegram
+  digest). Its hooks are registered from `setup/bootstrap.ts`. See `rss-page`.
 - `src/telegramBot/` — Telegram bot (`TelegramBot.Instance()`).
 - `src/youtube/` — the `/youtube` page's `youtubei.js` runs in a **child process**
   (`youtube.worker.ts`, forked by `youtubeLib.ts`), not in the backend. It is **not**
@@ -178,6 +181,9 @@ Read the relevant rule before touching that area:
   normalization, normal/tablet/mobile modes, widget coordinates and zoom.
 - `alexa-live` — casting music/video to the `/alexa` receiver: Live button,
   `/alexa/*` endpoints, cross-device `localhost` URLs, keep-screen-on on Android.
+- `rss-page` — `/rss`: message string format, categories and the IR handler,
+  card buttons and parallel arrays, gradual images and scroll Fabs, Guardados,
+  the "Recomiéndame" recommender + daily Telegram digest, ftahApp feeds.
 - `cloud-page` — the Cloud file browser: toolbar, row actions (zip/extract),
   hidden dotfiles, music queue from folders, testing with throwaway folders,
   reusing the multi-select picker and downloads from other pages.
