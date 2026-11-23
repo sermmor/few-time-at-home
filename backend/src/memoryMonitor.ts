@@ -1,5 +1,5 @@
 import { appendFile, mkdir, rename, stat } from 'fs/promises';
-import { getHeapStatistics } from 'v8';
+import { getHeapStatistics, writeHeapSnapshot } from 'v8';
 import { WorkerChildParentHandle } from './workerModule/workersManager/workerChildParentHandle';
 import { WorkerManager } from './workerModule/workersManager/workerManager';
 import { WebSocketsServerService } from './webSockets/webSocketsServer.service';
@@ -62,8 +62,43 @@ const logMemory = (): void => {
   }
 };
 
+// Volcados del heap (.heapsnapshot) a ciertas horas de uptime. Comparando dos
+// se ve qué objetos se acumulan y quién los retiene. Se toman 30 min antes de
+// que empiece un ciclo RSS (cada 6 h) para que el anterior ya haya terminado y
+// no salgan datos temporales del ciclo. Cada volcado ocupa más o menos lo que
+// el heap y congela el proceso unos segundos mientras se escribe.
+// Para probar en local: MEMORY_SNAPSHOT_HOURS="0.01,0.02".
+const DEFAULT_SNAPSHOT_HOURS = [11.5, 35.5];
+
+const getSnapshotHours = (): number[] => {
+  const fromEnv = (process.env.MEMORY_SNAPSHOT_HOURS ?? '')
+    .split(',').map(Number).filter(h => Number.isFinite(h) && h > 0);
+  return fromEnv.length > 0 ? fromEnv : DEFAULT_SNAPSHOT_HOURS;
+};
+
+const takeHeapSnapshot = async (): Promise<void> => {
+  try {
+    await mkdir(LOG_DIR, { recursive: true });
+    const uptimeH = (process.uptime() / 3600).toFixed(1);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filePath = `${LOG_DIR}/heap-${stamp}-uptime${uptimeH}h.heapsnapshot`;
+    console.log(`> [memory] Escribiendo volcado del heap en ${filePath}…`);
+    logMemory();
+    writeHeapSnapshot(filePath);
+    console.log(`> [memory] Volcado del heap terminado: ${filePath}`);
+  } catch (e: any) {
+    console.error(`> [memory] No se pudo escribir el volcado del heap: ${e?.message ?? e}`);
+  }
+};
+
 export const startMemoryMonitor = (): void => {
   logMemory();
   // unref: el temporizador no mantiene vivo el proceso por sí solo
   setInterval(logMemory, INTERVAL_MS).unref();
+
+  const uptimeMs = process.uptime() * 1000;
+  for (const hours of getSnapshotHours()) {
+    const delay = Math.max(0, hours * 60 * 60 * 1000 - uptimeMs);
+    setTimeout(() => { void takeHeapSnapshot(); }, delay).unref();
+  }
 };
