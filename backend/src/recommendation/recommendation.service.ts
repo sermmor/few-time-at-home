@@ -96,6 +96,16 @@ export class RecommendationService {
     }
   };
 
+  /** Los N primeros del ranking con todos sus datos (fuente, clave...). Nunca lanza. */
+  getTopItems = async (amount: number): Promise<RecommendedItem[]> => {
+    try {
+      return (await this.ensureRanked()).slice(0, Math.max(0, amount));
+    } catch (err) {
+      console.error('[Recommendations] Error al obtener recomendaciones:', err);
+      return [];
+    }
+  };
+
   /** "No me interesa": se guarda (escritura agrupada) y se quita del ranking sin recalcular. */
   dismiss = async (message: string): Promise<void> => {
     if (!message) return;
@@ -211,10 +221,17 @@ export class RecommendationService {
   };
 }
 
-// Enganches: se registran al cargar el módulo (sin disco ni red).
-ReadLaterMessagesRSS.onChange = messages => RecommendationService.Instance.onSavedChanged(messages);
-MediaRSSAutoupdate.onUpdated = () => RecommendationService.Instance.onRssUpdated();
-MediaRSSAutoupdate.extraSupabaseFeeds = async () => {
-  const { messages } = await RecommendationService.Instance.getRecommendations(60);
-  return [{ feedKey: 'recommended', messages }];
+/**
+ * Enganches con guardados, actualización de RSS y Supabase (sin disco ni red).
+ * Se llama desde bootstrap y no al cargar el módulo: hay un ciclo de imports
+ * (mediaRSSAutoupdate → … → synchronize.service → aquí) y tocar las clases en la
+ * carga del módulo podría fallar según el orden en que se importen.
+ */
+export const registerRecommendationHooks = (): void => {
+  ReadLaterMessagesRSS.onChange = messages => RecommendationService.Instance.onSavedChanged(messages);
+  MediaRSSAutoupdate.onUpdated = () => RecommendationService.Instance.onRssUpdated();
+  MediaRSSAutoupdate.extraSupabaseFeeds = async () => {
+    const { messages } = await RecommendationService.Instance.getRecommendations(60);
+    return [{ feedKey: 'recommended', messages }];
+  };
 };

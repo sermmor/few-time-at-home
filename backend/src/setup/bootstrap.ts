@@ -28,6 +28,8 @@ import { DesktopRemoteService }   from '../API/desktopRemote.service';
 import { ensurePythonTapo }       from '../smartHome/ensurePythonTapo';
 import { ensureYoutubeLib }       from '../youtube/youtubeLib';
 import { startMemoryMonitor }     from '../memoryMonitor';
+import { DailyRecommendations }   from '../recommendation/dailyRecommendations';
+import { registerRecommendationHooks } from '../recommendation/recommendation.service';
 
 export const bootstrapApp = (): void => {
   // Best-effort: install the Python `tapo` library if needed (for the Auto page).
@@ -76,11 +78,15 @@ export const bootstrapApp = (): void => {
         const bot      = new TelegramBot(keyData);
         const commands: TelegramBotCommand = getAllMessageCommands(channelMediaCollection);
         bot.start(commands);
+        registerRecommendationHooks();
         new MediaRSSAutoupdate(commands, !!keyData.connect_to_telegram);
         new APIService(keyData, channelMediaCollection, commands);
 
         // Always instantiate so weather browser endpoints work even without Telegram.
         new AemetService(keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined);
+
+        // Resumen diario de Recomiéndame (6:30). Sin Telegram no programa nada.
+        new DailyRecommendations(keyData?.connect_to_telegram ? bot.sendMessageToTelegram : undefined);
 
         // Initialise the Drive service after TelegramBot so it can send a
         // notification if the OAuth refresh token has expired (invalid_grant).

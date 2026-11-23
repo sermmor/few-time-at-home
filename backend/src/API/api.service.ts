@@ -39,7 +39,6 @@ import * as http from 'http';
 import * as https from 'https';
 import { MediaRSSAutoupdate, MediaType } from '../processAutoupdate/mediaRSSAutoupdate';
 import { SmartHomeService } from './smartHome.service';
-// Al importarlo se registran los enganches del recomendador (guardados, actualización RSS, Supabase)
 import { RecommendationService } from '../recommendation/recommendation.service';
 import { SavedCommandsService } from './savedCommands.service';
 // import { NitterRSSMessageList } from '../nitterRSS';
