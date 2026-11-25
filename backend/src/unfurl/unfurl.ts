@@ -1,7 +1,7 @@
 import { unfurl } from 'unfurl.js';
 import { Metadata } from 'unfurl.js/dist/types';
 import { awaitMilliseconds, readJSONFile, saveInAFilePromise } from '../utils';
-import { UnfurlCacheData, UnfurlCacheService } from './unfurlCache.service';
+import { UnfurlCacheData, UnfurlCacheService, flattenString } from './unfurlCache.service';
 export { UnfurlCacheData };
 // import { ExtractorUtilities } from "../utils";
 
@@ -60,10 +60,11 @@ const getInformation = (result: Metadata, unfurlType: 'title' | 'urlImage' | 'de
 export const getUnfurl = (url: string): Promise<UnfurlData> => new Promise<UnfurlData>(resolve => {
   try {
     unfurl(url).then(result => {
+      // flattenString: soltar la referencia al HTML descargado (fuga de memoria)
       resolve({
-        title: getInformation(result, 'title'),
-        urlImage: getInformation(result, 'urlImage'),
-        description: getInformation(result, 'description').substring(0, 400),
+        title: flattenString(getInformation(result, 'title')),
+        urlImage: flattenString(getInformation(result, 'urlImage')),
+        description: flattenString(getInformation(result, 'description').substring(0, 400)),
       });
     }).catch(reason => resolve({
       title: '',

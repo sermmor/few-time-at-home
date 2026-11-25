@@ -15,6 +15,17 @@ export interface UnfurlCacheData extends UnfurlData {
   date: Date;
 }
 
+/**
+ * Devuelve una copia plana del string. unfurl.js saca el título y la
+ * descripción recortando el HTML descargado, y V8 los guarda como "sliced
+ * strings" que apuntan a la página entera (varios MB). Si se guardan tal cual
+ * en la caché, cada entrada retiene su página completa en memoria y el heap
+ * crece hasta reventar tras varios días. Pasar por un Buffer crea un string
+ * nuevo e independiente, y la página ya se puede liberar.
+ */
+export const flattenString = (value: string | undefined | null): string =>
+  value ? Buffer.from(value, 'utf8').toString('utf8') : '';
+
 export class UnfurlCacheService {
   static _instance: UnfurlCacheService;
 
@@ -98,7 +109,14 @@ export class UnfurlCacheService {
   addDataToCache = (newData: UnfurlCacheData) => {
     const isAlreadyInCache = !!this.unfurlCache.find(({ url }) => newData.url === url);
     if (!isAlreadyInCache) {
-      this.unfurlCache.push(newData);
+      // Copias planas: que la caché no retenga el HTML de origen (ver flattenString)
+      this.unfurlCache.push({
+        ...newData,
+        url: flattenString(newData.url),
+        title: flattenString(newData.title),
+        urlImage: flattenString(newData.urlImage),
+        description: flattenString(newData.description),
+      });
       // Queue discipline: drop the oldest entry when the cap is exceeded
       if (this.unfurlCache.length > MAX_CACHE_ITEM_SIZE) {
         this.unfurlCache.shift();
