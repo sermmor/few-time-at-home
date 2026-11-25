@@ -57,6 +57,37 @@ Backend, under `src/musicMood/`:
     `transitionCost + distance`.
   - Pattern mode: distance = mean of the `SEED_NEIGHBOURS = 3` nearest pattern
     songs, with `SEED_AXES_WEIGHT = 0.25` (timbre-heavy).
+  - **One version per song** (`isSameSong`). Live, demo, single-edit and
+    re-encoded copies have different fingerprints and sound alike, so without this
+    the DJ ordering placed them back to back. Two candidates are the same song
+    if their title keys match (`sameSong.ts`), or if they last within ±2 s of
+    each other and have `songDistance < 0.12`, i.e. the same audio under another
+    name. Measured on 1,200 songs, 0.12 caught only real duplicates.
+    - The sampling skips clashes, then fills from the rest of the ranking.
+    - Only when there are not enough distinct songs does it reuse versions.
+      `orderForTransitions` then keeps them `SAME_SONG_GAP` (4) songs apart.
+    - In "Como esta lista…" without the pattern songs, their other versions are
+      excluded too (the `excluded` argument of `pickAndOrder`).
+    - `Candidate.titleKey` is a lazy getter. Computing keys for every song
+      doubled the time of a list on 7k songs (≈90 → 180 ms on a PC); now only
+      compared songs get one.
+- `sameSong.ts` — `songTitleKey(path, commonParts)` and `isSameTitle`:
+  - The key is the lowercase, accent-free title.
+  - Removed from it: the track number, bracketed or parenthesised text, version
+    words (live, demo, remix, edit…), years and long download ids. Short numbers
+    stay, so "Battle 1" ≠ "Battle 2".
+  - The title is the **last** " - " part that is not in `folderCommonParts`.
+    Those are parts repeated in ≥60 % of the folder's files (artist, album, a
+    download site), as in "Pearl Jam - 01 - Once - Ten.mp3".
+  - Generic names ("Track 03", "Intro") get no key.
+  - Matching rules:
+    - equal keys;
+    - whole-word containment, if the shorter key has more than one word or is
+      ≥60 % of the longer;
+    - edit distance ≤15 % for keys of 6+ chars (typos such as "So Mach Is Lost").
+  - Over the 19k-file test library, about 2% of files get no key.
+  - Editing its regexes through a shell heredoc mangles the unicode escape,
+    `\b` and `\\`. Use the Edit tool.
 - `moodSettings.ts` — `data/config/musicMood.json` holds `startHour`, `endHour`
   (equal means no nightly run) and `ignoredPaths`, which defaults to
   `cloud/01_CONVERTIDOS`. It is in the weekly backup.
@@ -128,9 +159,25 @@ Results on 406 songs and 18 folders:
 | 0.5 | 0.32 |
 | 1 (axes only) | 0.16 |
 
+On 5,800 distinct songs and 60 folders (one file per title), the current
+setting scored 0.26. Weight 0.15 scored 0.27, which is within noise, so it was
+kept. Weight 0.35, L1, timbre means only and adding tempo all scored worse.
+
 Eclectic folders (e.g. a film soundtrack mixing surf, soul and dialogue) score
 ~0 with any weighting. That is expected, not a bug. Known weak moods:
 **Épico** and **Fiesta**.
+
+For a bigger corpus, analyze any music folder **into a scratchpad index**
+(never `backend/data`). Walk it, then for each file call `fingerprint` from
+`build/musicMood/moodIndex.js` and `analyzeSong` from `audioFeatures.js`, with
+about 6 in parallel (~4 songs/s on a PC). Store the keys as `cloud/<name>/…`.
+When measuring the similarity mode, keep only one file per title key in the
+corpus, so a live version does not count as a hit.
+
+To measure repeats, generate many lists with a seeded `random` and count pairs
+that pass `isSameTitle`, both anywhere in the list and adjacent. Compare against
+the old code: build `git show HEAD:…/moodPlaylist.ts` with esbuild into
+`build/musicMood/` under a throwaway name, then delete it.
 
 Tuning one mode must not change the other: pass a weight to `songDistance` rather
 than changing its default, since `transitionCost` uses it too.

@@ -10,6 +10,7 @@ import {
 } from './moods';
 import { isIgnoredPath, normalizeCloudPath } from './moodSettings';
 import { SongFeatures } from './audioFeatures';
+import { folderCommonParts, isSameTitle, songTitleKey } from './sameSong';
 
 export const MOOD_IDS = Object.keys(MOOD_LABELS) as MoodId[];
 export const isMoodId = (v: unknown): v is MoodId => typeof v === 'string' && (MOOD_IDS as string[]).includes(v);
@@ -46,7 +47,60 @@ interface Candidate {
   fingerprint: string;
   profile: SongProfile;
   distance: number;
+  /** Título normalizado (sameSong.ts), para no repetir versiones de una canción. */
+  readonly titleKey: string;
 }
+
+/** Dos canciones a menos de esta distancia y con la misma duración (±2 s) son el mismo
+ *  audio con otra codificación, aunque el nombre no ayude ("Track 03.mp3"). */
+const SAME_AUDIO_DISTANCE = 0.12;
+const SAME_AUDIO_SECONDS = 2;
+
+/** ¿Misma canción? (otra versión, otra codificación o el mismo mp3 en otra carpeta). */
+const isSameSong = (a: Candidate, b: Candidate): boolean =>
+  isSameTitle(a.titleKey, b.titleKey)
+  || (Math.abs(a.profile.f.duration - b.profile.f.duration) <= SAME_AUDIO_SECONDS
+    && songDistance(a.profile, b.profile) < SAME_AUDIO_DISTANCE);
+
+/** Si no hay más remedio que repetir canción, al menos tantas otras entre medias. */
+const SAME_SONG_GAP = 4;
+const SAME_SONG_PENALTY = 100;
+
+type TitleKeyOf = (path: string) => string;
+
+/** Clave de título de cada ruta, quitando lo que se repite en su carpeta (artista,
+ *  disco). Mira todos los ficheros de la carpeta en el índice, no solo los elegidos. */
+const titleKeyResolver = (index: MoodIndex): TitleKeyOf => {
+  let byDir: Map<string, string[]> | undefined;
+  const common = new Map<string, Set<string>>();
+  return path => {
+    if (!byDir) {
+      byDir = new Map();
+      for (const rel of Object.keys(index.files)) {
+        const dir = pathModule.posix.dirname(rel);
+        const list = byDir.get(dir);
+        if (list) list.push(rel); else byDir.set(dir, [rel]);
+      }
+    }
+    const dir = pathModule.posix.dirname(path);
+    let parts = common.get(dir);
+    if (!parts) { parts = folderCommonParts(byDir.get(dir) ?? []); common.set(dir, parts); }
+    return songTitleKey(path, parts);
+  };
+};
+
+/** La clave de título se calcula solo si se llega a comparar la canción (no las miles
+ *  de candidatas lejanas, que es lo que más costaba con una biblioteca grande). */
+const makeCandidate = (titleKeyOf: TitleKeyOf, path: string, fingerprint: string, profile: SongProfile, distance: number): Candidate => {
+  let key: string | undefined;
+  return {
+    path, fingerprint, profile, distance,
+    get titleKey() {
+      if (key === undefined) key = titleKeyOf(path);
+      return key;
+    },
+  };
+};
 
 interface FolderSongs {
   /** Huella -> ruta (una por huella: los duplicados suenan igual). */
@@ -90,26 +144,33 @@ const libraryStats = (index: MoodIndex): LibraryStats =>
 const clampCount = (count: number) => Math.max(1, Math.min(MAX_PLAYLIST_SONGS, Math.floor(count) || 1));
 
 /** Elige `count` elementos de `pool` (ordenado de mejor a peor) sin repetir, dando
- *  más probabilidad a los primeros: así pedir dos veces la misma lista da variedad. */
-const weightedSample = <T>(pool: T[], count: number, random: () => number): T[] => {
+ *  más probabilidad a los primeros: así pedir dos veces la misma lista da variedad.
+ *  Los que `clashes` con uno ya elegido se apartan en `skipped`. */
+const weightedSample = <T>(
+  pool: T[], count: number, random: () => number, clashes: (a: T, b: T) => boolean,
+): { picked: T[]; skipped: T[] } => {
   const left = pool.map((item, rank) => ({ item, weight: 1 - 0.7 * (rank / pool.length) }));
   const picked: T[] = [];
+  const skipped: T[] = [];
   while (picked.length < count && left.length > 0) {
     const total = left.reduce((a, c) => a + c.weight, 0);
     let r = random() * total;
     let i = 0;
     while (i < left.length - 1 && r >= left[i].weight) { r -= left[i].weight; i++; }
-    picked.push(left[i].item);
-    left.splice(i, 1);
+    const { item } = left.splice(i, 1)[0];
+    if (picked.some(p => clashes(p, item))) skipped.push(item);
+    else picked.push(item);
   }
-  return picked;
+  return { picked, skipped };
 };
 
 /** Ordena empezando por la que mejor encaja y siguiendo siempre por la transición
  *  más suave desde la anterior. */
 const orderForTransitions = (songs: Candidate[]): Candidate[] => {
-  if (songs.length <= 2) return [...songs].sort((a, b) => a.distance - b.distance);
   const left = [...songs].sort((a, b) => a.distance - b.distance);
+  if (left.length <= 1) return left;
+  // Solo hay que separar si se colaron versiones repetidas (pocas canciones distintas)
+  const hasRepeats = left.some((a, i) => left.some((b, j) => j > i && isSameSong(a, b)));
   const ordered = [left.shift()!];
   while (left.length > 0) {
     const last = ordered[ordered.length - 1].profile;
@@ -117,7 +178,9 @@ const orderForTransitions = (songs: Candidate[]): Candidate[] => {
     let bestCost = Infinity;
     left.forEach((c, i) => {
       // Un poco de peso al objetivo para que la lista no derive hacia otra cosa
-      const cost = transitionCost(last, c.profile) + c.distance;
+      let cost = transitionCost(last, c.profile) + c.distance;
+      // Una versión de la misma canción suena casi igual: sin esto saldría justo detrás
+      if (hasRepeats && ordered.slice(-SAME_SONG_GAP).some(o => isSameSong(o, c))) cost += SAME_SONG_PENALTY;
       if (cost < bestCost) { bestCost = cost; best = i; }
     });
     ordered.push(left.splice(best, 1)[0]);
@@ -126,10 +189,26 @@ const orderForTransitions = (songs: Candidate[]): Candidate[] => {
 };
 
 /** Toma las mejores candidatas (con algo de azar) y las ordena tipo DJ. */
-const pickAndOrder = (candidates: Candidate[], wanted: number, random: () => number): MoodPlaylistSong[] => {
+/** `excluded`: canciones que no pueden salir en ninguna versión (las del patrón). */
+const pickAndOrder = (
+  candidates: Candidate[], wanted: number, random: () => number, excluded: Candidate[] = [],
+): MoodPlaylistSong[] => {
   const sorted = [...candidates].sort((a, b) => a.distance - b.distance);
-  const poolSize = Math.min(sorted.length, Math.max(wanted * 2, wanted + 5));
-  const picked = weightedSample(sorted.slice(0, poolSize), wanted, random);
+  const usable = (c: Candidate) => !excluded.some(e => isSameSong(e, c));
+  const poolSize = Math.max(wanted * 2, wanted + 5);
+  const pool: Candidate[] = [];
+  let next = 0;
+  for (; next < sorted.length && pool.length < poolSize; next++) if (usable(sorted[next])) pool.push(sorted[next]);
+  const { picked, skipped } = weightedSample(pool, wanted, random, isSameSong);
+  // Faltan (había versiones repetidas en el grupo): siguen las mejores del resto, sin repetir canción
+  for (let i = next; i < sorted.length && picked.length < wanted; i++) {
+    if (!usable(sorted[i])) continue;
+    if (picked.some(p => isSameSong(p, sorted[i]))) skipped.push(sorted[i]);
+    else picked.push(sorted[i]);
+  }
+  // Pocas canciones distintas: se repiten versiones (la ordenación las separa)
+  skipped.sort((a, b) => a.distance - b.distance);
+  picked.push(...skipped.slice(0, wanted - picked.length));
   return orderForTransitions(picked).map(c => ({ path: c.path, name: pathModule.posix.basename(c.path) }));
 };
 
@@ -146,9 +225,10 @@ export const buildMoodPlaylist = (
   if (analyzed.length === 0) return result;
 
   const stats = libraryStats(index);
+  const titleKeyOf = titleKeyResolver(index);
   const candidates: Candidate[] = analyzed.map(({ path, fingerprint, f }) => {
     const profile = buildProfile(f, stats);
-    return { path, fingerprint, profile, distance: moodDistance(profile.axes, mood) };
+    return makeCandidate(titleKeyOf, path, fingerprint, profile, moodDistance(profile.axes, mood));
   });
   result.songs = pickAndOrder(candidates, clampCount(count), random);
   return result;
@@ -184,14 +264,17 @@ export const buildSimilarPlaylist = (
   if (folder.analyzed.length === 0 || seed.analyzed.length === 0) return result;
 
   const stats = libraryStats(index);
-  const seedProfiles = seed.analyzed.map(s => buildProfile(s.f, stats));
+  const titleKeyOf = titleKeyResolver(index);
+  const seedCandidates = seed.analyzed.map(s => makeCandidate(titleKeyOf, s.path, s.fingerprint, buildProfile(s.f, stats), 0));
+  const seedProfiles = seedCandidates.map(s => s.profile);
   const seedFingerprints = new Set(seed.analyzed.map(s => s.fingerprint));
   const candidates: Candidate[] = folder.analyzed
     .filter(s => includeSeedSongs || !seedFingerprints.has(s.fingerprint))
     .map(({ path, fingerprint, f }) => {
       const profile = buildProfile(f, stats);
-      return { path, fingerprint, profile, distance: distanceToSeed(profile, seedProfiles) };
+      return makeCandidate(titleKeyOf, path, fingerprint, profile, distanceToSeed(profile, seedProfiles));
     });
-  result.songs = pickAndOrder(candidates, clampCount(count), random);
+  // Sin las del patrón, tampoco otras versiones suyas (la en vivo de una canción del patrón)
+  result.songs = pickAndOrder(candidates, clampCount(count), random, includeSeedSongs ? [] : seedCandidates);
   return result;
 };
