@@ -2,9 +2,10 @@ import { Box, Button, Link, SxProps, TextField, Theme } from "@mui/material";
 import React from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import { UnfurlActions } from "../../../core/actions/unfurl";
 
-export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly, onClickUrl, onExtract, extractTitle}: {
+export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor, onChange, isReadOnly, onClickUrl, onExtract, extractTitle, onPlaylist, playlistTitle}: {
   textToShow: string,
   textUrl: string,
   backgroundColor?: string,
@@ -15,7 +16,11 @@ export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor,
   /** Si se indica, muestra un botón para descomprimir el fichero (.zip/.rar). */
   onExtract?: () => void,
   extractTitle?: string,
+  /** Si se indica, muestra un botón para abrir el fichero como lista de reproducción (.m3u8). */
+  onPlaylist?: () => void,
+  playlistTitle?: string,
 }) => {
+  const hasRowAction = !!onExtract || !!onPlaylist;
   const colorRow: SxProps<Theme> = backgroundColor ? { backgroundColor } : {};
   const [isInEditMode, setEditMode] = React.useState<boolean>(false);
   const [isTextToShowChanged, setIsTextToShowChanged] = React.useState<boolean>(false);
@@ -65,18 +70,24 @@ export const LabelAndUrlField = ({textToShow, textUrl, hideUrl, backgroundColor,
         {textToShowEditing ? textToShowEditing : '<No title>'}
       </Box>
       {
+        onPlaylist &&
+          <Link title={playlistTitle} aria-label={playlistTitle} sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onPlaylist}>
+            <QueueMusicIcon />
+          </Link>
+      }
+      {
         onExtract &&
-          <Link title={extractTitle} sx={{ marginLeft: {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onExtract}>
+          <Link title={extractTitle} sx={{ marginLeft: onPlaylist ? undefined : {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onExtract}>
             <UnarchiveIcon />
           </Link>
       }
       {
         onClickUrl ? 
-          <Link target='_blank' rel='noreferrer' sx={{ marginLeft: onExtract ? undefined : {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onClickUrl}>
+          <Link target='_blank' rel='noreferrer' sx={{ marginLeft: hasRowAction ? undefined : {xs: 'none', sm:'auto'}, cursor: 'pointer'}} onClick={onClickUrl}>
             <OpenInNewIcon />
           </Link>
         :
-          <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: onExtract ? undefined : {xs: 'none', sm:'auto'}}}>
+          <Link href={textUrlEditing} target='_blank' rel='noreferrer' sx={{ marginLeft: hasRowAction ? undefined : {xs: 'none', sm:'auto'}}}>
             <OpenInNewIcon />
           </Link>
       }

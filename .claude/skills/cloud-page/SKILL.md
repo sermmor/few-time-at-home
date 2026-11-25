@@ -54,6 +54,36 @@ Backend: `src/API/cloud.service.ts` (`CloudService`), endpoints in
 - **Add folder to the music queue** (`addToPlaylist`): only audio files, never
   dotfiles (a `._song.mp3` passes the extension check) or images.
 
+## Playlist files (.m3u8, VLC-compatible)
+The music player can open, edit and save queues as playlist files in the cloud.
+- Backend: `src/API/cloudPlaylist.service.ts`, with endpoints
+  `POST /cloud/playlist/read { path }` → `{ songs, missing, relocated }` and
+  `POST /cloud/playlist/save { path, songs, overwrite }` →
+  `{ path, saved, exists? }`. Plus `GET /cloud/raw/*splat`, which streams any
+  cloud file (with Range support) so VLC can open a playlist by URL.
+- **Why this survives IP changes:** entries are paths *relative to the playlist
+  folder* (`../Música/x.mp3`), never URLs. VLC resolves them against wherever
+  the playlist came from, either `http://<any-ip>:3001/cloud/raw/...` or a local
+  or shared file. Reading is tolerant: it also accepts backslashes, `file://`,
+  absolute cloud paths and old backend URLs with any host. A missing song is
+  relocated by basename (`listAudioFiles` from `musicMood/moodIndex.ts`); the
+  longest common folder tail wins, and a tie stays missing.
+- Saving keeps only songs that exist (`saved` is the count kept) and writes
+  atomically. Only the `cloud` drive is allowed.
+- Escape `%`, `#` and `?` in entries (`escapeM3uEntry`): VLC treats relative
+  entries as URIs, so a raw `#` truncates the name.
+- **Express 5 `res.sendFile` does not decode the path.** Pass the plain path
+  with `{ root: cloudRootPath }`, not the URL-encoded segments, or you get a 404.
+- Frontend: `view/pages/Cloud/ModalPlaylistFile.tsx` (`ModalOpenPlaylist`,
+  `ModalSavePlaylist`, `VlcLinkField`). Playlist rows get a `QueueMusicIcon`
+  (`onPlaylist` on `LabelAndUrlField`). `MusicPlayerBar` shows the list name
+  (with ` *` when modified), a save button and "Vaciar la cola". The keys are
+  under `cloud.playlistFile.*`.
+- Testing: post JSON with Node `fetch` from a scratchpad script. curl from Git
+  Bash mangles non-ASCII bodies ("Música" arrives broken). To check with VLC, run
+  `vlc --extraintf http --http-password t --http-port 9191 <playlist url>`, query
+  `http://:t@localhost:9191/requests/playlist.json`, then kill VLC.
+
 ## Reusing the Cloud from other pages
 - **Pick several items**: `view/molecules/ModalCloudMultiSelect` (props
   `isOpen`, `onClose`, `onAccept(selection)`, `initialSelection`, `title`,

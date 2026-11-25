@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, SxProps, Theme, useMediaQuery } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import { CloudItem } from "../../../data-model/cloud";
+import { CloudItem, isPlaylistFileName } from "../../../data-model/cloud";
 import { CloudActions } from "../../../core/actions/cloud";
 import { TitleAndListWithFolders } from "../../organism/TitleAndListWithFolders/TitleAndListWithFolders";
 import { LabelAndTextFieldWithFolder } from "../../molecules/LabelAndTextFieldWithFolder/LabelAndTextFieldWithFolder";
@@ -22,6 +22,7 @@ import { cloudFilesName, routesFTAH } from "../../Routes";
 import { MusicPlayerBar, PLAYER_BAR_HEIGHT } from "../../molecules/MusicPlayerBar/MusicPlayerBar";
 import { ModalMoodPlaylist, MoodPlaylistMode } from "./ModalMoodPlaylist";
 import { MoodPlaylistResponse } from "../../../data-model/musicMood";
+import { ModalOpenPlaylist, ModalSavePlaylist, OpenPlaylistMode, parentFolder, playlistDisplayName } from "./ModalPlaylistFile";
 
 const cloudDriveName = 'cloud';
 const trashDriveName = 'trash';
@@ -179,8 +180,10 @@ export const Cloud = () => {
   // ── Music playlist ────────────────────────────────────────────────────────
   const [playlist, setPlaylist] = React.useState<CloudItem[]>([]);
 
+  // La unidad sale de la ruta ("cloud/…"): la cola puede tener canciones de otra
+  // unidad que la que se está viendo (listas, ánimo…).
   const getStreamUrlMemo = React.useCallback(
-    (item: CloudItem) => CloudActions.getStreamUrl({ drive: currentDrive, path: item.path }),
+    (item: CloudItem) => CloudActions.getStreamUrl({ drive: item.path.split('/')[0] || currentDrive, path: item.path }),
     [currentDrive],
   );
 
@@ -237,6 +240,61 @@ export const Cloud = () => {
     setErrorSnackbar(false);
     setOpenSnackbar(true);
   };
+
+  // Listas de reproducción en ficheros .m3u8 de la Cloud (ver ModalPlaylistFile)
+  /** Lista cargada o guardada por última vez: su ruta y sus canciones, para saber si la cola cambió. */
+  const [loadedPlaylist, setLoadedPlaylist] = React.useState<{ path: string; songPaths: string[] } | undefined>();
+  const [playlistToOpen, setPlaylistToOpen] = React.useState<string | undefined>();
+  const [isOpenSavePlaylistDialog, setOpenSavePlaylistDialog] = React.useState(false);
+
+  React.useEffect(() => { if (playlist.length === 0) setLoadedPlaylist(undefined); }, [playlist.length]);
+
+  const isPlaylistModified = loadedPlaylist !== undefined && (
+    loadedPlaylist.songPaths.length !== playlist.length || loadedPlaylist.songPaths.some((p, i) => p !== playlist[i].path));
+
+  const showSnackbar = (message: string, isError: boolean) => {
+    setSnackBarMessage(message);
+    setErrorSnackbar(isError);
+    setOpenSnackbar(true);
+  };
+
+  const openPlaylistFile = (mode: OpenPlaylistMode) => {
+    const path = playlistToOpen;
+    setPlaylistToOpen(undefined);
+    if (!path) return;
+    CloudActions.readPlaylist(path).then(result => {
+      if (result.isError || result.songs.length === 0) {
+        showSnackbar(result.isError ? t('cloud.playlistFile.readError') : t('cloud.playlistFile.empty', { missing: result.missing.length }), true);
+        return;
+      }
+      const items: CloudItem[] = result.songs.map(song => ({ name: song.name, path: song.path, isFolder: false, driveName: cloudDriveName }));
+      if (mode === 'replace') {
+        // Sin duplicados (el reproductor identifica cada canción por su ruta)
+        const unique = items.filter((item, i) => items.findIndex(other => other.path === item.path) === i);
+        setPlaylist(unique);
+        // Si se reubicaron canciones, la lista queda "modificada" para animar a guardarla
+        setLoadedPlaylist({ path, songPaths: result.relocated > 0 ? [] : unique.map(i => i.path) });
+      } else {
+        setPlaylist(prev => {
+          const existing = new Set(prev.map(p => p.path));
+          const toAdd = items.filter((item, i) => !existing.has(item.path) && items.findIndex(o => o.path === item.path) === i);
+          return [...prev, ...toAdd];
+        });
+      }
+      const notes = [t('cloud.playlistFile.loaded', { name: playlistDisplayName(path), count: result.songs.length })];
+      if (result.relocated > 0) notes.push(t('cloud.playlistFile.relocated', { count: result.relocated }));
+      if (result.missing.length > 0) notes.push(t('cloud.playlistFile.missing', { count: result.missing.length }));
+      showSnackbar(notes.join(' '), result.missing.length > 0);
+    });
+  };
+
+  const onPlaylistSaved = (path: string) => {
+    setLoadedPlaylist({ path, songPaths: playlist.map(p => p.path) });
+    if (parentFolder(path) === currentPathFolder) synchronizeWithCloud(action);
+  };
+
+  const saveFolderSuggestion = loadedPlaylist ? parentFolder(loadedPlaylist.path)
+    : (currentPathFolder === cloudDriveName || currentPathFolder.startsWith(`${cloudDriveName}/`)) ? currentPathFolder : cloudDriveName;
   // ─────────────────────────────────────────────────────────────────────────
 
   const getUrlCloudFile = (item: CloudItem) => downloadFileAndGetBlob(action, item);
@@ -319,6 +377,8 @@ export const Cloud = () => {
                 onClickUrl={() => downloadFile(action, item)}
                 onExtract={isAnArchiveFile(item.name) ? () => extractArchive(action, item.name) : undefined}
                 extractTitle={t('cloud.extractArchive')}
+                onPlaylist={currentDrive === cloudDriveName && isPlaylistFileName(item.name) ? () => setPlaylistToOpen(item.path) : undefined}
+                playlistTitle={t('cloud.playlistFile.openButton')}
                 onChange={(newTextToShow, newTextUrl) => renameCloudItem(action, item, newTextToShow, newTextUrl)}
                 />
               }
@@ -389,6 +449,25 @@ export const Cloud = () => {
       playlist={playlist}
       getStreamUrl={getStreamUrlMemo}
       onPlaylistChange={setPlaylist}
+      playlistName={loadedPlaylist ? playlistDisplayName(loadedPlaylist.path) : undefined}
+      isPlaylistModified={isPlaylistModified}
+      onSavePlaylist={() => setOpenSavePlaylistDialog(true)}
+    />
+    <ModalOpenPlaylist
+      isOpen={playlistToOpen !== undefined}
+      path={playlistToOpen ?? ''}
+      hasQueue={playlist.length > 0}
+      onClose={() => setPlaylistToOpen(undefined)}
+      onLoad={openPlaylistFile}
+    />
+    <ModalSavePlaylist
+      isOpen={isOpenSavePlaylistDialog}
+      onClose={() => setOpenSavePlaylistDialog(false)}
+      initialFolder={saveFolderSuggestion}
+      initialName={loadedPlaylist ? playlistDisplayName(loadedPlaylist.path) : t('cloud.playlistFile.defaultName')}
+      loadedPath={loadedPlaylist?.path}
+      songPaths={playlist.filter(p => p.path.startsWith(`${cloudDriveName}/`)).map(p => p.path)}
+      onSaved={onPlaylistSaved}
     />
   </Box>
   </ModalProgressComponent>;

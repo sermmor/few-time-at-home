@@ -19,6 +19,7 @@ import { ConvertToMP3 } from '../convertToMp3/convertToMp3';
 import { CarUsbMp3Job } from '../convertToMp3/carUsbJob';
 import { MusicMoodService } from '../musicMood/musicMood.service';
 import { isMoodId, SIMILAR_MODE } from '../musicMood/moodPlaylist';
+import { CloudPlaylistService, RAW_ROUTE_PREFIX } from './cloudPlaylist.service';
 import { WebSocketsServerService } from '../webSockets/webSocketsServer.service';
 import { SynchronizeService } from './synchronize.service';
 import { PlaylistExportService } from './playlistExport.service';
@@ -141,6 +142,9 @@ export class APIService {
     musicMoodStop: '/cloud/music-mood/stop',             // POST -> { ok }
     musicMoodSettings: '/cloud/music-mood/settings',     // GET -> MusicMoodSettings; POST MusicMoodSettings -> { ok, settings }
     musicMoodPlaylist: '/cloud/music-mood/playlist',     // POST { folderPath, mood, count, seedPaths?, includeSeedSongs? } -> MoodPlaylistResult ("comoLista" pide seedPaths)
+    playlistRead: '/cloud/playlist/read',                // POST { path } -> ReadPlaylistResult (lista .m3u/.m3u8 de la Cloud)
+    playlistSave: '/cloud/playlist/save',                // POST { path, songs: string[], overwrite? } -> SavePlaylistResult
+    raw: `${RAW_ROUTE_PREFIX}*splat`,                    // GET /cloud/raw/cloud/… -> el fichero (listas y canciones para VLC, sin IP en la lista)
   };
   static synchronize = {
     export:         '/synchronize/export',    // GET  — server packages data/ as zip
@@ -923,6 +927,38 @@ export class APIService {
 
   private cloudService() {
     const cloudService = new CloudService();
+    const playlistService = new CloudPlaylistService(() => ConfigurationService.Instance.cloudRootPath);
+
+    // Listas de reproducción (.m3u8) guardadas en la Cloud
+    this.app.post(APIService.cloudEndpointList.playlistRead, (req, res) => {
+      if (typeof req.body?.path !== 'string') return res.status(400).json({ error: 'Missing path' });
+      playlistService.read(req.body.path).then(result => res.send(result));
+    });
+
+    this.app.post(APIService.cloudEndpointList.playlistSave, (req, res) => {
+      const { path: playlistPath, songs, overwrite } = req.body ?? {};
+      if (typeof playlistPath !== 'string' || !Array.isArray(songs)) return res.status(400).json({ error: 'Missing path or songs' });
+      playlistService.save(playlistPath, songs, overwrite === true).then(result => {
+        if (!result.isError && !result.exists) MusicMoodService.Instance?.markDirty();
+        res.send(result);
+      });
+    });
+
+    // La Cloud por ruta, para abrir una lista en VLC u otro reproductor por HTTP:
+    // VLC resuelve las rutas relativas de la lista contra esta URL, así que las
+    // canciones se piden aquí mismo con la IP que tenga la Raspberry en ese momento.
+    this.app.get(APIService.cloudEndpointList.raw, (req, res) => {
+      const splat = (req.params as { splat?: string[] | string }).splat;
+      const requested = Array.isArray(splat) ? splat.join('/') : `${splat ?? ''}`;
+      playlistService.resolveRawPath(requested).then(found => {
+        if (!found) return res.status(404).json({ error: 'File not found' });
+        if (found.isPlaylist) res.type('audio/x-mpegurl; charset=utf-8');
+        // En Express 5 `send` NO decodifica la ruta: se pasa tal cual (sirve con "%", "#"…)
+        res.sendFile(found.cloudPath, { root: ConfigurationService.Instance.cloudRootPath }, err => {
+          if (err && !res.headersSent) res.status(404).end();
+        });
+      }).catch(() => { if (!res.headersSent) res.status(500).end(); });
+    });
 
     this.app.get(APIService.cloudEndpointList.getDrivesList, (req, res) => {
       res.send({driveList: cloudService.getDrivesList()});

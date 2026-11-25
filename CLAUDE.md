@@ -195,6 +195,7 @@ Read the relevant rule before touching that area:
   card buttons and parallel arrays, gradual images and scroll Fabs, Guardados,
   the "Recomiéndame" recommender + daily Telegram digest, ftahApp feeds.
 - `cloud-page` — the Cloud file browser: toolbar, row actions (zip/extract),
+  `.m3u8` playlist files (IP-independent relative entries, `/cloud/raw`),
   hidden dotfiles, music queue from folders, testing with throwaway folders,
   reusing the multi-select picker and downloads from other pages.
 - `mp3-converter` — `/cloud/mp3-converter`: folder converter and "Pendrive del
