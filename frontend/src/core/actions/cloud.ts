@@ -1,5 +1,5 @@
 
-import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest, MoveCloudRequest, SaveCloudFileRequest, ZipCloudRequest, ExtractArchiveCloudRequest, ExtractArchiveCloudResponse } from "../../data-model/cloud";
+import { CloudDataModel, CloudDrivesResponse, GenericCloudRequest, UpdatedResponse, MessageResponse, ChangePathCloudRequest, UploadFilesToCloudRequest, DownloadFileToCloudResquest, SearchItemsResquest, SearchItemsResponse, GetFolderCloudRequest, MoveCloudRequest, SaveCloudFileRequest, ZipCloudRequest, ExtractArchiveCloudRequest, ExtractArchiveCloudResponse, ReadPlaylistResponse, SavePlaylistRequest, SavePlaylistResponse } from "../../data-model/cloud";
 import { cloudDataModelMock, cloudDrivesResponseMock, messageResponseMock, updatedResponseMock } from "../../data-model/mock/cloudMock";
 import { fetchDownloadFile, fetchDownloadFileAndGetBlob, fetchGetTextDownloadFile, fetchJsonReceive, fetchJsonSendAndReceive, fetchSendFileAndReceiveConfirmation } from "../fetch-utils";
 import { getCloudEndpoint } from "../urls-and-end-points";
@@ -61,4 +61,21 @@ const extractArchive = (data: ExtractArchiveCloudRequest) =>
 const getStreamUrl = (data: DownloadFileToCloudResquest): string =>
   `${getCloudEndpoint('streamFile')}?drive=${encodeURIComponent(data.drive)}&path=${encodeURIComponent(data.path)}`;
 
-export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, searchAllItemsInFolderDeep, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, extractArchive, getStreamUrl };
+// Lee una lista .m3u/.m3u8 de la Cloud: solo devuelve canciones que están en la Cloud.
+const readPlaylist = (path: string) =>
+  fetchJsonSendAndReceive<ReadPlaylistResponse>(getCloudEndpoint('playlistRead'), { path },
+    { isError: true, message: 'Error reading the playlist', songs: [], missing: [], relocated: 0 });
+
+// Guarda la lista con rutas relativas a su carpeta (sin IP: sigue valiendo si cambia).
+const savePlaylist = (data: SavePlaylistRequest) =>
+  fetchJsonSendAndReceive<SavePlaylistResponse>(getCloudEndpoint('playlistSave'), data,
+    { isError: true, message: 'Error saving the playlist' });
+
+/**
+ * URL de un fichero de la Cloud por su ruta ("cloud/Listas/Mi lista.m3u8"). Para VLC:
+ * como las canciones de la lista son relativas, VLC las pide a esta misma ruta.
+ */
+const getRawUrl = (path: string): string =>
+  `${getCloudEndpoint('raw')}/${path.split('/').map(encodeURIComponent).join('/')}`;
+
+export const CloudActions = { getDrivesList, getAllFolderItems, searchAllItemsInFolder, searchAllItemsInFolderDeep, createFolder, createBlankFile, saveFile, moveItem, renameItem, uploadFile, downloadFile, downloadFileAndGetBlob, deleteFileOrFolder, openFileContentInEditor, zipFolder, extractArchive, getStreamUrl, readPlaylist, savePlaylist, getRawUrl };

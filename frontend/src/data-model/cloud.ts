@@ -107,3 +107,39 @@ export interface SearchItemsResquest {
 export interface SearchItemsResponse {
   search: { path: string }[];
 }
+// ── Listas de reproducción (.m3u8 en la Cloud) ──────────────────────────────
+export const PLAYLIST_FILE_EXTENSIONS = ['.m3u8', '.m3u'];
+export const isPlaylistFileName = (name: string) => PLAYLIST_FILE_EXTENSIONS.some(ext => name.toLowerCase().endsWith(ext));
+
+export interface PlaylistSong {
+  /** Ruta relativa a la raíz de la Cloud: "cloud/Música/…/canción.mp3". */
+  path: string;
+  name: string;
+}
+
+export interface ReadPlaylistResponse {
+  isError: boolean;
+  message: string;
+  songs: PlaylistSong[];
+  /** Entradas de la lista que no están en la Cloud. */
+  missing: string[];
+  /** Canciones que ya no estaban en su ruta y se han encontrado en otra carpeta. */
+  relocated: number;
+}
+
+export interface SavePlaylistRequest {
+  /** "cloud/Listas/Mi lista" (sin extensión se guarda como .m3u8). */
+  path: string;
+  songs: string[];
+  overwrite?: boolean;
+}
+
+export interface SavePlaylistResponse {
+  isError: boolean;
+  message: string;
+  path?: string;
+  /** Canciones guardadas (las que no están en la Cloud se descartan). */
+  saved?: number;
+  /** Ya existía y no se pidió sobrescribir: no se ha guardado. */
+  exists?: boolean;
+}

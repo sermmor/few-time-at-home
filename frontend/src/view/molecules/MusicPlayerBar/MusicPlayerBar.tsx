@@ -10,6 +10,8 @@ import DragHandleIcon from '@mui/icons-material/DragHandle';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import IosShareIcon from '@mui/icons-material/IosShare';
+import SaveIcon from '@mui/icons-material/Save';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
 import WifiTetheringOffIcon from '@mui/icons-material/WifiTetheringOff';
 import CastIcon from '@mui/icons-material/Cast';
@@ -68,10 +70,16 @@ interface Props {
   playlist: CloudItem[];
   getStreamUrl: (item: CloudItem) => string;
   onPlaylistChange: (newPlaylist: CloudItem[]) => void;
+  /** Nombre de la lista (.m3u8) cargada, para la cabecera de la cola. */
+  playlistName?: string;
+  /** La cola ya no coincide con la lista cargada (se marca con "*"). */
+  isPlaylistModified?: boolean;
+  /** Si se indica, muestra el botón "Guardar lista" en la cabecera de la cola. */
+  onSavePlaylist?: () => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Props): JSX.Element | null => {
+export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange, playlistName, isPlaylistModified, onSavePlaylist }: Props): JSX.Element | null => {
   const audioRef = React.useRef<HTMLAudioElement>(null);
 
   // ── Local playback state ───────────────────────────────────────────────────
@@ -557,8 +565,28 @@ export const MusicPlayerBar = ({ playlist, getStreamUrl, onPlaylistChange }: Pro
               color: '#7a7a9a', textTransform: 'uppercase',
               letterSpacing: '0.08em', fontWeight: 600, fontSize: '0.68rem', flexGrow: 1,
             }}>
-              Cola de reproducción · {playlist.length} {playlist.length === 1 ? 'canción' : 'canciones'}
+              {playlistName ? `${playlistName}${isPlaylistModified ? ' *' : ''}` : 'Cola de reproducción'} · {playlist.length} {playlist.length === 1 ? 'canción' : 'canciones'}
             </Typography>
+            {onSavePlaylist && (
+              <IconButton
+                size="small"
+                onClick={onSavePlaylist}
+                title="Guardar lista en la Cloud (.m3u8)"
+                aria-label="Guardar lista en la Cloud"
+                sx={{ color: isPlaylistModified ? '#1db954' : '#484868', padding: '4px', '&:hover': { color: '#1db954' } }}
+              >
+                <SaveIcon sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            )}
+            <IconButton
+              size="small"
+              onClick={() => { if (window.confirm('¿Vaciar la cola de reproducción?')) onPlaylistChange([]); }}
+              title="Vaciar la cola"
+              aria-label="Vaciar la cola"
+              sx={{ color: '#484868', padding: '4px', '&:hover': { color: '#e05252' } }}
+            >
+              <ClearAllIcon sx={{ fontSize: '1rem' }} />
+            </IconButton>
             <IconButton
               size="small"
               onClick={() => setShareDialogOpen(true)}

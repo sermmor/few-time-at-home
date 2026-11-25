@@ -106,7 +106,7 @@ const entryKind = async (entry: Dirent, absPath: string): Promise<'dir' | 'file'
 /** Lista los audios de la Cloud (sin carpetas/ficheros ocultos) con su tamaño y fecha.
  *  Sigue los enlaces simbólicos; cada carpeta real se recorre una sola vez, así un
  *  enlace a una carpeta superior no crea un bucle infinito. */
-const listAudioFiles = async (cloudRoot: string, ignoredPaths: string[], shouldStop: () => boolean): Promise<Map<string, { size: number; mtimeMs: number }>> => {
+export const listAudioFiles = async (cloudRoot: string, ignoredPaths: string[], shouldStop: () => boolean): Promise<Map<string, { size: number; mtimeMs: number }>> => {
   const found = new Map<string, { size: number; mtimeMs: number }>();
   const visited = new Set<string>();
   const pending = [SCANNED_DRIVE];

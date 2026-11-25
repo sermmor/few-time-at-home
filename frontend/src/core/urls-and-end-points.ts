@@ -44,7 +44,7 @@ const smartHomeEndpointList = {
 };
 export const getSmartHomeEndpoint = (typeEndpoint: SmartHomeEndpointType): string => `${getUrlApi()}${smartHomeEndpointList[typeEndpoint]}`;
 
-export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'searchInFolderDeep' | 'deleteFileOrFolder' | 'zipFolder' | 'extractArchive';
+export type CloudEndpointType = 'getDrivesList' | 'getFolderContent' | 'createFolder' | 'moveItem' | 'renameItem' | 'createBlankFile' | 'saveFile' | 'uploadFile' | 'downloadFile' | 'streamFile' | 'searchInFolder' | 'searchInFolderDeep' | 'deleteFileOrFolder' | 'zipFolder' | 'extractArchive' | 'playlistRead' | 'playlistSave' | 'raw';
 const cloudEndpointList = {
   'getDrivesList': '/cloud/drives',
   'getFolderContent': '/cloud/get-folder-content',
@@ -61,6 +61,10 @@ const cloudEndpointList = {
   'deleteFileOrFolder': '/cloud/delete',
   'zipFolder': '/cloud/zip-folder',
   'extractArchive': '/cloud/extract-archive',
+  'playlistRead': '/cloud/playlist/read',
+  'playlistSave': '/cloud/playlist/save',
+  // GET por ruta: /cloud/raw/cloud/Listas/Mi%20lista.m3u8 (para abrir listas en VLC)
+  'raw': '/cloud/raw',
 };
 
 export const getCloudEndpoint = (typeEndpoint: CloudEndpointType) => `${getUrlApi()}${cloudEndpointList[typeEndpoint]}`;
